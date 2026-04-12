@@ -9,8 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
+import { Route as MonCompteRouteImport } from './routes/mon-compte'
+import { Route as MesReservationsRouteImport } from './routes/mes-reservations'
+import { Route as LocationBusRouteImport } from './routes/location-bus'
+import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TransportScolaireRoute = TransportScolaireRouteImport.update({
+  id: '/transport-scolaire',
+  path: '/transport-scolaire',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MonCompteRoute = MonCompteRouteImport.update({
+  id: '/mon-compte',
+  path: '/mon-compte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MesReservationsRoute = MesReservationsRouteImport.update({
+  id: '/mes-reservations',
+  path: '/mes-reservations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationBusRoute = LocationBusRouteImport.update({
+  id: '/location-bus',
+  path: '/location-bus',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CircuitsRoute = CircuitsRouteImport.update({
+  id: '/circuits',
+  path: '/circuits',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +49,102 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/circuits': typeof CircuitsRoute
+  '/location-bus': typeof LocationBusRoute
+  '/mes-reservations': typeof MesReservationsRoute
+  '/mon-compte': typeof MonCompteRoute
+  '/transport-scolaire': typeof TransportScolaireRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/circuits': typeof CircuitsRoute
+  '/location-bus': typeof LocationBusRoute
+  '/mes-reservations': typeof MesReservationsRoute
+  '/mon-compte': typeof MonCompteRoute
+  '/transport-scolaire': typeof TransportScolaireRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/circuits': typeof CircuitsRoute
+  '/location-bus': typeof LocationBusRoute
+  '/mes-reservations': typeof MesReservationsRoute
+  '/mon-compte': typeof MonCompteRoute
+  '/transport-scolaire': typeof TransportScolaireRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/circuits'
+    | '/location-bus'
+    | '/mes-reservations'
+    | '/mon-compte'
+    | '/transport-scolaire'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/circuits'
+    | '/location-bus'
+    | '/mes-reservations'
+    | '/mon-compte'
+    | '/transport-scolaire'
+  id:
+    | '__root__'
+    | '/'
+    | '/circuits'
+    | '/location-bus'
+    | '/mes-reservations'
+    | '/mon-compte'
+    | '/transport-scolaire'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CircuitsRoute: typeof CircuitsRoute
+  LocationBusRoute: typeof LocationBusRoute
+  MesReservationsRoute: typeof MesReservationsRoute
+  MonCompteRoute: typeof MonCompteRoute
+  TransportScolaireRoute: typeof TransportScolaireRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/transport-scolaire': {
+      id: '/transport-scolaire'
+      path: '/transport-scolaire'
+      fullPath: '/transport-scolaire'
+      preLoaderRoute: typeof TransportScolaireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mon-compte': {
+      id: '/mon-compte'
+      path: '/mon-compte'
+      fullPath: '/mon-compte'
+      preLoaderRoute: typeof MonCompteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mes-reservations': {
+      id: '/mes-reservations'
+      path: '/mes-reservations'
+      fullPath: '/mes-reservations'
+      preLoaderRoute: typeof MesReservationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/location-bus': {
+      id: '/location-bus'
+      path: '/location-bus'
+      fullPath: '/location-bus'
+      preLoaderRoute: typeof LocationBusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/circuits': {
+      id: '/circuits'
+      path: '/circuits'
+      fullPath: '/circuits'
+      preLoaderRoute: typeof CircuitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +157,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CircuitsRoute: CircuitsRoute,
+  LocationBusRoute: LocationBusRoute,
+  MesReservationsRoute: MesReservationsRoute,
+  MonCompteRoute: MonCompteRoute,
+  TransportScolaireRoute: TransportScolaireRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
