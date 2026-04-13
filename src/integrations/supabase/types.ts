@@ -14,16 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      payments: {
+        Row: {
+          admin_comment: string | null
+          amount: number
+          created_at: string
+          id: string
+          method: string
+          reservation_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_comment?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          method?: string
+          reservation_id: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_comment?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string
+          reservation_id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          admin_comment: string | null
+          created_at: string
+          details: Json
+          id: string
+          paid_amount: number
+          reservation_date: string
+          service_type: Database["public"]["Enums"]["service_type"]
+          status: Database["public"]["Enums"]["reservation_status"]
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_comment?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          paid_amount?: number
+          reservation_date: string
+          service_type: Database["public"]["Enums"]["service_type"]
+          status?: Database["public"]["Enums"]["reservation_status"]
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_comment?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          paid_amount?: number
+          reservation_date?: string
+          service_type?: Database["public"]["Enums"]["service_type"]
+          status?: Database["public"]["Enums"]["reservation_status"]
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      payment_status: "PENDING" | "VALIDATED" | "REJECTED"
+      reservation_status:
+        | "PENDING_PAYMENT"
+        | "CONFIRMED"
+        | "REJECTED"
+        | "CANCELLED"
+      service_type:
+        | "TRANSPORT_SCOLAIRE"
+        | "LOCATION_BUS"
+        | "CIRCUIT_TOURISTIQUE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +299,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      payment_status: ["PENDING", "VALIDATED", "REJECTED"],
+      reservation_status: [
+        "PENDING_PAYMENT",
+        "CONFIRMED",
+        "REJECTED",
+        "CANCELLED",
+      ],
+      service_type: [
+        "TRANSPORT_SCOLAIRE",
+        "LOCATION_BUS",
+        "CIRCUIT_TOURISTIQUE",
+      ],
+    },
   },
 } as const
