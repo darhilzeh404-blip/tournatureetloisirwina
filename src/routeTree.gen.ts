@@ -14,7 +14,13 @@ import { Route as MonCompteRouteImport } from './routes/mon-compte'
 import { Route as MesReservationsRouteImport } from './routes/mes-reservations'
 import { Route as LocationBusRouteImport } from './routes/location-bus'
 import { Route as CircuitsRouteImport } from './routes/circuits'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminReservationsRouteImport } from './routes/admin/reservations'
+import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
+import { Route as AdminClientsRouteImport } from './routes/admin/clients'
+import { Route as AdminBusRouteImport } from './routes/admin/bus'
 
 const TransportScolaireRoute = TransportScolaireRouteImport.update({
   id: '/transport-scolaire',
@@ -41,19 +47,55 @@ const CircuitsRoute = CircuitsRouteImport.update({
   path: '/circuits',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReservationsRoute = AdminReservationsRouteImport.update({
+  id: '/reservations',
+  path: '/reservations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPaiementsRoute = AdminPaiementsRouteImport.update({
+  id: '/paiements',
+  path: '/paiements',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminClientsRoute = AdminClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBusRoute = AdminBusRouteImport.update({
+  id: '/bus',
+  path: '/bus',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/circuits': typeof CircuitsRoute
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/transport-scolaire': typeof TransportScolaireRoute
+  '/admin/bus': typeof AdminBusRoute
+  '/admin/clients': typeof AdminClientsRoute
+  '/admin/paiements': typeof AdminPaiementsRoute
+  '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,25 +104,42 @@ export interface FileRoutesByTo {
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/transport-scolaire': typeof TransportScolaireRoute
+  '/admin/bus': typeof AdminBusRoute
+  '/admin/clients': typeof AdminClientsRoute
+  '/admin/paiements': typeof AdminPaiementsRoute
+  '/admin/reservations': typeof AdminReservationsRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/circuits': typeof CircuitsRoute
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/transport-scolaire': typeof TransportScolaireRoute
+  '/admin/bus': typeof AdminBusRoute
+  '/admin/clients': typeof AdminClientsRoute
+  '/admin/paiements': typeof AdminPaiementsRoute
+  '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/circuits'
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
     | '/transport-scolaire'
+    | '/admin/bus'
+    | '/admin/clients'
+    | '/admin/paiements'
+    | '/admin/reservations'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,18 +148,30 @@ export interface FileRouteTypes {
     | '/mes-reservations'
     | '/mon-compte'
     | '/transport-scolaire'
+    | '/admin/bus'
+    | '/admin/clients'
+    | '/admin/paiements'
+    | '/admin/reservations'
+    | '/admin'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/circuits'
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
     | '/transport-scolaire'
+    | '/admin/bus'
+    | '/admin/clients'
+    | '/admin/paiements'
+    | '/admin/reservations'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CircuitsRoute: typeof CircuitsRoute
   LocationBusRoute: typeof LocationBusRoute
   MesReservationsRoute: typeof MesReservationsRoute
@@ -145,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CircuitsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -152,11 +230,65 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reservations': {
+      id: '/admin/reservations'
+      path: '/reservations'
+      fullPath: '/admin/reservations'
+      preLoaderRoute: typeof AdminReservationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/paiements': {
+      id: '/admin/paiements'
+      path: '/paiements'
+      fullPath: '/admin/paiements'
+      preLoaderRoute: typeof AdminPaiementsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/clients': {
+      id: '/admin/clients'
+      path: '/clients'
+      fullPath: '/admin/clients'
+      preLoaderRoute: typeof AdminClientsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/bus': {
+      id: '/admin/bus'
+      path: '/bus'
+      fullPath: '/admin/bus'
+      preLoaderRoute: typeof AdminBusRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminBusRoute: typeof AdminBusRoute
+  AdminClientsRoute: typeof AdminClientsRoute
+  AdminPaiementsRoute: typeof AdminPaiementsRoute
+  AdminReservationsRoute: typeof AdminReservationsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminBusRoute: AdminBusRoute,
+  AdminClientsRoute: AdminClientsRoute,
+  AdminPaiementsRoute: AdminPaiementsRoute,
+  AdminReservationsRoute: AdminReservationsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   CircuitsRoute: CircuitsRoute,
   LocationBusRoute: LocationBusRoute,
   MesReservationsRoute: MesReservationsRoute,
