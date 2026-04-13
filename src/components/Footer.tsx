@@ -46,7 +46,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground">
+        <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground" suppressHydrationWarning>
           © {new Date().getFullYear()} Agence Wina. Tous droits réservés.
         </div>
       </div>
