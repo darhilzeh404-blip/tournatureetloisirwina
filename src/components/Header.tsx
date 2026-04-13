@@ -7,6 +7,7 @@ const navLinks = [
   { to: "/location-bus", label: "Location de Bus" },
   { to: "/circuits", label: "Circuits Touristiques" },
   { to: "/mes-reservations", label: "Mes Réservations" },
+  { to: "/admin", label: "Admin" },
 ] as const;
 
 export function Header() {
