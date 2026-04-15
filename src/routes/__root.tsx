@@ -1,4 +1,6 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
+import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
@@ -23,7 +25,7 @@ function NotFoundComponent() {
   );
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -58,20 +60,24 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
   const location = useLocation();
   const isAdmin = location.pathname.startsWith("/admin");
 
-  if (isAdmin) {
-    return <Outlet />;
-  }
-
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">
+    <QueryClientProvider client={queryClient}>
+      {isAdmin ? (
         <Outlet />
-      </main>
-      <Footer />
-    </div>
+      ) : (
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
+      )}
+      <Toaster position="top-right" richColors />
+    </QueryClientProvider>
   );
 }
