@@ -23,10 +23,11 @@ function InscriptionPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  if (isAuthenticated) {
-    navigate({ to: "/mes-reservations" });
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate({ to: "/mes-reservations" });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
