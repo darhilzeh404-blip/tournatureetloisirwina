@@ -1,5 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { User, Mail, Phone, MapPin } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
+import { User, Mail, Phone, LogIn } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/mon-compte")({
   head: () => ({
@@ -12,40 +15,55 @@ export const Route = createFileRoute("/mon-compte")({
 });
 
 function MonComptePage() {
-  return (
-    <section className="mx-auto max-w-2xl px-4 py-10 lg:px-8">
-      <h1 className="text-2xl font-bold">Mon Compte</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Gérez votre profil et vos informations personnelles.</p>
+  const { isAuthenticated, isLoading, role, user } = useAuth();
+  const navigate = useNavigate();
 
-      <div className="mt-8 rounded-2xl border bg-card p-6">
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-            <User className="h-8 w-8 text-primary" />
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && role) {
+      navigate({ to: getRoleRedirectPath(role) });
+    }
+  }, [isLoading, isAuthenticated, role, navigate]);
+
+  if (isLoading) {
+    return (
+      <section className="mx-auto max-w-2xl px-4 py-10 lg:px-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 w-48 rounded bg-muted" />
+          <div className="h-4 w-72 rounded bg-muted" />
+        </div>
+      </section>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <section className="flex min-h-[60vh] items-center justify-center px-4 py-10">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+            <LogIn className="h-7 w-7 text-primary" />
           </div>
-          <div>
-            <h2 className="text-lg font-bold">Connectez-vous</h2>
-            <p className="text-sm text-muted-foreground">Pour accéder à votre compte et vos réservations.</p>
+          <h1 className="text-2xl font-bold">Connexion requise</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Connectez-vous pour accéder à votre espace.
+          </p>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <Link
+              to="/connexion"
+              className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Se connecter
+            </Link>
+            <Link
+              to="/inscription"
+              className="rounded-xl border border-input bg-background px-6 py-2.5 text-sm font-medium text-foreground hover:bg-secondary"
+            >
+              Créer un compte
+            </Link>
           </div>
         </div>
+      </section>
+    );
+  }
 
-        <div className="mt-6 space-y-4">
-          <div>
-            <label className="mb-1.5 flex items-center gap-2 text-sm font-medium"><Mail className="h-4 w-4 text-muted-foreground" /> Email</label>
-            <input type="email" placeholder="votre@email.com" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label className="mb-1.5 flex items-center gap-2 text-sm font-medium"><Phone className="h-4 w-4 text-muted-foreground" /> Téléphone</label>
-            <input type="tel" placeholder="+241 XX XX XX XX" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
-          </div>
-          <div>
-            <label className="mb-1.5 flex items-center gap-2 text-sm font-medium"><MapPin className="h-4 w-4 text-muted-foreground" /> Adresse</label>
-            <input type="text" placeholder="Votre adresse" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
-          </div>
-          <button className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-            Se connecter
-          </button>
-        </div>
-      </div>
-    </section>
-  );
+  return null;
 }

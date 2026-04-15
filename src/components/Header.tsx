@@ -1,17 +1,25 @@
-import { Link } from "@tanstack/react-router";
-import { Bus, Menu, X } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Bus, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 
 const navLinks = [
   { to: "/transport-scolaire", label: "Transport Scolaire" },
   { to: "/location-bus", label: "Location de Bus" },
   { to: "/circuits", label: "Circuits Touristiques" },
-  { to: "/mes-reservations", label: "Mes Réservations" },
-  { to: "/admin", label: "Admin" },
 ] as const;
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate({ to: "/" });
+  };
+
+  const dashboardPath = getRoleRedirectPath(role);
 
   return (
     <header className="sticky top-0 z-50 glass-card">
@@ -34,12 +42,35 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          <Link
-            to="/mon-compte"
-            className="ml-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Mon Compte
-          </Link>
+
+          {!isLoading && isAuthenticated ? (
+            <>
+              <Link
+                to={dashboardPath}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                activeProps={{ className: "rounded-lg px-3 py-2 text-sm font-medium bg-secondary text-foreground" }}
+              >
+                <span className="flex items-center gap-1.5">
+                  <User className="h-4 w-4" />
+                  Mon Espace
+                </span>
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="ml-2 flex items-center gap-1.5 rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                <LogOut className="h-4 w-4" />
+                Déconnexion
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/connexion"
+              className="ml-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Connexion
+            </Link>
+          )}
         </nav>
 
         <button
@@ -65,13 +96,32 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              to="/mon-compte"
-              onClick={() => setMobileOpen(false)}
-              className="mt-2 rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground"
-            >
-              Mon Compte
-            </Link>
+
+            {!isLoading && isAuthenticated ? (
+              <>
+                <Link
+                  to={dashboardPath}
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
+                >
+                  Mon Espace
+                </Link>
+                <button
+                  onClick={() => { handleSignOut(); setMobileOpen(false); }}
+                  className="mt-2 rounded-lg border border-input bg-background px-4 py-2 text-center text-sm font-medium text-foreground"
+                >
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/connexion"
+                onClick={() => setMobileOpen(false)}
+                className="mt-2 rounded-lg bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground"
+              >
+                Connexion
+              </Link>
+            )}
           </nav>
         </div>
       )}

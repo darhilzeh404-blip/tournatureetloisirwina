@@ -62,11 +62,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
-  const isAdmin = location.pathname.startsWith("/admin");
+  const isFullScreenRoute = location.pathname.startsWith("/admin") ||
+    location.pathname.startsWith("/chauffeur") ||
+    location.pathname.startsWith("/gerant");
 
   return (
     <QueryClientProvider client={queryClient}>
-      {isAdmin ? (
+      {isFullScreenRoute ? (
         <Outlet />
       ) : (
         <div className="flex min-h-screen flex-col">

@@ -1,19 +1,24 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 const adminLinks = [
   { to: "/admin", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
+  { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Shield, exact: false },
   { to: "/admin/reservations", label: "Réservations", icon: CalendarCheck, exact: false },
   { to: "/admin/paiements", label: "Paiements", icon: CreditCard, exact: false },
   { to: "/admin/clients", label: "Clients", icon: Users, exact: false },
   { to: "/admin/bus", label: "Flotte Bus", icon: Bus, exact: false },
   { to: "/admin/offres", label: "Offres", icon: Tag, exact: false },
+  { to: "/admin/circuits", label: "Circuits", icon: Map, exact: false },
 ] as const;
 
 export function AdminSidebar() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   const isActive = (to: string, exact: boolean) =>
     exact ? location.pathname === to : location.pathname.startsWith(to);
@@ -43,7 +48,6 @@ export function AdminSidebar() {
 
   return (
     <>
-      {/* Mobile trigger */}
       <button
         onClick={() => setOpen(!open)}
         className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg lg:hidden"
@@ -52,12 +56,10 @@ export function AdminSidebar() {
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
 
-      {/* Mobile overlay */}
       {open && (
         <div className="fixed inset-0 z-40 bg-foreground/30 lg:hidden" onClick={() => setOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r bg-sidebar transition-transform lg:relative lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
@@ -72,7 +74,7 @@ export function AdminSidebar() {
 
         <div className="flex-1 overflow-y-auto p-3">{nav}</div>
 
-        <div className="border-t p-3">
+        <div className="border-t p-3 space-y-1">
           <Link
             to="/"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
@@ -80,6 +82,13 @@ export function AdminSidebar() {
             <ArrowLeft className="h-4 w-4" />
             Retour au site
           </Link>
+          <button
+            onClick={() => { signOut(); navigate({ to: "/" }); }}
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+          >
+            <LogOut className="h-4 w-4" />
+            Déconnexion
+          </button>
         </div>
       </aside>
     </>
