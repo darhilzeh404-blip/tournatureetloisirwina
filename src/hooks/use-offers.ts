@@ -1,13 +1,21 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type Offer = Tables<"offers">;
 
-export const offersQueryOptions = (serviceType?: string) =>
-  queryOptions({
-    queryKey: ["offers", serviceType ?? "all"],
-    queryFn: async () => {
+export function useOffers(serviceType?: string) {
+  const [data, setData] = useState<Offer[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchOffers() {
+      setIsLoading(true);
+      setError(null);
+
       let query = supabase
         .from("offers")
         .select("*")
@@ -18,12 +26,22 @@ export const offersQueryOptions = (serviceType?: string) =>
         query = query.eq("service_type", serviceType);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Offer[];
-    },
-  });
+      const { data: result, error: err } = await query;
 
-export function useOffers(serviceType?: string) {
-  return useQuery(offersQueryOptions(serviceType));
+      if (cancelled) return;
+
+      if (err) {
+        setError(new Error(err.message));
+        setData(null);
+      } else {
+        setData(result as Offer[]);
+      }
+      setIsLoading(false);
+    }
+
+    fetchOffers();
+    return () => { cancelled = true; };
+  }, [serviceType]);
+
+  return { data, isLoading, error };
 }
