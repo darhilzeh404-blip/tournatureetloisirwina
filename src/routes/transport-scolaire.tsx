@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { GraduationCap, ArrowRight } from "lucide-react";
+import { GraduationCap, ArrowRight, Loader2 } from "lucide-react";
+import { useOffers } from "@/hooks/use-offers";
 import scolaireImg from "@/assets/transport-scolaire.jpg";
 
 export const Route = createFileRoute("/transport-scolaire")({
@@ -15,31 +15,12 @@ export const Route = createFileRoute("/transport-scolaire")({
   component: TransportScolairePage,
 });
 
-const PRICES = {
-  "akanda-libreville": { standard: { ar: 80000, simple: 50000 }, vip: { ar: 150000, simple: 80000 } },
-  "owendo-libreville": { standard: { ar: 80000, simple: 50000 }, vip: { ar: 150000, simple: 80000 } },
-} as const;
-
-type Route_ = keyof typeof PRICES;
-type Classe = "standard" | "vip";
-type Abonnement = "aller-simple" | "retour-simple" | "aller-retour";
-
 function formatXAF(amount: number) {
   return new Intl.NumberFormat("fr-FR").format(amount) + " XAF";
 }
 
 function TransportScolairePage() {
-  const [itineraire, setItineraire] = useState<Route_>("akanda-libreville");
-  const [classe, setClasse] = useState<Classe>("standard");
-  const [abonnement, setAbonnement] = useState<Abonnement>("aller-retour");
-  const [nbEnfants, setNbEnfants] = useState(1);
-  const [age, setAge] = useState("");
-  const [niveau, setNiveau] = useState("");
-
-  const priceKey = abonnement === "aller-retour" ? "ar" : "simple";
-  const unitPrice = PRICES[itineraire][classe][priceKey];
-  const totalPrice = unitPrice * nbEnfants;
-  const deposit = Math.ceil(totalPrice * 0.5);
+  const { data: offers, isLoading, error } = useOffers("TRANSPORT_SCOLAIRE");
 
   return (
     <>
@@ -61,97 +42,46 @@ function TransportScolairePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-4xl px-4 py-10 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-5">
-          {/* Form */}
-          <div className="space-y-6 lg:col-span-3">
-            <div className="rounded-2xl border bg-card p-6">
-              <h2 className="text-lg font-bold">Formulaire de réservation</h2>
-
-              <div className="mt-5 space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Itinéraire</label>
-                  <select value={itineraire} onChange={(e) => setItineraire(e.target.value as Route_)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
-                    <option value="akanda-libreville">Akanda ↔ Libreville</option>
-                    <option value="owendo-libreville">Owendo ↔ Libreville</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">Âge de l'enfant</label>
-                    <input type="number" min={3} max={18} value={age} onChange={(e) => setAge(e.target.value)} placeholder="Ex: 8" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+      <section className="mx-auto max-w-5xl px-4 py-10 lg:px-8">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <p className="py-10 text-center text-sm text-destructive">Erreur lors du chargement des offres.</p>
+        ) : !offers?.length ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">Aucune offre de transport scolaire disponible pour le moment.</p>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {offers.map((offer) => (
+              <div key={offer.id} className="card-hover overflow-hidden rounded-2xl border bg-card">
+                {offer.image_url && (
+                  <img src={offer.image_url} alt={offer.title} className="h-40 w-full object-cover" />
+                )}
+                <div className="p-5">
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5 text-primary" />
+                    <h3 className="font-bold text-card-foreground">{offer.title}</h3>
                   </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium">Niveau scolaire</label>
-                    <select value={niveau} onChange={(e) => setNiveau(e.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
-                      <option value="">Choisir...</option>
-                      <option value="maternelle">Maternelle</option>
-                      <option value="primaire">Primaire</option>
-                      <option value="college">Collège</option>
-                      <option value="lycee">Lycée</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Type d'abonnement</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {([["aller-simple", "Aller simple"], ["retour-simple", "Retour simple"], ["aller-retour", "Aller-retour"]] as const).map(([val, label]) => (
-                      <button key={val} onClick={() => setAbonnement(val)} className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${abonnement === val ? "border-primary bg-primary/10 text-primary" : "bg-card text-muted-foreground hover:bg-secondary"}`}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Classe</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {([["standard", "Standard"], ["vip", "VIP"]] as const).map(([val, label]) => (
-                      <button key={val} onClick={() => setClasse(val)} className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${classe === val ? "border-primary bg-primary/10 text-primary" : "bg-card text-muted-foreground hover:bg-secondary"}`}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Nombre d'enfants</label>
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => setNbEnfants(Math.max(1, nbEnfants - 1))} className="flex h-9 w-9 items-center justify-center rounded-lg border bg-card text-sm font-bold hover:bg-secondary">-</button>
-                    <span className="text-lg font-bold">{nbEnfants}</span>
-                    <button onClick={() => setNbEnfants(Math.min(10, nbEnfants + 1))} className="flex h-9 w-9 items-center justify-center rounded-lg border bg-card text-sm font-bold hover:bg-secondary">+</button>
+                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{offer.description}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-muted-foreground">À partir de</span>
+                      <p className="text-lg font-bold text-foreground">{formatXAF(offer.price)}</p>
+                    </div>
+                    <button className="flex items-center gap-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+                      Réserver <ArrowRight className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
+        )}
 
-          {/* Summary */}
-          <div className="lg:col-span-2">
-            <div className="sticky top-20 rounded-2xl border bg-card p-6">
-              <h3 className="text-lg font-bold">Récapitulatif</h3>
-              <div className="mt-4 space-y-3 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Itinéraire</span><span className="font-medium">{itineraire === "akanda-libreville" ? "Akanda ↔ LBV" : "Owendo ↔ LBV"}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Classe</span><span className="font-medium capitalize">{classe}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Abonnement</span><span className="font-medium capitalize">{abonnement.replace("-", " ")}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Enfants</span><span className="font-medium">{nbEnfants}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Prix unitaire</span><span className="font-medium">{formatXAF(unitPrice)}</span></div>
-                <div className="border-t pt-3">
-                  <div className="flex justify-between text-base font-bold"><span>Total</span><span>{formatXAF(totalPrice)}</span></div>
-                  <div className="mt-1 flex justify-between text-accent"><span className="text-sm">Acompte (50%)</span><span className="font-semibold">{formatXAF(deposit)}</span></div>
-                </div>
-              </div>
-              <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-                Réserver et payer <ArrowRight className="h-4 w-4" />
-              </button>
-              <p className="mt-3 text-center text-xs text-muted-foreground">
-                Réservation min. 48h avant le début du service
-              </p>
-            </div>
-          </div>
-        </div>
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          Paiement de 50% requis à la réservation. Réservation min. 48h à l'avance.
+        </p>
       </section>
     </>
   );

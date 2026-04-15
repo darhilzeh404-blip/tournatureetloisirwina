@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Globe, MapPin, TreePine, Waves, Mountain, ArrowRight } from "lucide-react";
+import { Globe, MapPin, ArrowRight, Loader2 } from "lucide-react";
+import { useOffers } from "@/hooks/use-offers";
 import circuitsImg from "@/assets/circuits-hero.jpg";
 
 export const Route = createFileRoute("/circuits")({
@@ -14,21 +15,13 @@ export const Route = createFileRoute("/circuits")({
   component: CircuitsPage,
 });
 
-const CIRCUITS = [
-  { name: "Parc national d'Akanda", location: "Estuaire", activities: ["Safari", "Observation d'oiseaux", "Randonnée"], price: 75000, icon: <TreePine className="h-5 w-5" /> },
-  { name: "Parc national de Pongara", location: "Estuaire", activities: ["Plage", "Tortues marines", "Baignade"], price: 85000, icon: <Waves className="h-5 w-5" /> },
-  { name: "Réserve de Wonga Wongué", location: "Ogooué-Maritime", activities: ["Safari", "Faune sauvage", "Camping"], price: 120000, icon: <TreePine className="h-5 w-5" /> },
-  { name: "Chutes de Meyang", location: "Woleu-Ntem", activities: ["Randonnée", "Baignade", "Culture locale"], price: 95000, icon: <Mountain className="h-5 w-5" /> },
-  { name: "Cocobeach", location: "Estuaire", activities: ["Plage", "Baignade", "Buffet"], price: 65000, icon: <Waves className="h-5 w-5" /> },
-  { name: "Baie de la Mondah", location: "Estuaire", activities: ["Excursion maritime", "Pique-nique", "Baignade"], price: 55000, icon: <Waves className="h-5 w-5" /> },
-  { name: "Arboretum Raponda Walker", location: "Estuaire", activities: ["Randonnée", "Botanique", "Culture"], price: 45000, icon: <TreePine className="h-5 w-5" /> },
-];
-
 function formatXAF(amount: number) {
   return new Intl.NumberFormat("fr-FR").format(amount) + " XAF";
 }
 
 function CircuitsPage() {
+  const { data: offers, isLoading, error } = useOffers("CIRCUIT_TOURISTIQUE");
+
   return (
     <>
       <section className="relative h-48 overflow-hidden lg:h-64">
@@ -50,40 +43,45 @@ function CircuitsPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {CIRCUITS.map((circuit) => (
-            <div key={circuit.name} className="card-hover overflow-hidden rounded-2xl border bg-card">
-              <div className="flex items-center gap-3 border-b p-5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  {circuit.icon}
-                </div>
-                <div>
-                  <h3 className="font-bold text-card-foreground">{circuit.name}</h3>
-                  <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3" /> {circuit.location}
-                  </p>
-                </div>
-              </div>
-              <div className="p-5">
-                <div className="flex flex-wrap gap-1.5">
-                  {circuit.activities.map((a) => (
-                    <span key={a} className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">{a}</span>
-                  ))}
-                </div>
-                <p className="mt-3 text-xs text-muted-foreground">Inclus : transport, activités, buffet (si applicable)</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-muted-foreground">À partir de</span>
-                    <p className="text-lg font-bold text-foreground">{formatXAF(circuit.price)}</p>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <p className="py-10 text-center text-sm text-destructive">Erreur lors du chargement des circuits.</p>
+        ) : !offers?.length ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">Aucun circuit disponible pour le moment.</p>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {offers.map((offer) => (
+              <div key={offer.id} className="card-hover overflow-hidden rounded-2xl border bg-card">
+                {offer.image_url && (
+                  <img src={offer.image_url} alt={offer.title} className="h-40 w-full object-cover" />
+                )}
+                <div className="flex items-center gap-3 border-b p-5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Globe className="h-5 w-5" />
                   </div>
-                  <button className="flex items-center gap-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-                    Réserver <ArrowRight className="h-4 w-4" />
-                  </button>
+                  <div>
+                    <h3 className="font-bold text-card-foreground">{offer.title}</h3>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <p className="text-sm text-muted-foreground line-clamp-2">{offer.description}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-muted-foreground">À partir de</span>
+                      <p className="text-lg font-bold text-foreground">{formatXAF(offer.price)}</p>
+                    </div>
+                    <button className="flex items-center gap-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+                      Réserver <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <p className="mt-8 text-center text-sm text-muted-foreground">
           Paiement de 50% requis à la réservation. Réservation min. 48h à l'avance.
