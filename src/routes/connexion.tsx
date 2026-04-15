@@ -23,11 +23,12 @@ function ConnexionPage() {
   const [loading, setLoading] = useState(false);
 
   // Redirect if already authenticated
-  if (isAuthenticated && role && !isLoading) {
-    const path = getRoleRedirectPath(role);
-    navigate({ to: path });
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated && role && !isLoading) {
+      const path = getRoleRedirectPath(role);
+      navigate({ to: path });
+    }
+  }, [isAuthenticated, role, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
