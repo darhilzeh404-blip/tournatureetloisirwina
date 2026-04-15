@@ -21,10 +21,12 @@ import { Route as ChauffeurRouteImport } from './routes/chauffeur'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
 import { Route as AdminReservationsRouteImport } from './routes/admin/reservations'
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
 import { Route as AdminOffresRouteImport } from './routes/admin/offres'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
+import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
 
 const TransportScolaireRoute = TransportScolaireRouteImport.update({
@@ -87,6 +89,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminUtilisateursRoute = AdminUtilisateursRouteImport.update({
+  id: '/utilisateurs',
+  path: '/utilisateurs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminReservationsRoute = AdminReservationsRouteImport.update({
   id: '/reservations',
   path: '/reservations',
@@ -105,6 +112,11 @@ const AdminOffresRoute = AdminOffresRouteImport.update({
 const AdminClientsRoute = AdminClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCircuitsRoute = AdminCircuitsRouteImport.update({
+  id: '/circuits',
+  path: '/circuits',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminBusRoute = AdminBusRouteImport.update({
@@ -126,10 +138,12 @@ export interface FileRoutesByFullPath {
   '/mon-compte': typeof MonCompteRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
+  '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -144,10 +158,12 @@ export interface FileRoutesByTo {
   '/mon-compte': typeof MonCompteRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
+  '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -164,10 +180,12 @@ export interface FileRoutesById {
   '/mon-compte': typeof MonCompteRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
+  '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -185,10 +203,12 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/transport-scolaire'
     | '/admin/bus'
+    | '/admin/circuits'
     | '/admin/clients'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/reservations'
+    | '/admin/utilisateurs'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -203,10 +223,12 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/transport-scolaire'
     | '/admin/bus'
+    | '/admin/circuits'
     | '/admin/clients'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/reservations'
+    | '/admin/utilisateurs'
     | '/admin'
   id:
     | '__root__'
@@ -222,10 +244,12 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/transport-scolaire'
     | '/admin/bus'
+    | '/admin/circuits'
     | '/admin/clients'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/reservations'
+    | '/admin/utilisateurs'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -329,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/utilisateurs': {
+      id: '/admin/utilisateurs'
+      path: '/utilisateurs'
+      fullPath: '/admin/utilisateurs'
+      preLoaderRoute: typeof AdminUtilisateursRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/reservations': {
       id: '/admin/reservations'
       path: '/reservations'
@@ -357,6 +388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminClientsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/circuits': {
+      id: '/admin/circuits'
+      path: '/circuits'
+      fullPath: '/admin/circuits'
+      preLoaderRoute: typeof AdminCircuitsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/bus': {
       id: '/admin/bus'
       path: '/bus'
@@ -369,19 +407,23 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminBusRoute: typeof AdminBusRoute
+  AdminCircuitsRoute: typeof AdminCircuitsRoute
   AdminClientsRoute: typeof AdminClientsRoute
   AdminOffresRoute: typeof AdminOffresRoute
   AdminPaiementsRoute: typeof AdminPaiementsRoute
   AdminReservationsRoute: typeof AdminReservationsRoute
+  AdminUtilisateursRoute: typeof AdminUtilisateursRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminBusRoute: AdminBusRoute,
+  AdminCircuitsRoute: AdminCircuitsRoute,
   AdminClientsRoute: AdminClientsRoute,
   AdminOffresRoute: AdminOffresRoute,
   AdminPaiementsRoute: AdminPaiementsRoute,
   AdminReservationsRoute: AdminReservationsRoute,
+  AdminUtilisateursRoute: AdminUtilisateursRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
