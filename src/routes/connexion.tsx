@@ -26,9 +26,9 @@ function ConnexionPage() {
   useEffect(() => {
     if (isAuthenticated && role && !isLoading) {
       const path = getRoleRedirectPath(role);
-      navigate({ to: path });
+      window.location.href = path;
     }
-  }, [isAuthenticated, role, isLoading, navigate]);
+  }, [isAuthenticated, role, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
