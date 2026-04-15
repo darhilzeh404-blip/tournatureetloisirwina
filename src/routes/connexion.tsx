@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import type { AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/connexion")({
   head: () => ({
@@ -15,13 +17,12 @@ export const Route = createFileRoute("/connexion")({
 });
 
 function ConnexionPage() {
-  const { signIn, isAuthenticated, role, isLoading } = useAuth();
+  const { isAuthenticated, role, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && role && !isLoading) {
       window.location.href = getRoleRedirectPath(role);
@@ -33,9 +34,18 @@ function ConnexionPage() {
     if (!email || !password) return;
     setLoading(true);
     try {
-      await signIn(email, password);
+      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      const userId = data.user.id;
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .limit(1)
+        .single();
+      const userRole = (roleData?.role as AppRole) ?? "client";
       toast.success("Connexion réussie !");
-      // The useEffect will handle redirect once role is loaded
+      window.location.href = getRoleRedirectPath(userRole);
     } catch (err: any) {
       toast.error(err.message || "Erreur de connexion");
       setLoading(false);
