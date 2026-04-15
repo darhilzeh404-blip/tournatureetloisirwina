@@ -44,6 +44,30 @@ export type Database = {
         }
         Relationships: []
       }
+      circuits: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          nom: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          nom: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          nom?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       offers: {
         Row: {
           created_at: string
@@ -131,6 +155,7 @@ export type Database = {
           full_name: string
           id: string
           phone: string | null
+          status: string
           updated_at: string
           user_id: string
         }
@@ -140,6 +165,7 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -149,6 +175,7 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -195,6 +222,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_circuits: {
+        Row: {
+          circuit_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          circuit_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          circuit_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_circuits_circuit_id_fkey"
+            columns: ["circuit_id"]
+            isOneToOne: false
+            referencedRelation: "circuits"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
