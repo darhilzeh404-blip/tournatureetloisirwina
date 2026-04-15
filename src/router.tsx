@@ -1,4 +1,5 @@
 import { createRouter, useRouter } from "@tanstack/react-router";
+import { QueryClient } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 
 function DefaultErrorComponent({
@@ -63,9 +64,15 @@ function DefaultErrorComponent({
 }
 
 export const getRouter = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { staleTime: 30_000 },
+    },
+  });
+
   const router = createRouter({
     routeTree,
-    context: {},
+    context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: DefaultErrorComponent,
