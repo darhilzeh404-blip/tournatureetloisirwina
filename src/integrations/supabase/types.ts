@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      buses: {
+        Row: {
+          chauffeur: string | null
+          created_at: string
+          id: string
+          immatriculation: string
+          statut: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          chauffeur?: string | null
+          created_at?: string
+          id?: string
+          immatriculation: string
+          statut?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          chauffeur?: string | null
+          created_at?: string
+          id?: string
+          immatriculation?: string
+          statut?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      offers: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          price: number
+          service_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price?: number
+          service_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price?: number
+          service_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           admin_comment: string | null
