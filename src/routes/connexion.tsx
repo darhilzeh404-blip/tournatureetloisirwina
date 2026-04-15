@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
@@ -16,7 +16,6 @@ export const Route = createFileRoute("/connexion")({
 
 function ConnexionPage() {
   const { signIn, isAuthenticated, role, isLoading } = useAuth();
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,8 +24,7 @@ function ConnexionPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && role && !isLoading) {
-      const path = getRoleRedirectPath(role);
-      window.location.href = path;
+      window.location.href = getRoleRedirectPath(role);
     }
   }, [isAuthenticated, role, isLoading]);
 
@@ -37,10 +35,9 @@ function ConnexionPage() {
     try {
       await signIn(email, password);
       toast.success("Connexion réussie !");
-      // Role will be loaded by useAuth, then redirect happens
+      // The useEffect will handle redirect once role is loaded
     } catch (err: any) {
       toast.error(err.message || "Erreur de connexion");
-    } finally {
       setLoading(false);
     }
   };
@@ -69,6 +66,7 @@ function ConnexionPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="votre@email.com"
+              autoComplete="email"
               className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
@@ -84,6 +82,7 @@ function ConnexionPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 className="w-full rounded-lg border bg-background px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button
