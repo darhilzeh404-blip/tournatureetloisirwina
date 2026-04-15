@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, ArrowLeft, Menu, X } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const adminLinks = [
@@ -8,6 +8,7 @@ const adminLinks = [
   { to: "/admin/paiements", label: "Paiements", icon: CreditCard, exact: false },
   { to: "/admin/clients", label: "Clients", icon: Users, exact: false },
   { to: "/admin/bus", label: "Flotte Bus", icon: Bus, exact: false },
+  { to: "/admin/offres", label: "Offres", icon: Tag, exact: false },
 ] as const;
 
 export function AdminSidebar() {
