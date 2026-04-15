@@ -1,5 +1,7 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { AdminSidebar } from "@/components/AdminSidebar";
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -12,6 +14,18 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminLayout() {
+  const { isAuthenticated, isLoading, role } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || (role && role !== "admin"))) {
+      navigate({ to: "/connexion" });
+    }
+  }, [isLoading, isAuthenticated, role, navigate]);
+
+  if (isLoading) return <div className="flex min-h-screen items-center justify-center"><p>Chargement...</p></div>;
+  if (!isAuthenticated || role !== "admin") return null;
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       <AdminSidebar />
