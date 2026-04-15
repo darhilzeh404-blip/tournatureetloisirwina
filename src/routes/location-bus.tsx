@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Bus, ArrowRight, Loader2 } from "lucide-react";
-import { useOffers } from "@/hooks/use-offers";
+import { Bus, ArrowRight } from "lucide-react";
+import { fetchOffersByType } from "@/server/fetch-offers";
 import busImg from "@/assets/location-bus.jpg";
 
 export const Route = createFileRoute("/location-bus")({
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/location-bus")({
       { property: "og:description", content: "Location de bus événementiel au Gabon." },
     ],
   }),
+  loader: () => fetchOffersByType({ data: "LOCATION_BUS" }),
   component: LocationBusPage,
 });
 
@@ -20,7 +21,7 @@ function formatXAF(amount: number) {
 }
 
 function LocationBusPage() {
-  const { data: offers, isLoading, error } = useOffers("LOCATION_BUS");
+  const offers = Route.useLoaderData();
 
   return (
     <>
@@ -43,13 +44,7 @@ function LocationBusPage() {
       </section>
 
       <section className="mx-auto max-w-5xl px-4 py-10 lg:px-8">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-          <p className="py-10 text-center text-sm text-destructive">Erreur lors du chargement des offres.</p>
-        ) : !offers?.length ? (
+        {!offers.length ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Aucune offre de location disponible pour le moment.</p>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
