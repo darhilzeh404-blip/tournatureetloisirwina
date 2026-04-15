@@ -31,7 +31,7 @@ export function Footer() {
             <h4 className="mb-3 text-sm font-semibold">Contact</h4>
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> +241 XX XX XX XX</div>
-              <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> contact@agencewina.ga</div>
+              <div className="flex items-center gap-2"><Mail className="h-4 w-4" /><span> contact@agencewina.ga</span></div>
               <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Libreville, Gabon</div>
             </div>
           </div>
