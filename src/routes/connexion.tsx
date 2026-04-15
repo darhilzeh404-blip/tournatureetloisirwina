@@ -1,8 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import type { AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/connexion")({
   head: () => ({
@@ -15,31 +17,37 @@ export const Route = createFileRoute("/connexion")({
 });
 
 function ConnexionPage() {
-  const { signIn, isAuthenticated, role, isLoading } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated, role, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already authenticated
-  if (isAuthenticated && role && !isLoading) {
-    const path = getRoleRedirectPath(role);
-    navigate({ to: path });
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated && role && !isLoading) {
+      window.location.href = getRoleRedirectPath(role);
+    }
+  }, [isAuthenticated, role, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
     setLoading(true);
     try {
-      await signIn(email, password);
+      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      const userId = data.user.id;
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .limit(1)
+        .single();
+      const userRole = (roleData?.role as AppRole) ?? "client";
       toast.success("Connexion réussie !");
-      // Role will be loaded by useAuth, then redirect happens
+      window.location.href = getRoleRedirectPath(userRole);
     } catch (err: any) {
       toast.error(err.message || "Erreur de connexion");
-    } finally {
       setLoading(false);
     }
   };
@@ -68,6 +76,7 @@ function ConnexionPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="votre@email.com"
+              autoComplete="email"
               className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
@@ -83,6 +92,7 @@ function ConnexionPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 className="w-full rounded-lg border bg-background px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button
