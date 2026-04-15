@@ -13,6 +13,8 @@ import { Route as TransportScolaireRouteImport } from './routes/transport-scolai
 import { Route as MonCompteRouteImport } from './routes/mon-compte'
 import { Route as MesReservationsRouteImport } from './routes/mes-reservations'
 import { Route as LocationBusRouteImport } from './routes/location-bus'
+import { Route as InscriptionRouteImport } from './routes/inscription'
+import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -41,6 +43,16 @@ const MesReservationsRoute = MesReservationsRouteImport.update({
 const LocationBusRoute = LocationBusRouteImport.update({
   id: '/location-bus',
   path: '/location-bus',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InscriptionRoute = InscriptionRouteImport.update({
+  id: '/inscription',
+  path: '/inscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConnexionRoute = ConnexionRouteImport.update({
+  id: '/connexion',
+  path: '/connexion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CircuitsRoute = CircuitsRouteImport.update({
@@ -93,6 +105,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/circuits': typeof CircuitsRoute
+  '/connexion': typeof ConnexionRoute
+  '/inscription': typeof InscriptionRoute
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
@@ -107,6 +121,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/circuits': typeof CircuitsRoute
+  '/connexion': typeof ConnexionRoute
+  '/inscription': typeof InscriptionRoute
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
@@ -123,6 +139,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/circuits': typeof CircuitsRoute
+  '/connexion': typeof ConnexionRoute
+  '/inscription': typeof InscriptionRoute
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
@@ -140,6 +158,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/circuits'
+    | '/connexion'
+    | '/inscription'
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
@@ -154,6 +174,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/circuits'
+    | '/connexion'
+    | '/inscription'
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
@@ -169,6 +191,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/circuits'
+    | '/connexion'
+    | '/inscription'
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
@@ -185,6 +209,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   CircuitsRoute: typeof CircuitsRoute
+  ConnexionRoute: typeof ConnexionRoute
+  InscriptionRoute: typeof InscriptionRoute
   LocationBusRoute: typeof LocationBusRoute
   MesReservationsRoute: typeof MesReservationsRoute
   MonCompteRoute: typeof MonCompteRoute
@@ -219,6 +245,20 @@ declare module '@tanstack/react-router' {
       path: '/location-bus'
       fullPath: '/location-bus'
       preLoaderRoute: typeof LocationBusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscription': {
+      id: '/inscription'
+      path: '/inscription'
+      fullPath: '/inscription'
+      preLoaderRoute: typeof InscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connexion': {
+      id: '/connexion'
+      path: '/connexion'
+      fullPath: '/connexion'
+      preLoaderRoute: typeof ConnexionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/circuits': {
@@ -311,6 +351,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   CircuitsRoute: CircuitsRoute,
+  ConnexionRoute: ConnexionRoute,
+  InscriptionRoute: InscriptionRoute,
   LocationBusRoute: LocationBusRoute,
   MesReservationsRoute: MesReservationsRoute,
   MonCompteRoute: MonCompteRoute,
