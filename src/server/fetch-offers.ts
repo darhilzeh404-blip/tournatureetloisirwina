@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import type { Tables } from "@/integrations/supabase/types";
+import { createClient } from "@supabase/supabase-js";
+import type { Database, Tables } from "@/integrations/supabase/types";
 
 export type Offer = Tables<"offers">;
 
@@ -10,13 +10,28 @@ export const fetchOffersByType = createServerFn({ method: "GET" })
     return input;
   })
   .handler(async ({ data: serviceType }): Promise<Offer[]> => {
-    const { data, error } = await supabaseAdmin
+    const url = process.env.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+    const key = process.env.SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+    if (!url || !key) {
+      console.error("Missing Supabase env vars for public client");
+      return [];
+    }
+
+    const supabase = createClient<Database>(url, key, {
+      auth: { persistSession: false },
+    });
+
+    const { data, error } = await supabase
       .from("offers")
       .select("*")
       .eq("is_active", true)
       .eq("service_type", serviceType)
       .order("created_at", { ascending: false });
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("Error fetching offers:", error.message);
+      return [];
+    }
     return (data ?? []) as Offer[];
   });
