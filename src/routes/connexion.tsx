@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
