@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GraduationCap, ArrowRight, Loader2 } from "lucide-react";
-import { useOffers } from "@/hooks/use-offers";
+import { GraduationCap, ArrowRight } from "lucide-react";
+import { fetchOffersByType } from "@/server/fetch-offers";
 import scolaireImg from "@/assets/transport-scolaire.jpg";
 
 export const Route = createFileRoute("/transport-scolaire")({
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/transport-scolaire")({
       { property: "og:description", content: "Transport scolaire sécurisé au Gabon." },
     ],
   }),
+  loader: () => fetchOffersByType({ data: "TRANSPORT_SCOLAIRE" }),
   component: TransportScolairePage,
 });
 
@@ -20,7 +21,7 @@ function formatXAF(amount: number) {
 }
 
 function TransportScolairePage() {
-  const { data: offers, isLoading, error } = useOffers("TRANSPORT_SCOLAIRE");
+  const offers = Route.useLoaderData();
 
   return (
     <>
@@ -43,13 +44,7 @@ function TransportScolairePage() {
       </section>
 
       <section className="mx-auto max-w-5xl px-4 py-10 lg:px-8">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-          <p className="py-10 text-center text-sm text-destructive">Erreur lors du chargement des offres.</p>
-        ) : !offers?.length ? (
+        {!offers.length ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Aucune offre de transport scolaire disponible pour le moment.</p>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

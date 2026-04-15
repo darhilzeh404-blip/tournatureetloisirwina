@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Globe, MapPin, ArrowRight, Loader2 } from "lucide-react";
-import { useOffers } from "@/hooks/use-offers";
+import { Globe, ArrowRight } from "lucide-react";
+import { fetchOffersByType } from "@/server/fetch-offers";
 import circuitsImg from "@/assets/circuits-hero.jpg";
 
 export const Route = createFileRoute("/circuits")({
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/circuits")({
       { property: "og:description", content: "Circuits et excursions touristiques au Gabon." },
     ],
   }),
+  loader: () => fetchOffersByType({ data: "CIRCUIT_TOURISTIQUE" }),
   component: CircuitsPage,
 });
 
@@ -20,7 +21,7 @@ function formatXAF(amount: number) {
 }
 
 function CircuitsPage() {
-  const { data: offers, isLoading, error } = useOffers("CIRCUIT_TOURISTIQUE");
+  const offers = Route.useLoaderData();
 
   return (
     <>
@@ -43,13 +44,7 @@ function CircuitsPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-          <p className="py-10 text-center text-sm text-destructive">Erreur lors du chargement des circuits.</p>
-        ) : !offers?.length ? (
+        {!offers.length ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Aucun circuit disponible pour le moment.</p>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
