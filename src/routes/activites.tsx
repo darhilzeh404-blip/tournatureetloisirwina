@@ -20,9 +20,10 @@ export const Route = createFileRoute("/activites")({
 function ActivitesPage() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { destination: preselected } = Route.useSearch();
+  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const preselected = searchParams.get("destination") || "";
 
-  const [selectedDest, setSelectedDest] = useState<string>(preselected || "");
+  const [selectedDest, setSelectedDest] = useState<string>(preselected);
   const [persons, setPersons] = useState(1);
   const [days, setDays] = useState(1);
   const [withLodging, setWithLodging] = useState(false);
