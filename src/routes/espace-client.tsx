@@ -42,8 +42,8 @@ function EspaceClient() {
                 <div className="text-[10px] opacity-80">Réserver un trajet</div>
               </div>
             </Link>
-            <Link
-              to="/activites"
+            <a
+              href="/activites"
               className="flex items-center gap-3 rounded-2xl bg-accent/90 px-4 py-4 text-accent-foreground backdrop-blur-sm transition-transform active:scale-[0.97]"
             >
               <Palmtree className="h-6 w-6 shrink-0" />
@@ -51,7 +51,7 @@ function EspaceClient() {
                 <div className="text-sm font-bold">Activités</div>
                 <div className="text-[10px] opacity-80">Explorer le Gabon</div>
               </div>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -60,17 +60,16 @@ function EspaceClient() {
       <section className="px-5 pt-8">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">Suggestions populaires</h2>
-          <Link to="/activites" search={{}} className="flex items-center gap-1 text-xs font-semibold text-primary">
+          <a href="/activites" className="flex items-center gap-1 text-xs font-semibold text-primary">
             Tout voir <ArrowRight className="h-3 w-3" />
-          </Link>
+          </a>
         </div>
 
         <div className="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
           {DESTINATIONS.map((dest) => (
-            <Link
+            <a
               key={dest.id}
-              to="/activites"
-              search={{ destination: dest.id }}
+              href={`/activites?destination=${dest.id}`}
               className="group w-40 shrink-0 overflow-hidden rounded-2xl border bg-card transition-shadow hover:shadow-lg"
             >
               <div className="relative h-28 overflow-hidden">
@@ -92,7 +91,7 @@ function EspaceClient() {
                 <p className="text-[11px] leading-snug text-muted-foreground">{dest.description}</p>
                 <p className="mt-2 text-sm font-bold text-primary">{formatFCFA(dest.price)}<span className="text-[10px] font-normal text-muted-foreground">/pers</span></p>
               </div>
-            </Link>
+            </a>
           ))}
         </div>
       </section>
@@ -107,10 +106,9 @@ function EspaceClient() {
             { emoji: "🍽️", label: "Gastronomie", desc: "Saveurs locales" },
             { emoji: "🥾", label: "Randonnée", desc: "Sentiers & forêts" },
           ].map((act) => (
-            <Link
+            <a
               key={act.label}
-              to="/activites"
-              search={{}}
+              href="/activites"
               className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-muted"
             >
               <span className="text-2xl">{act.emoji}</span>
@@ -118,7 +116,7 @@ function EspaceClient() {
                 <div className="text-sm font-semibold">{act.label}</div>
                 <div className="text-[10px] text-muted-foreground">{act.desc}</div>
               </div>
-            </Link>
+            </a>
           ))}
         </div>
       </section>
