@@ -32,16 +32,39 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
+    // 1. Restore session from storage FIRST
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const role = await fetchRole(session.user.id);
+        console.log("[AUTH] Session restored:", session.user.email, "role:", role);
+        setState({
+          user: session.user,
+          session,
+          role,
+          isLoading: false,
+          isAuthenticated: true,
+        });
+      } else {
+        console.log("[AUTH] No existing session");
+        setState(s => ({ ...s, isLoading: false }));
+      }
+    });
+
+    // 2. Listen for auth changes — DO NOT await inside callback (causes deadlock)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (_event, session) => {
+        console.log("[AUTH] onAuthStateChange:", _event, session?.user?.email);
         if (session?.user) {
-          const role = await fetchRole(session.user.id);
-          setState({
-            user: session.user,
-            session,
-            role,
-            isLoading: false,
-            isAuthenticated: true,
+          // Fire-and-forget role fetch to avoid blocking the auth event queue
+          fetchRole(session.user.id).then((role) => {
+            console.log("[AUTH] Role fetched after state change:", role);
+            setState({
+              user: session.user,
+              session,
+              role,
+              isLoading: false,
+              isAuthenticated: true,
+            });
           });
         } else {
           setState({
@@ -54,21 +77,6 @@ export function useAuth() {
         }
       }
     );
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const role = await fetchRole(session.user.id);
-        setState({
-          user: session.user,
-          session,
-          role,
-          isLoading: false,
-          isAuthenticated: true,
-        });
-      } else {
-        setState(s => ({ ...s, isLoading: false }));
-      }
-    });
 
     return () => subscription.unsubscribe();
   }, [fetchRole]);
