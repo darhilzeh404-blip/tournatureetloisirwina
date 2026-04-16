@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Map, BarChart3, LogOut, Menu, CalendarCheck, Users, TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Map, LogOut, Menu, CalendarCheck, CheckCircle, TrendingUp, Navigation } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Route = createFileRoute("/gerant")({
@@ -35,15 +35,27 @@ interface Reservation {
   created_at: string;
 }
 
-type TabType = "circuits" | "reservations";
+interface RideGerant {
+  id: string;
+  pickup: string;
+  destination: string;
+  status: string;
+  driver_id: string | null;
+  scheduled_at: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+type TabType = "circuits" | "reservations" | "courses";
 
 function GerantLayout() {
   const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>("circuits");
+  const [activeTab, setActiveTab] = useState<TabType>("courses");
   const [circuits, setCircuits] = useState<Circuit[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [rides, setRides] = useState<RideGerant[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -52,12 +64,22 @@ function GerantLayout() {
     }
   }, [isLoading, isAuthenticated, role, navigate]);
 
+  const fetchRides = useCallback(async () => {
+    // Use the view without price for gérants
+    const { data } = await supabase
+      .from("rides")
+      .select("id, pickup, destination, status, driver_id, scheduled_at, notes, created_at")
+      .order("created_at", { ascending: false });
+    setRides((data as RideGerant[]) || []);
+  }, []);
+
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch assigned circuits
+        await fetchRides();
+
         const { data: userCircuits } = await supabase
           .from("user_circuits")
           .select("circuit_id")
@@ -74,7 +96,6 @@ function GerantLayout() {
           setCircuits([]);
         }
 
-        // Fetch CIRCUIT_TOURISTIQUE reservations (gérant can see all of them)
         const { data: resData } = await supabase
           .from("reservations")
           .select("*")
@@ -88,12 +109,26 @@ function GerantLayout() {
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, fetchRides]);
+
+  // Realtime for rides
+  useEffect(() => {
+    const channel = supabase
+      .channel("rides-gerant-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rides" },
+        () => fetchRides()
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchRides]);
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center"><p>Chargement...</p></div>;
   if (!isAuthenticated || (role !== "gerant" && role !== "admin")) return null;
 
   const tabs = [
+    { key: "courses" as TabType, label: "Courses", icon: Navigation },
     { key: "circuits" as TabType, label: "Mes Circuits", icon: Map },
     { key: "reservations" as TabType, label: "Réservations", icon: CalendarCheck },
   ];
@@ -108,11 +143,17 @@ function GerantLayout() {
     }
   };
 
+  const rideStatusBadge = (s: string) => {
+    switch (s) {
+      case "disponible": return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Disponible</Badge>;
+      case "en_cours": return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">En cours</Badge>;
+      case "terminee": return <Badge className="bg-muted text-muted-foreground">Terminée</Badge>;
+      default: return <Badge variant="secondary">{s}</Badge>;
+    }
+  };
+
   const confirmed = reservations.filter((r) => r.status === "CONFIRMED").length;
-  const pending = reservations.filter((r) => r.status === "PENDING_PAYMENT").length;
-  const totalRevenue = reservations
-    .filter((r) => r.status === "CONFIRMED")
-    .reduce((sum, r) => sum + r.paid_amount, 0);
+  const totalRevenue = reservations.filter((r) => r.status === "CONFIRMED").reduce((sum, r) => sum + r.paid_amount, 0);
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -153,19 +194,19 @@ function GerantLayout() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Card>
               <CardContent className="flex items-center gap-3 p-4">
-                <div className="rounded-lg bg-primary/10 p-2"><Map className="h-5 w-5 text-primary" /></div>
+                <div className="rounded-lg bg-green-500/10 p-2"><Navigation className="h-5 w-5 text-green-500" /></div>
                 <div>
-                  <p className="text-2xl font-bold">{circuits.length}</p>
-                  <p className="text-xs text-muted-foreground">Circuits</p>
+                  <p className="text-2xl font-bold">{rides.length}</p>
+                  <p className="text-xs text-muted-foreground">Courses</p>
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="flex items-center gap-3 p-4">
-                <div className="rounded-lg bg-blue-500/10 p-2"><CalendarCheck className="h-5 w-5 text-blue-500" /></div>
+                <div className="rounded-lg bg-primary/10 p-2"><Map className="h-5 w-5 text-primary" /></div>
                 <div>
-                  <p className="text-2xl font-bold">{reservations.length}</p>
-                  <p className="text-xs text-muted-foreground">Réservations</p>
+                  <p className="text-2xl font-bold">{circuits.length}</p>
+                  <p className="text-xs text-muted-foreground">Circuits</p>
                 </div>
               </CardContent>
             </Card>
@@ -189,6 +230,46 @@ function GerantLayout() {
             </Card>
           </div>
 
+          {activeTab === "courses" && (
+            <>
+              <h1 className="text-2xl font-bold">Suivi des Courses</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Vue d'ensemble de toutes les courses (sans tarifs).</p>
+              {loading ? (
+                <div className="mt-6 text-center text-muted-foreground">Chargement...</div>
+              ) : rides.length === 0 ? (
+                <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
+                  <Navigation className="mx-auto h-12 w-12 opacity-30" />
+                  <p className="mt-3">Aucune course pour le moment.</p>
+                </div>
+              ) : (
+                <div className="mt-4 rounded-xl border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Départ</TableHead>
+                        <TableHead>Destination</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rides.map((r) => (
+                        <TableRow key={r.id}>
+                          <TableCell className="font-medium">{r.pickup}</TableCell>
+                          <TableCell>{r.destination}</TableCell>
+                          <TableCell>{rideStatusBadge(r.status)}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(r.created_at).toLocaleDateString("fr-FR")}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </>
+          )}
+
           {activeTab === "circuits" && (
             <>
               <h1 className="text-2xl font-bold">Mes Circuits</h1>
@@ -203,19 +284,15 @@ function GerantLayout() {
               ) : (
                 <div className="mt-4 space-y-3">
                   {circuits.map((c) => {
-                    const circuitReservations = reservations.filter(
-                      (r) => {
-                        const details = r.details as Record<string, unknown>;
-                        return details?.circuit_id === c.id || details?.circuit === c.nom;
-                      }
-                    );
+                    const circuitReservations = reservations.filter((r) => {
+                      const details = r.details as Record<string, unknown>;
+                      return details?.circuit_id === c.id || details?.circuit === c.nom;
+                    });
                     return (
                       <Card key={c.id}>
                         <CardContent className="p-4">
                           <div className="flex items-start gap-4">
-                            <div className="rounded-lg bg-primary/10 p-2.5 mt-0.5">
-                              <Map className="h-5 w-5 text-primary" />
-                            </div>
+                            <div className="rounded-lg bg-primary/10 p-2.5 mt-0.5"><Map className="h-5 w-5 text-primary" /></div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold">{c.nom}</h3>
                               <p className="text-sm text-muted-foreground mt-0.5">{c.description || "Aucune description"}</p>
@@ -259,9 +336,7 @@ function GerantLayout() {
                     <TableBody>
                       {reservations.map((r) => (
                         <TableRow key={r.id}>
-                          <TableCell className="font-medium">
-                            {new Date(r.reservation_date).toLocaleDateString("fr-FR")}
-                          </TableCell>
+                          <TableCell className="font-medium">{new Date(r.reservation_date).toLocaleDateString("fr-FR")}</TableCell>
                           <TableCell>{statusBadge(r.status)}</TableCell>
                           <TableCell className="text-right">{r.total_amount.toLocaleString()} F</TableCell>
                           <TableCell className="text-right">{r.paid_amount.toLocaleString()} F</TableCell>
