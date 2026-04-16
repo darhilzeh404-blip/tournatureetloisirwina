@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/connexion")({
 
 function ConnexionPage() {
   const { isAuthenticated, role, isLoading } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,9 +26,9 @@ function ConnexionPage() {
 
   useEffect(() => {
     if (isAuthenticated && role && !isLoading) {
-      window.location.href = getRoleRedirectPath(role);
+      navigate({ to: getRoleRedirectPath(role) as any });
     }
-  }, [isAuthenticated, role, isLoading]);
+  }, [isAuthenticated, role, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
