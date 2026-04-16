@@ -24,8 +24,10 @@ function ConnexionPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated && role && !isLoading) {
+    if (!isLoading && isAuthenticated && role) {
+      console.log("[CONNEXION] Already authenticated, redirecting to:", getRoleRedirectPath(role));
       navigate({ to: getRoleRedirectPath(role) as any });
     }
   }, [isAuthenticated, role, isLoading, navigate]);
@@ -34,24 +36,55 @@ function ConnexionPage() {
     e.preventDefault();
     if (!email || !password) return;
     setLoading(true);
+
     try {
+      // Step 1: Sign in
       const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      console.log("[LOGIN] Result:", { data, error });
+
       if (error) throw error;
-      const userId = data.user.id;
+
+      // Step 2: Confirm session is available
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log("[LOGIN] Session after login:", sessionData.session?.user?.email);
+
+      if (sessionError || !sessionData.session) {
+        throw new Error("Impossible de récupérer la session");
+      }
+
+      // Step 3: Fetch role
+      const userId = sessionData.session.user.id;
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
         .limit(1)
         .single();
+
       const userRole = (roleData?.role as AppRole) ?? "client";
+      console.log("[LOGIN] User role:", userRole);
+
       toast.success("Connexion réussie !");
-      navigate({ to: getRoleRedirectPath(userRole) as any });
+
+      // Step 4: Navigate
+      const redirectPath = getRoleRedirectPath(userRole);
+      console.log("[LOGIN] Navigating to:", redirectPath);
+      navigate({ to: redirectPath as any });
     } catch (err: any) {
+      console.error("[LOGIN] Error:", err);
       toast.error(err.message || "Erreur de connexion");
       setLoading(false);
     }
   };
+
+  // Show loading while auth state initializes
+  if (isLoading) {
+    return (
+      <section className="flex min-h-[80vh] items-center justify-center">
+        <p className="text-muted-foreground">Chargement...</p>
+      </section>
+    );
+  }
 
   return (
     <section className="flex min-h-[80vh] items-center justify-center px-4 py-10">
@@ -78,7 +111,8 @@ function ConnexionPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="votre@email.com"
               autoComplete="email"
-              className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled={loading}
+              className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
             />
           </div>
 
@@ -94,7 +128,8 @@ function ConnexionPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="w-full rounded-lg border bg-background px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={loading}
+                className="w-full rounded-lg border bg-background px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
               />
               <button
                 type="button"
@@ -111,7 +146,7 @@ function ConnexionPage() {
             disabled={loading}
             className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? "Connexion..." : "Se connecter"}
+            {loading ? "Connexion en cours..." : "Se connecter"}
           </button>
         </form>
 
