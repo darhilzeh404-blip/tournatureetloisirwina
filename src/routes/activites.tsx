@@ -16,7 +16,7 @@ export const Route = createFileRoute("/activites")({
   }),
   component: ActivitesPage,
   validateSearch: (search: Record<string, unknown>) => ({
-    destination: (search.destination as string) || "",
+    destination: (search.destination as string) || undefined,
   }),
 });
 
