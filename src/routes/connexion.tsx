@@ -46,7 +46,7 @@ function ConnexionPage() {
         .single();
       const userRole = (roleData?.role as AppRole) ?? "client";
       toast.success("Connexion réussie !");
-      window.location.href = getRoleRedirectPath(userRole);
+      navigate({ to: getRoleRedirectPath(userRole) as any });
     } catch (err: any) {
       toast.error(err.message || "Erreur de connexion");
       setLoading(false);
