@@ -64,7 +64,10 @@ function RootComponent() {
   const location = useLocation();
   const isFullScreenRoute = location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/chauffeur") ||
-    location.pathname.startsWith("/gerant");
+    location.pathname.startsWith("/gerant") ||
+    location.pathname.startsWith("/espace-client") ||
+    location.pathname.startsWith("/reserver-transport") ||
+    location.pathname.startsWith("/activites");
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -10,15 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
+import { Route as ReserverTransportRouteImport } from './routes/reserver-transport'
 import { Route as MonCompteRouteImport } from './routes/mon-compte'
 import { Route as MesReservationsRouteImport } from './routes/mes-reservations'
 import { Route as LocationBusRouteImport } from './routes/location-bus'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as GerantRouteImport } from './routes/gerant'
+import { Route as EspaceClientRouteImport } from './routes/espace-client'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurRouteImport } from './routes/chauffeur'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
@@ -32,6 +35,11 @@ import { Route as AdminBusRouteImport } from './routes/admin/bus'
 const TransportScolaireRoute = TransportScolaireRouteImport.update({
   id: '/transport-scolaire',
   path: '/transport-scolaire',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReserverTransportRoute = ReserverTransportRouteImport.update({
+  id: '/reserver-transport',
+  path: '/reserver-transport',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MonCompteRoute = MonCompteRouteImport.update({
@@ -59,6 +67,11 @@ const GerantRoute = GerantRouteImport.update({
   path: '/gerant',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EspaceClientRoute = EspaceClientRouteImport.update({
+  id: '/espace-client',
+  path: '/espace-client',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConnexionRoute = ConnexionRouteImport.update({
   id: '/connexion',
   path: '/connexion',
@@ -77,6 +90,11 @@ const ChauffeurRoute = ChauffeurRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivitesRoute = ActivitesRouteImport.update({
+  id: '/activites',
+  path: '/activites',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -127,15 +145,18 @@ const AdminBusRoute = AdminBusRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
   '/chauffeur': typeof ChauffeurRoute
   '/circuits': typeof CircuitsRoute
   '/connexion': typeof ConnexionRoute
+  '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
+  '/reserver-transport': typeof ReserverTransportRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -148,14 +169,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activites': typeof ActivitesRoute
   '/chauffeur': typeof ChauffeurRoute
   '/circuits': typeof CircuitsRoute
   '/connexion': typeof ConnexionRoute
+  '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
+  '/reserver-transport': typeof ReserverTransportRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -169,15 +193,18 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
   '/chauffeur': typeof ChauffeurRoute
   '/circuits': typeof CircuitsRoute
   '/connexion': typeof ConnexionRoute
+  '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
+  '/reserver-transport': typeof ReserverTransportRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -192,15 +219,18 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activites'
     | '/admin'
     | '/chauffeur'
     | '/circuits'
     | '/connexion'
+    | '/espace-client'
     | '/gerant'
     | '/inscription'
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
+    | '/reserver-transport'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -213,14 +243,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/activites'
     | '/chauffeur'
     | '/circuits'
     | '/connexion'
+    | '/espace-client'
     | '/gerant'
     | '/inscription'
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
+    | '/reserver-transport'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -233,15 +266,18 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/activites'
     | '/admin'
     | '/chauffeur'
     | '/circuits'
     | '/connexion'
+    | '/espace-client'
     | '/gerant'
     | '/inscription'
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
+    | '/reserver-transport'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -255,15 +291,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivitesRoute: typeof ActivitesRoute
   AdminRoute: typeof AdminRouteWithChildren
   ChauffeurRoute: typeof ChauffeurRoute
   CircuitsRoute: typeof CircuitsRoute
   ConnexionRoute: typeof ConnexionRoute
+  EspaceClientRoute: typeof EspaceClientRoute
   GerantRoute: typeof GerantRoute
   InscriptionRoute: typeof InscriptionRoute
   LocationBusRoute: typeof LocationBusRoute
   MesReservationsRoute: typeof MesReservationsRoute
   MonCompteRoute: typeof MonCompteRoute
+  ReserverTransportRoute: typeof ReserverTransportRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
 }
 
@@ -274,6 +313,13 @@ declare module '@tanstack/react-router' {
       path: '/transport-scolaire'
       fullPath: '/transport-scolaire'
       preLoaderRoute: typeof TransportScolaireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reserver-transport': {
+      id: '/reserver-transport'
+      path: '/reserver-transport'
+      fullPath: '/reserver-transport'
+      preLoaderRoute: typeof ReserverTransportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mon-compte': {
@@ -311,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GerantRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/espace-client': {
+      id: '/espace-client'
+      path: '/espace-client'
+      fullPath: '/espace-client'
+      preLoaderRoute: typeof EspaceClientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/connexion': {
       id: '/connexion'
       path: '/connexion'
@@ -337,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activites': {
+      id: '/activites'
+      path: '/activites'
+      fullPath: '/activites'
+      preLoaderRoute: typeof ActivitesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -431,15 +491,18 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivitesRoute: ActivitesRoute,
   AdminRoute: AdminRouteWithChildren,
   ChauffeurRoute: ChauffeurRoute,
   CircuitsRoute: CircuitsRoute,
   ConnexionRoute: ConnexionRoute,
+  EspaceClientRoute: EspaceClientRoute,
   GerantRoute: GerantRoute,
   InscriptionRoute: InscriptionRoute,
   LocationBusRoute: LocationBusRoute,
   MesReservationsRoute: MesReservationsRoute,
   MonCompteRoute: MonCompteRoute,
+  ReserverTransportRoute: ReserverTransportRoute,
   TransportScolaireRoute: TransportScolaireRoute,
 }
 export const routeTree = rootRouteImport
