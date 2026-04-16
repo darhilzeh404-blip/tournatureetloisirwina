@@ -223,6 +223,48 @@ export type Database = {
         }
         Relationships: []
       }
+      rides: {
+        Row: {
+          created_at: string
+          created_by: string
+          destination: string
+          driver_id: string | null
+          id: string
+          notes: string | null
+          pickup: string
+          price: number
+          scheduled_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          destination: string
+          driver_id?: string | null
+          id?: string
+          notes?: string | null
+          pickup: string
+          price?: number
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          destination?: string
+          driver_id?: string | null
+          id?: string
+          notes?: string | null
+          pickup?: string
+          price?: number
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_circuits: {
         Row: {
           circuit_id: string
@@ -272,7 +314,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      rides_gerant: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          destination: string | null
+          driver_id: string | null
+          id: string | null
+          notes: string | null
+          pickup: string | null
+          scheduled_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          destination?: string | null
+          driver_id?: string | null
+          id?: string | null
+          notes?: string | null
+          pickup?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          destination?: string | null
+          driver_id?: string | null
+          id?: string | null
+          notes?: string | null
+          pickup?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
