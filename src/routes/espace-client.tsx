@@ -60,7 +60,7 @@ function EspaceClient() {
       <section className="px-5 pt-8">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">Suggestions populaires</h2>
-          <Link to="/activites" className="flex items-center gap-1 text-xs font-semibold text-primary">
+          <Link to="/activites" search={{}} className="flex items-center gap-1 text-xs font-semibold text-primary">
             Tout voir <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
@@ -110,6 +110,7 @@ function EspaceClient() {
             <Link
               key={act.label}
               to="/activites"
+              search={{}}
               className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-muted"
             >
               <span className="text-2xl">{act.emoji}</span>
