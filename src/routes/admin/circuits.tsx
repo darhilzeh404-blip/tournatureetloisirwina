@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Map, Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
@@ -16,6 +16,18 @@ type Circuit = {
   created_at: string;
 };
 
+type UserRow = {
+  user_id: string;
+  full_name: string;
+  role: string;
+};
+
+type UserCircuit = {
+  id: string;
+  user_id: string;
+  circuit_id: string;
+};
+
 function AdminCircuits() {
   const [circuits, setCircuits] = useState<Circuit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +35,13 @@ function AdminCircuits() {
   const [editing, setEditing] = useState<Circuit | null>(null);
   const [form, setForm] = useState({ nom: "", description: "" });
   const [saving, setSaving] = useState(false);
+
+  // Assignment state
+  const [assignCircuit, setAssignCircuit] = useState<Circuit | null>(null);
+  const [assignableUsers, setAssignableUsers] = useState<UserRow[]>([]);
+  const [assignedUserIds, setAssignedUserIds] = useState<Set<string>>(new Set());
+  const [userCircuits, setUserCircuits] = useState<UserCircuit[]>([]);
+  const [assignLoading, setAssignLoading] = useState(false);
 
   const fetchCircuits = async () => {
     setLoading(true);
@@ -74,6 +93,71 @@ function AdminCircuits() {
     else { toast.success("Circuit supprimé"); fetchCircuits(); }
   };
 
+  // Assignment logic
+  const openAssign = async (c: Circuit) => {
+    setAssignCircuit(c);
+    setAssignLoading(true);
+
+    // Fetch chauffeurs + gérants
+    const { data: roles } = await supabase.from("user_roles").select("*");
+    const eligibleIds = (roles ?? [])
+      .filter((r: any) => r.role === "chauffeur" || r.role === "gerant")
+      .map((r: any) => r.user_id);
+
+    if (eligibleIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", eligibleIds);
+
+      const users: UserRow[] = (profiles ?? []).map((p: any) => {
+        const r = (roles ?? []).find((r: any) => r.user_id === p.user_id);
+        return { user_id: p.user_id, full_name: p.full_name, role: r?.role ?? "" };
+      });
+      setAssignableUsers(users);
+    } else {
+      setAssignableUsers([]);
+    }
+
+    // Fetch current assignments for this circuit
+    const { data: uc } = await supabase
+      .from("user_circuits")
+      .select("*")
+      .eq("circuit_id", c.id);
+    const ucList = (uc ?? []) as UserCircuit[];
+    setUserCircuits(ucList);
+    setAssignedUserIds(new Set(ucList.map(u => u.user_id)));
+    setAssignLoading(false);
+  };
+
+  const toggleAssign = async (userId: string) => {
+    if (!assignCircuit) return;
+    const isAssigned = assignedUserIds.has(userId);
+
+    if (isAssigned) {
+      const uc = userCircuits.find(u => u.user_id === userId && u.circuit_id === assignCircuit.id);
+      if (uc) {
+        const { error } = await supabase.from("user_circuits").delete().eq("id", uc.id);
+        if (error) { toast.error(error.message); return; }
+      }
+      setAssignedUserIds(prev => { const n = new Set(prev); n.delete(userId); return n; });
+      setUserCircuits(prev => prev.filter(u => u.user_id !== userId));
+      toast.success("Désassigné");
+    } else {
+      const { data, error } = await supabase
+        .from("user_circuits")
+        .insert({ user_id: userId, circuit_id: assignCircuit.id })
+        .select()
+        .single();
+      if (error) { toast.error(error.message); return; }
+      setAssignedUserIds(prev => new Set(prev).add(userId));
+      setUserCircuits(prev => [...prev, data as UserCircuit]);
+      toast.success("Assigné au circuit");
+    }
+  };
+
+  const ROLE_LABEL: Record<string, string> = { chauffeur: "Chauffeur", gerant: "Gérant" };
+
   return (
     <div className="space-y-6 p-4 lg:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -108,6 +192,9 @@ function AdminCircuits() {
                     <td className="p-4 text-muted-foreground">{c.description || "—"}</td>
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => openAssign(c)} className="rounded-lg p-1.5 hover:bg-secondary" title="Assigner des utilisateurs">
+                          <Users className="h-4 w-4" />
+                        </button>
                         <button onClick={() => openEdit(c)} className="rounded-lg p-1.5 hover:bg-secondary"><Pencil className="h-4 w-4" /></button>
                         <button onClick={() => handleDelete(c.id)} className="rounded-lg p-1.5 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></button>
                       </div>
@@ -120,6 +207,7 @@ function AdminCircuits() {
         </CardContent>
       </Card>
 
+      {/* Create/Edit modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
@@ -140,6 +228,43 @@ function AdminCircuits() {
                 {saving ? "Enregistrement..." : editing ? "Modifier" : "Créer"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assignment modal */}
+      {assignCircuit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold">Assigner — {assignCircuit.nom}</h2>
+              <button onClick={() => setAssignCircuit(null)} className="rounded-lg p-1 hover:bg-secondary"><X className="h-5 w-5" /></button>
+            </div>
+            {assignLoading ? (
+              <p className="py-8 text-center text-muted-foreground">Chargement...</p>
+            ) : assignableUsers.length === 0 ? (
+              <p className="py-8 text-center text-muted-foreground">Aucun chauffeur ou gérant disponible</p>
+            ) : (
+              <div className="max-h-80 space-y-2 overflow-y-auto">
+                {assignableUsers.map(u => {
+                  const checked = assignedUserIds.has(u.user_id);
+                  return (
+                    <label key={u.user_id} className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 hover:bg-secondary/50">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleAssign(u.user_id)}
+                        className="h-4 w-4 rounded border-muted-foreground"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{u.full_name || "—"}</p>
+                        <span className="text-xs text-muted-foreground">{ROLE_LABEL[u.role] ?? u.role}</span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Plus, Search, Pencil, Trash2, X } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Search, Pencil, X } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/utilisateurs")({
@@ -22,23 +23,29 @@ const ROLE_LABELS: Record<string, { label: string; cls: string }> = {
   admin: { label: "Admin", cls: "bg-destructive/10 text-destructive" },
   gerant: { label: "Gérant", cls: "bg-accent/10 text-accent-foreground" },
   chauffeur: { label: "Chauffeur", cls: "bg-primary/10 text-primary" },
-  client: { label: "Client", cls: "bg-success/10 text-success" },
+  client: { label: "Client", cls: "bg-secondary text-secondary-foreground" },
 };
 
 function AdminUtilisateurs() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterRole, setFilterRole] = useState<string>("all");
+  const [filterRole, setFilterRole] = useState("all");
   const [search, setSearch] = useState("");
+
+  // Create modal
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [newUser, setNewUser] = useState({ full_name: "", email: "", role: "client" as string, password: "" });
+  const [newUser, setNewUser] = useState({ full_name: "", email: "", role: "client", password: "" });
+
+  // Edit modal
+  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [editForm, setEditForm] = useState({ full_name: "", role: "" });
+  const [editSaving, setEditSaving] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
     const { data: profiles } = await supabase.from("profiles").select("*");
     const { data: roles } = await supabase.from("user_roles").select("*");
-
     if (profiles && roles) {
       const merged: UserRow[] = profiles.map((p: any) => {
         const r = roles.find((r: any) => r.user_id === p.user_id);
@@ -64,6 +71,7 @@ function AdminUtilisateurs() {
     return true;
   });
 
+  // Create user
   const handleCreate = async () => {
     if (!newUser.email || !newUser.password || !newUser.full_name) {
       toast.error("Veuillez remplir tous les champs");
@@ -71,31 +79,77 @@ function AdminUtilisateurs() {
     }
     setCreating(true);
     try {
-      // Sign up the user via the admin creating them - we use supabase auth
       const { data, error } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
         options: { data: { full_name: newUser.full_name } },
       });
       if (error) throw error;
-
-      // If the role is not client, update it
       if (data.user && newUser.role !== "client") {
         await supabase
           .from("user_roles")
           .update({ role: newUser.role as any })
           .eq("user_id", data.user.id);
       }
-
-      toast.success("Utilisateur créé avec succès");
+      toast.success("Utilisateur créé");
       setShowCreate(false);
       setNewUser({ full_name: "", email: "", role: "client", password: "" });
-      // Refresh after a short delay for trigger to complete
       setTimeout(fetchUsers, 1000);
     } catch (err: any) {
-      toast.error(err.message || "Erreur lors de la création");
+      toast.error(err.message || "Erreur");
     } finally {
       setCreating(false);
+    }
+  };
+
+  // Edit user
+  const openEdit = (u: UserRow) => {
+    setEditUser(u);
+    setEditForm({ full_name: u.full_name, role: u.role });
+  };
+
+  const handleEditSave = async () => {
+    if (!editUser) return;
+    setEditSaving(true);
+    try {
+      // Update profile name
+      if (editForm.full_name !== editUser.full_name) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ full_name: editForm.full_name })
+          .eq("user_id", editUser.user_id);
+        if (error) throw error;
+      }
+      // Update role
+      if (editForm.role !== editUser.role) {
+        const { error } = await supabase
+          .from("user_roles")
+          .update({ role: editForm.role as any })
+          .eq("user_id", editUser.user_id);
+        if (error) throw error;
+      }
+      toast.success("Utilisateur modifié");
+      setEditUser(null);
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  // Toggle status
+  const toggleStatus = async (u: UserRow) => {
+    const newStatus = u.status === "actif" ? "inactif" : "actif";
+    const { error } = await supabase
+      .from("profiles")
+      .update({ status: newStatus })
+      .eq("user_id", u.user_id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(`Utilisateur ${newStatus === "actif" ? "activé" : "désactivé"}`);
+      setUsers(prev => prev.map(x => x.user_id === u.user_id ? { ...x, status: newStatus } : x));
     }
   };
 
@@ -106,10 +160,7 @@ function AdminUtilisateurs() {
           <h1 className="text-2xl font-bold">Gestion des Utilisateurs</h1>
           <p className="text-sm text-muted-foreground">Gérez tous les utilisateurs de la plateforme</p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
+        <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
           <Plus className="h-4 w-4" /> Créer un utilisateur
         </button>
       </div>
@@ -118,18 +169,9 @@ function AdminUtilisateurs() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher par nom ou email..."
-            className="w-full rounded-lg border bg-background pl-9 pr-3 py-2 text-sm"
-          />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher..." className="w-full rounded-lg border bg-background pl-9 pr-3 py-2 text-sm" />
         </div>
-        <select
-          value={filterRole}
-          onChange={e => setFilterRole(e.target.value)}
-          className="rounded-lg border bg-background px-3 py-2 text-sm"
-        >
+        <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="rounded-lg border bg-background px-3 py-2 text-sm">
           <option value="all">Tous les rôles</option>
           <option value="admin">Admin</option>
           <option value="gerant">Gérant</option>
@@ -138,7 +180,7 @@ function AdminUtilisateurs() {
         </select>
       </div>
 
-      {/* Users table */}
+      {/* Table */}
       <Card>
         <CardContent className="overflow-x-auto p-0">
           <table className="w-full text-sm">
@@ -148,13 +190,14 @@ function AdminUtilisateurs() {
                 <th className="p-4">Email</th>
                 <th className="p-4">Rôle</th>
                 <th className="p-4">Statut</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">Chargement...</td></tr>
+                <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Chargement...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">Aucun utilisateur trouvé</td></tr>
+                <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Aucun utilisateur</td></tr>
               ) : (
                 filtered.map(u => {
                   const rl = ROLE_LABELS[u.role] ?? ROLE_LABELS.client;
@@ -166,9 +209,12 @@ function AdminUtilisateurs() {
                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${rl.cls}`}>{rl.label}</span>
                       </td>
                       <td className="p-4">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${u.status === "actif" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
-                          {u.status === "actif" ? "Actif" : "Inactif"}
-                        </span>
+                        <Switch checked={u.status === "actif"} onCheckedChange={() => toggleStatus(u)} />
+                      </td>
+                      <td className="p-4 text-right">
+                        <button onClick={() => openEdit(u)} className="rounded-lg p-1.5 hover:bg-secondary">
+                          <Pencil className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   );
@@ -185,59 +231,62 @@ function AdminUtilisateurs() {
           <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold">Créer un utilisateur</h2>
-              <button onClick={() => setShowCreate(false)} className="rounded-lg p-1 hover:bg-secondary">
-                <X className="h-5 w-5" />
-              </button>
+              <button onClick={() => setShowCreate(false)} className="rounded-lg p-1 hover:bg-secondary"><X className="h-5 w-5" /></button>
             </div>
             <div className="space-y-4">
               <div>
                 <label className="mb-1.5 block text-sm font-medium">Nom complet</label>
-                <input
-                  value={newUser.full_name}
-                  onChange={e => setNewUser(p => ({ ...p, full_name: e.target.value }))}
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                  placeholder="Jean Ndong"
-                />
+                <input value={newUser.full_name} onChange={e => setNewUser(p => ({ ...p, full_name: e.target.value }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" placeholder="Jean Ndong" />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium">Email</label>
-                <input
-                  type="email"
-                  value={newUser.email}
-                  onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))}
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                  placeholder="email@exemple.com"
-                />
+                <input type="email" value={newUser.email} onChange={e => setNewUser(p => ({ ...p, email: e.target.value }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" placeholder="email@exemple.com" />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium">Mot de passe temporaire</label>
-                <input
-                  type="text"
-                  value={newUser.password}
-                  onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))}
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                  placeholder="Min. 8 caractères"
-                />
+                <input type="text" value={newUser.password} onChange={e => setNewUser(p => ({ ...p, password: e.target.value }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" placeholder="Min. 8 caractères" />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium">Rôle</label>
-                <select
-                  value={newUser.role}
-                  onChange={e => setNewUser(p => ({ ...p, role: e.target.value }))}
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                >
+                <select value={newUser.role} onChange={e => setNewUser(p => ({ ...p, role: e.target.value }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
                   <option value="client">Client</option>
                   <option value="chauffeur">Chauffeur</option>
                   <option value="gerant">Gérant</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
-              <button
-                onClick={handleCreate}
-                disabled={creating}
-                className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-              >
+              <button onClick={handleCreate} disabled={creating} className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
                 {creating ? "Création..." : "Créer l'utilisateur"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit modal */}
+      {editUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold">Modifier — {editUser.full_name || editUser.email}</h2>
+              <button onClick={() => setEditUser(null)} className="rounded-lg p-1 hover:bg-secondary"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">Nom complet</label>
+                <input value={editForm.full_name} onChange={e => setEditForm(p => ({ ...p, full_name: e.target.value }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium">Rôle</label>
+                <select value={editForm.role} onChange={e => setEditForm(p => ({ ...p, role: e.target.value }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm">
+                  <option value="client">Client</option>
+                  <option value="chauffeur">Chauffeur</option>
+                  <option value="gerant">Gérant</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <button onClick={handleEditSave} disabled={editSaving} className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                {editSaving ? "Enregistrement..." : "Enregistrer"}
               </button>
             </div>
           </div>
