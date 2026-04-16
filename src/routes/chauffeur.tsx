@@ -1,8 +1,12 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Truck, MapPin, LogOut, Menu, X } from "lucide-react";
+import { Truck, MapPin, LogOut, Menu, X, Bus, Clock, CheckCircle, AlertCircle, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/chauffeur")({
   head: () => ({
@@ -14,10 +18,29 @@ export const Route = createFileRoute("/chauffeur")({
   component: ChauffeurLayout,
 });
 
+interface Circuit {
+  id: string;
+  nom: string;
+  description: string;
+}
+
+interface BusInfo {
+  id: string;
+  immatriculation: string;
+  type: string;
+  statut: string;
+}
+
+type TabType = "circuits" | "bus";
+
 function ChauffeurLayout() {
-  const { isAuthenticated, isLoading, role, signOut } = useAuth();
+  const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>("circuits");
+  const [circuits, setCircuits] = useState<Circuit[]>([]);
+  const [buses, setBuses] = useState<BusInfo[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || (role && role !== "chauffeur" && role !== "admin"))) {
@@ -25,8 +48,67 @@ function ChauffeurLayout() {
     }
   }, [isLoading, isAuthenticated, role, navigate]);
 
+  useEffect(() => {
+    if (!user) return;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch assigned circuits
+        const { data: userCircuits } = await supabase
+          .from("user_circuits")
+          .select("circuit_id")
+          .eq("user_id", user.id);
+
+        if (userCircuits && userCircuits.length > 0) {
+          const circuitIds = userCircuits.map((uc) => uc.circuit_id);
+          const { data: circuitData } = await supabase
+            .from("circuits")
+            .select("*")
+            .in("id", circuitIds);
+          setCircuits(circuitData || []);
+        } else {
+          setCircuits([]);
+        }
+
+        // Fetch assigned buses (where chauffeur name matches)
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profile?.full_name) {
+          const { data: busData } = await supabase
+            .from("buses")
+            .select("*")
+            .ilike("chauffeur", `%${profile.full_name}%`);
+          setBuses(busData || []);
+        }
+      } catch (err) {
+        console.error("[CHAUFFEUR] Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
+
   if (isLoading) return <div className="flex min-h-screen items-center justify-center"><p>Chargement...</p></div>;
   if (!isAuthenticated || (role !== "chauffeur" && role !== "admin")) return null;
+
+  const tabs = [
+    { key: "circuits" as TabType, label: "Mes Circuits", icon: MapPin },
+    { key: "bus" as TabType, label: "Mes Bus", icon: Bus },
+  ];
+
+  const statusColor = (s: string) => {
+    switch (s.toLowerCase()) {
+      case "disponible": return "bg-green-500/10 text-green-600 border-green-500/20";
+      case "en service": return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+      case "en maintenance": return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -36,11 +118,21 @@ function ChauffeurLayout() {
           <span className="font-bold">Espace Chauffeur</span>
         </div>
         <nav className="flex flex-col gap-1 p-3">
-          <Link to="/chauffeur" className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-secondary" activeOptions={{ exact: true }} activeProps={{ className: "rounded-lg px-3 py-2 text-sm font-medium bg-secondary" }}>
-            <span className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Mes Trajets</span>
-          </Link>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => { setActiveTab(tab.key); setSidebarOpen(false); }}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${activeTab === tab.key ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          ))}
         </nav>
-        <div className="absolute bottom-0 w-full border-t p-3">
+        <div className="absolute bottom-0 w-full border-t p-3 space-y-1">
+          <Link to="/" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-secondary">
+            ← Retour au site
+          </Link>
           <button onClick={() => { signOut(); navigate({ to: "/" }); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10">
             <LogOut className="h-4 w-4" /> Déconnexion
           </button>
@@ -53,12 +145,91 @@ function ChauffeurLayout() {
           <span className="ml-2 font-bold">Espace Chauffeur</span>
         </div>
         <div className="p-4 lg:p-8">
-          <h1 className="text-2xl font-bold">Mes Trajets</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Consultez vos trajets assignés.</p>
-          <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
-            <Truck className="mx-auto h-12 w-12 opacity-30" />
-            <p className="mt-3">Aucun trajet assigné pour le moment.</p>
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="rounded-lg bg-primary/10 p-2"><MapPin className="h-5 w-5 text-primary" /></div>
+                <div>
+                  <p className="text-2xl font-bold">{circuits.length}</p>
+                  <p className="text-xs text-muted-foreground">Circuits assignés</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="rounded-lg bg-blue-500/10 p-2"><Bus className="h-5 w-5 text-blue-500" /></div>
+                <div>
+                  <p className="text-2xl font-bold">{buses.length}</p>
+                  <p className="text-xs text-muted-foreground">Bus assignés</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
+
+          {activeTab === "circuits" && (
+            <>
+              <h1 className="text-2xl font-bold">Mes Circuits</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Circuits qui vous sont assignés.</p>
+              {loading ? (
+                <div className="mt-6 text-center text-muted-foreground">Chargement...</div>
+              ) : circuits.length === 0 ? (
+                <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
+                  <MapPin className="mx-auto h-12 w-12 opacity-30" />
+                  <p className="mt-3">Aucun circuit assigné pour le moment.</p>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {circuits.map((c) => (
+                    <Card key={c.id}>
+                      <CardContent className="flex items-start gap-4 p-4">
+                        <div className="rounded-lg bg-primary/10 p-2.5 mt-0.5">
+                          <MapPin className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold">{c.nom}</h3>
+                          <p className="text-sm text-muted-foreground mt-0.5">{c.description || "Aucune description"}</p>
+                        </div>
+                        <Badge variant="secondary">Actif</Badge>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === "bus" && (
+            <>
+              <h1 className="text-2xl font-bold">Mes Bus</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Véhicules qui vous sont assignés.</p>
+              {loading ? (
+                <div className="mt-6 text-center text-muted-foreground">Chargement...</div>
+              ) : buses.length === 0 ? (
+                <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
+                  <Bus className="mx-auto h-12 w-12 opacity-30" />
+                  <p className="mt-3">Aucun bus assigné pour le moment.</p>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {buses.map((b) => (
+                    <Card key={b.id}>
+                      <CardContent className="flex items-center gap-4 p-4">
+                        <div className="rounded-lg bg-blue-500/10 p-2.5">
+                          <Bus className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold">{b.immatriculation}</h3>
+                          <p className="text-sm text-muted-foreground">{b.type}</p>
+                        </div>
+                        <Badge className={statusColor(b.statut)}>{b.statut}</Badge>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
