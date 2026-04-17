@@ -1,8 +1,11 @@
 import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
+import { useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { registerServiceWorker } from "@/lib/pwa";
 
 import appCss from "../styles.css?url";
 
@@ -29,15 +32,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Agence Wina — Transport & Tourisme au Gabon" },
       { name: "description", content: "Réservez votre transport scolaire, location de bus et circuits touristiques au Gabon avec Agence Wina." },
+      { name: "theme-color", content: "#3b6cd6" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Tour Wina" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { property: "og:title", content: "Agence Wina — Transport & Tourisme au Gabon" },
       { property: "og:description", content: "Plateforme de réservation de transport et tourisme au Gabon." },
       { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -69,6 +81,10 @@ function RootComponent() {
     location.pathname.startsWith("/reserver-transport") ||
     location.pathname.startsWith("/activites");
 
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {isFullScreenRoute ? (
@@ -82,6 +98,7 @@ function RootComponent() {
           <Footer />
         </div>
       )}
+      <InstallPrompt />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );
