@@ -40,7 +40,7 @@ function InscriptionPage() {
     try {
       await signUp(email, password, fullName);
       toast.success("Compte créé avec succès !");
-      navigate({ to: "/mes-reservations" });
+      navigate({ to: "/" });
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de l'inscription");
     } finally {
