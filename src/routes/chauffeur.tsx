@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { RideListSkeleton } from "@/components/skeletons";
 
 export const Route = createFileRoute("/chauffeur")({
   head: () => ({
