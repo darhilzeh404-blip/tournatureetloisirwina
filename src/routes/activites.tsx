@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, Calendar, Home as HomeIcon, MapPin, Loader2, ArrowRight } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,10 +20,15 @@ export const Route = createFileRoute("/activites")({
 function ActivitesPage() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
-  const preselected = searchParams.get("destination") || "";
 
-  const [selectedDest, setSelectedDest] = useState<string>(preselected);
+  const [selectedDest, setSelectedDest] = useState<string>("");
+
+  // Read URL ?destination= only on the client, after hydration, to avoid SSR mismatch
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const dest = new URLSearchParams(window.location.search).get("destination");
+    if (dest) setSelectedDest(dest);
+  }, []);
   const [persons, setPersons] = useState(1);
   const [days, setDays] = useState(1);
   const [withLodging, setWithLodging] = useState(false);
