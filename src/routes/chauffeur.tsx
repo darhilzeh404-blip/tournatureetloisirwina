@@ -316,7 +316,17 @@ function ChauffeurLayout() {
                             <p className="text-sm text-muted-foreground">{r.price.toLocaleString()} FCFA</p>
                             {r.notes && <p className="text-xs text-muted-foreground mt-1">{r.notes}</p>}
                           </div>
-                          <Badge className={statusColor("en_cours")}>En cours</Badge>
+                          <div className="flex flex-col items-end gap-2">
+                            <Badge className={statusColor("en_cours")}>En cours</Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCompleteRide(r.id)}
+                              disabled={acceptingId === r.id}
+                            >
+                              {acceptingId === r.id ? "..." : "Terminer"}
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
