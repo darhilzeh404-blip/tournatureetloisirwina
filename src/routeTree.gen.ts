@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
+import { Route as TransportExtraScolaireRouteImport } from './routes/transport-extra-scolaire'
 import { Route as ReserverTransportRouteImport } from './routes/reserver-transport'
 import { Route as MonCompteRouteImport } from './routes/mon-compte'
 import { Route as MesReservationsRouteImport } from './routes/mes-reservations'
@@ -25,6 +26,7 @@ import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
+import { Route as AdminTransportRouteImport } from './routes/admin/transport'
 import { Route as AdminReservationsRouteImport } from './routes/admin/reservations'
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
 import { Route as AdminOffresRouteImport } from './routes/admin/offres'
@@ -35,6 +37,11 @@ import { Route as AdminBusRouteImport } from './routes/admin/bus'
 const TransportScolaireRoute = TransportScolaireRouteImport.update({
   id: '/transport-scolaire',
   path: '/transport-scolaire',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransportExtraScolaireRoute = TransportExtraScolaireRouteImport.update({
+  id: '/transport-extra-scolaire',
+  path: '/transport-extra-scolaire',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReserverTransportRoute = ReserverTransportRouteImport.update({
@@ -112,6 +119,11 @@ const AdminUtilisateursRoute = AdminUtilisateursRouteImport.update({
   path: '/utilisateurs',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTransportRoute = AdminTransportRouteImport.update({
+  id: '/transport',
+  path: '/transport',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminReservationsRoute = AdminReservationsRouteImport.update({
   id: '/reservations',
   path: '/reservations',
@@ -157,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -164,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/transport': typeof AdminTransportRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -180,6 +194,7 @@ export interface FileRoutesByTo {
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -187,6 +202,7 @@ export interface FileRoutesByTo {
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/transport': typeof AdminTransportRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -205,6 +221,7 @@ export interface FileRoutesById {
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -212,6 +229,7 @@ export interface FileRoutesById {
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/transport': typeof AdminTransportRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -231,6 +249,7 @@ export interface FileRouteTypes {
     | '/mes-reservations'
     | '/mon-compte'
     | '/reserver-transport'
+    | '/transport-extra-scolaire'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -238,6 +257,7 @@ export interface FileRouteTypes {
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/reservations'
+    | '/admin/transport'
     | '/admin/utilisateurs'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -254,6 +274,7 @@ export interface FileRouteTypes {
     | '/mes-reservations'
     | '/mon-compte'
     | '/reserver-transport'
+    | '/transport-extra-scolaire'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -261,6 +282,7 @@ export interface FileRouteTypes {
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/reservations'
+    | '/admin/transport'
     | '/admin/utilisateurs'
     | '/admin'
   id:
@@ -278,6 +300,7 @@ export interface FileRouteTypes {
     | '/mes-reservations'
     | '/mon-compte'
     | '/reserver-transport'
+    | '/transport-extra-scolaire'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -285,6 +308,7 @@ export interface FileRouteTypes {
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/reservations'
+    | '/admin/transport'
     | '/admin/utilisateurs'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -303,6 +327,7 @@ export interface RootRouteChildren {
   MesReservationsRoute: typeof MesReservationsRoute
   MonCompteRoute: typeof MonCompteRoute
   ReserverTransportRoute: typeof ReserverTransportRoute
+  TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
 }
 
@@ -313,6 +338,13 @@ declare module '@tanstack/react-router' {
       path: '/transport-scolaire'
       fullPath: '/transport-scolaire'
       preLoaderRoute: typeof TransportScolaireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transport-extra-scolaire': {
+      id: '/transport-extra-scolaire'
+      path: '/transport-extra-scolaire'
+      fullPath: '/transport-extra-scolaire'
+      preLoaderRoute: typeof TransportExtraScolaireRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reserver-transport': {
@@ -420,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUtilisateursRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/transport': {
+      id: '/admin/transport'
+      path: '/transport'
+      fullPath: '/admin/transport'
+      preLoaderRoute: typeof AdminTransportRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/reservations': {
       id: '/admin/reservations'
       path: '/reservations'
@@ -472,6 +511,7 @@ interface AdminRouteChildren {
   AdminOffresRoute: typeof AdminOffresRoute
   AdminPaiementsRoute: typeof AdminPaiementsRoute
   AdminReservationsRoute: typeof AdminReservationsRoute
+  AdminTransportRoute: typeof AdminTransportRoute
   AdminUtilisateursRoute: typeof AdminUtilisateursRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -483,6 +523,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminOffresRoute: AdminOffresRoute,
   AdminPaiementsRoute: AdminPaiementsRoute,
   AdminReservationsRoute: AdminReservationsRoute,
+  AdminTransportRoute: AdminTransportRoute,
   AdminUtilisateursRoute: AdminUtilisateursRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -503,6 +544,7 @@ const rootRouteChildren: RootRouteChildren = {
   MesReservationsRoute: MesReservationsRoute,
   MonCompteRoute: MonCompteRoute,
   ReserverTransportRoute: ReserverTransportRoute,
+  TransportExtraScolaireRoute: TransportExtraScolaireRoute,
   TransportScolaireRoute: TransportScolaireRoute,
 }
 export const routeTree = rootRouteImport

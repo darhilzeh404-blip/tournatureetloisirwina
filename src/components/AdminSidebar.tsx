@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -12,6 +12,7 @@ const adminLinks = [
   { to: "/admin/bus", label: "Flotte Bus", icon: Bus, exact: false },
   { to: "/admin/offres", label: "Offres", icon: Tag, exact: false },
   { to: "/admin/circuits", label: "Circuits", icon: Map, exact: false },
+  { to: "/admin/transport", label: "Module Transport", icon: RouteIcon, exact: false },
 ] as const;
 
 export function AdminSidebar() {
