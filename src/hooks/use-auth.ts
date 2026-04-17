@@ -107,7 +107,7 @@ export function getRoleRedirectPath(role: AppRole | null): string {
     case "admin": return "/admin";
     case "gerant": return "/gerant";
     case "chauffeur": return "/chauffeur";
-    case "client": return "/espace-client";
+    case "client": return "/";
     default: return "/";
   }
 }
