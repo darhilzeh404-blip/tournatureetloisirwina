@@ -100,6 +100,7 @@ function RootComponent() {
         </div>
       )}
       <InstallPrompt />
+      <IosInstallBanner />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );
