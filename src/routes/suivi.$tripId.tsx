@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useDriverPosition } from "@/hooks/use-driver-position";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
-import { distanceKm, estimateEtaMinutes } from "@/hooks/use-geolocation";
+import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Clock, Navigation } from "lucide-react";
@@ -123,15 +123,36 @@ function TripTrackingPage() {
     });
   }
 
-  // Live ETA
-  let liveEta: number | null = trip.eta_minutes;
-  if (driverPos && trip.destination_lat && trip.destination_lng) {
-    const d = distanceKm(
-      { latitude: Number(driverPos.latitude), longitude: Number(driverPos.longitude) },
-      { latitude: Number(trip.destination_lat), longitude: Number(trip.destination_lng) }
-    );
-    liveEta = estimateEtaMinutes(d);
-  }
+  // Real road route via OSRM:
+  // - active trip with driver position → driver → destination (live ETA)
+  // - otherwise → origin → destination (planned route preview)
+  const fromPoint =
+    driverPos && trip.status === "active"
+      ? { lat: Number(driverPos.latitude), lng: Number(driverPos.longitude) }
+      : trip.origin_lat && trip.origin_lng
+      ? { lat: Number(trip.origin_lat), lng: Number(trip.origin_lng) }
+      : null;
+  const toPoint =
+    trip.destination_lat && trip.destination_lng
+      ? { lat: Number(trip.destination_lat), lng: Number(trip.destination_lng) }
+      : null;
+
+  // Re-route only when driver moves ~100m (3 decimals ≈ 110m) to avoid spamming OSRM
+  const refreshKey = driverPos
+    ? `${Number(driverPos.latitude).toFixed(3)}-${Number(driverPos.longitude).toFixed(3)}`
+    : "static";
+
+  const { route: osrmRoute, loading: routeLoading } = useOsrmRoute(
+    fromPoint,
+    toPoint,
+    Boolean(fromPoint && toPoint),
+    refreshKey
+  );
+
+  const liveEta: number | null =
+    osrmRoute && driverPos && trip.status === "active"
+      ? osrmRoute.durationMin
+      : trip.eta_minutes;
 
   const statusLabel: Record<string, { label: string; color: string }> = {
     pending: { label: "En attente", color: "bg-yellow-500/10 text-yellow-700 border-yellow-500/30" },
@@ -161,6 +182,7 @@ function TripTrackingPage() {
           <LiveMap
             markers={markers}
             showRoute
+            routePath={osrmRoute?.geometry}
             followMarkerId={driverPos ? "driver" : undefined}
             height="100%"
           />
@@ -185,12 +207,19 @@ function TripTrackingPage() {
                 {driverName || (trip.driver_id ? "Chauffeur assigné" : "Pas encore assigné")}
               </p>
             </div>
-            {liveEta !== null && trip.status === "active" && (
+            {liveEta !== null && (trip.status === "active" || osrmRoute) && (
               <div className="text-right">
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" /> ETA
                 </div>
-                <p className="font-bold text-lg">{liveEta} min</p>
+                <p className="font-bold text-lg">
+                  {routeLoading ? "…" : `${liveEta} min`}
+                </p>
+                {osrmRoute && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {osrmRoute.distanceKm.toFixed(1)} km
+                  </p>
+                )}
               </div>
             )}
           </div>
