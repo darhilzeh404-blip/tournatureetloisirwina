@@ -265,6 +265,278 @@ export type Database = {
         }
         Relationships: []
       }
+      transport_activities: {
+        Row: {
+          created_at: string
+          description: string
+          duration_hours: number
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          duration_hours?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          duration_hours?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transport_categories: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transport_packages: {
+        Row: {
+          activity_id: string | null
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          route_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activity_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number
+          route_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activity_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          route_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_packages_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "transport_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_packages_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "transport_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_pricing: {
+        Row: {
+          created_at: string
+          id: string
+          price: number
+          route_id: string
+          service_type: string
+          trip_type: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          price?: number
+          route_id: string
+          service_type?: string
+          trip_type?: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          price?: number
+          route_id?: string
+          service_type?: string
+          trip_type?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_pricing_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "transport_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_pricing_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "transport_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_routes: {
+        Row: {
+          category_id: string
+          created_at: string
+          destination: string
+          distance_km: number
+          id: string
+          is_active: boolean
+          name: string
+          origin: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          destination: string
+          distance_km?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          origin: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          destination?: string
+          distance_km?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          origin?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_routes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "transport_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_settings: {
+        Row: {
+          description: string
+          id: string
+          key: string
+          label: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          description?: string
+          id?: string
+          key: string
+          label?: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          description?: string
+          id?: string
+          key?: string
+          label?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      transport_vehicles: {
+        Row: {
+          base_price: number
+          capacity: number
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          capacity: number
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          capacity?: number
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_circuits: {
         Row: {
           circuit_id: string
