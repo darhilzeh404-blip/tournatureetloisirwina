@@ -25,7 +25,7 @@ function InscriptionPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate({ to: "/mes-reservations" });
+      navigate({ to: "/" });
     }
   }, [isAuthenticated, navigate]);
 
