@@ -68,6 +68,47 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_positions: {
+        Row: {
+          accuracy: number | null
+          driver_id: string
+          heading: number | null
+          latitude: number
+          longitude: number
+          speed: number | null
+          trip_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          accuracy?: number | null
+          driver_id: string
+          heading?: number | null
+          latitude: number
+          longitude: number
+          speed?: number | null
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accuracy?: number | null
+          driver_id?: string
+          heading?: number | null
+          latitude?: number
+          longitude?: number
+          speed?: number | null
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_positions_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           created_at: string
@@ -536,6 +577,71 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      trips: {
+        Row: {
+          client_id: string
+          completed_at: string | null
+          created_at: string
+          destination_address: string
+          destination_lat: number | null
+          destination_lng: number | null
+          driver_id: string | null
+          eta_minutes: number | null
+          id: string
+          origin_address: string
+          origin_lat: number | null
+          origin_lng: number | null
+          reservation_id: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          completed_at?: string | null
+          created_at?: string
+          destination_address?: string
+          destination_lat?: number | null
+          destination_lng?: number | null
+          driver_id?: string | null
+          eta_minutes?: number | null
+          id?: string
+          origin_address?: string
+          origin_lat?: number | null
+          origin_lng?: number | null
+          reservation_id: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string
+          destination_address?: string
+          destination_lat?: number | null
+          destination_lng?: number | null
+          driver_id?: string | null
+          eta_minutes?: number | null
+          id?: string
+          origin_address?: string
+          origin_lat?: number | null
+          origin_lng?: number | null
+          reservation_id?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_circuits: {
         Row: {
