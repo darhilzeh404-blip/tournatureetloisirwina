@@ -71,30 +71,42 @@ function AdminUtilisateurs() {
     return true;
   });
 
-  // Create user
+  // Create user (via secure backend endpoint — does NOT touch admin session)
   const handleCreate = async () => {
     if (!newUser.email || !newUser.password || !newUser.full_name) {
       toast.error("Veuillez remplir tous les champs");
       return;
     }
+    if (newUser.password.length < 8) {
+      toast.error("Le mot de passe doit contenir au moins 8 caractères");
+      return;
+    }
     setCreating(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: newUser.email,
-        password: newUser.password,
-        options: { data: { full_name: newUser.full_name } },
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Session admin introuvable");
+
+      const res = await fetch("/api/admin/create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: newUser.email,
+          password: newUser.password,
+          full_name: newUser.full_name,
+          role: newUser.role,
+        }),
       });
-      if (error) throw error;
-      if (data.user && newUser.role !== "client") {
-        await supabase
-          .from("user_roles")
-          .update({ role: newUser.role as any })
-          .eq("user_id", data.user.id);
-      }
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || "Erreur");
+
       toast.success("Utilisateur créé");
       setShowCreate(false);
       setNewUser({ full_name: "", email: "", role: "client", password: "" });
-      setTimeout(fetchUsers, 1000);
+      fetchUsers();
     } catch (err: any) {
       toast.error(err.message || "Erreur");
     } finally {
