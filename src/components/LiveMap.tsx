@@ -47,6 +47,8 @@ interface LiveMapProps {
   height?: string;
   showRoute?: boolean;
   followMarkerId?: string;
+  /** Real road route polyline (array of [lat,lng]). Overrides straight-line fallback when provided. */
+  routePath?: [number, number][];
 }
 
 function MapAutoFit({
@@ -88,12 +90,14 @@ export function LiveMap({
   height = "100%",
   showRoute = false,
   followMarkerId,
+  routePath,
 }: LiveMapProps) {
-  const routePoints: [number, number][] = showRoute
+  const fallbackPoints: [number, number][] = showRoute && (!routePath || routePath.length < 2)
     ? markers
         .filter((m) => m.type === "driver" || m.type === "destination" || m.type === "client")
         .map((m) => [m.lat, m.lng])
     : [];
+  const realPath = routePath && routePath.length >= 2 ? routePath : null;
 
   return (
     <div style={{ height, width: "100%" }} className="rounded-xl overflow-hidden border">
@@ -112,10 +116,16 @@ export function LiveMap({
             {m.label && <Popup>{m.label}</Popup>}
           </Marker>
         ))}
-        {showRoute && routePoints.length >= 2 && (
+        {realPath && (
           <Polyline
-            positions={routePoints}
-            pathOptions={{ color: "hsl(220 90% 56%)", weight: 4, opacity: 0.7, dashArray: "8 8" }}
+            positions={realPath}
+            pathOptions={{ color: "hsl(220 90% 56%)", weight: 5, opacity: 0.85 }}
+          />
+        )}
+        {!realPath && fallbackPoints.length >= 2 && (
+          <Polyline
+            positions={fallbackPoints}
+            pathOptions={{ color: "hsl(220 90% 56%)", weight: 4, opacity: 0.6, dashArray: "8 8" }}
           />
         )}
         <MapAutoFit markers={markers} followMarkerId={followMarkerId} />
