@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2 } from "lucide-react";
+import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { ReservationListSkeleton } from "@/components/skeletons";
@@ -24,6 +24,7 @@ interface Reservation {
   status: ReservationStatus;
   details: Record<string, unknown> | null;
   created_at: string;
+  trip_id?: string | null;
 }
 
 export const Route = createFileRoute("/mes-reservations")({
@@ -94,20 +95,33 @@ function MesReservationsPage() {
     if (!user) return;
     let cancelled = false;
     setLoading(true);
-    supabase
-      .from("reservations")
-      .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          setError(error.message);
-        } else {
-          setReservations((data as Reservation[]) ?? []);
-        }
+    (async () => {
+      const { data, error } = await supabase
+        .from("reservations")
+        .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (cancelled) return;
+      if (error) {
+        setError(error.message);
         setLoading(false);
-      });
+        return;
+      }
+      const list = (data as Reservation[]) ?? [];
+      // Attach trip_id if a trip exists for this reservation
+      if (list.length > 0) {
+        const ids = list.map((r) => r.id);
+        const { data: trips } = await supabase
+          .from("trips")
+          .select("id, reservation_id")
+          .in("reservation_id", ids);
+        const tripMap: Record<string, string> = {};
+        (trips ?? []).forEach((t) => (tripMap[t.reservation_id] = t.id));
+        list.forEach((r) => (r.trip_id = tripMap[r.id] ?? null));
+      }
+      setReservations(list);
+      setLoading(false);
+    })();
     return () => {
       cancelled = true;
     };
@@ -185,16 +199,26 @@ function MesReservationsPage() {
                       )}
                     </div>
                   </div>
-                  {canPay && (
-                    <div className="mt-4 flex justify-end border-t pt-4">
-                      <Button
-                        size="sm"
-                        onClick={() => setPayTarget(res)}
-                        className="gap-2"
-                      >
-                        <Wallet className="h-4 w-4" />
-                        Payer le solde ({formatXAF(remaining)})
-                      </Button>
+                  {(canPay || res.trip_id) && (
+                    <div className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-4">
+                      {res.trip_id && (
+                        <Link to="/suivi/$tripId" params={{ tripId: res.trip_id }}>
+                          <Button size="sm" variant="outline" className="gap-2">
+                            <MapPin className="h-4 w-4" />
+                            Suivre en direct
+                          </Button>
+                        </Link>
+                      )}
+                      {canPay && (
+                        <Button
+                          size="sm"
+                          onClick={() => setPayTarget(res)}
+                          className="gap-2"
+                        >
+                          <Wallet className="h-4 w-4" />
+                          Payer le solde ({formatXAF(remaining)})
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
