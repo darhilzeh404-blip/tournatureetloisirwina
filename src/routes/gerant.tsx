@@ -120,7 +120,7 @@ function GerantLayout() {
   if (!isAuthenticated || (role !== "gerant" && role !== "admin")) return null;
 
   const tabs = [
-    { key: "circuits" as TabType, label: "Mes Circuits", icon: Map, count: circuits.length },
+    { key: "circuits" as TabType, label: "Mes Circuits", icon: MapIcon, count: circuits.length },
     { key: "reservations" as TabType, label: "Réservations", icon: CalendarCheck, count: reservations.length },
     { key: "clients" as TabType, label: "Clients", icon: Users, count: clients.length },
   ];
@@ -150,7 +150,7 @@ function GerantLayout() {
     <div className="flex min-h-screen w-full bg-background">
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r bg-card transition-transform lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-16 items-center gap-2 border-b px-4">
-          <Map className="h-5 w-5 text-primary" />
+          <MapIcon className="h-5 w-5 text-primary" />
           <span className="font-bold">Espace Gérant</span>
         </div>
         <nav className="flex flex-col gap-1 p-3">
@@ -197,7 +197,7 @@ function GerantLayout() {
                 <div className="mt-6 text-center text-muted-foreground">Chargement...</div>
               ) : circuits.length === 0 ? (
                 <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
-                  <Map className="mx-auto h-12 w-12 opacity-30" />
+                  <MapIcon className="mx-auto h-12 w-12 opacity-30" />
                   <p className="mt-3">Aucun circuit assigné. Contactez l'administrateur.</p>
                 </div>
               ) : (
@@ -208,7 +208,7 @@ function GerantLayout() {
                       <Card key={c.id}>
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
-                            <div className="rounded-lg bg-primary/10 p-2.5"><Map className="h-5 w-5 text-primary" /></div>
+                            <div className="rounded-lg bg-primary/10 p-2.5"><MapIcon className="h-5 w-5 text-primary" /></div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold">{c.nom}</h3>
                               <p className="text-sm text-muted-foreground mt-0.5">{c.description || "Aucune description"}</p>
