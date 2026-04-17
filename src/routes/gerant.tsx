@@ -194,7 +194,7 @@ function GerantLayout() {
               <h1 className="text-2xl font-bold">Mes Circuits</h1>
               <p className="mt-1 text-sm text-muted-foreground">Circuits touristiques sous votre supervision.</p>
               {loading ? (
-                <div className="mt-6 text-center text-muted-foreground">Chargement...</div>
+                <div className="mt-4"><CircuitGridSkeleton count={4} /></div>
               ) : circuits.length === 0 ? (
                 <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
                   <MapIcon className="mx-auto h-12 w-12 opacity-30" />
@@ -231,7 +231,7 @@ function GerantLayout() {
               <h1 className="text-2xl font-bold">Réservations</h1>
               <p className="mt-1 text-sm text-muted-foreground">Toutes les réservations sur vos circuits assignés.</p>
               {loading ? (
-                <div className="mt-6 text-center text-muted-foreground">Chargement...</div>
+                <div className="mt-4"><ReservationListSkeleton count={5} /></div>
               ) : reservations.length === 0 ? (
                 <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
                   <CalendarCheck className="mx-auto h-12 w-12 opacity-30" />
@@ -278,7 +278,7 @@ function GerantLayout() {
               <h1 className="text-2xl font-bold">Clients</h1>
               <p className="mt-1 text-sm text-muted-foreground">Clients ayant réservé sur vos circuits.</p>
               {loading ? (
-                <div className="mt-6 text-center text-muted-foreground">Chargement...</div>
+                <div className="mt-4"><CircuitGridSkeleton count={4} /></div>
               ) : clients.length === 0 ? (
                 <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
                   <Users className="mx-auto h-12 w-12 opacity-30" />
