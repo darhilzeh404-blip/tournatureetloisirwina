@@ -18,9 +18,12 @@ export const Route = createFileRoute("/api/admin/create-user")({
       POST: async ({ request }) => {
         const SUPABASE_URL = process.env.SUPABASE_URL;
         const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        const ANON_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
-        if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !ANON_KEY) {
+        if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+          console.error("[create-user] Missing env vars", {
+            hasUrl: !!SUPABASE_URL,
+            hasServiceKey: !!SERVICE_ROLE_KEY,
+          });
           return jsonResponse({ error: "Server not configured" }, 500);
         }
 
@@ -31,22 +34,17 @@ export const Route = createFileRoute("/api/admin/create-user")({
         }
         const token = authHeader.slice(7);
 
-        const userClient = createClient<Database>(SUPABASE_URL, ANON_KEY, {
+        // Admin client (service role) — used both to validate the caller's token and to bypass RLS
+        const adminClient = createClient<Database>(SUPABASE_URL, SERVICE_ROLE_KEY, {
           auth: { persistSession: false, autoRefreshToken: false },
-          global: { headers: { Authorization: `Bearer ${token}` } },
         });
 
-        const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+        const { data: userData, error: userErr } = await adminClient.auth.getUser(token);
         if (userErr || !userData.user) {
           return jsonResponse({ error: "Invalid session" }, 401);
         }
 
         const callerId = userData.user.id;
-
-        // 2. Verify caller is admin (via service role to bypass RLS reliably)
-        const adminClient = createClient<Database>(SUPABASE_URL, SERVICE_ROLE_KEY, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
 
         const { data: callerRoles, error: roleErr } = await adminClient
           .from("user_roles")
