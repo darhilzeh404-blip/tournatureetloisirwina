@@ -2,8 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useGeolocation, distanceKm, estimateEtaMinutes } from "@/hooks/use-geolocation";
+import { useGeolocation } from "@/hooks/use-geolocation";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -145,14 +146,30 @@ function DriverTripsPage() {
     markers.push({ id: "me", lat: myPos.latitude, lng: myPos.longitude, type: "driver", label: "Vous" });
   }
 
-  let etaMin: number | null = null;
-  if (myPos && trip?.destination_lat && trip?.destination_lng) {
-    const d = distanceKm(
-      { latitude: myPos.latitude, longitude: myPos.longitude },
-      { latitude: Number(trip.destination_lat), longitude: Number(trip.destination_lng) }
-    );
-    etaMin = estimateEtaMinutes(d);
-  }
+  // OSRM real road route:
+  // - tracking actif → ma position → destination (ETA live)
+  // - sinon → origin → destination (aperçu de l'itinéraire)
+  const fromPoint = tracking && myPos
+    ? { lat: myPos.latitude, lng: myPos.longitude }
+    : trip?.origin_lat && trip?.origin_lng
+    ? { lat: Number(trip.origin_lat), lng: Number(trip.origin_lng) }
+    : null;
+  const toPoint = trip?.destination_lat && trip?.destination_lng
+    ? { lat: Number(trip.destination_lat), lng: Number(trip.destination_lng) }
+    : null;
+
+  const refreshKey = myPos
+    ? `${myPos.latitude.toFixed(3)}-${myPos.longitude.toFixed(3)}`
+    : "static";
+
+  const { route: osrmRoute, loading: routeLoading } = useOsrmRoute(
+    fromPoint,
+    toPoint,
+    Boolean(fromPoint && toPoint),
+    refreshKey
+  );
+
+  const etaMin: number | null = osrmRoute && tracking ? osrmRoute.durationMin : null;
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -177,7 +194,13 @@ function DriverTripsPage() {
 
       <div className="flex-1 relative min-h-0">
         {markers.length > 0 ? (
-          <LiveMap markers={markers} showRoute followMarkerId={tracking ? "me" : undefined} height="100%" />
+          <LiveMap
+            markers={markers}
+            showRoute
+            routePath={osrmRoute?.geometry}
+            followMarkerId={tracking ? "me" : undefined}
+            height="100%"
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground p-6 text-center">
             <div>
@@ -200,10 +223,17 @@ function DriverTripsPage() {
                   <p className="font-semibold truncate">{trip.origin_address}</p>
                   <p className="text-sm text-muted-foreground truncate">↓ {trip.destination_address}</p>
                 </div>
-                {etaMin !== null && tracking && (
+                {(etaMin !== null || (osrmRoute && tracking)) && (
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">ETA</p>
-                    <p className="text-lg font-bold">{etaMin} min</p>
+                    <p className="text-lg font-bold">
+                      {routeLoading ? "…" : etaMin !== null ? `${etaMin} min` : "—"}
+                    </p>
+                    {osrmRoute && (
+                      <p className="text-[10px] text-muted-foreground">
+                        {osrmRoute.distanceKm.toFixed(1)} km
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
