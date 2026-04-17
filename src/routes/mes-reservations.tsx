@@ -30,7 +30,7 @@ export const Route = createFileRoute("/mes-reservations")({
   component: MesReservationsPage,
 });
 
-const STATUS_CONFIG: Record<ReservationStatus, { label: string; icon: JSX.Element; className: string }> = {
+const STATUS_CONFIG: Record<ReservationStatus, { label: string; icon: React.ReactNode; className: string }> = {
   PENDING_PAYMENT: { label: "En attente de paiement", icon: <Clock className="h-4 w-4" />, className: "bg-warning/10 text-warning-foreground border-warning/30" },
   CONFIRMED: { label: "Confirmée", icon: <CheckCircle className="h-4 w-4" />, className: "bg-success/10 text-success border-success/30" },
   REJECTED: { label: "Refusée", icon: <XCircle className="h-4 w-4" />, className: "bg-destructive/10 text-destructive border-destructive/30" },
