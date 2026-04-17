@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const ALLOWED_ROLES = ["admin", "gerant", "chauffeur", "client"] as const;
 type AllowedRole = (typeof ALLOWED_ROLES)[number];
@@ -16,17 +15,6 @@ export const Route = createFileRoute("/api/admin/create-user")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const SUPABASE_URL = process.env.SUPABASE_URL;
-        const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-          console.error("[create-user] Missing env vars", {
-            hasUrl: !!SUPABASE_URL,
-            hasServiceKey: !!SERVICE_ROLE_KEY,
-          });
-          return jsonResponse({ error: "Server not configured" }, 500);
-        }
-
         // 1. Verify caller is authenticated
         const authHeader = request.headers.get("authorization") || request.headers.get("Authorization");
         if (!authHeader?.startsWith("Bearer ")) {
@@ -34,10 +22,13 @@ export const Route = createFileRoute("/api/admin/create-user")({
         }
         const token = authHeader.slice(7);
 
-        // Admin client (service role) — used both to validate the caller's token and to bypass RLS
-        const adminClient = createClient<Database>(SUPABASE_URL, SERVICE_ROLE_KEY, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
+        let adminClient;
+        try {
+          adminClient = supabaseAdmin;
+        } catch (e: any) {
+          console.error("[create-user] Admin client init failed:", e?.message);
+          return jsonResponse({ error: "Server not configured" }, 500);
+        }
 
         const { data: userData, error: userErr } = await adminClient.auth.getUser(token);
         if (userErr || !userData.user) {
