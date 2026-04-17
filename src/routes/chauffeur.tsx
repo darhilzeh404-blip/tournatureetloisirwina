@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { RideListSkeleton } from "@/components/skeletons";
 
 export const Route = createFileRoute("/chauffeur")({
   head: () => ({
@@ -339,7 +340,7 @@ function ChauffeurLayout() {
                 <AlertCircle className="h-5 w-5 text-green-500" /> Courses disponibles
               </h2>
               {loading ? (
-                <div className="mt-4 text-center text-muted-foreground">Chargement...</div>
+                <RideListSkeleton count={3} />
               ) : availableRides.length === 0 ? (
                 <div className="rounded-2xl border bg-card p-8 text-center text-muted-foreground">
                   <Navigation className="mx-auto h-12 w-12 opacity-30" />
