@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { IosInstallBanner } from "@/components/IosInstallBanner";
 import { registerServiceWorker } from "@/lib/pwa";
 
 import appCss from "../styles.css?url";
@@ -99,6 +100,7 @@ function RootComponent() {
         </div>
       )}
       <InstallPrompt />
+      <IosInstallBanner />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );
