@@ -64,12 +64,15 @@ function ChauffeurLayout() {
   }, [isLoading, isAuthenticated, role, navigate]);
 
   const fetchRides = useCallback(async () => {
+    if (!user) return;
+    // Strict filter: only available rides + rides assigned to this driver
     const { data } = await supabase
       .from("rides")
       .select("*")
+      .or(`status.eq.disponible,driver_id.eq.${user.id}`)
       .order("created_at", { ascending: false });
     setRides((data as Ride[]) || []);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -116,15 +119,33 @@ function ChauffeurLayout() {
     fetchData();
   }, [user, fetchRides]);
 
-  // Realtime subscription for rides
+  // Realtime: instantly remove rides taken by other drivers + reflect new ones
   useEffect(() => {
+    if (!user) return;
     const channel = supabase
       .channel("rides-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rides" },
-        () => {
-          fetchRides();
+        (payload) => {
+          const newRow = payload.new as Ride | null;
+          const oldRow = payload.old as Ride | null;
+
+          if (payload.eventType === "DELETE" && oldRow) {
+            setRides((prev) => prev.filter((r) => r.id !== oldRow.id));
+            return;
+          }
+          if (!newRow) return;
+
+          const visible =
+            newRow.status === "disponible" || newRow.driver_id === user.id;
+
+          setRides((prev) => {
+            const exists = prev.some((r) => r.id === newRow.id);
+            if (!visible) return prev.filter((r) => r.id !== newRow.id);
+            if (exists) return prev.map((r) => (r.id === newRow.id ? newRow : r));
+            return [newRow, ...prev];
+          });
         }
       )
       .subscribe();
@@ -132,29 +153,55 @@ function ChauffeurLayout() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchRides]);
+  }, [user]);
 
   const handleAcceptRide = async (rideId: string) => {
     if (!user) return;
     setAcceptingId(rideId);
+    // Optimistic: remove from list immediately so UI feels instant
+    const snapshot = rides;
+    setRides((prev) => prev.filter((r) => r.id !== rideId || r.driver_id === user.id));
     try {
-      const { data, error } = await supabase
-        .from("rides")
-        .update({ status: "en_cours", driver_id: user.id })
-        .eq("id", rideId)
-        .eq("status", "disponible")
-        .select();
-
+      const { data, error } = await supabase.rpc("accept_ride", { _ride_id: rideId });
       if (error) {
-        toast.error("Erreur lors de l'acceptation de la course.");
+        setRides(snapshot);
+        if (error.message.includes("FORBIDDEN")) {
+          toast.error("Accès refusé.");
+        } else {
+          toast.error("Erreur lors de l'acceptation de la course.");
+        }
         console.error("[ACCEPT RIDE]", error);
-      } else if (!data || data.length === 0) {
+      } else if (!data) {
+        // No row returned → ride was already taken
+        setRides(snapshot.filter((r) => r.id !== rideId));
         toast.error("Course déjà prise par un autre chauffeur.");
       } else {
-        toast.success("Course acceptée avec succès !");
+        toast.success("Course acceptée !");
+        // realtime will sync the row, but make sure it appears now too
+        setRides((prev) => {
+          const exists = prev.some((r) => r.id === (data as Ride).id);
+          return exists ? prev : [data as Ride, ...prev];
+        });
       }
-    } catch {
+    } catch (err) {
+      setRides(snapshot);
       toast.error("Erreur réseau.");
+      console.error("[ACCEPT RIDE]", err);
+    } finally {
+      setAcceptingId(null);
+    }
+  };
+
+  const handleCompleteRide = async (rideId: string) => {
+    setAcceptingId(rideId);
+    try {
+      const { data, error } = await supabase.rpc("complete_ride", { _ride_id: rideId });
+      if (error || !data) {
+        toast.error("Impossible de terminer la course.");
+      } else {
+        toast.success("Course terminée.");
+        setRides((prev) => prev.filter((r) => r.id !== rideId));
+      }
     } finally {
       setAcceptingId(null);
     }
