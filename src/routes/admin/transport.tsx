@@ -1,0 +1,342 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Loader2, Trash2, Plus, Save } from "lucide-react";
+import { useTransportData, formatXAF } from "@/hooks/use-transport-data";
+import { supabase } from "@/integrations/supabase/client";
+
+export const Route = createFileRoute("/admin/transport")({
+  component: AdminTransport,
+});
+
+const TABS = ["Itinéraires", "Véhicules", "Tarifs", "Activités", "Forfaits", "Paramètres"] as const;
+type Tab = typeof TABS[number];
+
+function AdminTransport() {
+  const data = useTransportData();
+  const [tab, setTab] = useState<Tab>("Itinéraires");
+
+  if (data.loading) {
+    return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+
+  return (
+    <div className="p-6 lg:p-8 pt-20 lg:pt-8">
+      <h1 className="text-2xl font-bold">Module Transport</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Configurez tarifs, itinéraires, véhicules et activités sans toucher au code.</p>
+
+      <div className="mt-6 flex flex-wrap gap-2 border-b">
+        {TABS.map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
+              tab === t ? "border-b-2 border-primary bg-primary/5 text-primary" : "text-muted-foreground hover:text-foreground"
+            }`}>{t}</button>
+        ))}
+      </div>
+
+      <div className="mt-6">
+        {tab === "Itinéraires" && <RoutesTab data={data} />}
+        {tab === "Véhicules" && <VehiclesTab data={data} />}
+        {tab === "Tarifs" && <PricingTab data={data} />}
+        {tab === "Activités" && <ActivitiesTab data={data} />}
+        {tab === "Forfaits" && <PackagesTab data={data} />}
+        {tab === "Paramètres" && <SettingsTab data={data} />}
+      </div>
+    </div>
+  );
+}
+
+// ============ ITINÉRAIRES ============
+function RoutesTab({ data }: { data: ReturnType<typeof useTransportData> }) {
+  const [form, setForm] = useState({ category_id: "", name: "", origin: "", destination: "", distance_km: 0 });
+
+  const add = async () => {
+    if (!form.category_id || !form.name || !form.origin || !form.destination) { toast.error("Champs obligatoires"); return; }
+    const { error } = await supabase.from("transport_routes").insert(form);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Itinéraire ajouté");
+    setForm({ category_id: "", name: "", origin: "", destination: "", distance_km: 0 });
+    data.reload();
+  };
+
+  const del = async (id: string) => {
+    if (!confirm("Supprimer cet itinéraire et ses tarifs ?")) return;
+    const { error } = await supabase.from("transport_routes").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Supprimé"); data.reload();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-6">
+        <select value={form.category_id} onChange={e => setForm({ ...form, category_id: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-1">
+          <option value="">Catégorie</option>
+          {data.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <input placeholder="Nom" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-1" />
+        <input placeholder="Origine" value={form.origin} onChange={e => setForm({ ...form, origin: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input placeholder="Destination" value={form.destination} onChange={e => setForm({ ...form, destination: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="number" placeholder="km" value={form.distance_km} onChange={e => setForm({ ...form, distance_km: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Ajouter</button>
+      </div>
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50"><tr><th className="p-3 text-left">Catégorie</th><th className="p-3 text-left">Nom</th><th className="p-3 text-left">Origine → Dest.</th><th className="p-3 text-left">km</th><th className="p-3"></th></tr></thead>
+          <tbody>
+            {data.routes.map(r => (
+              <tr key={r.id} className="border-t">
+                <td className="p-3">{data.categories.find(c => c.id === r.category_id)?.name}</td>
+                <td className="p-3 font-medium">{r.name}</td>
+                <td className="p-3 text-muted-foreground">{r.origin} → {r.destination}</td>
+                <td className="p-3">{r.distance_km}</td>
+                <td className="p-3 text-right"><button onClick={() => del(r.id)} className="text-destructive hover:text-destructive/80"><Trash2 className="h-4 w-4" /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ============ VÉHICULES ============
+function VehiclesTab({ data }: { data: ReturnType<typeof useTransportData> }) {
+  const [form, setForm] = useState({ name: "", capacity: 14, base_price: 50000, description: "" });
+
+  const add = async () => {
+    if (!form.name) { toast.error("Nom requis"); return; }
+    const { error } = await supabase.from("transport_vehicles").insert(form);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Véhicule ajouté"); setForm({ name: "", capacity: 14, base_price: 50000, description: "" }); data.reload();
+  };
+  const del = async (id: string) => {
+    if (!confirm("Supprimer ?")) return;
+    const { error } = await supabase.from("transport_vehicles").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Supprimé"); data.reload();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-5">
+        <input placeholder="Nom" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-2" />
+        <input type="number" placeholder="Places" value={form.capacity} onChange={e => setForm({ ...form, capacity: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="number" placeholder="Prix base" value={form.base_price} onChange={e => setForm({ ...form, base_price: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Ajouter</button>
+      </div>
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50"><tr><th className="p-3 text-left">Nom</th><th className="p-3 text-left">Places</th><th className="p-3 text-left">Prix base</th><th className="p-3"></th></tr></thead>
+          <tbody>
+            {data.vehicles.map(v => (
+              <tr key={v.id} className="border-t">
+                <td className="p-3 font-medium">{v.name}</td>
+                <td className="p-3">{v.capacity}</td>
+                <td className="p-3">{formatXAF(v.base_price)}</td>
+                <td className="p-3 text-right"><button onClick={() => del(v.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ============ TARIFS (grille) ============
+function PricingTab({ data }: { data: ReturnType<typeof useTransportData> }) {
+  const [edits, setEdits] = useState<Record<string, number>>({});
+
+  const key = (route_id: string, vehicle_id: string, st: string, tt: string) => `${route_id}|${vehicle_id}|${st}|${tt}`;
+
+  const save = async (route_id: string, vehicle_id: string, st: string, tt: string) => {
+    const k = key(route_id, vehicle_id, st, tt);
+    const price = edits[k];
+    if (price === undefined) return;
+    const existing = data.pricing.find(p => p.route_id === route_id && p.vehicle_id === vehicle_id && p.service_type === st && p.trip_type === tt);
+    const { error } = existing
+      ? await supabase.from("transport_pricing").update({ price }).eq("id", existing.id)
+      : await supabase.from("transport_pricing").insert({ route_id, vehicle_id, service_type: st, trip_type: tt, price });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Tarif enregistré");
+    setEdits(e => { const { [k]: _, ...rest } = e; return rest; });
+    data.reload();
+  };
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">Définissez le prix par combinaison itinéraire × véhicule × service × trajet.</p>
+      {data.routes.map(r => (
+        <div key={r.id} className="rounded-xl border bg-card p-4">
+          <h3 className="font-bold">{r.name}</h3>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-2 text-left">Véhicule</th>
+                  <th className="p-2">Std / Aller</th>
+                  <th className="p-2">Std / A-R</th>
+                  <th className="p-2">VIP / Aller</th>
+                  <th className="p-2">VIP / A-R</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.vehicles.map(v => (
+                  <tr key={v.id} className="border-t">
+                    <td className="p-2 font-medium">{v.name}</td>
+                    {(["standard", "vip"] as const).flatMap(st =>
+                      (["aller_simple", "aller_retour"] as const).map(tt => {
+                        const k = key(r.id, v.id, st, tt);
+                        const current = data.pricing.find(p => p.route_id === r.id && p.vehicle_id === v.id && p.service_type === st && p.trip_type === tt)?.price ?? 0;
+                        const value = edits[k] ?? current;
+                        return (
+                          <td key={k} className="p-2">
+                            <div className="flex items-center gap-1">
+                              <input type="number" value={value} onChange={e => setEdits({ ...edits, [k]: Number(e.target.value) })}
+                                className="w-24 rounded border bg-background px-2 py-1" />
+                              {edits[k] !== undefined && (
+                                <button onClick={() => save(r.id, v.id, st, tt)} className="text-primary"><Save className="h-3.5 w-3.5" /></button>
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============ ACTIVITÉS ============
+function ActivitiesTab({ data }: { data: ReturnType<typeof useTransportData> }) {
+  const [form, setForm] = useState({ name: "", description: "", price: 0, duration_hours: 1 });
+  const add = async () => {
+    if (!form.name) { toast.error("Nom requis"); return; }
+    const { error } = await supabase.from("transport_activities").insert(form);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Activité ajoutée"); setForm({ name: "", description: "", price: 0, duration_hours: 1 }); data.reload();
+  };
+  const del = async (id: string) => {
+    if (!confirm("Supprimer ?")) return;
+    await supabase.from("transport_activities").delete().eq("id", id); data.reload();
+  };
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-5">
+        <input placeholder="Nom" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-2" />
+        <input type="number" step="0.5" placeholder="Durée (h)" value={form.duration_hours} onChange={e => setForm({ ...form, duration_hours: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="number" placeholder="Prix" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Ajouter</button>
+      </div>
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50"><tr><th className="p-3 text-left">Nom</th><th className="p-3">Durée</th><th className="p-3">Prix</th><th></th></tr></thead>
+          <tbody>
+            {data.activities.map(a => (
+              <tr key={a.id} className="border-t">
+                <td className="p-3 font-medium">{a.name}</td>
+                <td className="p-3 text-center">{a.duration_hours}h</td>
+                <td className="p-3 text-center">{formatXAF(a.price)}</td>
+                <td className="p-3 text-right"><button onClick={() => del(a.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ============ FORFAITS ============
+function PackagesTab({ data }: { data: ReturnType<typeof useTransportData> }) {
+  const [form, setForm] = useState({ name: "", description: "", route_id: "", activity_id: "", price: 0 });
+  const add = async () => {
+    if (!form.name || !form.price) { toast.error("Nom et prix requis"); return; }
+    const { error } = await supabase.from("transport_packages").insert({
+      ...form, route_id: form.route_id || null, activity_id: form.activity_id || null,
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Forfait ajouté"); setForm({ name: "", description: "", route_id: "", activity_id: "", price: 0 }); data.reload();
+  };
+  const del = async (id: string) => {
+    if (!confirm("Supprimer ?")) return;
+    await supabase.from("transport_packages").delete().eq("id", id); data.reload();
+  };
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-6">
+        <input placeholder="Nom" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-2" />
+        <select value={form.route_id} onChange={e => setForm({ ...form, route_id: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm">
+          <option value="">Itinéraire</option>
+          {data.routes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+        <select value={form.activity_id} onChange={e => setForm({ ...form, activity_id: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm">
+          <option value="">Activité</option>
+          {data.activities.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+        </select>
+        <input type="number" placeholder="Prix" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Ajouter</button>
+      </div>
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50"><tr><th className="p-3 text-left">Nom</th><th className="p-3 text-left">Itinéraire</th><th className="p-3 text-left">Activité</th><th className="p-3">Prix</th><th></th></tr></thead>
+          <tbody>
+            {data.packages.map(p => (
+              <tr key={p.id} className="border-t">
+                <td className="p-3 font-medium">{p.name}</td>
+                <td className="p-3 text-muted-foreground">{data.routes.find(r => r.id === p.route_id)?.name ?? "—"}</td>
+                <td className="p-3 text-muted-foreground">{data.activities.find(a => a.id === p.activity_id)?.name ?? "—"}</td>
+                <td className="p-3 text-center font-semibold">{formatXAF(p.price)}</td>
+                <td className="p-3 text-right"><button onClick={() => del(p.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ============ PARAMÈTRES ============
+function SettingsTab({ data }: { data: ReturnType<typeof useTransportData> }) {
+  const [edits, setEdits] = useState<Record<string, number>>({});
+  const settings = Object.entries(data.settings);
+
+  const save = async (key: string) => {
+    const value = edits[key];
+    if (value === undefined) return;
+    const { error } = await supabase.from("transport_settings").update({ value }).eq("key", key);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Paramètre enregistré");
+    setEdits(e => { const { [key]: _, ...rest } = e; return rest; });
+    data.reload();
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">Multiplicateurs et suppléments globaux appliqués au calcul du devis.</p>
+      {settings.map(([key, value]) => (
+        <div key={key} className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-4">
+          <div className="flex-1">
+            <p className="font-medium">{key}</p>
+            <p className="text-xs text-muted-foreground">Valeur actuelle : {value}</p>
+          </div>
+          <input type="number" step="0.001" defaultValue={value}
+            onChange={e => setEdits({ ...edits, [key]: Number(e.target.value) })}
+            className="w-32 rounded-lg border bg-background px-3 py-2 text-sm" />
+          {edits[key] !== undefined && (
+            <button onClick={() => save(key)} className="flex items-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">
+              <Save className="h-3.5 w-3.5" /> Sauvegarder
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
