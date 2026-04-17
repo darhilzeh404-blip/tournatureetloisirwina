@@ -1,0 +1,264 @@
+import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { Loader2, MapPin, Bus as BusIcon, Sparkles, Repeat, Calendar, Users } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useTransportData, computeQuote, type QuoteInput } from "@/hooks/use-transport-data";
+import { TransportQuote } from "./TransportQuote";
+
+type Props = {
+  categorySlug: "scolaire" | "extra-scolaire" | "evenementiel";
+  serviceType: "TRANSPORT_SCOLAIRE" | "LOCATION_BUS" | "CIRCUIT_TOURISTIQUE";
+  showChildren?: boolean;
+  showActivities?: boolean;
+  showPackages?: boolean;
+};
+
+export function TransportBookingForm({ categorySlug, serviceType, showChildren, showActivities, showPackages }: Props) {
+  const data = useTransportData();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const [routeId, setRouteId] = useState("");
+  const [vehicleId, setVehicleId] = useState("");
+  const [svc, setSvc] = useState<"standard" | "vip">("standard");
+  const [trip, setTrip] = useState<"aller_simple" | "aller_retour">("aller_simple");
+  const [children, setChildren] = useState(0);
+  const [date, setDate] = useState("");
+  const [activityIds, setActivityIds] = useState<string[]>([]);
+  const [packageId, setPackageId] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const category = data.categories.find(c => c.slug === categorySlug);
+  const routes = useMemo(
+    () => data.routes.filter(r => r.is_active && r.category_id === category?.id),
+    [data.routes, category?.id]
+  );
+  const vehicles = data.vehicles.filter(v => v.is_active);
+  const packages = data.packages.filter(p => p.is_active);
+
+  const input: QuoteInput = {
+    routeId, vehicleId, serviceType: svc, tripType: trip,
+    childrenCount: showChildren ? children : 0,
+    activityIds: showActivities ? activityIds : [],
+  };
+  const quote = computeQuote(input, data);
+
+  const selectedPackage = packages.find(p => p.id === packageId);
+  const finalTotal = selectedPackage ? selectedPackage.price : quote.total;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated || !user) {
+      toast.error("Veuillez vous connecter pour réserver");
+      navigate({ to: "/connexion" });
+      return;
+    }
+    if (!selectedPackage && (!routeId || !vehicleId)) {
+      toast.error("Sélectionnez itinéraire et véhicule");
+      return;
+    }
+    if (finalTotal <= 0) { toast.error("Devis invalide"); return; }
+
+    setLoading(true);
+    try {
+      const route = data.routes.find(r => r.id === (selectedPackage?.route_id ?? routeId));
+      const vehicle = data.vehicles.find(v => v.id === vehicleId);
+      const { error } = await supabase.from("reservations").insert({
+        user_id: user.id,
+        service_type: serviceType,
+        reservation_date: date || new Date().toISOString().split("T")[0],
+        total_amount: finalTotal,
+        paid_amount: 0,
+        details: {
+          category: categorySlug,
+          route: route?.name,
+          pickup: route?.origin,
+          destination: route?.destination,
+          vehicle: vehicle?.name,
+          service_type: svc,
+          trip_type: trip,
+          children_count: children,
+          activity_ids: activityIds,
+          package_id: packageId || undefined,
+          quote: selectedPackage
+            ? [{ label: selectedPackage.name, amount: selectedPackage.price }]
+            : quote.lines,
+        },
+      });
+      if (error) throw error;
+      toast.success("Réservation créée ! Procédez au paiement.");
+      navigate({ to: "/mes-reservations" });
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la réservation");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (data.loading) {
+    return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {showPackages && packages.length > 0 && (
+        <div>
+          <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+            <Sparkles className="h-4 w-4 text-primary" /> Forfait packagé (optionnel)
+          </label>
+          <select
+            value={packageId}
+            onChange={e => setPackageId(e.target.value)}
+            className="w-full rounded-xl border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">-- Construire à la carte --</option>
+            {packages.map(p => (
+              <option key={p.id} value={p.id}>{p.name} — {new Intl.NumberFormat("fr-FR").format(p.price)} FCFA</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {!packageId && (
+        <>
+          <div>
+            <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+              <MapPin className="h-4 w-4 text-primary" /> Itinéraire
+            </label>
+            <select
+              value={routeId}
+              onChange={e => setRouteId(e.target.value)}
+              className="w-full rounded-xl border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              required={!packageId}
+            >
+              <option value="">Sélectionnez un itinéraire</option>
+              {routes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+            {routes.length === 0 && <p className="mt-1 text-xs text-muted-foreground">Aucun itinéraire pour cette catégorie. Demandez à l'admin d'en ajouter.</p>}
+          </div>
+
+          <div>
+            <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+              <BusIcon className="h-4 w-4 text-primary" /> Véhicule
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {vehicles.map(v => (
+                <button
+                  key={v.id} type="button"
+                  onClick={() => setVehicleId(v.id)}
+                  className={`rounded-xl border px-3 py-3 text-xs font-semibold transition-colors ${
+                    vehicleId === v.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
+                  }`}
+                >
+                  <div className="font-bold">{v.capacity}</div>
+                  <div>places</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+                <Sparkles className="h-4 w-4 text-primary" /> Service
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["standard", "vip"] as const).map(s => (
+                  <button key={s} type="button" onClick={() => setSvc(s)}
+                    className={`rounded-xl border px-3 py-3 text-xs font-semibold transition-colors ${
+                      svc === s ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
+                    }`}>
+                    {s === "vip" ? "VIP ⭐" : "Standard"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+                <Repeat className="h-4 w-4 text-primary" /> Trajet
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["aller_simple", "aller_retour"] as const).map(t => (
+                  <button key={t} type="button" onClick={() => setTrip(t)}
+                    className={`rounded-xl border px-3 py-3 text-xs font-semibold transition-colors ${
+                      trip === t ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
+                    }`}>
+                    {t === "aller_retour" ? "Aller-Retour" : "Aller simple"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {showChildren && (
+            <div>
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+                <Users className="h-4 w-4 text-primary" /> Nombre d'enfants
+              </label>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => setChildren(Math.max(0, children - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl border bg-card text-lg font-bold">−</button>
+                <span className="min-w-[3rem] text-center text-lg font-bold">{children}</span>
+                <button type="button" onClick={() => setChildren(children + 1)} className="flex h-10 w-10 items-center justify-center rounded-xl border bg-card text-lg font-bold">+</button>
+              </div>
+            </div>
+          )}
+
+          {showActivities && data.activities.length > 0 && (
+            <div>
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+                <Sparkles className="h-4 w-4 text-primary" /> Activités éducatives à la carte
+              </label>
+              <div className="space-y-2">
+                {data.activities.filter(a => a.is_active).map(a => {
+                  const checked = activityIds.includes(a.id);
+                  return (
+                    <label key={a.id} className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2.5 text-sm ${checked ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" checked={checked} onChange={() => {
+                          setActivityIds(checked ? activityIds.filter(x => x !== a.id) : [...activityIds, a.id]);
+                        }} />
+                        <span>{a.name} <span className="text-xs text-muted-foreground">({a.duration_hours}h)</span></span>
+                      </div>
+                      <span className="font-semibold">{new Intl.NumberFormat("fr-FR").format(a.price)} FCFA</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      <div>
+        <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+          <Calendar className="h-4 w-4 text-primary" /> Date souhaitée
+        </label>
+        <input type="date" value={date} onChange={e => setDate(e.target.value)}
+          min={new Date(Date.now() + 48 * 3600 * 1000).toISOString().split("T")[0]}
+          className="w-full rounded-xl border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
+      {selectedPackage ? (
+        <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-5">
+          <h3 className="font-bold text-primary">Forfait : {selectedPackage.name}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{selectedPackage.description}</p>
+          <p className="mt-3 text-2xl font-extrabold text-primary">{new Intl.NumberFormat("fr-FR").format(selectedPackage.price)} FCFA</p>
+        </div>
+      ) : (
+        <TransportQuote quote={quote} />
+      )}
+
+      <button
+        type="submit"
+        disabled={loading || finalTotal <= 0}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+      >
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {loading ? "Création..." : "Confirmer et réserver"}
+      </button>
+    </form>
+  );
+}

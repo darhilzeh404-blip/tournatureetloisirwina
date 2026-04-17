@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
+import { Route as TransportExtraScolaireRouteImport } from './routes/transport-extra-scolaire'
 import { Route as ReserverTransportRouteImport } from './routes/reserver-transport'
 import { Route as MonCompteRouteImport } from './routes/mon-compte'
 import { Route as MesReservationsRouteImport } from './routes/mes-reservations'
@@ -35,6 +36,11 @@ import { Route as AdminBusRouteImport } from './routes/admin/bus'
 const TransportScolaireRoute = TransportScolaireRouteImport.update({
   id: '/transport-scolaire',
   path: '/transport-scolaire',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransportExtraScolaireRoute = TransportExtraScolaireRouteImport.update({
+  id: '/transport-extra-scolaire',
+  path: '/transport-extra-scolaire',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReserverTransportRoute = ReserverTransportRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/mes-reservations'
     | '/mon-compte'
     | '/reserver-transport'
+    | '/transport-extra-scolaire'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/mes-reservations'
     | '/mon-compte'
     | '/reserver-transport'
+    | '/transport-extra-scolaire'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/mes-reservations'
     | '/mon-compte'
     | '/reserver-transport'
+    | '/transport-extra-scolaire'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -303,6 +315,7 @@ export interface RootRouteChildren {
   MesReservationsRoute: typeof MesReservationsRoute
   MonCompteRoute: typeof MonCompteRoute
   ReserverTransportRoute: typeof ReserverTransportRoute
+  TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
 }
 
@@ -313,6 +326,13 @@ declare module '@tanstack/react-router' {
       path: '/transport-scolaire'
       fullPath: '/transport-scolaire'
       preLoaderRoute: typeof TransportScolaireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transport-extra-scolaire': {
+      id: '/transport-extra-scolaire'
+      path: '/transport-extra-scolaire'
+      fullPath: '/transport-extra-scolaire'
+      preLoaderRoute: typeof TransportExtraScolaireRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reserver-transport': {
@@ -503,6 +523,7 @@ const rootRouteChildren: RootRouteChildren = {
   MesReservationsRoute: MesReservationsRoute,
   MonCompteRoute: MonCompteRoute,
   ReserverTransportRoute: ReserverTransportRoute,
+  TransportExtraScolaireRoute: TransportExtraScolaireRoute,
   TransportScolaireRoute: TransportScolaireRoute,
 }
 export const routeTree = rootRouteImport
