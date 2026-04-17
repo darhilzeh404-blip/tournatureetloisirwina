@@ -355,6 +355,50 @@ export type Database = {
       }
     }
     Functions: {
+      accept_ride: {
+        Args: { _ride_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          destination: string
+          driver_id: string | null
+          id: string
+          notes: string | null
+          pickup: string
+          price: number
+          scheduled_at: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "rides"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      complete_ride: {
+        Args: { _ride_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          destination: string
+          driver_id: string | null
+          id: string
+          notes: string | null
+          pickup: string
+          price: number
+          scheduled_at: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "rides"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       gerant_has_circuit: {
         Args: { _circuit_id: string; _user_id: string }
         Returns: boolean
