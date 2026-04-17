@@ -37,6 +37,7 @@ import { Route as AdminOffresRouteImport } from './routes/admin/offres'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
+import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 
 const TransportScolaireRoute = TransportScolaireRouteImport.update({
   id: '/transport-scolaire',
@@ -178,6 +179,11 @@ const AdminBusRoute = AdminBusRouteImport.update({
   path: '/bus',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
+  id: '/api/admin/create-user',
+  path: '/api/admin/create-user',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/admin/create-user': typeof ApiAdminCreateUserRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin': typeof AdminIndexRoute
+  '/api/admin/create-user': typeof ApiAdminCreateUserRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/admin/create-user': typeof ApiAdminCreateUserRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -300,6 +309,7 @@ export interface FileRouteTypes {
     | '/chauffeur/trips'
     | '/suivi/$tripId'
     | '/admin/'
+    | '/api/admin/create-user'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/chauffeur/trips'
     | '/suivi/$tripId'
     | '/admin'
+    | '/api/admin/create-user'
   id:
     | '__root__'
     | '/'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/chauffeur/trips'
     | '/suivi/$tripId'
     | '/admin/'
+    | '/api/admin/create-user'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -378,6 +390,7 @@ export interface RootRouteChildren {
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
+  ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -578,6 +591,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBusRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/admin/create-user': {
+      id: '/api/admin/create-user'
+      path: '/api/admin/create-user'
+      fullPath: '/api/admin/create-user'
+      preLoaderRoute: typeof ApiAdminCreateUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -640,6 +660,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
   TransportScolaireRoute: TransportScolaireRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
+  ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
