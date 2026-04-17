@@ -355,6 +355,14 @@ export type Database = {
       }
     }
     Functions: {
+      gerant_has_circuit: {
+        Args: { _circuit_id: string; _user_id: string }
+        Returns: boolean
+      }
+      gerant_has_circuit_named: {
+        Args: { _name: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
