@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -13,6 +13,7 @@ const adminLinks = [
   { to: "/admin/offres", label: "Offres", icon: Tag, exact: false },
   { to: "/admin/circuits", label: "Circuits", icon: Map, exact: false },
   { to: "/admin/transport", label: "Module Transport", icon: RouteIcon, exact: false },
+  { to: "/admin/trips", label: "Courses GPS", icon: Truck, exact: false },
   { to: "/admin/suivi", label: "Suivi temps réel", icon: Radio, exact: false },
 ] as const;
 
