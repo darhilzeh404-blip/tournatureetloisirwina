@@ -49,6 +49,25 @@ function AdminPaiements() {
 
   useEffect(() => {
     void loadPayments();
+
+    // Realtime: rafraîchit la liste quand un paiement est créé/modifié
+    const channel = supabase
+      .channel("admin-payments")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "payments" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            toast.info("Nouveau paiement reçu");
+          }
+          void loadPayments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function loadPayments() {
