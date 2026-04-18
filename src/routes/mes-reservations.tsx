@@ -122,8 +122,42 @@ function MesReservationsPage() {
       setReservations(list);
       setLoading(false);
     })();
+
+    // Realtime: mise à jour automatique quand l'admin modifie une réservation
+    const channel = supabase
+      .channel(`reservations-user-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "reservations",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === "UPDATE" && payload.new) {
+            const updated = payload.new as Reservation;
+            setReservations((prev) =>
+              prev.map((r) => (r.id === updated.id ? { ...r, ...updated, trip_id: r.trip_id } : r))
+            );
+            if (payload.old && (payload.old as Reservation).status !== updated.status) {
+              if (updated.status === "CONFIRMED") toast.success("Votre réservation a été confirmée ✅");
+              else if (updated.status === "REJECTED") toast.error("Votre paiement a été refusé. Voir les détails.");
+            }
+          } else if (payload.eventType === "INSERT" && payload.new) {
+            const created = payload.new as Reservation;
+            setReservations((prev) => (prev.find((r) => r.id === created.id) ? prev : [created, ...prev]));
+          } else if (payload.eventType === "DELETE" && payload.old) {
+            const removed = payload.old as Reservation;
+            setReservations((prev) => prev.filter((r) => r.id !== removed.id));
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, [user]);
 
