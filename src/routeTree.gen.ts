@@ -27,6 +27,7 @@ import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
+import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
 import { Route as AdminTripsRouteImport } from './routes/admin/trips'
@@ -130,6 +131,11 @@ const SuiviTripIdRoute = SuiviTripIdRouteImport.update({
   path: '/suivi/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaiementReservationIdRoute = PaiementReservationIdRouteImport.update({
+  id: '/paiement/$reservationId',
+  path: '/paiement/$reservationId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChauffeurTripsRoute = ChauffeurTripsRouteImport.update({
   id: '/trips',
   path: '/trips',
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
+  '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
+  '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin': typeof AdminIndexRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
@@ -283,6 +291,7 @@ export interface FileRoutesById {
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
+  '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
@@ -317,6 +326,7 @@ export interface FileRouteTypes {
     | '/admin/trips'
     | '/admin/utilisateurs'
     | '/chauffeur/trips'
+    | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/admin/'
     | '/api/admin/create-user'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/admin/trips'
     | '/admin/utilisateurs'
     | '/chauffeur/trips'
+    | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/admin'
     | '/api/admin/create-user'
@@ -380,6 +391,7 @@ export interface FileRouteTypes {
     | '/admin/trips'
     | '/admin/utilisateurs'
     | '/chauffeur/trips'
+    | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/admin/'
     | '/api/admin/create-user'
@@ -402,6 +414,7 @@ export interface RootRouteChildren {
   TarifsRoute: typeof TarifsRoute
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
+  PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
 }
@@ -532,6 +545,13 @@ declare module '@tanstack/react-router' {
       path: '/suivi/$tripId'
       fullPath: '/suivi/$tripId'
       preLoaderRoute: typeof SuiviTripIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/paiement/$reservationId': {
+      id: '/paiement/$reservationId'
+      path: '/paiement/$reservationId'
+      fullPath: '/paiement/$reservationId'
+      preLoaderRoute: typeof PaiementReservationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chauffeur/trips': {
@@ -680,6 +700,7 @@ const rootRouteChildren: RootRouteChildren = {
   TarifsRoute: TarifsRoute,
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
   TransportScolaireRoute: TransportScolaireRoute,
+  PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
 }

@@ -152,8 +152,10 @@ export type Database = {
           created_at: string
           id: string
           method: string
+          receipt_url: string | null
           reservation_id: string
           status: Database["public"]["Enums"]["payment_status"]
+          transaction_ref: string | null
           updated_at: string
           user_id: string
         }
@@ -163,8 +165,10 @@ export type Database = {
           created_at?: string
           id?: string
           method?: string
+          receipt_url?: string | null
           reservation_id: string
           status?: Database["public"]["Enums"]["payment_status"]
+          transaction_ref?: string | null
           updated_at?: string
           user_id: string
         }
@@ -174,8 +178,10 @@ export type Database = {
           created_at?: string
           id?: string
           method?: string
+          receipt_url?: string | null
           reservation_id?: string
           status?: Database["public"]["Enums"]["payment_status"]
+          transaction_ref?: string | null
           updated_at?: string
           user_id?: string
         }
