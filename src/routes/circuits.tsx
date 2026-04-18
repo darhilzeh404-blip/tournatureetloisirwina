@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Globe, ArrowRight } from "lucide-react";
-import { fetchOffersByType } from "@/server/fetch-offers";
+import { fetchOffersByType, type Offer } from "@/server/fetch-offers";
 import circuitsImg from "@/assets/circuits-hero.jpg";
 
 export const Route = createFileRoute("/circuits")({
@@ -48,7 +48,7 @@ function CircuitsPage() {
           <p className="py-10 text-center text-sm text-muted-foreground">Aucun circuit disponible pour le moment.</p>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {offers.map((offer) => (
+            {offers.map((offer: Offer) => (
               <div key={offer.id} className="card-hover overflow-hidden rounded-2xl border bg-card">
                 {offer.image_url && (
                   <img src={offer.image_url} alt={offer.title} className="h-40 w-full object-cover" />
