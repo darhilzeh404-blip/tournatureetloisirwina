@@ -210,14 +210,12 @@ function MesReservationsPage() {
                         </Link>
                       )}
                       {canPay && (
-                        <Button
-                          size="sm"
-                          onClick={() => setPayTarget(res)}
-                          className="gap-2"
-                        >
-                          <Wallet className="h-4 w-4" />
-                          Payer le solde ({formatXAF(remaining)})
-                        </Button>
+                        <Link to="/paiement/$reservationId" params={{ reservationId: res.id }}>
+                          <Button size="sm" className="gap-2">
+                            <Wallet className="h-4 w-4" />
+                            Payer ({formatXAF(remaining)})
+                          </Button>
+                        </Link>
                       )}
                     </div>
                   )}
