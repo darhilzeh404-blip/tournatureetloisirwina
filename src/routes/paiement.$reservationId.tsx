@@ -38,7 +38,7 @@ function formatXAF(n: number) {
 
 function PaiementPage() {
   const { reservationId } = Route.useParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
