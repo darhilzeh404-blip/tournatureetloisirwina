@@ -265,6 +265,24 @@ function ChauffeurLayout() {
     }
   };
 
+  const handleStartGps = async (tripId: string) => {
+    setTripActionId(tripId);
+    try {
+      const { error } = await supabase
+        .from("trips")
+        .update({ status: "active", started_at: new Date().toISOString() })
+        .eq("id", tripId);
+      if (error) throw error;
+      toast.success("GPS démarré. Le client peut désormais vous suivre en direct.");
+      navigate({ to: "/chauffeur/trips" });
+    } catch (err) {
+      console.error("[START GPS]", err);
+      toast.error("Impossible de démarrer le GPS.");
+    } finally {
+      setTripActionId(null);
+    }
+  };
+
   if (isLoading) return <div className="flex min-h-screen items-center justify-center"><p>Chargement...</p></div>;
   if (!isAuthenticated || (role !== "chauffeur" && role !== "admin")) return null;
 
@@ -273,6 +291,7 @@ function ChauffeurLayout() {
 
   const tabs = [
     { key: "courses" as TabType, label: "Courses", icon: Navigation },
+    { key: "trips" as TabType, label: `Assignées (${assignedTrips.length})`, icon: MapPin },
     { key: "circuits" as TabType, label: "Mes Circuits", icon: MapPin },
     { key: "bus" as TabType, label: "Mes Bus", icon: Bus },
   ];
