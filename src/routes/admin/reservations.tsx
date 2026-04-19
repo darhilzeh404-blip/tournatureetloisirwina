@@ -328,6 +328,7 @@ function AdminReservations() {
                       <th className="p-4">Date</th>
                       <th className="p-4">Total</th>
                       <th className="p-4">Statut</th>
+                      <th className="p-4">Preuve</th>
                       <th className="p-4">Assignation</th>
                       <th className="p-4">Actions</th>
                     </tr>
@@ -339,6 +340,8 @@ function AdminReservations() {
                       const trip = trips.get(r.id);
                       const driver = trip?.driver_id ? drivers.find((d) => d.user_id === trip.driver_id) : null;
                       const gerant = trip?.gerant_id ? gerants.find((g) => g.user_id === trip.gerant_id) : null;
+                      const payment = payments.get(r.id);
+                      const canAssign = r.paiement_valide && r.status === "CONFIRMED";
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
                           <td className="p-4 font-medium text-xs">{r.id.slice(0, 8)}…</td>
@@ -347,7 +350,54 @@ function AdminReservations() {
                           <td className="p-4 hidden md:table-cell text-muted-foreground text-xs">{detailsLabel(r)}</td>
                           <td className="p-4 text-xs">{new Date(r.reservation_date).toLocaleDateString("fr-FR")}</td>
                           <td className="p-4 font-medium">{formatXAF(r.total_amount)}</td>
-                          <td className="p-4"><Badge variant={st.variant}>{st.label}</Badge></td>
+                          <td className="p-4">
+                            <div className="flex flex-col gap-1">
+                              <Badge variant={st.variant}>{st.label}</Badge>
+                              {r.paiement_valide && (
+                                <Badge variant="default" className="text-[10px] gap-1">
+                                  <ShieldCheck className="h-3 w-3" /> Paiement OK
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4 text-xs">
+                            {payment ? (
+                              <div className="flex flex-col gap-1">
+                                <Badge
+                                  variant={payment.status === "VALIDATED" ? "default" : payment.status === "REJECTED" ? "destructive" : "outline"}
+                                  className="text-[10px] w-fit"
+                                >
+                                  {payment.status} · {formatXAF(payment.amount)}
+                                </Badge>
+                                {payment.receipt_url && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 px-2 text-[11px] w-fit"
+                                    onClick={() => viewProof(payment.receipt_url!)}
+                                  >
+                                    <Receipt className="h-3 w-3 mr-1" /> Voir
+                                  </Button>
+                                )}
+                                {payment.status === "PENDING" && !r.paiement_valide && (
+                                  <Button
+                                    size="sm"
+                                    className="h-6 px-2 text-[11px] w-fit"
+                                    onClick={() => validatePayment(r)}
+                                    disabled={validatingId === r.id}
+                                  >
+                                    {validatingId === r.id ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <><ShieldCheck className="h-3 w-3 mr-1" /> Valider</>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic text-[11px]">Aucune</span>
+                            )}
+                          </td>
                           <td className="p-4 text-xs">
                             {trip ? (
                               <div className="space-y-0.5">
@@ -363,7 +413,7 @@ function AdminReservations() {
                             <div className="flex items-center gap-1">
                               {r.status === "PENDING_PAYMENT" && (
                                 <>
-                                  <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600" title="Confirmer" onClick={() => updateStatus(r.id, "CONFIRMED")}>
+                                  <Button size="icon" variant="ghost" className="h-8 w-8 text-success" title="Confirmer" onClick={() => updateStatus(r.id, "CONFIRMED")}>
                                     <CheckCircle className="h-4 w-4" />
                                   </Button>
                                   <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Rejeter" onClick={() => updateStatus(r.id, "REJECTED")}>
@@ -371,10 +421,13 @@ function AdminReservations() {
                                   </Button>
                                 </>
                               )}
-                              {r.status === "CONFIRMED" && (
+                              {canAssign && (
                                 <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" title="Assigner" onClick={() => setAssignTarget(r)}>
                                   <UserPlus className="h-4 w-4" />
                                 </Button>
+                              )}
+                              {r.status === "CONFIRMED" && !r.paiement_valide && (
+                                <span className="text-[10px] text-muted-foreground italic">Validez le paiement</span>
                               )}
                               <Button size="icon" variant="ghost" className="h-8 w-8" title="Voir">
                                 <Eye className="h-4 w-4" />
