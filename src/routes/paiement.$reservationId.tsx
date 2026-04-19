@@ -387,10 +387,10 @@ function PaiementPage() {
 
       {/* Fallback WhatsApp si l'upload a échoué (iOS PWA) */}
       {whatsappEnabled && (uploadFailed || !receiptFile) && whatsappNumber && (
-        <Card className="border-green-500/40 bg-green-500/5">
+        <Card className="border-success/40 bg-success/5">
           <CardContent className="p-4 space-y-2">
             <div className="flex items-start gap-2 text-xs">
-              <MessageCircle className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+              <MessageCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
               <span>
                 <strong>Problème pour envoyer la photo ?</strong> Envoyez-la sur WhatsApp à l'admin avec votre référence.
               </span>
@@ -398,7 +398,7 @@ function PaiementPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full border-green-500/50 text-green-700 hover:bg-green-500/10"
+              className="w-full border-success/50 text-success hover:bg-success/10"
               onClick={openWhatsappFallback}
             >
               <MessageCircle className="h-4 w-4 mr-2" /> Envoyer la preuve via WhatsApp
