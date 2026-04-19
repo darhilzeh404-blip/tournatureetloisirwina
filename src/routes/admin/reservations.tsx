@@ -464,6 +464,31 @@ function AdminReservations() {
           }}
         />
       )}
+
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div className="relative max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setPreviewUrl(null)}
+              className="absolute -top-10 right-0 rounded-md bg-background/80 p-2 hover:bg-background"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <img src={previewUrl} alt="Preuve de paiement" className="w-full h-auto rounded-lg shadow-2xl" />
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 block text-center text-sm text-primary-foreground bg-primary rounded-lg py-2 hover:bg-primary/90"
+            >
+              Ouvrir en plein écran
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
