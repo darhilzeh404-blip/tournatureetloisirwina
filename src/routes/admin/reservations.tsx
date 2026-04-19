@@ -24,7 +24,18 @@ interface Reservation {
   reservation_date: string;
   total_amount: number;
   paid_amount: number;
+  paiement_valide: boolean;
   details: Record<string, unknown>;
+  created_at: string;
+}
+
+interface PaymentRow {
+  id: string;
+  reservation_id: string;
+  status: "PENDING" | "VALIDATED" | "REJECTED";
+  amount: number;
+  receipt_url: string | null;
+  transaction_ref: string | null;
   created_at: string;
 }
 
