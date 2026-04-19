@@ -76,7 +76,6 @@ function TransportPublic() {
           >
             <Link
               to="/connexion"
-              search={{ redirect: "/reserver-transport" }}
               className="group flex flex-col items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-6 text-accent-foreground shadow-xl transition-transform hover:scale-105"
             >
               <Zap className="h-7 w-7" />
@@ -85,7 +84,6 @@ function TransportPublic() {
             </Link>
             <Link
               to="/connexion"
-              search={{ redirect: "/reserver-transport" }}
               className="group flex flex-col items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-6 text-primary-foreground shadow-xl transition-transform hover:scale-105"
             >
               <CalendarClock className="h-7 w-7" />
