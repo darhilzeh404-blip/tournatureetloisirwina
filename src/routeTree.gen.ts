@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
+import { Route as TransportPublicRouteImport } from './routes/transport-public'
 import { Route as TransportExtraScolaireRouteImport } from './routes/transport-extra-scolaire'
 import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as ReserverTransportRouteImport } from './routes/reserver-transport'
@@ -44,6 +45,11 @@ import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.creat
 const TransportScolaireRoute = TransportScolaireRouteImport.update({
   id: '/transport-scolaire',
   path: '/transport-scolaire',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransportPublicRoute = TransportPublicRouteImport.update({
+  id: '/transport-public',
+  path: '/transport-public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransportExtraScolaireRoute = TransportExtraScolaireRouteImport.update({
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/reserver-transport': typeof ReserverTransportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
+  '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/reserver-transport': typeof ReserverTransportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
+  '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -279,6 +287,7 @@ export interface FileRoutesById {
   '/reserver-transport': typeof ReserverTransportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
+  '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -314,6 +323,7 @@ export interface FileRouteTypes {
     | '/reserver-transport'
     | '/tarifs'
     | '/transport-extra-scolaire'
+    | '/transport-public'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -346,6 +356,7 @@ export interface FileRouteTypes {
     | '/reserver-transport'
     | '/tarifs'
     | '/transport-extra-scolaire'
+    | '/transport-public'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -379,6 +390,7 @@ export interface FileRouteTypes {
     | '/reserver-transport'
     | '/tarifs'
     | '/transport-extra-scolaire'
+    | '/transport-public'
     | '/transport-scolaire'
     | '/admin/bus'
     | '/admin/circuits'
@@ -413,6 +425,7 @@ export interface RootRouteChildren {
   ReserverTransportRoute: typeof ReserverTransportRoute
   TarifsRoute: typeof TarifsRoute
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
+  TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
@@ -426,6 +439,13 @@ declare module '@tanstack/react-router' {
       path: '/transport-scolaire'
       fullPath: '/transport-scolaire'
       preLoaderRoute: typeof TransportScolaireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transport-public': {
+      id: '/transport-public'
+      path: '/transport-public'
+      fullPath: '/transport-public'
+      preLoaderRoute: typeof TransportPublicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transport-extra-scolaire': {
@@ -699,6 +719,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReserverTransportRoute: ReserverTransportRoute,
   TarifsRoute: TarifsRoute,
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
+  TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
