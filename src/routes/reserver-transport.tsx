@@ -1,72 +1,213 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { MapPin, Calendar, Clock, ArrowRight, Loader2 } from "lucide-react";
+import {
+  GraduationCap,
+  Bus,
+  Sparkles,
+  ArrowRight,
+  Loader2,
+  Calendar,
+} from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/reserver-transport")({
   head: () => ({
     meta: [
       { title: "Réserver un transport — Agence Wina" },
-      { name: "description", content: "Réservez votre transport à Libreville et au Gabon." },
+      {
+        name: "description",
+        content:
+          "Réservez transport scolaire, extra-scolaire avec activités, ou location de bus pour mariage et excursion.",
+      },
     ],
   }),
   component: ReserverTransport,
 });
 
-const TRANSPORT_PRICES: Record<string, number> = {
-  "Libreville → Owendo": 5_000,
-  "Libreville → Akanda": 8_000,
-  "Libreville → Ntoum": 15_000,
-  "Libreville → Cap Esterias": 12_000,
-  "Libreville → Kango": 25_000,
-};
+// ─────────── Données catalogue ───────────
+const SCOLAIRE_ROUTES = ["Akanda → LBV", "Owendo → LBV", "LBV → Akanda", "LBV → Owendo"] as const;
+const NIVEAUX = ["Maternelle", "Primaire", "Collège", "Lycée"] as const;
+const SCOLAIRE_TARIFS = {
+  standard: { mensuel_simple: 80_000, mensuel_ar: 120_000 },
+  vip: { mensuel_simple: 150_000, mensuel_ar: 220_000 },
+} as const;
 
-const ROUTES = Object.keys(TRANSPORT_PRICES);
+const EXTRA_ACTIVITIES = [
+  { id: "jardinage", emoji: "🌱", label: "Jardinage fruits & légumes", price: 15_000 },
+  { id: "culinaire", emoji: "👨‍🍳", label: "Art culinaire", price: 18_000 },
+  { id: "nutrition", emoji: "🥗", label: "Nutrition saine", price: 12_000 },
+  { id: "nature", emoji: "🌳", label: "Nature & culture", price: 20_000 },
+  { id: "natation", emoji: "🏊", label: "Natation & danse", price: 25_000 },
+];
+
+const BUS_FLEET = [
+  { id: "32", name: "Bus 32 places", capacity: 32, std: 250_000, vip: 350_000 },
+  { id: "16", name: "Minibus 16 places", capacity: 16, std: 180_000, vip: 250_000 },
+  { id: "14", name: "Minibus 14 places", capacity: 14, std: 150_000, vip: 220_000 },
+] as const;
+
+const BUS_USAGES = ["Mariage", "Excursion", "Urbain", "Événement entreprise", "Autre"] as const;
 
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"immediate" | "planned">("immediate");
-  const [route, setRoute] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [duration, setDuration] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState("scolaire");
+  const [submitting, setSubmitting] = useState(false);
 
-  const unitPrice = TRANSPORT_PRICES[route] || 0;
-  const totalPrice = unitPrice * duration;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const ensureAuth = () => {
     if (!isAuthenticated || !user) {
-      toast.error("Veuillez vous connecter d'abord");
+      toast.error("Connectez-vous pour réserver");
       navigate({ to: "/connexion" });
+      return false;
+    }
+    return true;
+  };
+
+  // ─────────── Form Scolaire ───────────
+  const [scoRoute, setScoRoute] = useState<string>(SCOLAIRE_ROUTES[0]);
+  const [scoNiveau, setScoNiveau] = useState<string>(NIVEAUX[1]);
+  const [scoEnfants, setScoEnfants] = useState(1);
+  const [scoFormule, setScoFormule] = useState<"simple" | "ar">("simple");
+  const [scoVip, setScoVip] = useState(false);
+  const [scoDate, setScoDate] = useState("");
+
+  const scoUnit = scoVip
+    ? scoFormule === "simple"
+      ? SCOLAIRE_TARIFS.vip.mensuel_simple
+      : SCOLAIRE_TARIFS.vip.mensuel_ar
+    : scoFormule === "simple"
+      ? SCOLAIRE_TARIFS.standard.mensuel_simple
+      : SCOLAIRE_TARIFS.standard.mensuel_ar;
+  const scoTotal = scoUnit * scoEnfants;
+
+  const submitScolaire = async () => {
+    if (!ensureAuth()) return;
+    if (!scoDate) {
+      toast.error("Choisissez une date de début");
       return;
     }
-    if (!route) { toast.error("Sélectionnez un trajet"); return; }
-
-    setLoading(true);
+    setSubmitting(true);
     try {
-      const [pickup, destination] = route.split(" → ");
       const { error } = await supabase.from("reservations").insert({
-        user_id: user.id,
-        service_type: "LOCATION_BUS" as const,
-        reservation_date: date || new Date().toISOString().split("T")[0],
-        total_amount: totalPrice,
+        user_id: user!.id,
+        service_type: "TRANSPORT_SCOLAIRE" as const,
+        reservation_date: scoDate,
+        total_amount: scoTotal,
         paid_amount: 0,
-        details: { pickup, destination, mode, time, duration_hours: duration },
+        details: {
+          itineraire: scoRoute,
+          niveau: scoNiveau,
+          nb_enfants: scoEnfants,
+          formule: scoFormule === "simple" ? "Aller simple mensuel" : "Aller-Retour mensuel",
+          standing: scoVip ? "VIP" : "Standard",
+        },
       });
       if (error) throw error;
-      toast.success("Réservation créée avec succès !");
+      toast.success("Réservation scolaire créée 🎒");
       navigate({ to: "/mes-reservations" });
     } catch (err: any) {
-      toast.error(err.message || "Erreur lors de la réservation");
+      toast.error(err.message || "Erreur");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
+    }
+  };
+
+  // ─────────── Form Extra-scolaire ───────────
+  const [extraSelected, setExtraSelected] = useState<string[]>([]);
+  const [extraEnfants, setExtraEnfants] = useState(1);
+  const [extraDate, setExtraDate] = useState("");
+  const TRANSPORT_FEE = 10_000;
+  const extraActivitiesTotal = EXTRA_ACTIVITIES.filter((a) =>
+    extraSelected.includes(a.id),
+  ).reduce((sum, a) => sum + a.price, 0);
+  const extraTotal = (extraActivitiesTotal + TRANSPORT_FEE) * extraEnfants;
+
+  const toggleExtra = (id: string) =>
+    setExtraSelected((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+
+  const submitExtra = async () => {
+    if (!ensureAuth()) return;
+    if (extraSelected.length === 0) {
+      toast.error("Choisissez au moins une activité");
+      return;
+    }
+    if (!extraDate) {
+      toast.error("Choisissez une date");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const labels = EXTRA_ACTIVITIES.filter((a) => extraSelected.includes(a.id)).map(
+        (a) => a.label,
+      );
+      const { error } = await supabase.from("reservations").insert({
+        user_id: user!.id,
+        service_type: "TRANSPORT_SCOLAIRE" as const,
+        reservation_date: extraDate,
+        total_amount: extraTotal,
+        paid_amount: 0,
+        details: {
+          formule: "Extra-scolaire",
+          activites: labels,
+          nb_enfants: extraEnfants,
+          frais_transport: TRANSPORT_FEE,
+        },
+      });
+      if (error) throw error;
+      toast.success("Réservation extra-scolaire créée 🌱");
+      navigate({ to: "/mes-reservations" });
+    } catch (err: any) {
+      toast.error(err.message || "Erreur");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ─────────── Form Bus ───────────
+  const [busModel, setBusModel] = useState<string>(BUS_FLEET[0].id);
+  const [busVip, setBusVip] = useState(false);
+  const [busUsage, setBusUsage] = useState<string>(BUS_USAGES[0]);
+  const [busDate, setBusDate] = useState("");
+  const [busDays, setBusDays] = useState(1);
+
+  const selectedBus = BUS_FLEET.find((b) => b.id === busModel)!;
+  const busUnit = busVip ? selectedBus.vip : selectedBus.std;
+  const busTotal = busUnit * busDays;
+
+  const submitBus = async () => {
+    if (!ensureAuth()) return;
+    if (!busDate) {
+      toast.error("Choisissez une date");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("reservations").insert({
+        user_id: user!.id,
+        service_type: "LOCATION_BUS" as const,
+        reservation_date: busDate,
+        total_amount: busTotal,
+        paid_amount: 0,
+        details: {
+          vehicule: selectedBus.name,
+          capacite: selectedBus.capacity,
+          standing: busVip ? "VIP" : "Standard",
+          usage: busUsage,
+          jours: busDays,
+        },
+      });
+      if (error) throw error;
+      toast.success("Réservation bus créée 🚌");
+      navigate({ to: "/mes-reservations" });
+    } catch (err: any) {
+      toast.error(err.message || "Erreur");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -74,101 +215,278 @@ function ReserverTransport() {
     <div className="pb-24">
       <div className="hero-gradient px-5 pb-6 pt-8">
         <h1 className="text-xl font-bold text-primary-foreground">🚌 Réserver un transport</h1>
-        <p className="mt-1 text-sm text-primary-foreground/70">Choisissez votre trajet et réservez en un clic</p>
+        <p className="mt-1 text-sm text-primary-foreground/70">
+          Scolaire, extra-scolaire ou location de bus
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5 px-5 pt-6">
-        {/* Mode */}
-        <div className="grid grid-cols-2 gap-2">
-          {(["immediate", "planned"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-colors ${
-                mode === m ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
-              }`}
-            >
-              {m === "immediate" ? "⚡ Immédiat" : "📅 Planifié"}
-            </button>
-          ))}
-        </div>
+      <div className="px-5 pt-5">
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-xl bg-muted p-1">
+            <TabsTrigger value="scolaire" className="flex-col gap-0.5 py-2 text-[11px]">
+              <GraduationCap className="h-4 w-4" /> Scolaire
+            </TabsTrigger>
+            <TabsTrigger value="extra" className="flex-col gap-0.5 py-2 text-[11px]">
+              <Sparkles className="h-4 w-4" /> Extra
+            </TabsTrigger>
+            <TabsTrigger value="bus" className="flex-col gap-0.5 py-2 text-[11px]">
+              <Bus className="h-4 w-4" /> Bus
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Route */}
-        <div>
-          <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
-            <MapPin className="h-4 w-4 text-primary" /> Trajet
-          </label>
-          <select
-            value={route}
-            onChange={(e) => setRoute(e.target.value)}
-            className="w-full rounded-xl border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="">Sélectionnez un trajet</option>
-            {ROUTES.map((r) => (
-              <option key={r} value={r}>{r} — {formatFCFA(TRANSPORT_PRICES[r])}</option>
-            ))}
-          </select>
-        </div>
+          {/* ─── SCOLAIRE ─── */}
+          <TabsContent value="scolaire" className="mt-5 space-y-4">
+            <Field label="Itinéraire">
+              <select
+                value={scoRoute}
+                onChange={(e) => setScoRoute(e.target.value)}
+                className="input-base"
+              >
+                {SCOLAIRE_ROUTES.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </Field>
 
-        {/* Date & time (for planned) */}
-        {mode === "planned" && (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
-                <Calendar className="h-4 w-4 text-primary" /> Date
-              </label>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Niveau">
+                <select
+                  value={scoNiveau}
+                  onChange={(e) => setScoNiveau(e.target.value)}
+                  className="input-base"
+                >
+                  {NIVEAUX.map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Nombre d'enfants">
+                <NumberStepper value={scoEnfants} onChange={setScoEnfants} />
+              </Field>
+            </div>
+
+            <Field label="Formule abonnement mensuel">
+              <div className="grid grid-cols-2 gap-2">
+                {(["simple", "ar"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setScoFormule(f)}
+                    className={pillCls(scoFormule === f)}
+                  >
+                    {f === "simple" ? "Aller simple" : "Aller-Retour"}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="Standing">
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setScoVip(false)} className={pillCls(!scoVip)}>
+                  Standard · {formatFCFA(scoFormule === "simple" ? SCOLAIRE_TARIFS.standard.mensuel_simple : SCOLAIRE_TARIFS.standard.mensuel_ar)}
+                </button>
+                <button type="button" onClick={() => setScoVip(true)} className={pillCls(scoVip)}>
+                  VIP · {formatFCFA(scoFormule === "simple" ? SCOLAIRE_TARIFS.vip.mensuel_simple : SCOLAIRE_TARIFS.vip.mensuel_ar)}
+                </button>
+              </div>
+            </Field>
+
+            <Field label="Date de début" icon={<Calendar className="h-4 w-4 text-primary" />}>
               <input
                 type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                value={scoDate}
+                onChange={(e) => setScoDate(e.target.value)}
+                className="input-base"
               />
-            </div>
+            </Field>
+
+            <PriceCard total={scoTotal} subtitle={`${scoEnfants} enfant(s) · ${scoVip ? "VIP" : "Standard"} mensuel`} />
+
+            <SubmitBtn loading={submitting} onClick={submitScolaire} label="Réserver Scolaire" />
+          </TabsContent>
+
+          {/* ─── EXTRA-SCOLAIRE ─── */}
+          <TabsContent value="extra" className="mt-5 space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Transport ({formatFCFA(TRANSPORT_FEE)}) inclus. Choisissez les activités souhaitées.
+            </p>
             <div>
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
-                <Clock className="h-4 w-4 text-primary" /> Heure
-              </label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full rounded-xl border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              <h3 className="mb-2 text-sm font-semibold">Activités</h3>
+              <div className="space-y-2">
+                {EXTRA_ACTIVITIES.map((a) => {
+                  const sel = extraSelected.includes(a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => toggleExtra(a.id)}
+                      className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${sel ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                    >
+                      <span className="flex items-center gap-2 text-sm font-medium">
+                        <span className="text-xl">{a.emoji}</span> {a.label}
+                      </span>
+                      <span className="text-xs font-bold text-primary">{formatFCFA(a.price)}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Duration */}
-        <div>
-          <label className="mb-1.5 text-sm font-medium">Durée (heures)</label>
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => setDuration(Math.max(1, duration - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl border bg-card text-lg font-bold">−</button>
-            <span className="min-w-[3rem] text-center text-lg font-bold">{duration}h</span>
-            <button type="button" onClick={() => setDuration(duration + 1)} className="flex h-10 w-10 items-center justify-center rounded-xl border bg-card text-lg font-bold">+</button>
-          </div>
-        </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Nombre d'enfants">
+                <NumberStepper value={extraEnfants} onChange={setExtraEnfants} />
+              </Field>
+              <Field label="Date" icon={<Calendar className="h-4 w-4 text-primary" />}>
+                <input
+                  type="date"
+                  value={extraDate}
+                  onChange={(e) => setExtraDate(e.target.value)}
+                  className="input-base"
+                />
+              </Field>
+            </div>
 
-        {/* Price display */}
-        {route && (
-          <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-4 text-center">
-            <p className="text-sm text-muted-foreground">Prix total estimé</p>
-            <p className="mt-1 text-2xl font-extrabold text-primary">{formatFCFA(totalPrice)}</p>
-          </div>
-        )}
+            <PriceCard
+              total={extraTotal}
+              subtitle={`${extraSelected.length} activité(s) · ${extraEnfants} enfant(s)`}
+            />
+            <SubmitBtn loading={submitting} onClick={submitExtra} label="Réserver + Activité" />
+          </TabsContent>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={loading || !route}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-        >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-          {loading ? "Réservation..." : "Réserver maintenant"}
-        </button>
-      </form>
+          {/* ─── BUS ─── */}
+          <TabsContent value="bus" className="mt-5 space-y-4">
+            <Field label="Type d'usage">
+              <select
+                value={busUsage}
+                onChange={(e) => setBusUsage(e.target.value)}
+                className="input-base"
+              >
+                {BUS_USAGES.map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Capacité">
+              <div className="grid grid-cols-3 gap-2">
+                {BUS_FLEET.map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setBusModel(b.id)}
+                    className={`rounded-xl border px-2 py-3 text-center text-xs font-semibold transition-colors ${busModel === b.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}
+                  >
+                    {b.capacity} places
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="Standing">
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setBusVip(false)} className={pillCls(!busVip)}>
+                  Standard · {formatFCFA(selectedBus.std)}/jour
+                </button>
+                <button type="button" onClick={() => setBusVip(true)} className={pillCls(busVip)}>
+                  VIP · {formatFCFA(selectedBus.vip)}/jour
+                </button>
+              </div>
+            </Field>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Date" icon={<Calendar className="h-4 w-4 text-primary" />}>
+                <input
+                  type="date"
+                  value={busDate}
+                  onChange={(e) => setBusDate(e.target.value)}
+                  className="input-base"
+                />
+              </Field>
+              <Field label="Nombre de jours">
+                <NumberStepper value={busDays} onChange={setBusDays} />
+              </Field>
+            </div>
+
+            <PriceCard total={busTotal} subtitle={`${selectedBus.name} · ${busDays} jour(s) · ${busVip ? "VIP" : "Standard"}`} />
+            <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver Bus" />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       <ClientNav />
+
+      <style>{`
+        .input-base {
+          width: 100%;
+          border-radius: 0.75rem;
+          border: 1px solid hsl(var(--border));
+          background: hsl(var(--card));
+          padding: 0.75rem;
+          font-size: 0.875rem;
+        }
+        .input-base:focus { outline: none; box-shadow: 0 0 0 2px hsl(var(--primary) / 0.4); }
+      `}</style>
     </div>
+  );
+}
+
+// ─────────── UI helpers ───────────
+function Field({ label, icon, children }: { label: string; icon?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+        {icon} {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function NumberStepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(1, value - 1))}
+        className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card text-lg font-bold"
+      >
+        −
+      </button>
+      <span className="min-w-[2.5rem] text-center text-base font-bold">{value}</span>
+      <button
+        type="button"
+        onClick={() => onChange(value + 1)}
+        className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card text-lg font-bold"
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
+function pillCls(active: boolean) {
+  return `rounded-xl border px-3 py-3 text-xs font-semibold transition-colors ${active ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`;
+}
+
+function PriceCard({ total, subtitle }: { total: number; subtitle: string }) {
+  return (
+    <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-4 text-center">
+      <p className="text-xs text-muted-foreground">{subtitle}</p>
+      <p className="mt-1 text-2xl font-extrabold text-primary">{formatFCFA(total)}</p>
+    </div>
+  );
+}
+
+function SubmitBtn({ loading, onClick, label }: { loading: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      disabled={loading}
+      onClick={onClick}
+      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+    >
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+      {loading ? "Réservation..." : label}
+    </button>
   );
 }

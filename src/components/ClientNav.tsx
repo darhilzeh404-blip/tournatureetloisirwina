@@ -1,10 +1,10 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Bus, Tag, CalendarCheck, User } from "lucide-react";
+import { Home, Bus, Palmtree, CalendarCheck, User } from "lucide-react";
 
 const NAV_ITEMS = [
   { to: "/espace-client", label: "Accueil", icon: Home },
   { to: "/reserver-transport", label: "Transport", icon: Bus },
-  { to: "/tarifs", label: "Tarifs", icon: Tag },
+  { to: "/activites", label: "Activités", icon: Palmtree },
   { to: "/mes-reservations", label: "Réservations", icon: CalendarCheck },
   { to: "/mon-compte", label: "Profil", icon: User },
 ] as const;
