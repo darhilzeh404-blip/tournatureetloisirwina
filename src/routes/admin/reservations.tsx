@@ -178,13 +178,19 @@ function AdminReservations() {
     if (user && role === "admin") loadAll();
   }, [user, role, loadAll]);
 
-  // Realtime: reservations + trips
+  // Realtime: reservations + trips + payments (notif sur new upload)
   useEffect(() => {
     if (!user || role !== "admin") return;
     const channel = supabase
-      .channel("admin-reservations-trips")
+      .channel("admin-reservations-trips-payments")
       .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => loadAll())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "payments" }, (payload) => {
+        const p = payload.new as { receipt_url?: string | null };
+        if (p?.receipt_url) toast.info("📸 Nouvelle preuve de paiement reçue");
+        loadAll();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "payments" }, () => loadAll())
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -208,6 +214,52 @@ function AdminReservations() {
       console.error(error);
     } else {
       toast.success(status === "CONFIRMED" ? "Réservation confirmée." : "Réservation refusée.");
+    }
+  };
+
+  const viewProof = async (path: string) => {
+    const { data, error } = await supabase.storage
+      .from("payment-receipts")
+      .createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) {
+      toast.error("Impossible de charger la preuve.");
+      return;
+    }
+    setPreviewUrl(data.signedUrl);
+  };
+
+  const validatePayment = async (reservation: Reservation) => {
+    const payment = payments.get(reservation.id);
+    if (!payment) {
+      toast.error("Aucun paiement à valider.");
+      return;
+    }
+    setValidatingId(reservation.id);
+    try {
+      const { error: payErr } = await supabase
+        .from("payments")
+        .update({ status: "VALIDATED" })
+        .eq("id", payment.id);
+      if (payErr) throw payErr;
+
+      const newPaid = (reservation.paid_amount ?? 0) + (payment.amount ?? 0);
+      const { error: resErr } = await supabase
+        .from("reservations")
+        .update({
+          paiement_valide: true,
+          status: "CONFIRMED",
+          paid_amount: newPaid,
+        })
+        .eq("id", reservation.id);
+      if (resErr) throw resErr;
+
+      toast.success("Paiement validé. Vous pouvez maintenant assigner.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur de validation.";
+      toast.error(msg);
+      console.error("[VALIDATE PAYMENT]", err);
+    } finally {
+      setValidatingId(null);
     }
   };
 
