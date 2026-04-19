@@ -123,16 +123,30 @@ function AdminReservations() {
         setProfiles(map);
       }
 
-      // Existing trips for those reservations
+      // Existing trips + latest payment per reservation
       const resIds = reservs.map((r) => r.id);
       if (resIds.length > 0) {
-        const { data: tripsData } = await supabase
-          .from("trips")
-          .select("id, reservation_id, client_id, driver_id, gerant_id, status")
-          .in("reservation_id", resIds);
+        const [{ data: tripsData }, { data: paymentsData }] = await Promise.all([
+          supabase
+            .from("trips")
+            .select("id, reservation_id, client_id, driver_id, gerant_id, status")
+            .in("reservation_id", resIds),
+          supabase
+            .from("payments")
+            .select("id, reservation_id, status, amount, receipt_url, transaction_ref, created_at")
+            .in("reservation_id", resIds)
+            .order("created_at", { ascending: false }),
+        ]);
         const tmap = new Map<string, Trip>();
         (tripsData as Trip[] | null)?.forEach((t) => tmap.set(t.reservation_id, t));
         setTrips(tmap);
+
+        // garde le paiement le plus récent par réservation
+        const pmap = new Map<string, PaymentRow>();
+        (paymentsData as PaymentRow[] | null)?.forEach((p) => {
+          if (!pmap.has(p.reservation_id)) pmap.set(p.reservation_id, p);
+        });
+        setPayments(pmap);
       }
 
       // Drivers + gerants lists
