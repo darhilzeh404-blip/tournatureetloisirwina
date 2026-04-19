@@ -136,17 +136,6 @@ function PaiementPage() {
   };
 
 
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La photo ne doit pas dépasser 5 Mo");
-      return;
-    }
-    setReceiptFile(file);
-    setReceiptPreview(URL.createObjectURL(file));
-  };
-
   const handleSubmit = async () => {
     if (!user || !reservation) return;
     if (!receiptFile) {
@@ -158,13 +147,14 @@ function PaiementPage() {
       return;
     }
     setSubmitting(true);
+    setUploadFailed(false);
     try {
       // Upload photo dans le bucket privé sous le dossier de l'utilisateur
-      const ext = receiptFile.name.split(".").pop() || "jpg";
+      const ext = (receiptFile.name.split(".").pop() || "jpg").toLowerCase();
       const path = `${user.id}/${transactionUuid}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("payment-receipts")
-        .upload(path, receiptFile, { upsert: false, contentType: receiptFile.type });
+        .upload(path, receiptFile, { upsert: false, contentType: receiptFile.type || "image/jpeg" });
       if (upErr) throw upErr;
 
       // Insert paiement en attente
@@ -183,7 +173,8 @@ function PaiementPage() {
       navigate({ to: "/mes-reservations" });
     } catch (e) {
       console.error(e);
-      toast.error("Erreur lors de la soumission. Réessayez.");
+      setUploadFailed(true);
+      toast.error("Échec de l'envoi. Vous pouvez utiliser WhatsApp en secours.");
     } finally {
       setSubmitting(false);
     }
