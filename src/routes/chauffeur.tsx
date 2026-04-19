@@ -45,7 +45,18 @@ interface Ride {
   created_at: string;
 }
 
-type TabType = "courses" | "circuits" | "bus";
+interface AssignedTrip {
+  id: string;
+  reservation_id: string;
+  client_id: string;
+  driver_id: string | null;
+  origin_address: string;
+  destination_address: string;
+  status: string;
+  created_at: string;
+}
+
+type TabType = "courses" | "trips" | "circuits" | "bus";
 
 function ChauffeurLayout() {
   const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
