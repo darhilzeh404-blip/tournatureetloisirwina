@@ -235,6 +235,7 @@ export type Database = {
           details: Json
           id: string
           paid_amount: number
+          paiement_valide: boolean
           reservation_date: string
           service_type: Database["public"]["Enums"]["service_type"]
           status: Database["public"]["Enums"]["reservation_status"]
@@ -248,6 +249,7 @@ export type Database = {
           details?: Json
           id?: string
           paid_amount?: number
+          paiement_valide?: boolean
           reservation_date: string
           service_type: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["reservation_status"]
@@ -261,6 +263,7 @@ export type Database = {
           details?: Json
           id?: string
           paid_amount?: number
+          paiement_valide?: boolean
           reservation_date?: string
           service_type?: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["reservation_status"]
@@ -530,6 +533,7 @@ export type Database = {
           id: string
           key: string
           label: string
+          text_value: string | null
           updated_at: string
           value: number
         }
@@ -538,6 +542,7 @@ export type Database = {
           id?: string
           key: string
           label?: string
+          text_value?: string | null
           updated_at?: string
           value?: number
         }
@@ -546,6 +551,7 @@ export type Database = {
           id?: string
           key?: string
           label?: string
+          text_value?: string | null
           updated_at?: string
           value?: number
         }
