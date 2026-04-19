@@ -154,6 +154,7 @@ function ChauffeurLayout() {
         "postgres_changes",
         { event: "*", schema: "public", table: "trips", filter: `driver_id=eq.${user.id}` },
         (payload) => {
+          console.log("[CHAUFFEUR] ASSIGN NOUVELLE", payload.eventType, payload.new);
           if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
             const t = payload.new as AssignedTrip;
             if (t.status === "assigned" || t.status === "active") {
@@ -173,7 +174,7 @@ function ChauffeurLayout() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => console.log("[CHAUFFEUR] SUB STATUS", status));
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 

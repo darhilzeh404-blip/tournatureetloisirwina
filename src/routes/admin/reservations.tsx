@@ -228,6 +228,68 @@ function AdminReservations() {
     setPreviewUrl(data.signedUrl);
   };
 
+  const autoAssignCircuitGerant = async (reservation: Reservation) => {
+    if (reservation.service_type !== "CIRCUIT_TOURISTIQUE") return;
+    const d = (reservation.details ?? {}) as Record<string, unknown>;
+    const circuitId = typeof d.circuit_id === "string" ? (d.circuit_id as string) : null;
+    const circuitName = typeof d.circuit === "string" ? (d.circuit as string) : null;
+
+    // Trouver le(s) gérant(s) assigné(s) à ce circuit
+    let gerantUserId: string | null = null;
+    if (circuitId) {
+      const { data } = await supabase
+        .from("user_circuits")
+        .select("user_id")
+        .eq("circuit_id", circuitId)
+        .limit(1)
+        .maybeSingle();
+      if (data?.user_id) gerantUserId = data.user_id;
+    }
+    if (!gerantUserId && circuitName) {
+      const { data: c } = await supabase
+        .from("circuits")
+        .select("id")
+        .ilike("nom", `%${circuitName}%`)
+        .limit(1)
+        .maybeSingle();
+      if (c?.id) {
+        const { data: uc } = await supabase
+          .from("user_circuits")
+          .select("user_id")
+          .eq("circuit_id", c.id)
+          .limit(1)
+          .maybeSingle();
+        if (uc?.user_id) gerantUserId = uc.user_id;
+      }
+    }
+    if (!gerantUserId) {
+      console.log("[CIRCUIT AUTO-ASSIGN] aucun gérant assigné pour ce circuit");
+      return;
+    }
+
+    const origin = (typeof d.pickup === "string" ? d.pickup : "") || (typeof d.route === "string" ? d.route : "");
+    const destination = (typeof d.destination === "string" ? d.destination : "") || circuitName || "";
+
+    const existing = trips.get(reservation.id);
+    if (existing) {
+      await supabase
+        .from("trips")
+        .update({ gerant_id: gerantUserId, status: "assigned" })
+        .eq("id", existing.id);
+    } else {
+      await supabase.from("trips").insert({
+        reservation_id: reservation.id,
+        client_id: reservation.user_id,
+        gerant_id: gerantUserId,
+        status: "assigned",
+        origin_address: origin,
+        destination_address: destination,
+      });
+    }
+    console.log(`[CIRCUIT AUTO-ASSIGN] Circuit transféré au gérant ${gerantUserId}`);
+    toast.success("Circuit transféré automatiquement au gérant assigné.");
+  };
+
   const validatePayment = async (reservation: Reservation) => {
     const payment = payments.get(reservation.id);
     if (!payment) {
@@ -252,6 +314,9 @@ function AdminReservations() {
         })
         .eq("id", reservation.id);
       if (resErr) throw resErr;
+
+      // Auto-transfert au gérant pour les circuits
+      await autoAssignCircuitGerant(reservation);
 
       toast.success("Paiement validé. Vous pouvez maintenant assigner.");
     } catch (err: unknown) {
@@ -587,6 +652,7 @@ function AssignDialog({
         });
         if (error) throw error;
       }
+      console.log(`[ADMIN ASSIGN] Assigné à ${driverId || "—"} (chauffeur) / ${gerantId || "—"} (gérant) pour résa ${reservation.id}`);
       toast.success("Assignation enregistrée. Notification temps réel envoyée.");
       onAssigned();
     } catch (err: unknown) {
