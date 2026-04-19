@@ -118,6 +118,44 @@ function GerantLayout() {
     return () => { cancelled = true; };
   }, [user]);
 
+  // Trips assigned to this gerant
+  const fetchAssignedTrips = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("trips")
+      .select("id, reservation_id, client_id, driver_id, origin_address, destination_address, status, created_at")
+      .eq("gerant_id", user.id)
+      .in("status", ["assigned", "active", "pending"])
+      .order("created_at", { ascending: false });
+    setAssignedTrips((data as AssignedTrip[]) || []);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchAssignedTrips();
+    const channel = supabase
+      .channel(`trips-gerant-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "trips", filter: `gerant_id=eq.${user.id}` },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const t = payload.new as AssignedTrip;
+            setAssignedTrips((prev) => [t, ...prev.filter((x) => x.id !== t.id)]);
+            toast.success("Nouvelle course assignée à votre circuit !");
+          } else if (payload.eventType === "UPDATE") {
+            const t = payload.new as AssignedTrip;
+            setAssignedTrips((prev) => prev.map((x) => (x.id === t.id ? t : x)));
+          } else if (payload.eventType === "DELETE") {
+            const t = payload.old as AssignedTrip;
+            setAssignedTrips((prev) => prev.filter((x) => x.id !== t.id));
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchAssignedTrips]);
+
   const clients = useMemo(() => {
     const seen = new Map<string, { profile: Profile | undefined; count: number }>();
     reservations.forEach((r) => {
@@ -136,6 +174,7 @@ function GerantLayout() {
   const tabs = [
     { key: "circuits" as TabType, label: "Mes Circuits", icon: MapIcon, count: circuits.length },
     { key: "reservations" as TabType, label: "Réservations", icon: CalendarCheck, count: reservations.length },
+    { key: "trips" as TabType, label: "Courses assignées", icon: Navigation, count: assignedTrips.length },
     { key: "clients" as TabType, label: "Clients", icon: Users, count: clients.length },
   ];
 
