@@ -273,13 +273,54 @@ function AdminReservations() {
   if (!isAuthenticated || role !== "admin") return null;
 
   const detailsLabel = (r: Reservation) => {
-    const d = r.details ?? {};
+    const d = (r.details ?? {}) as Record<string, unknown>;
+    const str = (k: string) => (typeof d[k] === "string" ? (d[k] as string) : undefined);
+    const num = (k: string) => (typeof d[k] === "number" ? (d[k] as number) : undefined);
     const parts: string[] = [];
-    const route = (d as Record<string, unknown>).route as string | undefined;
-    const vehicle = (d as Record<string, unknown>).vehicle as string | undefined;
-    const circuit = (d as Record<string, unknown>).circuit as string | undefined;
+
+    // Extra-scolaire (formule = "Extra-scolaire" + activites[])
+    if (str("formule") === "Extra-scolaire") {
+      parts.push("Extra-scolaire");
+      const acts = Array.isArray(d.activites) ? (d.activites as string[]) : [];
+      if (acts.length) parts.push(`Activités: ${acts.join(", ")}`);
+      const nb = num("nb_enfants");
+      if (nb) parts.push(`${nb} enfant${nb > 1 ? "s" : ""}`);
+      return parts.join(" — ");
+    }
+
+    // Transport scolaire (itineraire / niveau / nb_enfants / formule / standing)
+    const itineraire = str("itineraire");
+    const niveau = str("niveau");
+    const formule = str("formule");
+    const standing = str("standing");
+    const nbEnfants = num("nb_enfants");
+    if (itineraire || niveau || formule) {
+      if (itineraire) parts.push(itineraire);
+      if (niveau) parts.push(`Niveau: ${niveau}`);
+      if (nbEnfants) parts.push(`${nbEnfants} enfant${nbEnfants > 1 ? "s" : ""}`);
+      if (formule) parts.push(formule);
+      if (standing) parts.push(standing);
+      return parts.join(" — ");
+    }
+
+    // Bus (vehicule / capacite / standing / usage / jours)
+    const vehicule = str("vehicule") ?? str("vehicle");
+    if (vehicule) {
+      parts.push(vehicule);
+      const cap = num("capacite");
+      if (cap) parts.push(`${cap} places`);
+      const usage = str("usage");
+      if (usage) parts.push(usage);
+      if (standing) parts.push(standing);
+      const jours = num("jours");
+      if (jours) parts.push(`${jours} jour${jours > 1 ? "s" : ""}`);
+      return parts.join(" — ");
+    }
+
+    // Circuits / legacy fallback
+    const route = str("route");
+    const circuit = str("circuit");
     if (route) parts.push(route);
-    if (vehicle) parts.push(vehicle);
     if (circuit) parts.push(circuit);
     return parts.join(" — ") || "—";
   };
