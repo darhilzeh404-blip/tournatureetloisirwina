@@ -594,6 +594,7 @@ export type Database = {
           destination_lng: number | null
           driver_id: string | null
           eta_minutes: number | null
+          gerant_id: string | null
           id: string
           origin_address: string
           origin_lat: number | null
@@ -612,6 +613,7 @@ export type Database = {
           destination_lng?: number | null
           driver_id?: string | null
           eta_minutes?: number | null
+          gerant_id?: string | null
           id?: string
           origin_address?: string
           origin_lat?: number | null
@@ -630,6 +632,7 @@ export type Database = {
           destination_lng?: number | null
           driver_id?: string | null
           eta_minutes?: number | null
+          gerant_id?: string | null
           id?: string
           origin_address?: string
           origin_lat?: number | null

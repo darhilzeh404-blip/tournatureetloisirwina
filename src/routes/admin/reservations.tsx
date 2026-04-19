@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { CheckCircle, XCircle, Eye, Search } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
+import { CheckCircle, XCircle, Eye, Search, UserPlus, Loader2, X, MapPin } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/reservations")({
   component: AdminReservations,
@@ -14,23 +18,36 @@ type Status = "PENDING_PAYMENT" | "CONFIRMED" | "REJECTED" | "CANCELLED";
 
 interface Reservation {
   id: string;
-  client: string;
-  type: string;
-  details: string;
-  date: string;
-  total: number;
-  paid: number;
+  user_id: string;
+  service_type: string;
   status: Status;
+  reservation_date: string;
+  total_amount: number;
+  paid_amount: number;
+  details: Record<string, unknown>;
+  created_at: string;
 }
 
-const INITIAL: Reservation[] = [
-  { id: "RES-127", client: "Marie Ndong", type: "Transport Scolaire", details: "Akanda ↔ Libreville — VIP — 1 enfant", date: "2026-04-15", total: 150000, paid: 75000, status: "PENDING_PAYMENT" },
-  { id: "RES-126", client: "Pierre Obame", type: "Location Bus", details: "Bus 32 places — Standard — Mariage", date: "2026-05-10", total: 180000, paid: 90000, status: "CONFIRMED" },
-  { id: "RES-125", client: "Alice Mba", type: "Circuit", details: "Parc national de Pongara", date: "2026-04-20", total: 85000, paid: 42500, status: "CONFIRMED" },
-  { id: "RES-124", client: "Jean Nzeng", type: "Transport Scolaire", details: "Owendo ↔ Libreville — Standard — 2 enfants", date: "2026-04-18", total: 160000, paid: 80000, status: "REJECTED" },
-  { id: "RES-123", client: "Sophie Ondo", type: "Location Bus", details: "Bus 16 places — VIP — Excursion", date: "2026-05-02", total: 250000, paid: 125000, status: "PENDING_PAYMENT" },
-  { id: "RES-122", client: "Eric Mba", type: "Circuit", details: "Cocobeach", date: "2026-04-25", total: 65000, paid: 32500, status: "CANCELLED" },
-];
+interface Profile {
+  user_id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+}
+
+interface RoleRow {
+  user_id: string;
+  role: string;
+}
+
+interface Trip {
+  id: string;
+  reservation_id: string;
+  client_id: string;
+  driver_id: string | null;
+  gerant_id: string | null;
+  status: string;
+}
 
 const STATUS_MAP: Record<Status, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   PENDING_PAYMENT: { label: "En attente", variant: "outline" },
@@ -39,30 +56,159 @@ const STATUS_MAP: Record<Status, { label: string; variant: "default" | "secondar
   CANCELLED: { label: "Annulée", variant: "secondary" },
 };
 
+const SERVICE_LABELS: Record<string, string> = {
+  TRANSPORT_SCOLAIRE: "Transport Scolaire",
+  LOCATION_BUS: "Location Bus",
+  CIRCUIT_TOURISTIQUE: "Circuit",
+};
+
 function formatXAF(n: number) {
   return new Intl.NumberFormat("fr-FR").format(n) + " XAF";
 }
 
 function AdminReservations() {
-  const [reservations, setReservations] = useState(INITIAL);
+  const { isAuthenticated, isLoading, role, user } = useAuth();
+  const navigate = useNavigate();
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [profiles, setProfiles] = useState<Map<string, Profile>>(new Map());
+  const [trips, setTrips] = useState<Map<string, Trip>>(new Map());
+  const [drivers, setDrivers] = useState<Profile[]>([]);
+  const [gerants, setGerants] = useState<Profile[]>([]);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [assignTarget, setAssignTarget] = useState<Reservation | null>(null);
+
+  // Auth guard
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || role !== "admin")) {
+      navigate({ to: "/connexion" });
+    }
+  }, [isLoading, isAuthenticated, role, navigate]);
+
+  const loadAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Reservations
+      const { data: resData } = await supabase
+        .from("reservations")
+        .select("*")
+        .order("created_at", { ascending: false });
+      const reservs = (resData as Reservation[]) ?? [];
+      setReservations(reservs);
+
+      // Profiles for client names
+      const userIds = Array.from(new Set(reservs.map((r) => r.user_id)));
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, email, phone")
+          .in("user_id", userIds);
+        const map = new Map<string, Profile>();
+        (profs ?? []).forEach((p) => map.set(p.user_id, p as Profile));
+        setProfiles(map);
+      }
+
+      // Existing trips for those reservations
+      const resIds = reservs.map((r) => r.id);
+      if (resIds.length > 0) {
+        const { data: tripsData } = await supabase
+          .from("trips")
+          .select("id, reservation_id, client_id, driver_id, gerant_id, status")
+          .in("reservation_id", resIds);
+        const tmap = new Map<string, Trip>();
+        (tripsData as Trip[] | null)?.forEach((t) => tmap.set(t.reservation_id, t));
+        setTrips(tmap);
+      }
+
+      // Drivers + gerants lists
+      const { data: roleRows } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("role", ["chauffeur", "gerant"]);
+      const driverIds = (roleRows as RoleRow[] | null)?.filter((r) => r.role === "chauffeur").map((r) => r.user_id) ?? [];
+      const gerantIds = (roleRows as RoleRow[] | null)?.filter((r) => r.role === "gerant").map((r) => r.user_id) ?? [];
+      const allIds = [...driverIds, ...gerantIds];
+      if (allIds.length > 0) {
+        const { data: staffProfiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, email, phone")
+          .in("user_id", allIds);
+        const sp = (staffProfiles as Profile[] | null) ?? [];
+        setDrivers(sp.filter((p) => driverIds.includes(p.user_id)));
+        setGerants(sp.filter((p) => gerantIds.includes(p.user_id)));
+      }
+    } catch (err) {
+      console.error("[ADMIN/RES] load error:", err);
+      toast.error("Erreur de chargement.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user && role === "admin") loadAll();
+  }, [user, role, loadAll]);
+
+  // Realtime: reservations + trips
+  useEffect(() => {
+    if (!user || role !== "admin") return;
+    const channel = supabase
+      .channel("admin-reservations-trips")
+      .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, () => loadAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => loadAll())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, role, loadAll]);
 
   const filtered = reservations.filter((r) => {
-    const matchSearch = r.client.toLowerCase().includes(search.toLowerCase()) || r.id.toLowerCase().includes(search.toLowerCase());
+    const p = profiles.get(r.user_id);
+    const clientName = p?.full_name ?? "";
+    const matchSearch =
+      clientName.toLowerCase().includes(search.toLowerCase()) ||
+      r.id.toLowerCase().includes(search.toLowerCase());
     if (tab === "all") return matchSearch;
     return matchSearch && r.status === tab;
   });
 
-  const updateStatus = (id: string, status: Status) => {
-    setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+  const updateStatus = async (id: string, status: Status) => {
+    const { error } = await supabase.from("reservations").update({ status }).eq("id", id);
+    if (error) {
+      toast.error("Erreur lors de la mise à jour.");
+      console.error(error);
+    } else {
+      toast.success(status === "CONFIRMED" ? "Réservation confirmée." : "Réservation refusée.");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (!isAuthenticated || role !== "admin") return null;
+
+  const detailsLabel = (r: Reservation) => {
+    const d = r.details ?? {};
+    const parts: string[] = [];
+    const route = (d as Record<string, unknown>).route as string | undefined;
+    const vehicle = (d as Record<string, unknown>).vehicle as string | undefined;
+    const circuit = (d as Record<string, unknown>).circuit as string | undefined;
+    if (route) parts.push(route);
+    if (vehicle) parts.push(vehicle);
+    if (circuit) parts.push(circuit);
+    return parts.join(" — ") || "—";
   };
 
   return (
     <div className="space-y-6 p-4 lg:p-8">
       <div>
         <h1 className="text-2xl font-bold">Réservations</h1>
-        <p className="text-sm text-muted-foreground">Gérez toutes les réservations clients</p>
+        <p className="text-sm text-muted-foreground">Gérez et assignez chauffeurs / gérants en temps réel.</p>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -79,7 +225,7 @@ function AdminReservations() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="all">Toutes ({reservations.length})</TabsTrigger>
           <TabsTrigger value="PENDING_PAYMENT">En attente ({reservations.filter((r) => r.status === "PENDING_PAYMENT").length})</TabsTrigger>
           <TabsTrigger value="CONFIRMED">Confirmées ({reservations.filter((r) => r.status === "CONFIRMED").length})</TabsTrigger>
@@ -89,66 +235,225 @@ function AdminReservations() {
         <TabsContent value={tab}>
           <Card>
             <CardContent className="overflow-x-auto p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-xs font-medium text-muted-foreground">
-                    <th className="p-4">ID</th>
-                    <th className="p-4">Client</th>
-                    <th className="p-4">Type</th>
-                    <th className="p-4 hidden md:table-cell">Détails</th>
-                    <th className="p-4">Date</th>
-                    <th className="p-4">Total</th>
-                    <th className="p-4">Payé</th>
-                    <th className="p-4">Statut</th>
-                    <th className="p-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((r) => {
-                    const st = STATUS_MAP[r.status];
-                    return (
-                      <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
-                        <td className="p-4 font-medium">{r.id}</td>
-                        <td className="p-4">{r.client}</td>
-                        <td className="p-4">{r.type}</td>
-                        <td className="p-4 hidden md:table-cell text-muted-foreground">{r.details}</td>
-                        <td className="p-4">{r.date}</td>
-                        <td className="p-4 font-medium">{formatXAF(r.total)}</td>
-                        <td className="p-4">{formatXAF(r.paid)}</td>
-                        <td className="p-4">
-                          <Badge variant={st.variant}>{st.label}</Badge>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-1">
-                            {r.status === "PENDING_PAYMENT" && (
-                              <>
-                                <Button size="icon" variant="ghost" className="h-8 w-8 text-success" title="Confirmer" onClick={() => updateStatus(r.id, "CONFIRMED")}>
-                                  <CheckCircle className="h-4 w-4" />
-                                </Button>
-                                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Rejeter" onClick={() => updateStatus(r.id, "REJECTED")}>
-                                  <XCircle className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                            <Button size="icon" variant="ghost" className="h-8 w-8" title="Voir">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {filtered.length === 0 && (
-                    <tr>
-                      <td colSpan={9} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
+              {loading ? (
+                <div className="p-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" /></div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-xs font-medium text-muted-foreground">
+                      <th className="p-4">ID</th>
+                      <th className="p-4">Client</th>
+                      <th className="p-4">Type</th>
+                      <th className="p-4 hidden md:table-cell">Détails</th>
+                      <th className="p-4">Date</th>
+                      <th className="p-4">Total</th>
+                      <th className="p-4">Statut</th>
+                      <th className="p-4">Assignation</th>
+                      <th className="p-4">Actions</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filtered.map((r) => {
+                      const st = STATUS_MAP[r.status];
+                      const p = profiles.get(r.user_id);
+                      const trip = trips.get(r.id);
+                      const driver = trip?.driver_id ? drivers.find((d) => d.user_id === trip.driver_id) : null;
+                      const gerant = trip?.gerant_id ? gerants.find((g) => g.user_id === trip.gerant_id) : null;
+                      return (
+                        <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
+                          <td className="p-4 font-medium text-xs">{r.id.slice(0, 8)}…</td>
+                          <td className="p-4">{p?.full_name ?? "—"}</td>
+                          <td className="p-4">{SERVICE_LABELS[r.service_type] ?? r.service_type}</td>
+                          <td className="p-4 hidden md:table-cell text-muted-foreground text-xs">{detailsLabel(r)}</td>
+                          <td className="p-4 text-xs">{new Date(r.reservation_date).toLocaleDateString("fr-FR")}</td>
+                          <td className="p-4 font-medium">{formatXAF(r.total_amount)}</td>
+                          <td className="p-4"><Badge variant={st.variant}>{st.label}</Badge></td>
+                          <td className="p-4 text-xs">
+                            {trip ? (
+                              <div className="space-y-0.5">
+                                {driver && <div>👤 {driver.full_name}</div>}
+                                {gerant && <div>🧭 {gerant.full_name}</div>}
+                                <Badge variant="secondary" className="text-[10px]">{trip.status}</Badge>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic">Non assignée</span>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-1">
+                              {r.status === "PENDING_PAYMENT" && (
+                                <>
+                                  <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600" title="Confirmer" onClick={() => updateStatus(r.id, "CONFIRMED")}>
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Rejeter" onClick={() => updateStatus(r.id, "REJECTED")}>
+                                    <XCircle className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                              {r.status === "CONFIRMED" && (
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" title="Assigner" onClick={() => setAssignTarget(r)}>
+                                  <UserPlus className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button size="icon" variant="ghost" className="h-8 w-8" title="Voir">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {filtered.length === 0 && (
+                      <tr>
+                        <td colSpan={9} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {assignTarget && (
+        <AssignDialog
+          reservation={assignTarget}
+          existingTrip={trips.get(assignTarget.id) ?? null}
+          drivers={drivers}
+          gerants={gerants}
+          clientName={profiles.get(assignTarget.user_id)?.full_name ?? "Client"}
+          onClose={() => setAssignTarget(null)}
+          onAssigned={() => {
+            setAssignTarget(null);
+            loadAll();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function AssignDialog({
+  reservation,
+  existingTrip,
+  drivers,
+  gerants,
+  clientName,
+  onClose,
+  onAssigned,
+}: {
+  reservation: Reservation;
+  existingTrip: Trip | null;
+  drivers: Profile[];
+  gerants: Profile[];
+  clientName: string;
+  onClose: () => void;
+  onAssigned: () => void;
+}) {
+  const [driverId, setDriverId] = useState(existingTrip?.driver_id ?? "");
+  const [gerantId, setGerantId] = useState(existingTrip?.gerant_id ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const handleAssign = async () => {
+    if (!driverId && !gerantId) {
+      toast.error("Sélectionnez au moins un chauffeur ou un gérant.");
+      return;
+    }
+    setSaving(true);
+    try {
+      if (existingTrip) {
+        const { error } = await supabase
+          .from("trips")
+          .update({
+            driver_id: driverId || null,
+            gerant_id: gerantId || null,
+            status: "assigned",
+          })
+          .eq("id", existingTrip.id);
+        if (error) throw error;
+      } else {
+        const d = reservation.details as Record<string, unknown>;
+        const origin = (d.pickup as string) || (d.route as string) || "";
+        const destination = (d.destination as string) || (d.circuit as string) || "";
+        const { error } = await supabase.from("trips").insert({
+          reservation_id: reservation.id,
+          client_id: reservation.user_id,
+          driver_id: driverId || null,
+          gerant_id: gerantId || null,
+          status: "assigned",
+          origin_address: origin,
+          destination_address: destination,
+        });
+        if (error) throw error;
+      }
+      toast.success("Assignation enregistrée. Notification temps réel envoyée.");
+      onAssigned();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur d'assignation.";
+      toast.error(msg);
+      console.error("[ASSIGN]", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl bg-card p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-primary" />
+            Assigner la course
+          </h2>
+          <button onClick={onClose} className="rounded-md p-1 hover:bg-secondary"><X className="h-4 w-4" /></button>
+        </div>
+
+        <div className="mt-4 rounded-lg border bg-muted/30 p-3 text-sm">
+          <div className="text-xs text-muted-foreground">Client</div>
+          <div className="font-medium">{clientName}</div>
+          <div className="mt-2 text-xs text-muted-foreground">Service</div>
+          <div className="font-medium">{SERVICE_LABELS[reservation.service_type] ?? reservation.service_type}</div>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Chauffeur</label>
+            <select
+              value={driverId}
+              onChange={(e) => setDriverId(e.target.value)}
+              className="w-full rounded-lg border bg-card px-3 py-2 text-sm"
+            >
+              <option value="">— Aucun —</option>
+              {drivers.map((d) => (
+                <option key={d.user_id} value={d.user_id}>{d.full_name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Gérant</label>
+            <select
+              value={gerantId}
+              onChange={(e) => setGerantId(e.target.value)}
+              className="w-full rounded-lg border bg-card px-3 py-2 text-sm"
+            >
+              <option value="">— Aucun —</option>
+              {gerants.map((g) => (
+                <option key={g.user_id} value={g.user_id}>{g.full_name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-5 flex gap-2 justify-end">
+          <Button variant="outline" onClick={onClose} disabled={saving}>Annuler</Button>
+          <Button onClick={handleAssign} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmer l'assignation"}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

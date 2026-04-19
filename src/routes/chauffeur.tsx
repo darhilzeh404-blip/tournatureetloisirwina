@@ -45,7 +45,18 @@ interface Ride {
   created_at: string;
 }
 
-type TabType = "courses" | "circuits" | "bus";
+interface AssignedTrip {
+  id: string;
+  reservation_id: string;
+  client_id: string;
+  driver_id: string | null;
+  origin_address: string;
+  destination_address: string;
+  status: string;
+  created_at: string;
+}
+
+type TabType = "courses" | "trips" | "circuits" | "bus";
 
 function ChauffeurLayout() {
   const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
@@ -64,6 +75,9 @@ function ChauffeurLayout() {
     }
   }, [isLoading, isAuthenticated, role, navigate]);
 
+  const [assignedTrips, setAssignedTrips] = useState<AssignedTrip[]>([]);
+  const [tripActionId, setTripActionId] = useState<string | null>(null);
+
   const fetchRides = useCallback(async () => {
     if (!user) return;
     // Strict filter: only available rides + rides assigned to this driver
@@ -75,12 +89,23 @@ function ChauffeurLayout() {
     setRides((data as Ride[]) || []);
   }, [user]);
 
+  const fetchAssignedTrips = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("trips")
+      .select("id, reservation_id, client_id, driver_id, origin_address, destination_address, status, created_at")
+      .eq("driver_id", user.id)
+      .in("status", ["assigned", "active"])
+      .order("created_at", { ascending: false });
+    setAssignedTrips((data as AssignedTrip[]) || []);
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       setLoading(true);
       try {
-        await fetchRides();
+        await Promise.all([fetchRides(), fetchAssignedTrips()]);
 
         const { data: userCircuits } = await supabase
           .from("user_circuits")
@@ -118,7 +143,39 @@ function ChauffeurLayout() {
       }
     };
     fetchData();
-  }, [user, fetchRides]);
+  }, [user, fetchRides, fetchAssignedTrips]);
+
+  // Realtime: trips assigned to this driver
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`trips-driver-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "trips", filter: `driver_id=eq.${user.id}` },
+        (payload) => {
+          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            const t = payload.new as AssignedTrip;
+            if (t.status === "assigned" || t.status === "active") {
+              setAssignedTrips((prev) => {
+                const exists = prev.some((x) => x.id === t.id);
+                return exists ? prev.map((x) => (x.id === t.id ? t : x)) : [t, ...prev];
+              });
+              if (payload.eventType === "INSERT") {
+                toast.success("Nouvelle course assignée !");
+              }
+            } else {
+              setAssignedTrips((prev) => prev.filter((x) => x.id !== t.id));
+            }
+          } else if (payload.eventType === "DELETE") {
+            const t = payload.old as AssignedTrip;
+            setAssignedTrips((prev) => prev.filter((x) => x.id !== t.id));
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   // Realtime: instantly remove rides taken by other drivers + reflect new ones
   useEffect(() => {
@@ -208,6 +265,24 @@ function ChauffeurLayout() {
     }
   };
 
+  const handleStartGps = async (tripId: string) => {
+    setTripActionId(tripId);
+    try {
+      const { error } = await supabase
+        .from("trips")
+        .update({ status: "active", started_at: new Date().toISOString() })
+        .eq("id", tripId);
+      if (error) throw error;
+      toast.success("GPS démarré. Le client peut désormais vous suivre en direct.");
+      navigate({ to: "/chauffeur/trips" });
+    } catch (err) {
+      console.error("[START GPS]", err);
+      toast.error("Impossible de démarrer le GPS.");
+    } finally {
+      setTripActionId(null);
+    }
+  };
+
   if (isLoading) return <div className="flex min-h-screen items-center justify-center"><p>Chargement...</p></div>;
   if (!isAuthenticated || (role !== "chauffeur" && role !== "admin")) return null;
 
@@ -216,6 +291,7 @@ function ChauffeurLayout() {
 
   const tabs = [
     { key: "courses" as TabType, label: "Courses", icon: Navigation },
+    { key: "trips" as TabType, label: `Assignées (${assignedTrips.length})`, icon: MapPin },
     { key: "circuits" as TabType, label: "Mes Circuits", icon: MapPin },
     { key: "bus" as TabType, label: "Mes Bus", icon: Bus },
   ];
@@ -374,6 +450,59 @@ function ChauffeurLayout() {
                         >
                           {acceptingId === r.id ? "..." : "Accepter"}
                         </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === "trips" && (
+            <>
+              <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
+                <MapPin className="h-5 w-5 text-primary" /> Courses assignées (temps réel)
+              </h2>
+              {assignedTrips.length === 0 ? (
+                <div className="rounded-2xl border bg-card p-8 text-center text-muted-foreground">
+                  <MapPin className="mx-auto h-12 w-12 opacity-30" />
+                  <p className="mt-3">Aucune course assignée pour le moment.</p>
+                  <p className="text-xs mt-1">Les nouvelles assignations apparaîtront ici automatiquement.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {assignedTrips.map((t) => (
+                    <Card key={t.id} className={t.status === "active" ? "border-primary/40" : ""}>
+                      <CardContent className="flex items-center gap-4 p-4">
+                        <div className="rounded-lg bg-primary/10 p-2.5">
+                          <Navigation className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate">
+                            {t.origin_address || "Départ"} → {t.destination_address || "Arrivée"}
+                          </h3>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {new Date(t.created_at).toLocaleString("fr-FR")}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <Badge className={t.status === "active" ? "bg-primary/10 text-primary" : "bg-yellow-500/10 text-yellow-700"}>
+                            {t.status === "active" ? "GPS actif" : "Assignée"}
+                          </Badge>
+                          {t.status === "assigned" ? (
+                            <Button
+                              size="sm"
+                              onClick={() => handleStartGps(t.id)}
+                              disabled={tripActionId === t.id}
+                            >
+                              {tripActionId === t.id ? "..." : "Démarrer GPS"}
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="outline" onClick={() => navigate({ to: "/chauffeur/trips" })}>
+                              Voir GPS
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}

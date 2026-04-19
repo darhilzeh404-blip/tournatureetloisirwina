@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
-import { MapIcon, LogOut, Menu, CalendarCheck, Users, Eye, Phone, Mail, X } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { MapIcon, LogOut, Menu, CalendarCheck, Users, Eye, Phone, Mail, X, Navigation } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CircuitGridSkeleton, ReservationListSkeleton } from "@/components/skeletons";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/gerant")({
   head: () => ({
@@ -31,7 +32,18 @@ interface Reservation {
 }
 interface Profile { user_id: string; full_name: string; email: string | null; phone: string | null }
 
-type TabType = "circuits" | "reservations" | "clients";
+interface AssignedTrip {
+  id: string;
+  reservation_id: string;
+  client_id: string;
+  driver_id: string | null;
+  origin_address: string;
+  destination_address: string;
+  status: string;
+  created_at: string;
+}
+
+type TabType = "circuits" | "reservations" | "trips" | "clients";
 
 function GerantLayout() {
   const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
@@ -41,6 +53,7 @@ function GerantLayout() {
   const [circuits, setCircuits] = useState<Circuit[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [profiles, setProfiles] = useState<Map<string, Profile>>(new Map());
+  const [assignedTrips, setAssignedTrips] = useState<AssignedTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Reservation | null>(null);
 
@@ -105,6 +118,44 @@ function GerantLayout() {
     return () => { cancelled = true; };
   }, [user]);
 
+  // Trips assigned to this gerant
+  const fetchAssignedTrips = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("trips")
+      .select("id, reservation_id, client_id, driver_id, origin_address, destination_address, status, created_at")
+      .eq("gerant_id", user.id)
+      .in("status", ["assigned", "active", "pending"])
+      .order("created_at", { ascending: false });
+    setAssignedTrips((data as AssignedTrip[]) || []);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchAssignedTrips();
+    const channel = supabase
+      .channel(`trips-gerant-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "trips", filter: `gerant_id=eq.${user.id}` },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const t = payload.new as AssignedTrip;
+            setAssignedTrips((prev) => [t, ...prev.filter((x) => x.id !== t.id)]);
+            toast.success("Nouvelle course assignée à votre circuit !");
+          } else if (payload.eventType === "UPDATE") {
+            const t = payload.new as AssignedTrip;
+            setAssignedTrips((prev) => prev.map((x) => (x.id === t.id ? t : x)));
+          } else if (payload.eventType === "DELETE") {
+            const t = payload.old as AssignedTrip;
+            setAssignedTrips((prev) => prev.filter((x) => x.id !== t.id));
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchAssignedTrips]);
+
   const clients = useMemo(() => {
     const seen = new Map<string, { profile: Profile | undefined; count: number }>();
     reservations.forEach((r) => {
@@ -123,6 +174,7 @@ function GerantLayout() {
   const tabs = [
     { key: "circuits" as TabType, label: "Mes Circuits", icon: MapIcon, count: circuits.length },
     { key: "reservations" as TabType, label: "Réservations", icon: CalendarCheck, count: reservations.length },
+    { key: "trips" as TabType, label: "Courses assignées", icon: Navigation, count: assignedTrips.length },
     { key: "clients" as TabType, label: "Clients", icon: Users, count: clients.length },
   ];
 
@@ -269,6 +321,43 @@ function GerantLayout() {
                       })}
                     </TableBody>
                   </Table>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === "trips" && (
+            <>
+              <h1 className="text-2xl font-bold">Courses assignées</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Mises à jour en temps réel — vous serez notifié dès qu'une nouvelle course vous est assignée.</p>
+              {assignedTrips.length === 0 ? (
+                <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
+                  <Navigation className="mx-auto h-12 w-12 opacity-30" />
+                  <p className="mt-3">Aucune course assignée pour le moment.</p>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {assignedTrips.map((t) => {
+                    const p = profiles.get(t.client_id);
+                    return (
+                      <Card key={t.id}>
+                        <CardContent className="flex items-center gap-4 p-4">
+                          <div className="rounded-lg bg-primary/10 p-2.5">
+                            <Navigation className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold truncate">{t.origin_address || "Départ"} → {t.destination_address || "Arrivée"}</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Client : {p?.full_name ?? "—"} · {new Date(t.created_at).toLocaleString("fr-FR")}
+                            </p>
+                          </div>
+                          <Badge className={t.status === "active" ? "bg-primary/10 text-primary" : "bg-yellow-500/10 text-yellow-700"}>
+                            {t.status === "active" ? "En cours" : "Assignée"}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </>
