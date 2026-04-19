@@ -89,6 +89,9 @@ function AdminReservations() {
   const [tab, setTab] = useState("all");
   const [loading, setLoading] = useState(true);
   const [assignTarget, setAssignTarget] = useState<Reservation | null>(null);
+  const [payments, setPayments] = useState<Map<string, PaymentRow>>(new Map());
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [validatingId, setValidatingId] = useState<string | null>(null);
 
   // Auth guard
   useEffect(() => {
