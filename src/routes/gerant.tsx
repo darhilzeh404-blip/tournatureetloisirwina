@@ -326,6 +326,43 @@ function GerantLayout() {
             </>
           )}
 
+          {activeTab === "trips" && (
+            <>
+              <h1 className="text-2xl font-bold">Courses assignées</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Mises à jour en temps réel — vous serez notifié dès qu'une nouvelle course vous est assignée.</p>
+              {assignedTrips.length === 0 ? (
+                <div className="mt-6 rounded-2xl border bg-card p-8 text-center text-muted-foreground">
+                  <Navigation className="mx-auto h-12 w-12 opacity-30" />
+                  <p className="mt-3">Aucune course assignée pour le moment.</p>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {assignedTrips.map((t) => {
+                    const p = profiles.get(t.client_id);
+                    return (
+                      <Card key={t.id}>
+                        <CardContent className="flex items-center gap-4 p-4">
+                          <div className="rounded-lg bg-primary/10 p-2.5">
+                            <Navigation className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold truncate">{t.origin_address || "Départ"} → {t.destination_address || "Arrivée"}</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Client : {p?.full_name ?? "—"} · {new Date(t.created_at).toLocaleString("fr-FR")}
+                            </p>
+                          </div>
+                          <Badge className={t.status === "active" ? "bg-primary/10 text-primary" : "bg-yellow-500/10 text-yellow-700"}>
+                            {t.status === "active" ? "En cours" : "Assignée"}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
           {activeTab === "clients" && (
             <>
               <h1 className="text-2xl font-bold">Clients</h1>
