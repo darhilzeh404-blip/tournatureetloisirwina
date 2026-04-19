@@ -458,6 +458,59 @@ function ChauffeurLayout() {
             </>
           )}
 
+          {activeTab === "trips" && (
+            <>
+              <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
+                <MapPin className="h-5 w-5 text-primary" /> Courses assignées (temps réel)
+              </h2>
+              {assignedTrips.length === 0 ? (
+                <div className="rounded-2xl border bg-card p-8 text-center text-muted-foreground">
+                  <MapPin className="mx-auto h-12 w-12 opacity-30" />
+                  <p className="mt-3">Aucune course assignée pour le moment.</p>
+                  <p className="text-xs mt-1">Les nouvelles assignations apparaîtront ici automatiquement.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {assignedTrips.map((t) => (
+                    <Card key={t.id} className={t.status === "active" ? "border-primary/40" : ""}>
+                      <CardContent className="flex items-center gap-4 p-4">
+                        <div className="rounded-lg bg-primary/10 p-2.5">
+                          <Navigation className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate">
+                            {t.origin_address || "Départ"} → {t.destination_address || "Arrivée"}
+                          </h3>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {new Date(t.created_at).toLocaleString("fr-FR")}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <Badge className={t.status === "active" ? "bg-primary/10 text-primary" : "bg-yellow-500/10 text-yellow-700"}>
+                            {t.status === "active" ? "GPS actif" : "Assignée"}
+                          </Badge>
+                          {t.status === "assigned" ? (
+                            <Button
+                              size="sm"
+                              onClick={() => handleStartGps(t.id)}
+                              disabled={tripActionId === t.id}
+                            >
+                              {tripActionId === t.id ? "..." : "Démarrer GPS"}
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="outline" onClick={() => navigate({ to: "/chauffeur/trips" })}>
+                              Voir GPS
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
           {activeTab === "circuits" && (
             <>
               <h1 className="text-2xl font-bold">Mes Circuits</h1>
