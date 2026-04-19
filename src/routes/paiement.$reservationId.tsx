@@ -307,35 +307,67 @@ function PaiementPage() {
         </CardContent>
       </Card>
 
-      {/* Upload photo */}
+      {/* Upload photo : 2 boutons (capture + galerie) */}
       <Card>
         <CardContent className="p-5 space-y-4">
-          <Label htmlFor="receipt" className="font-semibold">📸 Photo du reçu / SMS de confirmation</Label>
+          <Label className="font-semibold">📸 Photo du reçu / SMS de confirmation</Label>
+
+          {/* Inputs cachés — un par mode pour qu'iOS Safari respecte 'capture' */}
           <input
-            id="receipt"
+            ref={cameraInputRef}
             type="file"
             accept="image/*"
             capture="environment"
             onChange={onFileChange}
             className="hidden"
           />
-          <label
-            htmlFor="receipt"
-            className="flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-lg p-6 cursor-pointer hover:bg-muted/50 transition"
-          >
-            {receiptPreview ? (
-              <>
-                <img src={receiptPreview} alt="Reçu" className="max-h-48 rounded" />
-                <span className="text-xs text-muted-foreground">Cliquez pour changer</span>
-              </>
-            ) : (
-              <>
-                <Camera className="h-8 w-8 text-muted-foreground" />
-                <span className="text-sm font-medium">Prendre / choisir la photo</span>
-                <span className="text-xs text-muted-foreground">JPG, PNG — max 5 Mo</span>
-              </>
-            )}
-          </label>
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*,.heic,.heif"
+            onChange={onFileChange}
+            className="hidden"
+          />
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12"
+              disabled={preparing || submitting}
+              onClick={() => cameraInputRef.current?.click()}
+            >
+              <Camera className="h-4 w-4 mr-2" /> Photo directe
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12"
+              disabled={preparing || submitting}
+              onClick={() => galleryInputRef.current?.click()}
+            >
+              <ImageIcon className="h-4 w-4 mr-2" /> Galerie
+            </Button>
+          </div>
+
+          {preparing && (
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Préparation de l'image (HEIC → JPEG, compression)…
+            </div>
+          )}
+
+          {receiptPreview && (
+            <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-success/40 bg-success/5 p-4">
+              <img src={receiptPreview} alt="Reçu" className="max-h-48 rounded shadow" />
+              <span className="text-xs text-muted-foreground">
+                {receiptFile ? `${(receiptFile.size / 1024).toFixed(0)} Ko — prêt à envoyer` : ""}
+              </span>
+            </div>
+          )}
+
+          <p className="text-[11px] text-muted-foreground text-center">
+            Auto-conversion HEIC (iPhone) → JPEG, compression sous 2 Mo.
+          </p>
         </CardContent>
       </Card>
 
@@ -344,7 +376,7 @@ function PaiementPage() {
         size="lg"
         className="w-full"
         onClick={handleSubmit}
-        disabled={submitting || !receiptFile}
+        disabled={submitting || preparing || !receiptFile}
       >
         {submitting ? (
           <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
@@ -352,6 +384,29 @@ function PaiementPage() {
           <><CheckCircle2 className="h-4 w-4 mr-2" /> Soumettre le paiement pour validation</>
         )}
       </Button>
+
+      {/* Fallback WhatsApp si l'upload a échoué (iOS PWA) */}
+      {whatsappEnabled && (uploadFailed || !receiptFile) && whatsappNumber && (
+        <Card className="border-green-500/40 bg-green-500/5">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-start gap-2 text-xs">
+              <MessageCircle className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+              <span>
+                <strong>Problème pour envoyer la photo ?</strong> Envoyez-la sur WhatsApp à l'admin avec votre référence.
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-green-500/50 text-green-700 hover:bg-green-500/10"
+              onClick={openWhatsappFallback}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" /> Envoyer la preuve via WhatsApp
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <p className="text-xs text-center text-muted-foreground">
         Votre paiement passera en statut <strong>"En attente"</strong>. L'admin vérifiera la photo et la référence avant validation.
       </p>
