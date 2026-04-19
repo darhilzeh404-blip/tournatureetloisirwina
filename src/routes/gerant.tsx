@@ -32,7 +32,18 @@ interface Reservation {
 }
 interface Profile { user_id: string; full_name: string; email: string | null; phone: string | null }
 
-type TabType = "circuits" | "reservations" | "clients";
+interface AssignedTrip {
+  id: string;
+  reservation_id: string;
+  client_id: string;
+  driver_id: string | null;
+  origin_address: string;
+  destination_address: string;
+  status: string;
+  created_at: string;
+}
+
+type TabType = "circuits" | "reservations" | "trips" | "clients";
 
 function GerantLayout() {
   const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
@@ -42,6 +53,7 @@ function GerantLayout() {
   const [circuits, setCircuits] = useState<Circuit[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [profiles, setProfiles] = useState<Map<string, Profile>>(new Map());
+  const [assignedTrips, setAssignedTrips] = useState<AssignedTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Reservation | null>(null);
 
