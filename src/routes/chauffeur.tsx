@@ -95,7 +95,7 @@ function ChauffeurLayout() {
       .from("trips")
       .select("id, reservation_id, client_id, driver_id, origin_address, destination_address, status, created_at")
       .eq("driver_id", user.id)
-      .in("status", ["assigned", "active"])
+      .in("status", ["pending", "assigned", "active"])
       .order("created_at", { ascending: false });
     setAssignedTrips((data as AssignedTrip[]) || []);
   }, [user]);
@@ -157,7 +157,7 @@ function ChauffeurLayout() {
           console.log("[CHAUFFEUR] ASSIGN NOUVELLE", payload.eventType, payload.new);
           if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
             const t = payload.new as AssignedTrip;
-            if (t.status === "assigned" || t.status === "active") {
+            if (t.status === "pending" || t.status === "assigned" || t.status === "active") {
               setAssignedTrips((prev) => {
                 const exists = prev.some((x) => x.id === t.id);
                 return exists ? prev.map((x) => (x.id === t.id ? t : x)) : [t, ...prev];
