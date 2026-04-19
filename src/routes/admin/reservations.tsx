@@ -439,7 +439,7 @@ function AdminReservations() {
                     })}
                     {filtered.length === 0 && (
                       <tr>
-                        <td colSpan={9} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
+                        <td colSpan={11} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
                       </tr>
                     )}
                   </tbody>
