@@ -48,7 +48,13 @@ function PaiementPage() {
   const [amount, setAmount] = useState<number>(0);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState<string>("");
+  const [whatsappEnabled, setWhatsappEnabled] = useState<boolean>(true);
+  const [uploadFailed, setUploadFailed] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
   // UUID transaction généré une seule fois côté app
   const transactionUuid = useMemo(() => crypto.randomUUID(), []);
