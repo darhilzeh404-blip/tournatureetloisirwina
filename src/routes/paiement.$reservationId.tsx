@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Copy, Loader2, Smartphone, Camera, CheckCircle2, ArrowLeft, AlertCircle } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Copy, Loader2, Smartphone, Camera, CheckCircle2, ArrowLeft, AlertCircle, Image as ImageIcon, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
 
 // Codes agents marchands (à personnaliser depuis l'admin plus tard)
 const CODE_AGENT_MOOV = "074512";
@@ -47,7 +48,13 @@ function PaiementPage() {
   const [amount, setAmount] = useState<number>(0);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState<string>("");
+  const [whatsappEnabled, setWhatsappEnabled] = useState<boolean>(true);
+  const [uploadFailed, setUploadFailed] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
   // UUID transaction généré une seule fois côté app
   const transactionUuid = useMemo(() => crypto.randomUUID(), []);
@@ -61,20 +68,29 @@ function PaiementPage() {
       return;
     }
     (async () => {
-      const { data, error } = await supabase
-        .from("reservations")
-        .select("id, total_amount, paid_amount, status, user_id")
-        .eq("id", reservationId)
-        .maybeSingle();
+      const [{ data, error }, { data: settings }] = await Promise.all([
+        supabase
+          .from("reservations")
+          .select("id, total_amount, paid_amount, status, user_id")
+          .eq("id", reservationId)
+          .maybeSingle(),
+        supabase
+          .from("transport_settings")
+          .select("key, value, text_value")
+          .in("key", ["whatsapp_admin_number", "whatsapp_fallback_enabled"]),
+      ]);
       if (error || !data) {
         toast.error("Réservation introuvable");
         navigate({ to: "/mes-reservations" });
         return;
       }
       setReservation(data);
-      // Acompte minimum 50%
       const minDeposit = Math.ceil(data.total_amount * 0.5);
       setAmount(Math.max(minDeposit - data.paid_amount, 0) || data.total_amount);
+      const wnum = (settings ?? []).find((s) => s.key === "whatsapp_admin_number");
+      const wen = (settings ?? []).find((s) => s.key === "whatsapp_fallback_enabled");
+      setWhatsappNumber((wnum?.text_value as string | null) ?? "");
+      setWhatsappEnabled(Number(wen?.value ?? 1) === 1);
       setLoading(false);
     })();
   }, [authLoading, user, reservationId, navigate]);
@@ -87,16 +103,38 @@ function PaiementPage() {
     toast.success(`${label} copié`);
   };
 
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = ""; // reset to allow re-pick same file
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La photo ne doit pas dépasser 5 Mo");
+    setPreparing(true);
+    setUploadFailed(false);
+    try {
+      const prepared = await prepareReceiptImage(file);
+      if (prepared.size > 5 * 1024 * 1024) {
+        toast.error("Photo trop lourde après compression. Réessayez avec une autre.");
+        return;
+      }
+      setReceiptFile(prepared);
+      setReceiptPreview(URL.createObjectURL(prepared));
+      toast.success("Photo prête à envoyer");
+    } catch (err) {
+      console.error("[onFileChange]", err);
+      toast.error("Impossible de lire cette photo. Essayez une autre.");
+    } finally {
+      setPreparing(false);
+    }
+  };
+
+  const openWhatsappFallback = () => {
+    if (!whatsappNumber) {
+      toast.error("Numéro WhatsApp admin non configuré.");
       return;
     }
-    setReceiptFile(file);
-    setReceiptPreview(URL.createObjectURL(file));
+    const msg = `Bonjour, voici la preuve de mon paiement.\nRéservation: ${reservation?.id ?? ""}\nRéférence: ${shortRef}\nMontant: ${amount} FCFA\nMéthode: ${method}`;
+    window.open(buildWhatsappLink(whatsappNumber, msg), "_blank");
   };
+
 
   const handleSubmit = async () => {
     if (!user || !reservation) return;
@@ -109,13 +147,14 @@ function PaiementPage() {
       return;
     }
     setSubmitting(true);
+    setUploadFailed(false);
     try {
       // Upload photo dans le bucket privé sous le dossier de l'utilisateur
-      const ext = receiptFile.name.split(".").pop() || "jpg";
+      const ext = (receiptFile.name.split(".").pop() || "jpg").toLowerCase();
       const path = `${user.id}/${transactionUuid}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("payment-receipts")
-        .upload(path, receiptFile, { upsert: false, contentType: receiptFile.type });
+        .upload(path, receiptFile, { upsert: false, contentType: receiptFile.type || "image/jpeg" });
       if (upErr) throw upErr;
 
       // Insert paiement en attente
@@ -134,7 +173,8 @@ function PaiementPage() {
       navigate({ to: "/mes-reservations" });
     } catch (e) {
       console.error(e);
-      toast.error("Erreur lors de la soumission. Réessayez.");
+      setUploadFailed(true);
+      toast.error("Échec de l'envoi. Vous pouvez utiliser WhatsApp en secours.");
     } finally {
       setSubmitting(false);
     }
@@ -267,35 +307,67 @@ function PaiementPage() {
         </CardContent>
       </Card>
 
-      {/* Upload photo */}
+      {/* Upload photo : 2 boutons (capture + galerie) */}
       <Card>
         <CardContent className="p-5 space-y-4">
-          <Label htmlFor="receipt" className="font-semibold">📸 Photo du reçu / SMS de confirmation</Label>
+          <Label className="font-semibold">📸 Photo du reçu / SMS de confirmation</Label>
+
+          {/* Inputs cachés — un par mode pour qu'iOS Safari respecte 'capture' */}
           <input
-            id="receipt"
+            ref={cameraInputRef}
             type="file"
             accept="image/*"
             capture="environment"
             onChange={onFileChange}
             className="hidden"
           />
-          <label
-            htmlFor="receipt"
-            className="flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-lg p-6 cursor-pointer hover:bg-muted/50 transition"
-          >
-            {receiptPreview ? (
-              <>
-                <img src={receiptPreview} alt="Reçu" className="max-h-48 rounded" />
-                <span className="text-xs text-muted-foreground">Cliquez pour changer</span>
-              </>
-            ) : (
-              <>
-                <Camera className="h-8 w-8 text-muted-foreground" />
-                <span className="text-sm font-medium">Prendre / choisir la photo</span>
-                <span className="text-xs text-muted-foreground">JPG, PNG — max 5 Mo</span>
-              </>
-            )}
-          </label>
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*,.heic,.heif"
+            onChange={onFileChange}
+            className="hidden"
+          />
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12"
+              disabled={preparing || submitting}
+              onClick={() => cameraInputRef.current?.click()}
+            >
+              <Camera className="h-4 w-4 mr-2" /> Photo directe
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12"
+              disabled={preparing || submitting}
+              onClick={() => galleryInputRef.current?.click()}
+            >
+              <ImageIcon className="h-4 w-4 mr-2" /> Galerie
+            </Button>
+          </div>
+
+          {preparing && (
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Préparation de l'image (HEIC → JPEG, compression)…
+            </div>
+          )}
+
+          {receiptPreview && (
+            <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-success/40 bg-success/5 p-4">
+              <img src={receiptPreview} alt="Reçu" className="max-h-48 rounded shadow" />
+              <span className="text-xs text-muted-foreground">
+                {receiptFile ? `${(receiptFile.size / 1024).toFixed(0)} Ko — prêt à envoyer` : ""}
+              </span>
+            </div>
+          )}
+
+          <p className="text-[11px] text-muted-foreground text-center">
+            Auto-conversion HEIC (iPhone) → JPEG, compression sous 2 Mo.
+          </p>
         </CardContent>
       </Card>
 
@@ -304,7 +376,7 @@ function PaiementPage() {
         size="lg"
         className="w-full"
         onClick={handleSubmit}
-        disabled={submitting || !receiptFile}
+        disabled={submitting || preparing || !receiptFile}
       >
         {submitting ? (
           <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
@@ -312,6 +384,29 @@ function PaiementPage() {
           <><CheckCircle2 className="h-4 w-4 mr-2" /> Soumettre le paiement pour validation</>
         )}
       </Button>
+
+      {/* Fallback WhatsApp si l'upload a échoué (iOS PWA) */}
+      {whatsappEnabled && (uploadFailed || !receiptFile) && whatsappNumber && (
+        <Card className="border-success/40 bg-success/5">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-start gap-2 text-xs">
+              <MessageCircle className="h-4 w-4 text-success shrink-0 mt-0.5" />
+              <span>
+                <strong>Problème pour envoyer la photo ?</strong> Envoyez-la sur WhatsApp à l'admin avec votre référence.
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-success/50 text-success hover:bg-success/10"
+              onClick={openWhatsappFallback}
+            >
+              <MessageCircle className="h-4 w-4 mr-2" /> Envoyer la preuve via WhatsApp
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <p className="text-xs text-center text-muted-foreground">
         Votre paiement passera en statut <strong>"En attente"</strong>. L'admin vérifiera la photo et la référence avant validation.
       </p>

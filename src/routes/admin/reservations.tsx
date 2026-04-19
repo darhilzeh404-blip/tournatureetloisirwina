@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
-import { CheckCircle, XCircle, Eye, Search, UserPlus, Loader2, X, MapPin } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Search, UserPlus, Loader2, X, MapPin, Receipt, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,18 @@ interface Reservation {
   reservation_date: string;
   total_amount: number;
   paid_amount: number;
+  paiement_valide: boolean;
   details: Record<string, unknown>;
+  created_at: string;
+}
+
+interface PaymentRow {
+  id: string;
+  reservation_id: string;
+  status: "PENDING" | "VALIDATED" | "REJECTED";
+  amount: number;
+  receipt_url: string | null;
+  transaction_ref: string | null;
   created_at: string;
 }
 
@@ -78,6 +89,9 @@ function AdminReservations() {
   const [tab, setTab] = useState("all");
   const [loading, setLoading] = useState(true);
   const [assignTarget, setAssignTarget] = useState<Reservation | null>(null);
+  const [payments, setPayments] = useState<Map<string, PaymentRow>>(new Map());
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [validatingId, setValidatingId] = useState<string | null>(null);
 
   // Auth guard
   useEffect(() => {
@@ -109,16 +123,30 @@ function AdminReservations() {
         setProfiles(map);
       }
 
-      // Existing trips for those reservations
+      // Existing trips + latest payment per reservation
       const resIds = reservs.map((r) => r.id);
       if (resIds.length > 0) {
-        const { data: tripsData } = await supabase
-          .from("trips")
-          .select("id, reservation_id, client_id, driver_id, gerant_id, status")
-          .in("reservation_id", resIds);
+        const [{ data: tripsData }, { data: paymentsData }] = await Promise.all([
+          supabase
+            .from("trips")
+            .select("id, reservation_id, client_id, driver_id, gerant_id, status")
+            .in("reservation_id", resIds),
+          supabase
+            .from("payments")
+            .select("id, reservation_id, status, amount, receipt_url, transaction_ref, created_at")
+            .in("reservation_id", resIds)
+            .order("created_at", { ascending: false }),
+        ]);
         const tmap = new Map<string, Trip>();
         (tripsData as Trip[] | null)?.forEach((t) => tmap.set(t.reservation_id, t));
         setTrips(tmap);
+
+        // garde le paiement le plus récent par réservation
+        const pmap = new Map<string, PaymentRow>();
+        (paymentsData as PaymentRow[] | null)?.forEach((p) => {
+          if (!pmap.has(p.reservation_id)) pmap.set(p.reservation_id, p);
+        });
+        setPayments(pmap);
       }
 
       // Drivers + gerants lists
@@ -150,13 +178,19 @@ function AdminReservations() {
     if (user && role === "admin") loadAll();
   }, [user, role, loadAll]);
 
-  // Realtime: reservations + trips
+  // Realtime: reservations + trips + payments (notif sur new upload)
   useEffect(() => {
     if (!user || role !== "admin") return;
     const channel = supabase
-      .channel("admin-reservations-trips")
+      .channel("admin-reservations-trips-payments")
       .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => loadAll())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "payments" }, (payload) => {
+        const p = payload.new as { receipt_url?: string | null };
+        if (p?.receipt_url) toast.info("📸 Nouvelle preuve de paiement reçue");
+        loadAll();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "payments" }, () => loadAll())
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -180,6 +214,52 @@ function AdminReservations() {
       console.error(error);
     } else {
       toast.success(status === "CONFIRMED" ? "Réservation confirmée." : "Réservation refusée.");
+    }
+  };
+
+  const viewProof = async (path: string) => {
+    const { data, error } = await supabase.storage
+      .from("payment-receipts")
+      .createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) {
+      toast.error("Impossible de charger la preuve.");
+      return;
+    }
+    setPreviewUrl(data.signedUrl);
+  };
+
+  const validatePayment = async (reservation: Reservation) => {
+    const payment = payments.get(reservation.id);
+    if (!payment) {
+      toast.error("Aucun paiement à valider.");
+      return;
+    }
+    setValidatingId(reservation.id);
+    try {
+      const { error: payErr } = await supabase
+        .from("payments")
+        .update({ status: "VALIDATED" })
+        .eq("id", payment.id);
+      if (payErr) throw payErr;
+
+      const newPaid = (reservation.paid_amount ?? 0) + (payment.amount ?? 0);
+      const { error: resErr } = await supabase
+        .from("reservations")
+        .update({
+          paiement_valide: true,
+          status: "CONFIRMED",
+          paid_amount: newPaid,
+        })
+        .eq("id", reservation.id);
+      if (resErr) throw resErr;
+
+      toast.success("Paiement validé. Vous pouvez maintenant assigner.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur de validation.";
+      toast.error(msg);
+      console.error("[VALIDATE PAYMENT]", err);
+    } finally {
+      setValidatingId(null);
     }
   };
 
@@ -248,6 +328,7 @@ function AdminReservations() {
                       <th className="p-4">Date</th>
                       <th className="p-4">Total</th>
                       <th className="p-4">Statut</th>
+                      <th className="p-4">Preuve</th>
                       <th className="p-4">Assignation</th>
                       <th className="p-4">Actions</th>
                     </tr>
@@ -259,6 +340,8 @@ function AdminReservations() {
                       const trip = trips.get(r.id);
                       const driver = trip?.driver_id ? drivers.find((d) => d.user_id === trip.driver_id) : null;
                       const gerant = trip?.gerant_id ? gerants.find((g) => g.user_id === trip.gerant_id) : null;
+                      const payment = payments.get(r.id);
+                      const canAssign = r.paiement_valide && r.status === "CONFIRMED";
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
                           <td className="p-4 font-medium text-xs">{r.id.slice(0, 8)}…</td>
@@ -267,7 +350,54 @@ function AdminReservations() {
                           <td className="p-4 hidden md:table-cell text-muted-foreground text-xs">{detailsLabel(r)}</td>
                           <td className="p-4 text-xs">{new Date(r.reservation_date).toLocaleDateString("fr-FR")}</td>
                           <td className="p-4 font-medium">{formatXAF(r.total_amount)}</td>
-                          <td className="p-4"><Badge variant={st.variant}>{st.label}</Badge></td>
+                          <td className="p-4">
+                            <div className="flex flex-col gap-1">
+                              <Badge variant={st.variant}>{st.label}</Badge>
+                              {r.paiement_valide && (
+                                <Badge variant="default" className="text-[10px] gap-1">
+                                  <ShieldCheck className="h-3 w-3" /> Paiement OK
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4 text-xs">
+                            {payment ? (
+                              <div className="flex flex-col gap-1">
+                                <Badge
+                                  variant={payment.status === "VALIDATED" ? "default" : payment.status === "REJECTED" ? "destructive" : "outline"}
+                                  className="text-[10px] w-fit"
+                                >
+                                  {payment.status} · {formatXAF(payment.amount)}
+                                </Badge>
+                                {payment.receipt_url && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 px-2 text-[11px] w-fit"
+                                    onClick={() => viewProof(payment.receipt_url!)}
+                                  >
+                                    <Receipt className="h-3 w-3 mr-1" /> Voir
+                                  </Button>
+                                )}
+                                {payment.status === "PENDING" && !r.paiement_valide && (
+                                  <Button
+                                    size="sm"
+                                    className="h-6 px-2 text-[11px] w-fit"
+                                    onClick={() => validatePayment(r)}
+                                    disabled={validatingId === r.id}
+                                  >
+                                    {validatingId === r.id ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <><ShieldCheck className="h-3 w-3 mr-1" /> Valider</>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic text-[11px]">Aucune</span>
+                            )}
+                          </td>
                           <td className="p-4 text-xs">
                             {trip ? (
                               <div className="space-y-0.5">
@@ -283,7 +413,7 @@ function AdminReservations() {
                             <div className="flex items-center gap-1">
                               {r.status === "PENDING_PAYMENT" && (
                                 <>
-                                  <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600" title="Confirmer" onClick={() => updateStatus(r.id, "CONFIRMED")}>
+                                  <Button size="icon" variant="ghost" className="h-8 w-8 text-success" title="Confirmer" onClick={() => updateStatus(r.id, "CONFIRMED")}>
                                     <CheckCircle className="h-4 w-4" />
                                   </Button>
                                   <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Rejeter" onClick={() => updateStatus(r.id, "REJECTED")}>
@@ -291,10 +421,13 @@ function AdminReservations() {
                                   </Button>
                                 </>
                               )}
-                              {r.status === "CONFIRMED" && (
+                              {canAssign && (
                                 <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" title="Assigner" onClick={() => setAssignTarget(r)}>
                                   <UserPlus className="h-4 w-4" />
                                 </Button>
+                              )}
+                              {r.status === "CONFIRMED" && !r.paiement_valide && (
+                                <span className="text-[10px] text-muted-foreground italic">Validez le paiement</span>
                               )}
                               <Button size="icon" variant="ghost" className="h-8 w-8" title="Voir">
                                 <Eye className="h-4 w-4" />
@@ -306,7 +439,7 @@ function AdminReservations() {
                     })}
                     {filtered.length === 0 && (
                       <tr>
-                        <td colSpan={9} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
+                        <td colSpan={11} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
                       </tr>
                     )}
                   </tbody>
@@ -330,6 +463,31 @@ function AdminReservations() {
             loadAll();
           }}
         />
+      )}
+
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div className="relative max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setPreviewUrl(null)}
+              className="absolute -top-10 right-0 rounded-md bg-background/80 p-2 hover:bg-background"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <img src={previewUrl} alt="Preuve de paiement" className="w-full h-auto rounded-lg shadow-2xl" />
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 block text-center text-sm text-primary-foreground bg-primary rounded-lg py-2 hover:bg-primary/90"
+            >
+              Ouvrir en plein écran
+            </a>
+          </div>
+        </div>
       )}
     </div>
   );
