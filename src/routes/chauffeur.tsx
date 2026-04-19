@@ -105,7 +105,7 @@ function ChauffeurLayout() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await fetchRides();
+        await Promise.all([fetchRides(), fetchAssignedTrips()]);
 
         const { data: userCircuits } = await supabase
           .from("user_circuits")
@@ -143,7 +143,39 @@ function ChauffeurLayout() {
       }
     };
     fetchData();
-  }, [user, fetchRides]);
+  }, [user, fetchRides, fetchAssignedTrips]);
+
+  // Realtime: trips assigned to this driver
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`trips-driver-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "trips", filter: `driver_id=eq.${user.id}` },
+        (payload) => {
+          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            const t = payload.new as AssignedTrip;
+            if (t.status === "assigned" || t.status === "active") {
+              setAssignedTrips((prev) => {
+                const exists = prev.some((x) => x.id === t.id);
+                return exists ? prev.map((x) => (x.id === t.id ? t : x)) : [t, ...prev];
+              });
+              if (payload.eventType === "INSERT") {
+                toast.success("Nouvelle course assignée !");
+              }
+            } else {
+              setAssignedTrips((prev) => prev.filter((x) => x.id !== t.id));
+            }
+          } else if (payload.eventType === "DELETE") {
+            const t = payload.old as AssignedTrip;
+            setAssignedTrips((prev) => prev.filter((x) => x.id !== t.id));
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   // Realtime: instantly remove rides taken by other drivers + reflect new ones
   useEffect(() => {
