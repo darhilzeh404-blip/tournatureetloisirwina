@@ -68,20 +68,29 @@ function PaiementPage() {
       return;
     }
     (async () => {
-      const { data, error } = await supabase
-        .from("reservations")
-        .select("id, total_amount, paid_amount, status, user_id")
-        .eq("id", reservationId)
-        .maybeSingle();
+      const [{ data, error }, { data: settings }] = await Promise.all([
+        supabase
+          .from("reservations")
+          .select("id, total_amount, paid_amount, status, user_id")
+          .eq("id", reservationId)
+          .maybeSingle(),
+        supabase
+          .from("transport_settings")
+          .select("key, value, text_value")
+          .in("key", ["whatsapp_admin_number", "whatsapp_fallback_enabled"]),
+      ]);
       if (error || !data) {
         toast.error("Réservation introuvable");
         navigate({ to: "/mes-reservations" });
         return;
       }
       setReservation(data);
-      // Acompte minimum 50%
       const minDeposit = Math.ceil(data.total_amount * 0.5);
       setAmount(Math.max(minDeposit - data.paid_amount, 0) || data.total_amount);
+      const wnum = (settings ?? []).find((s) => s.key === "whatsapp_admin_number");
+      const wen = (settings ?? []).find((s) => s.key === "whatsapp_fallback_enabled");
+      setWhatsappNumber((wnum?.text_value as string | null) ?? "");
+      setWhatsappEnabled(Number(wen?.value ?? 1) === 1);
       setLoading(false);
     })();
   }, [authLoading, user, reservationId, navigate]);
@@ -93,6 +102,39 @@ function PaiementPage() {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copié`);
   };
+
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset to allow re-pick same file
+    if (!file) return;
+    setPreparing(true);
+    setUploadFailed(false);
+    try {
+      const prepared = await prepareReceiptImage(file);
+      if (prepared.size > 5 * 1024 * 1024) {
+        toast.error("Photo trop lourde après compression. Réessayez avec une autre.");
+        return;
+      }
+      setReceiptFile(prepared);
+      setReceiptPreview(URL.createObjectURL(prepared));
+      toast.success("Photo prête à envoyer");
+    } catch (err) {
+      console.error("[onFileChange]", err);
+      toast.error("Impossible de lire cette photo. Essayez une autre.");
+    } finally {
+      setPreparing(false);
+    }
+  };
+
+  const openWhatsappFallback = () => {
+    if (!whatsappNumber) {
+      toast.error("Numéro WhatsApp admin non configuré.");
+      return;
+    }
+    const msg = `Bonjour, voici la preuve de mon paiement.\nRéservation: ${reservation?.id ?? ""}\nRéférence: ${shortRef}\nMontant: ${amount} FCFA\nMéthode: ${method}`;
+    window.open(buildWhatsappLink(whatsappNumber, msg), "_blank");
+  };
+
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
