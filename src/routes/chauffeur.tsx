@@ -75,6 +75,9 @@ function ChauffeurLayout() {
     }
   }, [isLoading, isAuthenticated, role, navigate]);
 
+  const [assignedTrips, setAssignedTrips] = useState<AssignedTrip[]>([]);
+  const [tripActionId, setTripActionId] = useState<string | null>(null);
+
   const fetchRides = useCallback(async () => {
     if (!user) return;
     // Strict filter: only available rides + rides assigned to this driver
@@ -84,6 +87,17 @@ function ChauffeurLayout() {
       .or(`status.eq.disponible,driver_id.eq.${user.id}`)
       .order("created_at", { ascending: false });
     setRides((data as Ride[]) || []);
+  }, [user]);
+
+  const fetchAssignedTrips = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("trips")
+      .select("id, reservation_id, client_id, driver_id, origin_address, destination_address, status, created_at")
+      .eq("driver_id", user.id)
+      .in("status", ["assigned", "active"])
+      .order("created_at", { ascending: false });
+    setAssignedTrips((data as AssignedTrip[]) || []);
   }, [user]);
 
   useEffect(() => {
