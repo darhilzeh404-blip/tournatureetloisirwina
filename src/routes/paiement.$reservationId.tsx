@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Copy, Loader2, Smartphone, Camera, CheckCircle2, ArrowLeft, AlertCircle } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Copy, Loader2, Smartphone, Camera, CheckCircle2, ArrowLeft, AlertCircle, Image as ImageIcon, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
 
 // Codes agents marchands (à personnaliser depuis l'admin plus tard)
 const CODE_AGENT_MOOV = "074512";
