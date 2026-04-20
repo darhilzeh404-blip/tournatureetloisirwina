@@ -40,6 +40,7 @@ const stagger = {
 function EspaceClient() {
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
+  const [target, setTarget] = useState<BookingTarget | null>(null);
 
   return (
     <div className="pb-20">
