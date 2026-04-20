@@ -1,7 +1,9 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Compass, Bus, ArrowRight, Sparkles } from "lucide-react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 import heroImg from "@/assets/hero-transport.jpg";
 
 export const Route = createFileRoute("/")({
@@ -39,6 +41,20 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const { isAuthenticated, role, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Client-side guard: si la session est restaurée après le SSR, on redirige aussi
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && role) {
+      const path = role === "client" ? "/espace-client" : getRoleRedirectPath(role);
+      navigate({ to: path, replace: true });
+    }
+  }, [isLoading, isAuthenticated, role, navigate]);
+
+  // Pendant la redirection, on ne flash pas la landing
+  if (isAuthenticated) return null;
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       {/* Background image */}
