@@ -1,9 +1,24 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Bus, Zap, CalendarClock, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 import heroImg from "@/assets/hero-transport.jpg";
 
 export const Route = createFileRoute("/transport-public")({
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { data: roleRow } = await supabase
+        .from("user_roles").select("role").eq("user_id", session.user.id).limit(1).single();
+      const role = roleRow?.role;
+      if (role === "client") throw redirect({ to: "/espace-client" });
+      if (role === "admin") throw redirect({ to: "/admin" });
+      if (role === "gerant") throw redirect({ to: "/gerant" });
+      if (role === "chauffeur") throw redirect({ to: "/chauffeur" });
+    }
+  },
   head: () => ({
     meta: [
       { title: "Transport — Agence Wina" },
@@ -19,6 +34,18 @@ export const Route = createFileRoute("/transport-public")({
 });
 
 function TransportPublic() {
+  const { isAuthenticated, role, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && role) {
+      const path = role === "client" ? "/espace-client" : getRoleRedirectPath(role);
+      navigate({ to: path, replace: true });
+    }
+  }, [isLoading, isAuthenticated, role, navigate]);
+
+  if (isAuthenticated) return null;
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0">
