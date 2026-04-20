@@ -44,26 +44,94 @@ export type Database = {
         }
         Relationships: []
       }
+      circuit_activities: {
+        Row: {
+          circuit_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          price: number
+          sort_order: number
+        }
+        Insert: {
+          circuit_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          price?: number
+          sort_order?: number
+        }
+        Update: {
+          circuit_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          price?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circuit_activities_circuit_id_fkey"
+            columns: ["circuit_id"]
+            isOneToOne: false
+            referencedRelation: "circuits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       circuits: {
         Row: {
+          base_price: number
           created_at: string
           description: string
+          duration_days: number
+          guide_price: number
           id: string
+          image_url: string | null
+          includes_guide: boolean
+          includes_lodging: boolean
+          is_active: boolean
+          lodging_price: number
           nom: string
+          slug: string
+          sort_order: number
           updated_at: string
         }
         Insert: {
+          base_price?: number
           created_at?: string
           description?: string
+          duration_days?: number
+          guide_price?: number
           id?: string
+          image_url?: string | null
+          includes_guide?: boolean
+          includes_lodging?: boolean
+          is_active?: boolean
+          lodging_price?: number
           nom: string
+          slug: string
+          sort_order?: number
           updated_at?: string
         }
         Update: {
+          base_price?: number
           created_at?: string
           description?: string
+          duration_days?: number
+          guide_price?: number
           id?: string
+          image_url?: string | null
+          includes_guide?: boolean
+          includes_lodging?: boolean
+          is_active?: boolean
+          lodging_price?: number
           nom?: string
+          slug?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
