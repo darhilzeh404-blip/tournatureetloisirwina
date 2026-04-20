@@ -1,10 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bus, Palmtree, ArrowRight, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { ClientNav } from "@/components/ClientNav";
 import { DESTINATIONS, formatFCFA } from "@/lib/destinations";
+import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
 import heroImg from "@/assets/client-hero.jpg";
+
+// Mapping destination id (destinations.ts) -> slug du circuit en BDD
+const DESTINATION_SLUG: Record<string, string> = {
+  "pongara": "pongara-baignade",
+  "cap-caravane": "cap-caravane",
+  "mondah": "baie-mondah",
+  "ndzessi": "ndossi-village",
+  "raponda-walker": "raponda-walker",
+};
 
 export const Route = createFileRoute("/espace-client")({
   head: () => ({
@@ -29,6 +40,7 @@ const stagger = {
 function EspaceClient() {
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
+  const [target, setTarget] = useState<BookingTarget | null>(null);
 
   return (
     <div className="pb-20">
@@ -106,13 +118,22 @@ function EspaceClient() {
 
         <motion.div variants={stagger} className="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
           {DESTINATIONS.map((dest) => (
-            <motion.a
+            <motion.button
               key={dest.id}
+              type="button"
               variants={fadeUp}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.97 }}
-              href={`/activites?destination=${dest.id}`}
-              className="group w-40 shrink-0 overflow-hidden rounded-2xl border bg-card transition-shadow hover:shadow-lg"
+              onClick={() =>
+                setTarget({
+                  kind: "circuit",
+                  id: null,
+                  slug: DESTINATION_SLUG[dest.id],
+                  name: dest.name,
+                  basePrice: dest.price,
+                })
+              }
+              className="group w-40 shrink-0 overflow-hidden rounded-2xl border bg-card text-left transition-shadow hover:shadow-lg"
             >
               <div className="relative h-28 overflow-hidden">
                 <img
@@ -136,7 +157,7 @@ function EspaceClient() {
                   <span className="text-[10px] font-normal text-muted-foreground">/pers</span>
                 </p>
               </div>
-            </motion.a>
+            </motion.button>
           ))}
         </motion.div>
       </motion.section>
@@ -177,6 +198,7 @@ function EspaceClient() {
         </motion.div>
       </motion.section>
 
+      {target && <BookingDialog target={target} onClose={() => setTarget(null)} />}
       <ClientNav />
     </div>
   );
