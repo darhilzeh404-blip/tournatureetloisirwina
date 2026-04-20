@@ -175,14 +175,16 @@ export function BookingDialog({
         details.activity = target.name;
       }
 
-      const { error } = await supabase.from("reservations").insert({
-        user_id: user.id,
-        service_type: "CIRCUIT_TOURISTIQUE" as const,
-        reservation_date: date,
-        total_amount: breakdown.total,
-        paid_amount: 0,
-        details,
-      });
+      const { error } = await supabase.from("reservations").insert([
+        {
+          user_id: user.id,
+          service_type: "CIRCUIT_TOURISTIQUE" as const,
+          reservation_date: date,
+          total_amount: breakdown.total,
+          paid_amount: 0,
+          details: details as any,
+        },
+      ]);
       if (error) throw error;
       toast.success("Réservation créée 🎉");
       onClose();
