@@ -1,13 +1,20 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Globe, ArrowRight, Calendar, Users, Loader2 } from "lucide-react";
+import { Globe, ArrowRight } from "lucide-react";
 import { fetchOffersByType, type Offer } from "@/server/fetch-offers";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
-import { toast } from "sonner";
+import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
+import { formatFCFA } from "@/lib/destinations";
 import circuitsImg from "@/assets/circuits-hero.jpg";
 
-type Circuit = { id: string; nom: string; description: string };
+type Circuit = {
+  id: string;
+  slug: string;
+  nom: string;
+  description: string;
+  base_price: number;
+  image_url: string | null;
+};
 
 export const Route = createFileRoute("/circuits")({
   head: () => ({
@@ -22,61 +29,19 @@ export const Route = createFileRoute("/circuits")({
   component: CircuitsPage,
 });
 
-function formatXAF(amount: number) {
-  return new Intl.NumberFormat("fr-FR").format(amount) + " XAF";
-}
-
 function CircuitsPage() {
   const offers = Route.useLoaderData();
-  const { user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-
   const [circuits, setCircuits] = useState<Circuit[]>([]);
-  const [open, setOpen] = useState<{ id: string | null; name: string; price: number; type: "offer" | "circuit" } | null>(null);
-  const [persons, setPersons] = useState(1);
-  const [date, setDate] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [target, setTarget] = useState<BookingTarget | null>(null);
 
   useEffect(() => {
-    supabase.from("circuits").select("id, nom, description").order("created_at", { ascending: false })
+    supabase
+      .from("circuits")
+      .select("id, slug, nom, description, base_price, image_url")
+      .eq("is_active", true)
+      .order("sort_order")
       .then(({ data }) => setCircuits((data as Circuit[]) ?? []));
   }, []);
-
-  const total = open ? open.price * persons : 0;
-
-  const submit = async () => {
-    if (!open) return;
-    if (!isAuthenticated || !user) {
-      toast.error("Connectez-vous pour réserver");
-      navigate({ to: "/connexion" });
-      return;
-    }
-    if (!date) {
-      toast.error("Choisissez une date");
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const { error } = await supabase.from("reservations").insert({
-        user_id: user.id,
-        service_type: "CIRCUIT_TOURISTIQUE" as const,
-        reservation_date: date,
-        total_amount: total,
-        paid_amount: 0,
-        details: open.type === "circuit" && open.id
-          ? { circuit_id: open.id, circuit: open.name, persons }
-          : { offer_id: open.id, circuit: open.name, persons },
-      });
-      if (error) throw error;
-      toast.success("Réservation créée 🎉");
-      setOpen(null);
-      navigate({ to: "/mes-reservations" });
-    } catch (err: any) {
-      toast.error(err.message || "Erreur");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   return (
     <>
@@ -99,7 +64,6 @@ function CircuitsPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8 space-y-10">
-        {/* Offres premium */}
         {offers.length > 0 && (
           <div>
             <h2 className="mb-4 text-lg font-bold">Nos offres</h2>
@@ -118,10 +82,10 @@ function CircuitsPage() {
                     <div className="mt-4 flex items-center justify-between">
                       <div>
                         <span className="text-xs text-muted-foreground">À partir de</span>
-                        <p className="text-lg font-bold text-foreground">{formatXAF(offer.price)}</p>
+                        <p className="text-lg font-bold text-foreground">{formatFCFA(offer.price)}</p>
                       </div>
                       <button
-                        onClick={() => setOpen({ id: offer.id, name: offer.title, price: offer.price, type: "offer" })}
+                        onClick={() => setTarget({ kind: "circuit", id: null, name: offer.title, basePrice: offer.price })}
                         className="flex items-center gap-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                       >
                         Réserver <ArrowRight className="h-4 w-4" />
@@ -134,7 +98,6 @@ function CircuitsPage() {
           </div>
         )}
 
-        {/* Circuits dynamiques (table circuits) */}
         {circuits.length > 0 && (
           <div>
             <h2 className="mb-4 text-lg font-bold">Tous les circuits</h2>
@@ -146,12 +109,18 @@ function CircuitsPage() {
                     <h3 className="font-bold">{c.nom}</h3>
                   </div>
                   {c.description && <p className="mt-2 text-sm text-muted-foreground">{c.description}</p>}
-                  <button
-                    onClick={() => setOpen({ id: c.id, name: c.nom, price: 0, type: "circuit" })}
-                    className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                  >
-                    Réserver <ArrowRight className="h-4 w-4" />
-                  </button>
+                  <div className="mt-3 flex items-end justify-between">
+                    <div>
+                      <span className="text-[11px] text-muted-foreground">À partir de</span>
+                      <p className="text-base font-extrabold text-primary">{formatFCFA(c.base_price)}</p>
+                    </div>
+                    <button
+                      onClick={() => setTarget({ kind: "circuit", id: c.id, slug: c.slug, name: c.nom, basePrice: c.base_price })}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                    >
+                      Réserver <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
@@ -167,62 +136,7 @@ function CircuitsPage() {
         </p>
       </section>
 
-      {/* Booking modal */}
-      {open && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-foreground/60 p-4 backdrop-blur-sm sm:items-center">
-          <div className="w-full max-w-md rounded-t-3xl bg-background p-5 shadow-2xl sm:rounded-3xl">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-bold">{open.name}</h3>
-                <p className="text-xs text-muted-foreground">Circuit touristique</p>
-              </div>
-              <button onClick={() => setOpen(null)} className="rounded-full bg-muted px-3 py-1 text-xs font-medium hover:bg-muted/70">
-                Fermer
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="mb-1 flex items-center gap-1.5 text-sm font-medium">
-                  <Calendar className="h-4 w-4 text-primary" /> Date
-                </label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full rounded-xl border bg-card px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label className="mb-1 flex items-center gap-1.5 text-sm font-medium">
-                  <Users className="h-4 w-4 text-primary" /> Personnes
-                </label>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => setPersons(Math.max(1, persons - 1))} className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card text-lg font-bold">−</button>
-                  <span className="min-w-[2.5rem] text-center text-base font-bold">{persons}</span>
-                  <button onClick={() => setPersons(persons + 1)} className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card text-lg font-bold">+</button>
-                </div>
-              </div>
-
-              {open.price > 0 && (
-                <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Total</p>
-                  <p className="text-xl font-extrabold text-primary">{formatXAF(total)}</p>
-                </div>
-              )}
-
-              <button
-                disabled={submitting}
-                onClick={submit}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-              >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                {submitting ? "Réservation..." : "Confirmer la réservation"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {target && <BookingDialog target={target} onClose={() => setTarget(null)} />}
     </>
   );
 }
