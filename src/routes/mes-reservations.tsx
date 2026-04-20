@@ -155,9 +155,36 @@ function MesReservationsPage() {
       )
       .subscribe();
 
+    // Realtime trips: dès qu'un trip est créé/MAJ pour ce client, on attache le trip_id
+    // pour faire apparaître le bouton "Suivre en direct" sans rechargement.
+    const tripsChannel = supabase
+      .channel(`trips-client-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "trips", filter: `client_id=eq.${user.id}` },
+        (payload) => {
+          const t = (payload.new ?? payload.old) as { id: string; reservation_id: string } | null;
+          if (!t) return;
+          if (payload.eventType === "DELETE") {
+            setReservations((prev) =>
+              prev.map((r) => (r.id === t.reservation_id ? { ...r, trip_id: null } : r))
+            );
+          } else {
+            setReservations((prev) =>
+              prev.map((r) => (r.id === t.reservation_id ? { ...r, trip_id: t.id } : r))
+            );
+            if (payload.eventType === "INSERT") {
+              toast.success("Votre course est prête, vous pouvez la suivre en direct 📍");
+            }
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
+      supabase.removeChannel(tripsChannel);
     };
   }, [user]);
 

@@ -490,17 +490,19 @@ function ChauffeurLayout() {
                           <Badge className={t.status === "active" ? "bg-primary/10 text-primary" : "bg-yellow-500/10 text-yellow-700"}>
                             {t.status === "active" ? "GPS actif" : "Assignée"}
                           </Badge>
-                          {t.status === "assigned" ? (
+                          {t.status === "active" ? (
+                            <Button size="sm" variant="outline" onClick={() => navigate({ to: "/chauffeur/trips" })} className="gap-1">
+                              <Navigation className="h-3.5 w-3.5" /> Voir GPS
+                            </Button>
+                          ) : (
                             <Button
                               size="sm"
                               onClick={() => handleStartGps(t.id)}
                               disabled={tripActionId === t.id}
+                              className="gap-1"
                             >
+                              <Navigation className="h-3.5 w-3.5" />
                               {tripActionId === t.id ? "..." : "Démarrer GPS"}
-                            </Button>
-                          ) : (
-                            <Button size="sm" variant="outline" onClick={() => navigate({ to: "/chauffeur/trips" })}>
-                              Voir GPS
                             </Button>
                           )}
                         </div>
