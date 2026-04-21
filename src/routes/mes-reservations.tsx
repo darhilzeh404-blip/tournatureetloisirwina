@@ -205,6 +205,20 @@ function MesReservationsPage() {
       <h1 className="text-2xl font-bold">Mes Réservations</h1>
       <p className="mt-1 text-sm text-muted-foreground">Suivez le statut de toutes vos réservations.</p>
 
+      {sharing && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-success/30 bg-success/5 p-3 text-sm text-success">
+          <Radio className="h-4 w-4 animate-pulse" />
+          <span className="flex-1">
+            <strong>Position partagée</strong> — votre chauffeur peut vous localiser pour venir vous chercher.
+          </span>
+        </div>
+      )}
+      {gpsError && activeTripId && (
+        <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          GPS bloqué : {gpsError}. Autorisez la géolocalisation pour que le chauffeur vous trouve.
+        </div>
+      )}
+
       <div className="mt-8">
         {loading ? (
           <ReservationListSkeleton count={4} />
