@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2, MapPin } from "lucide-react";
+import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2, MapPin, Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useShareClientPosition } from "@/hooks/use-client-position";
 import { ReservationListSkeleton } from "@/components/skeletons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
