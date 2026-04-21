@@ -68,6 +68,33 @@ function AdminCircuits() {
   const [editing, setEditing] = useState<Circuit | null>(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image trop lourde (max 5 Mo)");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("circuit-images").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+      if (error) throw error;
+      const { data } = supabase.storage.from("circuit-images").getPublicUrl(path);
+      setForm((p) => ({ ...p, image_url: data.publicUrl }));
+      toast.success("Image téléchargée");
+    } catch (err: any) {
+      toast.error(err.message || "Échec de l'upload");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Activities subform
   const [actsCircuit, setActsCircuit] = useState<Circuit | null>(null);
