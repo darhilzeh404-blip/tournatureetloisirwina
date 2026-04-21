@@ -103,23 +103,32 @@ function CircuitsPage() {
             <h2 className="mb-4 text-lg font-bold">Tous les circuits</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {circuits.map((c) => (
-                <article key={c.id} className="rounded-2xl border bg-card p-5 transition-shadow hover:shadow-md">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-5 w-5 text-primary" />
-                    <h3 className="font-bold">{c.nom}</h3>
-                  </div>
-                  {c.description && <p className="mt-2 text-sm text-muted-foreground">{c.description}</p>}
-                  <div className="mt-3 flex items-end justify-between">
-                    <div>
-                      <span className="text-[11px] text-muted-foreground">À partir de</span>
-                      <p className="text-base font-extrabold text-primary">{formatFCFA(c.base_price)}</p>
+                <article key={c.id} className="card-hover overflow-hidden rounded-2xl border bg-card transition-shadow hover:shadow-md">
+                  {c.image_url ? (
+                    <img src={c.image_url} alt={c.nom} className="h-44 w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="flex h-44 w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                      <Globe className="h-12 w-12 text-primary/40" />
                     </div>
-                    <button
-                      onClick={() => setTarget({ kind: "circuit", id: c.id, slug: c.slug, name: c.nom, basePrice: c.base_price })}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                    >
-                      Réserver <ArrowRight className="h-4 w-4" />
-                    </button>
+                  )}
+                  <div className="p-5">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-5 w-5 text-primary" />
+                      <h3 className="font-bold">{c.nom}</h3>
+                    </div>
+                    {c.description && <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{c.description}</p>}
+                    <div className="mt-3 flex items-end justify-between">
+                      <div>
+                        <span className="text-[11px] text-muted-foreground">À partir de</span>
+                        <p className="text-base font-extrabold text-primary">{formatFCFA(c.base_price)}</p>
+                      </div>
+                      <button
+                        onClick={() => setTarget({ kind: "circuit", id: c.id, slug: c.slug, name: c.nom, basePrice: c.base_price })}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                      >
+                        Réserver <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}
