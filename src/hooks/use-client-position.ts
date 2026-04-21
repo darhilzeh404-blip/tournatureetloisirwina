@@ -1,0 +1,98 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useGeolocation } from "@/hooks/use-geolocation";
+
+export interface ClientPosition {
+  client_id: string;
+  trip_id: string | null;
+  latitude: number;
+  longitude: number;
+  accuracy: number | null;
+  heading: number | null;
+  speed: number | null;
+  updated_at: string;
+}
+
+/**
+ * Côté CLIENT : pousse sa position GPS vers Supabase tant qu'un trip
+ * actif (pending|active) lui est associé. Démarre tout seul.
+ */
+export function useShareClientPosition(
+  clientId: string | null | undefined,
+  activeTripId: string | null | undefined
+) {
+  const enabled = !!clientId && !!activeTripId;
+
+  const { position, error } = useGeolocation({
+    enabled,
+    onUpdate: async (pos) => {
+      if (!clientId || !activeTripId) return;
+      const { error: upErr } = await supabase.from("client_positions").upsert(
+        {
+          client_id: clientId,
+          trip_id: activeTripId,
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+          accuracy: pos.accuracy,
+          heading: pos.heading,
+          speed: pos.speed,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "client_id" }
+      );
+      if (upErr) console.error("[client-position] upsert error", upErr);
+    },
+  });
+
+  return { position, error, sharing: enabled };
+}
+
+/**
+ * Côté CHAUFFEUR : suit la position d'un client donné via Realtime.
+ * RLS s'assure que le chauffeur est bien assigné à ce client.
+ */
+export function useClientPosition(clientId: string | null | undefined) {
+  const [position, setPosition] = useState<ClientPosition | null>(null);
+
+  useEffect(() => {
+    if (!clientId) {
+      setPosition(null);
+      return;
+    }
+    let mounted = true;
+
+    supabase
+      .from("client_positions")
+      .select("*")
+      .eq("client_id", clientId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (mounted && data) setPosition(data as ClientPosition);
+      });
+
+    const channel = supabase
+      .channel(`client-pos-${clientId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "client_positions",
+          filter: `client_id=eq.${clientId}`,
+        },
+        (payload) => {
+          if (!mounted) return;
+          const next = payload.new as ClientPosition | null;
+          if (next) setPosition(next);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, [clientId]);
+
+  return position;
+}
