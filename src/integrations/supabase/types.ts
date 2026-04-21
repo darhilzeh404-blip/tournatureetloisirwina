@@ -136,6 +136,47 @@ export type Database = {
         }
         Relationships: []
       }
+      client_positions: {
+        Row: {
+          accuracy: number | null
+          client_id: string
+          heading: number | null
+          latitude: number
+          longitude: number
+          speed: number | null
+          trip_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          accuracy?: number | null
+          client_id: string
+          heading?: number | null
+          latitude: number
+          longitude: number
+          speed?: number | null
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accuracy?: number | null
+          client_id?: string
+          heading?: number | null
+          latitude?: number
+          longitude?: number
+          speed?: number | null
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_positions_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_positions: {
         Row: {
           accuracy: number | null

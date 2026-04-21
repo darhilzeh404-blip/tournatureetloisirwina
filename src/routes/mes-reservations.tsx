@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2, MapPin } from "lucide-react";
+import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2, MapPin, Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useShareClientPosition } from "@/hooks/use-client-position";
 import { ReservationListSkeleton } from "@/components/skeletons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,12 @@ function MesReservationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [payTarget, setPayTarget] = useState<Reservation | null>(null);
+
+  // Trouve un trip actif (pending|active) pour partager auto la position
+  const activeTripId = reservations.find(
+    (r) => r.trip_id && (r.status === "CONFIRMED")
+  )?.trip_id ?? null;
+  const { sharing, error: gpsError } = useShareClientPosition(user?.id ?? null, activeTripId);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -197,6 +204,20 @@ function MesReservationsPage() {
     <section className="mx-auto max-w-4xl px-4 py-10 lg:px-8">
       <h1 className="text-2xl font-bold">Mes Réservations</h1>
       <p className="mt-1 text-sm text-muted-foreground">Suivez le statut de toutes vos réservations.</p>
+
+      {sharing && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-success/30 bg-success/5 p-3 text-sm text-success">
+          <Radio className="h-4 w-4 animate-pulse" />
+          <span className="flex-1">
+            <strong>Position partagée</strong> — votre chauffeur peut vous localiser pour venir vous chercher.
+          </span>
+        </div>
+      )}
+      {gpsError && activeTripId && (
+        <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          GPS bloqué : {gpsError}. Autorisez la géolocalisation pour que le chauffeur vous trouve.
+        </div>
+      )}
 
       <div className="mt-8">
         {loading ? (
