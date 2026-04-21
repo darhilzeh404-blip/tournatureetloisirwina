@@ -86,6 +86,12 @@ function MesReservationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [payTarget, setPayTarget] = useState<Reservation | null>(null);
 
+  // Trouve un trip actif (pending|active) pour partager auto la position
+  const activeTripId = reservations.find(
+    (r) => r.trip_id && (r.status === "CONFIRMED")
+  )?.trip_id ?? null;
+  const { sharing, error: gpsError } = useShareClientPosition(user?.id ?? null, activeTripId);
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       navigate({ to: "/connexion" });
