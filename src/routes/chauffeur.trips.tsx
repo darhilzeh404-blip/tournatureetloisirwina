@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useGeolocation } from "@/hooks/use-geolocation";
+import { useClientPosition } from "@/hooks/use-client-position";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
 import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
@@ -43,32 +43,10 @@ function DriverTripsPage() {
     }
   }, [isLoading, user, role, navigate]);
 
-  // Push our position to the server during an active trip
-  const onGpsUpdate = useCallback(
-    async (pos: { latitude: number; longitude: number; heading: number | null; speed: number | null; accuracy: number }) => {
-      if (!user) return;
-      await supabase.from("driver_positions").upsert(
-        {
-          driver_id: user.id,
-          trip_id: activeTrip?.id ?? null,
-          latitude: pos.latitude,
-          longitude: pos.longitude,
-          heading: pos.heading,
-          speed: pos.speed,
-          accuracy: pos.accuracy,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "driver_id" }
-      );
-    },
-    [user, activeTrip?.id]
-  );
+  const trip = activeTrip ?? trips[0] ?? null;
 
-  const tracking = !!activeTrip && activeTrip.status === "active";
-  const { position: myPos, error: gpsError } = useGeolocation({
-    enabled: tracking,
-    onUpdate: onGpsUpdate,
-  });
+  // Suit la position GPS du client (live)
+  const clientPos = useClientPosition(trip?.client_id ?? null);
 
   const loadTrips = useCallback(async () => {
     if (!user) return;
@@ -80,7 +58,7 @@ function DriverTripsPage() {
       .order("created_at", { ascending: false });
     const list = (data as Trip[]) || [];
     setTrips(list);
-    const active = list.find((t) => t.status === "active") ?? null;
+    const active = list.find((t) => t.status === "active") ?? list[0] ?? null;
     setActiveTrip(active);
     if (active) {
       const { data: profile } = await supabase
@@ -108,23 +86,23 @@ function DriverTripsPage() {
     };
   }, [user, loadTrips]);
 
-  const startTrip = async (trip: Trip) => {
+  const startTrip = async (t: Trip) => {
     setActionLoading(true);
     const { error } = await supabase
       .from("trips")
       .update({ status: "active", started_at: new Date().toISOString() })
-      .eq("id", trip.id);
+      .eq("id", t.id);
     setActionLoading(false);
     if (error) toast.error("Impossible de démarrer la course.");
-    else toast.success("Course démarrée. Tracking GPS activé.");
+    else toast.success("Course démarrée. Suivi du client activé.");
   };
 
-  const completeTrip = async (trip: Trip) => {
+  const completeTrip = async (t: Trip) => {
     setActionLoading(true);
     const { error } = await supabase
       .from("trips")
       .update({ status: "completed", completed_at: new Date().toISOString() })
-      .eq("id", trip.id);
+      .eq("id", t.id);
     setActionLoading(false);
     if (error) toast.error("Erreur lors de la finalisation.");
     else toast.success("Course terminée.");
@@ -133,24 +111,21 @@ function DriverTripsPage() {
   if (isLoading) return <div className="flex min-h-screen items-center justify-center">Chargement...</div>;
   if (!user) return null;
 
-  // Build markers for the map
+  // Markers : position du client (live), point de départ prévu, destination
   const markers: MapMarker[] = [];
-  const trip = activeTrip ?? trips[0];
   if (trip) {
-    if (trip.origin_lat && trip.origin_lng)
-      markers.push({ id: "origin", lat: Number(trip.origin_lat), lng: Number(trip.origin_lng), type: "client", label: trip.origin_address });
     if (trip.destination_lat && trip.destination_lng)
       markers.push({ id: "dest", lat: Number(trip.destination_lat), lng: Number(trip.destination_lng), type: "destination", label: trip.destination_address });
-  }
-  if (myPos) {
-    markers.push({ id: "me", lat: myPos.latitude, lng: myPos.longitude, type: "driver", label: "Vous" });
+    if (clientPos) {
+      markers.push({ id: "client", lat: Number(clientPos.latitude), lng: Number(clientPos.longitude), type: "client", label: clientName || "Client (live)" });
+    } else if (trip.origin_lat && trip.origin_lng) {
+      markers.push({ id: "origin", lat: Number(trip.origin_lat), lng: Number(trip.origin_lng), type: "client", label: trip.origin_address });
+    }
   }
 
-  // OSRM real road route:
-  // - tracking actif → ma position → destination (ETA live)
-  // - sinon → origin → destination (aperçu de l'itinéraire)
-  const fromPoint = tracking && myPos
-    ? { lat: myPos.latitude, lng: myPos.longitude }
+  // Itinéraire OSRM : départ chauffeur (position client si dispo, sinon origin) → destination
+  const fromPoint = clientPos
+    ? { lat: Number(clientPos.latitude), lng: Number(clientPos.longitude) }
     : trip?.origin_lat && trip?.origin_lng
     ? { lat: Number(trip.origin_lat), lng: Number(trip.origin_lng) }
     : null;
@@ -158,8 +133,8 @@ function DriverTripsPage() {
     ? { lat: Number(trip.destination_lat), lng: Number(trip.destination_lng) }
     : null;
 
-  const refreshKey = myPos
-    ? `${myPos.latitude.toFixed(3)}-${myPos.longitude.toFixed(3)}`
+  const refreshKey = clientPos
+    ? `${Number(clientPos.latitude).toFixed(3)}-${Number(clientPos.longitude).toFixed(3)}`
     : "static";
 
   const { route: osrmRoute, loading: routeLoading } = useOsrmRoute(
@@ -169,7 +144,7 @@ function DriverTripsPage() {
     refreshKey
   );
 
-  const etaMin: number | null = osrmRoute && tracking ? osrmRoute.durationMin : null;
+  const tracking = !!clientPos;
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -180,17 +155,11 @@ function DriverTripsPage() {
         <div className="flex-1 min-w-0">
           <h1 className="font-bold flex items-center gap-2"><Truck className="h-5 w-5" /> Mes courses</h1>
           <p className="text-xs text-muted-foreground">
-            {tracking ? "🟢 Tracking actif" : "Position non transmise"}
+            {tracking ? "🟢 Position client en direct" : trip ? "En attente du partage du client…" : "Aucune course"}
           </p>
         </div>
-        {tracking && <Badge className="bg-green-500/10 text-green-700 border-green-500/30 gap-1"><RadioTower className="h-3 w-3" /> LIVE</Badge>}
+        {tracking && <Badge className="bg-success/10 text-success border-success/30 gap-1"><RadioTower className="h-3 w-3" /> LIVE</Badge>}
       </header>
-
-      {gpsError && (
-        <div className="bg-destructive/10 text-destructive text-sm p-2 text-center">
-          GPS : {gpsError}
-        </div>
-      )}
 
       <div className="flex-1 relative min-h-0">
         {markers.length > 0 ? (
@@ -198,7 +167,7 @@ function DriverTripsPage() {
             markers={markers}
             showRoute
             routePath={osrmRoute?.geometry}
-            followMarkerId={tracking ? "me" : undefined}
+            followMarkerId={tracking ? "client" : undefined}
             height="100%"
           />
         ) : (
@@ -219,21 +188,21 @@ function DriverTripsPage() {
                   <Navigation className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">Client : {clientName || "..."}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Client : {clientName || "..."} {tracking && <span className="text-success font-medium">• 🟢 LIVE</span>}
+                  </p>
                   <p className="font-semibold truncate">{trip.origin_address}</p>
                   <p className="text-sm text-muted-foreground truncate">↓ {trip.destination_address}</p>
                 </div>
-                {(etaMin !== null || (osrmRoute && tracking)) && (
+                {osrmRoute && (
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground">ETA</p>
                     <p className="text-lg font-bold">
-                      {routeLoading ? "…" : etaMin !== null ? `${etaMin} min` : "—"}
+                      {routeLoading ? "…" : `${osrmRoute.durationMin} min`}
                     </p>
-                    {osrmRoute && (
-                      <p className="text-[10px] text-muted-foreground">
-                        {osrmRoute.distanceKm.toFixed(1)} km
-                      </p>
-                    )}
+                    <p className="text-[10px] text-muted-foreground">
+                      {osrmRoute.distanceKm.toFixed(1)} km
+                    </p>
                   </div>
                 )}
               </div>
@@ -245,17 +214,23 @@ function DriverTripsPage() {
                   </Button>
                 )}
                 {trip.status === "active" && (
-                  <Button onClick={() => completeTrip(trip)} disabled={actionLoading} className="flex-1 gap-2" variant="default">
+                  <Button onClick={() => completeTrip(trip)} disabled={actionLoading} className="flex-1 gap-2">
                     <CheckCircle className="h-4 w-4" /> Terminer la course
                   </Button>
                 )}
-                {trip.destination_lat && trip.destination_lng && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    asChild
-                    title="Ouvrir dans Google Maps"
-                  >
+                {clientPos && (
+                  <Button variant="outline" size="icon" asChild title="Naviguer vers le client (Google Maps)">
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${clientPos.latitude},${clientPos.longitude}&travelmode=driving`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <Navigation className="h-4 w-4" />
+                    </a>
+                  </Button>
+                )}
+                {!clientPos && trip.destination_lat && trip.destination_lng && (
+                  <Button variant="outline" size="icon" asChild title="Ouvrir destination">
                     <a
                       href={`https://www.google.com/maps/dir/?api=1&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
                       target="_blank"
