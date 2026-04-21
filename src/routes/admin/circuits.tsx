@@ -397,8 +397,44 @@ function AdminCircuits() {
                 <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={3} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium">Image URL (optionnel)</label>
-                <input value={form.image_url} onChange={(e) => setForm((p) => ({ ...p, image_url: e.target.value }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                <label className="mb-1 block text-xs font-medium">Image de couverture</label>
+                {form.image_url && (
+                  <div className="mb-2 overflow-hidden rounded-lg border">
+                    <img src={form.image_url} alt="Aperçu" className="h-32 w-full object-cover" />
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed bg-background px-3 py-2 text-sm hover:bg-secondary">
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {uploading ? "Téléchargement…" : form.image_url ? "Remplacer l'image" : "Téléverser une image"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleImageUpload(f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  {form.image_url && (
+                    <button
+                      type="button"
+                      onClick={() => setForm((p) => ({ ...p, image_url: "" }))}
+                      className="rounded-lg border px-3 py-2 text-sm hover:bg-secondary"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <input
+                  value={form.image_url}
+                  onChange={(e) => setForm((p) => ({ ...p, image_url: e.target.value }))}
+                  placeholder="ou collez une URL"
+                  className="mt-2 w-full rounded-lg border bg-background px-3 py-2 text-xs text-muted-foreground"
+                />
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
