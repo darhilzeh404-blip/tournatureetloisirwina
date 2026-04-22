@@ -215,7 +215,7 @@ function MesReservationsPage() {
       )}
       {gpsError && activeTripId && (
         <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          GPS bloqué : {gpsError}. Autorisez la géolocalisation pour que le chauffeur vous trouve.
+          GPS bloqué : {gpsError.message}. Autorisez la géolocalisation pour que le chauffeur vous trouve.
         </div>
       )}
 
