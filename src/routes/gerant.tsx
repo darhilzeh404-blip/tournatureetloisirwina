@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
-import { MapIcon, LogOut, Menu, CalendarCheck, Users, Eye, Phone, Mail, X, Navigation } from "lucide-react";
+import { MapIcon, LogOut, Menu, CalendarCheck, Users, Eye, Phone, Mail, X, Navigation, Heart, UserCheck, BedDouble, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
