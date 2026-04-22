@@ -193,11 +193,11 @@ function DriverTripsPage() {
         )}
 
         {trip && !tracking && waitingTimeout && (
-          <div className="absolute top-4 left-4 right-4 rounded-xl border border-amber-500/30 bg-amber-50 dark:bg-amber-950/40 p-3 shadow-md flex items-start gap-2 text-sm">
-            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="absolute top-4 left-4 right-4 rounded-xl border border-warning/30 bg-warning/10 p-3 shadow-md flex items-start gap-2 text-sm">
+            <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="font-semibold text-amber-900 dark:text-amber-200">Position client indisponible</p>
-              <p className="text-amber-800 dark:text-amber-300 text-xs mt-0.5">
+              <p className="font-semibold text-foreground">Position client indisponible</p>
+              <p className="text-muted-foreground text-xs mt-0.5">
                 Le client n'a pas encore partagé sa position GPS (autorisation refusée, hors ligne ou app fermée). Contactez-le pour qu'il ouvre « Mes réservations » et autorise la localisation.
               </p>
             </div>
