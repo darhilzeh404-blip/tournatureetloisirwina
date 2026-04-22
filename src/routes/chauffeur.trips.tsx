@@ -8,8 +8,9 @@ import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Truck, ArrowLeft, MapPin, Navigation, Play, Flag, CheckCircle, Radio, RadioTower } from "lucide-react";
+import { Truck, ArrowLeft, MapPin, Navigation, Play, Flag, CheckCircle, Radio, RadioTower, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 
 export const Route = createFileRoute("/chauffeur/trips")({
   head: () => ({ meta: [{ title: "Mes courses — Chauffeur" }] }),
@@ -47,6 +48,15 @@ function DriverTripsPage() {
 
   // Suit la position GPS du client (live)
   const clientPos = useClientPosition(trip?.client_id ?? null);
+
+  // Détecte un partage GPS client absent au bout de 15s (probable refus côté client)
+  const [waitingTimeout, setWaitingTimeout] = useState(false);
+  useEffect(() => {
+    setWaitingTimeout(false);
+    if (!trip || clientPos) return;
+    const t = setTimeout(() => setWaitingTimeout(true), 15000);
+    return () => clearTimeout(t);
+  }, [trip?.id, clientPos]);
 
   const loadTrips = useCallback(async () => {
     if (!user) return;
@@ -163,19 +173,33 @@ function DriverTripsPage() {
 
       <div className="flex-1 relative min-h-0">
         {markers.length > 0 ? (
-          <LiveMap
-            markers={markers}
-            showRoute
-            routePath={osrmRoute?.geometry}
-            followMarkerId={tracking ? "client" : undefined}
-            height="100%"
-          />
+          <MapErrorBoundary>
+            <LiveMap
+              markers={markers}
+              showRoute
+              routePath={osrmRoute?.geometry}
+              followMarkerId={tracking ? "client" : undefined}
+              height="100%"
+            />
+          </MapErrorBoundary>
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground p-6 text-center">
             <div>
               <MapPin className="mx-auto h-12 w-12 opacity-30" />
               <p className="mt-2">Aucune course assignée pour le moment.</p>
               <p className="text-xs mt-1">L'admin doit vous assigner une réservation.</p>
+            </div>
+          </div>
+        )}
+
+        {trip && !tracking && waitingTimeout && (
+          <div className="absolute top-4 left-4 right-4 rounded-xl border border-warning/30 bg-warning/10 p-3 shadow-md flex items-start gap-2 text-sm">
+            <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-foreground">Position client indisponible</p>
+              <p className="text-muted-foreground text-xs mt-0.5">
+                Le client n'a pas encore partagé sa position GPS (autorisation refusée, hors ligne ou app fermée). Contactez-le pour qu'il ouvre « Mes réservations » et autorise la localisation.
+              </p>
             </div>
           </div>
         )}

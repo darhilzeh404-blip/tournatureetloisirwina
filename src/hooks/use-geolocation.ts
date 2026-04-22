@@ -20,9 +20,16 @@ interface UseGeolocationOptions {
  * Emits updates via watchPosition (more battery-efficient than polling).
  * `onUpdate` is called for every new fix.
  */
+export type GeoErrorCode = "unsupported" | "permission_denied" | "unavailable" | "timeout" | "unknown";
+
+export interface GeoError {
+  code: GeoErrorCode;
+  message: string;
+}
+
 export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
   const [position, setPosition] = useState<GeoPosition | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<GeoError | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const onUpdateRef = useRef(onUpdate);
 
@@ -39,10 +46,17 @@ export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
       return;
     }
 
-    if (!("geolocation" in navigator)) {
-      setError("Géolocalisation non supportée par ce navigateur.");
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+      setError({ code: "unsupported", message: "Géolocalisation non supportée par ce navigateur." });
       return;
     }
+
+    const nav = navigator as Navigator & { permissions?: { query: (d: { name: PermissionName }) => Promise<PermissionStatus> } };
+    nav.permissions?.query({ name: "geolocation" as PermissionName }).then((status) => {
+      if (status.state === "denied") {
+        setError({ code: "permission_denied", message: "Autorisation GPS refusée. Activez la localisation dans les réglages du navigateur." });
+      }
+    }).catch(() => { /* permissions API indispo */ });
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
@@ -59,7 +73,17 @@ export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
         onUpdateRef.current?.(next);
       },
       (err) => {
-        setError(err.message);
+        const code: GeoErrorCode =
+          err.code === err.PERMISSION_DENIED ? "permission_denied"
+          : err.code === err.POSITION_UNAVAILABLE ? "unavailable"
+          : err.code === err.TIMEOUT ? "timeout"
+          : "unknown";
+        const message =
+          code === "permission_denied" ? "Autorisation GPS refusée. Activez la localisation pour ce site."
+          : code === "unavailable" ? "Position indisponible. Vérifiez votre signal GPS."
+          : code === "timeout" ? "Délai dépassé pour obtenir la position."
+          : err.message || "Erreur GPS inconnue.";
+        setError({ code, message });
       },
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
     );
