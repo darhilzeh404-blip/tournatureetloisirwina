@@ -1,4 +1,4 @@
-import { Bus, Phone, Mail, MapPin } from "lucide-react";
+import { Bus, Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export function Footer() {
@@ -30,7 +30,8 @@ export function Footer() {
           <div>
             <h4 className="mb-3 text-sm font-semibold">Contact</h4>
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> +241 XX XX XX XX</div>
+              <a href="tel:+241062766549" className="flex items-center gap-2 hover:text-foreground"><Phone className="h-4 w-4" /> +241 062 766 549 (Service client)</a>
+              <a href="https://wa.me/241077110995" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-foreground"><MessageCircle className="h-4 w-4" /> +241 077 110 995 (WhatsApp)</a>
               <div className="flex items-center gap-2"><Mail className="h-4 w-4" /><span> contact@agencewina.ga</span></div>
               <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Libreville, Gabon</div>
             </div>
