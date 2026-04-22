@@ -1,4 +1,4 @@
-import { Bus, Phone, Mail, MapPin } from "lucide-react";
+import { Bus, Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export function Footer() {
