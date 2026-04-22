@@ -56,6 +56,7 @@ function GerantLayout() {
   const [assignedTrips, setAssignedTrips] = useState<AssignedTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Reservation | null>(null);
+  const [expandedCircuit, setExpandedCircuit] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || (role && role !== "gerant" && role !== "admin"))) {
