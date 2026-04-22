@@ -173,19 +173,33 @@ function DriverTripsPage() {
 
       <div className="flex-1 relative min-h-0">
         {markers.length > 0 ? (
-          <LiveMap
-            markers={markers}
-            showRoute
-            routePath={osrmRoute?.geometry}
-            followMarkerId={tracking ? "client" : undefined}
-            height="100%"
-          />
+          <MapErrorBoundary>
+            <LiveMap
+              markers={markers}
+              showRoute
+              routePath={osrmRoute?.geometry}
+              followMarkerId={tracking ? "client" : undefined}
+              height="100%"
+            />
+          </MapErrorBoundary>
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground p-6 text-center">
             <div>
               <MapPin className="mx-auto h-12 w-12 opacity-30" />
               <p className="mt-2">Aucune course assignée pour le moment.</p>
               <p className="text-xs mt-1">L'admin doit vous assigner une réservation.</p>
+            </div>
+          </div>
+        )}
+
+        {trip && !tracking && waitingTimeout && (
+          <div className="absolute top-4 left-4 right-4 rounded-xl border border-amber-500/30 bg-amber-50 dark:bg-amber-950/40 p-3 shadow-md flex items-start gap-2 text-sm">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-amber-900 dark:text-amber-200">Position client indisponible</p>
+              <p className="text-amber-800 dark:text-amber-300 text-xs mt-0.5">
+                Le client n'a pas encore partagé sa position GPS (autorisation refusée, hors ligne ou app fermée). Contactez-le pour qu'il ouvre « Mes réservations » et autorise la localisation.
+              </p>
             </div>
           </div>
         )}
