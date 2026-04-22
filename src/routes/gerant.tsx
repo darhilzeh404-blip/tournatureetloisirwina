@@ -246,7 +246,7 @@ function GerantLayout() {
           {activeTab === "circuits" && (
             <>
               <h1 className="text-2xl font-bold">Mes Circuits</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Circuits touristiques sous votre supervision.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Réservations enrichies pour préparer chaque sortie : nb de personnes, allergies, hébergement, guide, options.</p>
               {loading ? (
                 <div className="mt-4"><CircuitGridSkeleton count={4} /></div>
               ) : circuits.length === 0 ? (
@@ -255,22 +255,92 @@ function GerantLayout() {
                   <p className="mt-3">Aucun circuit assigné. Contactez l'administrateur.</p>
                 </div>
               ) : (
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <div className="mt-4 space-y-4">
                   {circuits.map((c) => {
                     const linked = reservations.filter((r) => circuitLabel(r) === c.nom);
+                    const confirmed = linked.filter((r) => r.status === "CONFIRMED");
+                    const expanded = expandedCircuit === c.id;
+                    const totalPersons = confirmed.reduce((s, r) => {
+                      const n = (r.details as Record<string, unknown>)?.persons;
+                      return s + (typeof n === "number" ? n : 0);
+                    }, 0);
                     return (
                       <Card key={c.id}>
                         <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
+                          <button
+                            onClick={() => setExpandedCircuit(expanded ? null : c.id)}
+                            className="flex w-full items-start gap-3 text-left"
+                          >
                             <div className="rounded-lg bg-primary/10 p-2.5"><MapIcon className="h-5 w-5 text-primary" /></div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold">{c.nom}</h3>
-                              <p className="text-sm text-muted-foreground mt-0.5">{c.description || "Aucune description"}</p>
-                              <div className="mt-2 text-xs text-muted-foreground">
-                                {linked.length} réservation(s) · {linked.filter(r => r.status === "CONFIRMED").length} confirmée(s)
+                              <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{c.description || "Aucune description"}</p>
+                              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                                <Badge variant="secondary">{linked.length} résa</Badge>
+                                <Badge className="bg-green-500/10 text-green-700 border-green-500/20">{confirmed.length} confirmée(s)</Badge>
+                                {totalPersons > 0 && <Badge className="bg-primary/10 text-primary border-primary/20">{totalPersons} personne(s)</Badge>}
                               </div>
                             </div>
-                          </div>
+                            {expanded ? <ChevronUp className="h-5 w-5 text-muted-foreground shrink-0" /> : <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0" />}
+                          </button>
+
+                          {expanded && (
+                            <div className="mt-4 border-t pt-4 space-y-3">
+                              {confirmed.length === 0 ? (
+                                <p className="text-sm text-muted-foreground italic">Aucune réservation confirmée à préparer.</p>
+                              ) : (
+                                confirmed.map((r) => {
+                                  const d = (r.details ?? {}) as Record<string, unknown>;
+                                  const p = profiles.get(r.user_id);
+                                  const persons = typeof d.persons === "number" ? d.persons : null;
+                                  const allergies = typeof d.allergies === "string" ? d.allergies : null;
+                                  const wantsLodging = d.wants_lodging === true;
+                                  const wantsGuide = d.wants_guide === true;
+                                  const extras = Array.isArray(d.extras) ? (d.extras as Array<{ name?: string; price?: number }>) : [];
+                                  return (
+                                    <div key={r.id} className="rounded-xl border bg-muted/20 p-3 space-y-2">
+                                      <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                          <p className="font-semibold text-sm truncate">{p?.full_name ?? "Client"}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {new Date(r.reservation_date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                                          </p>
+                                          {p?.phone && <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><Phone className="h-3 w-3" />{p.phone}</p>}
+                                        </div>
+                                        {persons !== null && (
+                                          <Badge className="bg-primary/10 text-primary border-primary/20 shrink-0">
+                                            <Users className="h-3 w-3 mr-1" /> {persons}
+                                          </Badge>
+                                        )}
+                                      </div>
+
+                                      <div className="flex flex-wrap gap-1.5 text-xs">
+                                        {wantsLodging && (
+                                          <Badge variant="outline" className="gap-1"><BedDouble className="h-3 w-3" /> Hébergement</Badge>
+                                        )}
+                                        {wantsGuide && (
+                                          <Badge variant="outline" className="gap-1"><UserCheck className="h-3 w-3" /> Guide</Badge>
+                                        )}
+                                        {extras.map((e, i) => e?.name && (
+                                          <Badge key={i} variant="outline" className="gap-1"><Sparkles className="h-3 w-3" /> {e.name}</Badge>
+                                        ))}
+                                      </div>
+
+                                      {allergies && (
+                                        <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-2 flex items-start gap-2">
+                                          <Heart className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
+                                          <div className="text-xs">
+                                            <p className="font-semibold text-destructive">Allergies / restrictions</p>
+                                            <p className="text-muted-foreground">{allergies}</p>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     );
