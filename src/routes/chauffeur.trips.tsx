@@ -49,6 +49,15 @@ function DriverTripsPage() {
   // Suit la position GPS du client (live)
   const clientPos = useClientPosition(trip?.client_id ?? null);
 
+  // Détecte un partage GPS client absent au bout de 15s (probable refus côté client)
+  const [waitingTimeout, setWaitingTimeout] = useState(false);
+  useEffect(() => {
+    setWaitingTimeout(false);
+    if (!trip || clientPos) return;
+    const t = setTimeout(() => setWaitingTimeout(true), 15000);
+    return () => clearTimeout(t);
+  }, [trip?.id, clientPos]);
+
   const loadTrips = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
