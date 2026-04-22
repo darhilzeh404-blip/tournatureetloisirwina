@@ -108,9 +108,6 @@ function DriverTripsPage() {
     else toast.success("Course terminée.");
   };
 
-  if (isLoading) return <div className="flex min-h-screen items-center justify-center">Chargement...</div>;
-  if (!user) return null;
-
   // Markers : position du client (live), point de départ prévu, destination
   const markers: MapMarker[] = [];
   if (trip) {
@@ -145,6 +142,9 @@ function DriverTripsPage() {
   );
 
   const tracking = !!clientPos;
+
+  if (isLoading) return <div className="flex min-h-screen items-center justify-center">Chargement...</div>;
+  if (!user) return null;
 
   return (
     <div className="flex h-screen flex-col bg-background">
