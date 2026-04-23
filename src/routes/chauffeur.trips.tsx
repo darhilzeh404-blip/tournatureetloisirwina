@@ -36,6 +36,7 @@ interface Trip {
 function DriverTripsPage() {
   const { user, isLoading, role } = useAuth();
   const navigate = useNavigate();
+  const { tripId: searchTripId } = Route.useSearch();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
   const [clientName, setClientName] = useState("");
