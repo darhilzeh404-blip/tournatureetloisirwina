@@ -14,6 +14,9 @@ import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 
 export const Route = createFileRoute("/chauffeur/trips")({
   head: () => ({ meta: [{ title: "Mes courses — Chauffeur" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    tripId: typeof search.tripId === "string" ? search.tripId : undefined,
+  }),
   component: DriverTripsPage,
 });
 
