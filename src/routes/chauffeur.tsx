@@ -275,7 +275,7 @@ function ChauffeurLayout() {
         .eq("id", tripId);
       if (error) throw error;
       toast.success("GPS démarré. Le client peut désormais vous suivre en direct.");
-      navigate({ to: "/chauffeur/trips" });
+      navigate({ to: "/chauffeur/trips", search: { tripId } });
     } catch (err) {
       console.error("[START GPS]", err);
       toast.error("Impossible de démarrer le GPS.");
