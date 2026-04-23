@@ -47,7 +47,7 @@ function DriverTripsPage() {
   const trip = activeTrip ?? trips[0] ?? null;
 
   // Suit la position GPS du client (live)
-  const clientPos = useClientPosition(trip?.client_id ?? null);
+  const { position: clientPos, loading: clientPosLoading, fetched: clientPosFetched } = useClientPosition(trip?.client_id ?? null);
 
   // Détecte un partage GPS client absent au bout de 15s (probable refus côté client)
   const [waitingTimeout, setWaitingTimeout] = useState(false);
