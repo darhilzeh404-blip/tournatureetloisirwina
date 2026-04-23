@@ -192,6 +192,28 @@ function DriverTripsPage() {
           </div>
         )}
 
+        {trip && clientPosLoading && !clientPos && (
+          <div className="absolute top-4 left-4 right-4 rounded-xl border bg-card/95 backdrop-blur p-3 shadow-md flex items-center gap-3 text-sm">
+            <Loader2 className="h-5 w-5 animate-spin text-primary shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-foreground">Recherche de la position du client…</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Connexion au flux GPS en temps réel.</p>
+            </div>
+          </div>
+        )}
+
+        {trip && !clientPosLoading && clientPosFetched && !clientPos && !waitingTimeout && (
+          <div className="absolute top-4 left-4 right-4 rounded-xl border border-muted bg-card/95 backdrop-blur p-3 shadow-md flex items-start gap-2 text-sm">
+            <MapPinOff className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-foreground">Aucune position disponible</p>
+              <p className="text-muted-foreground text-xs mt-0.5">
+                Le client n'a pas encore partagé de coordonnées GPS. En attente du premier signal…
+              </p>
+            </div>
+          </div>
+        )}
+
         {trip && !tracking && waitingTimeout && (
           <div className="absolute top-4 left-4 right-4 rounded-xl border border-warning/30 bg-warning/10 p-3 shadow-md flex items-start gap-2 text-sm">
             <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
