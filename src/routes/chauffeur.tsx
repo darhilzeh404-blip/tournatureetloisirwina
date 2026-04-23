@@ -328,7 +328,7 @@ function ChauffeurLayout() {
           ))}
         </nav>
         <div className="absolute bottom-0 w-full border-t p-3 space-y-1">
-          <Link to="/chauffeur/trips" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10">
+          <Link to="/chauffeur/trips" search={{ tripId: undefined }} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10">
             <Navigation className="h-4 w-4" /> Mes courses GPS
           </Link>
           <Link to="/" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-secondary">
