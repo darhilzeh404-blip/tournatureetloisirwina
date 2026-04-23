@@ -491,19 +491,28 @@ function ChauffeurLayout() {
                             {t.status === "active" ? "GPS actif" : "Assignée"}
                           </Badge>
                           {t.status === "active" ? (
-                            <Button size="sm" variant="outline" onClick={() => navigate({ to: "/chauffeur/trips" })} className="gap-1">
-                              <Navigation className="h-3.5 w-3.5" /> Voir GPS
-                            </Button>
+                            <Link to="/chauffeur/trips">
+                              <Button size="sm" variant="outline" className="gap-1">
+                                <Navigation className="h-3.5 w-3.5" /> Voir GPS
+                              </Button>
+                            </Link>
                           ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => handleStartGps(t.id)}
-                              disabled={tripActionId === t.id}
-                              className="gap-1"
-                            >
-                              <Navigation className="h-3.5 w-3.5" />
-                              {tripActionId === t.id ? "..." : "Démarrer GPS"}
-                            </Button>
+                            <div className="flex gap-2">
+                              <Link to="/chauffeur/trips">
+                                <Button size="sm" variant="outline" className="gap-1">
+                                  <MapPin className="h-3.5 w-3.5" /> Voir GPS
+                                </Button>
+                              </Link>
+                              <Button
+                                size="sm"
+                                onClick={() => handleStartGps(t.id)}
+                                disabled={tripActionId === t.id}
+                                className="gap-1"
+                              >
+                                <Navigation className="h-3.5 w-3.5" />
+                                {tripActionId === t.id ? "..." : "Démarrer"}
+                              </Button>
+                            </div>
                           )}
                         </div>
                       </CardContent>
