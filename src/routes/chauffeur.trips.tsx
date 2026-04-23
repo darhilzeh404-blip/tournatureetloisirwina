@@ -264,29 +264,34 @@ function DriverTripsPage() {
                     <CheckCircle className="h-4 w-4" /> Terminer la course
                   </Button>
                 )}
-                {clientPos && (
-                  <Button variant="outline" size="icon" asChild title="Naviguer vers le client (Google Maps)">
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${clientPos.latitude},${clientPos.longitude}&travelmode=driving`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Navigation className="h-4 w-4" />
-                    </a>
-                  </Button>
-                )}
-                {!clientPos && trip.destination_lat && trip.destination_lng && (
-                  <Button variant="outline" size="icon" asChild title="Ouvrir destination">
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Flag className="h-4 w-4" />
-                    </a>
-                  </Button>
-                )}
               </div>
+
+              {clientPos && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${clientPos.latitude},${clientPos.longitude}&travelmode=driving`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 block"
+                >
+                  <Button variant="secondary" className="w-full gap-2">
+                    <Navigation className="h-4 w-4" />
+                    Ouvrir dans Google Maps
+                  </Button>
+                </a>
+              )}
+              {!clientPos && trip.destination_lat && trip.destination_lng && (
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 block"
+                >
+                  <Button variant="outline" className="w-full gap-2">
+                    <Flag className="h-4 w-4" />
+                    Ouvrir destination dans Google Maps
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
         )}
