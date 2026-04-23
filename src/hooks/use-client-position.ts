@@ -49,17 +49,24 @@ export function useShareClientPosition(
 
 /**
  * Côté CHAUFFEUR : suit la position d'un client donné via Realtime.
- * RLS s'assure que le chauffeur est bien assigné à ce client.
+ * Retourne { position, loading, fetched } pour permettre l'affichage
+ * d'un loader puis d'un fallback si aucune position n'existe.
  */
 export function useClientPosition(clientId: string | null | undefined) {
   const [position, setPosition] = useState<ClientPosition | null>(null);
+  const [loading, setLoading] = useState<boolean>(!!clientId);
+  const [fetched, setFetched] = useState<boolean>(false);
 
   useEffect(() => {
     if (!clientId) {
       setPosition(null);
+      setLoading(false);
+      setFetched(false);
       return;
     }
     let mounted = true;
+    setLoading(true);
+    setFetched(false);
 
     supabase
       .from("client_positions")
@@ -67,7 +74,10 @@ export function useClientPosition(clientId: string | null | undefined) {
       .eq("client_id", clientId)
       .maybeSingle()
       .then(({ data }) => {
-        if (mounted && data) setPosition(data as ClientPosition);
+        if (!mounted) return;
+        setPosition((data as ClientPosition) ?? null);
+        setLoading(false);
+        setFetched(true);
       });
 
     const channel = supabase
@@ -83,7 +93,11 @@ export function useClientPosition(clientId: string | null | undefined) {
         (payload) => {
           if (!mounted) return;
           const next = payload.new as ClientPosition | null;
-          if (next) setPosition(next);
+          if (next) {
+            setPosition(next);
+            setLoading(false);
+            setFetched(true);
+          }
         }
       )
       .subscribe();
@@ -94,5 +108,5 @@ export function useClientPosition(clientId: string | null | undefined) {
     };
   }, [clientId]);
 
-  return position;
+  return { position, loading, fetched };
 }

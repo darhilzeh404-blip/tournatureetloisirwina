@@ -8,7 +8,7 @@ import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Truck, ArrowLeft, MapPin, Navigation, Play, Flag, CheckCircle, Radio, RadioTower, AlertTriangle } from "lucide-react";
+import { Truck, ArrowLeft, MapPin, Navigation, Play, Flag, CheckCircle, Radio, RadioTower, AlertTriangle, Loader2, MapPinOff } from "lucide-react";
 import { toast } from "sonner";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 
@@ -47,7 +47,7 @@ function DriverTripsPage() {
   const trip = activeTrip ?? trips[0] ?? null;
 
   // Suit la position GPS du client (live)
-  const clientPos = useClientPosition(trip?.client_id ?? null);
+  const { position: clientPos, loading: clientPosLoading, fetched: clientPosFetched } = useClientPosition(trip?.client_id ?? null);
 
   // Détecte un partage GPS client absent au bout de 15s (probable refus côté client)
   const [waitingTimeout, setWaitingTimeout] = useState(false);
@@ -188,6 +188,28 @@ function DriverTripsPage() {
               <MapPin className="mx-auto h-12 w-12 opacity-30" />
               <p className="mt-2">Aucune course assignée pour le moment.</p>
               <p className="text-xs mt-1">L'admin doit vous assigner une réservation.</p>
+            </div>
+          </div>
+        )}
+
+        {trip && clientPosLoading && !clientPos && (
+          <div className="absolute top-4 left-4 right-4 rounded-xl border bg-card/95 backdrop-blur p-3 shadow-md flex items-center gap-3 text-sm">
+            <Loader2 className="h-5 w-5 animate-spin text-primary shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-foreground">Recherche de la position du client…</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Connexion au flux GPS en temps réel.</p>
+            </div>
+          </div>
+        )}
+
+        {trip && !clientPosLoading && clientPosFetched && !clientPos && !waitingTimeout && (
+          <div className="absolute top-4 left-4 right-4 rounded-xl border border-muted bg-card/95 backdrop-blur p-3 shadow-md flex items-start gap-2 text-sm">
+            <MapPinOff className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-foreground">Aucune position disponible</p>
+              <p className="text-muted-foreground text-xs mt-0.5">
+                Le client n'a pas encore partagé de coordonnées GPS. En attente du premier signal…
+              </p>
             </div>
           </div>
         )}
