@@ -14,6 +14,9 @@ import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 
 export const Route = createFileRoute("/chauffeur/trips")({
   head: () => ({ meta: [{ title: "Mes courses — Chauffeur" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    tripId: typeof search.tripId === "string" ? search.tripId : undefined,
+  }),
   component: DriverTripsPage,
 });
 
@@ -33,6 +36,7 @@ interface Trip {
 function DriverTripsPage() {
   const { user, isLoading, role } = useAuth();
   const navigate = useNavigate();
+  const { tripId: searchTripId } = Route.useSearch();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
   const [clientName, setClientName] = useState("");
@@ -64,11 +68,12 @@ function DriverTripsPage() {
       .from("trips")
       .select("*")
       .eq("driver_id", user.id)
-      .in("status", ["pending", "active"])
+      .in("status", ["pending", "assigned", "active"])
       .order("created_at", { ascending: false });
     const list = (data as Trip[]) || [];
     setTrips(list);
-    const active = list.find((t) => t.status === "active") ?? list[0] ?? null;
+    const focused = searchTripId ? list.find((t) => t.id === searchTripId) : null;
+    const active = focused ?? list.find((t) => t.status === "active") ?? list[0] ?? null;
     setActiveTrip(active);
     if (active) {
       const { data: profile } = await supabase
@@ -78,7 +83,7 @@ function DriverTripsPage() {
         .maybeSingle();
       if (profile) setClientName(profile.full_name);
     }
-  }, [user]);
+  }, [user, searchTripId]);
 
   useEffect(() => {
     if (!user) return;

@@ -275,7 +275,7 @@ function ChauffeurLayout() {
         .eq("id", tripId);
       if (error) throw error;
       toast.success("GPS démarré. Le client peut désormais vous suivre en direct.");
-      navigate({ to: "/chauffeur/trips" });
+      navigate({ to: "/chauffeur/trips", search: { tripId } });
     } catch (err) {
       console.error("[START GPS]", err);
       toast.error("Impossible de démarrer le GPS.");
@@ -328,7 +328,7 @@ function ChauffeurLayout() {
           ))}
         </nav>
         <div className="absolute bottom-0 w-full border-t p-3 space-y-1">
-          <Link to="/chauffeur/trips" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10">
+          <Link to="/chauffeur/trips" search={{ tripId: undefined }} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10">
             <Navigation className="h-4 w-4" /> Mes courses GPS
           </Link>
           <Link to="/" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-secondary">
@@ -491,18 +491,24 @@ function ChauffeurLayout() {
                             {t.status === "active" ? "GPS actif" : "Assignée"}
                           </Badge>
                           {t.status === "active" ? (
-                            <Link to="/chauffeur/trips">
-                              <Button size="sm" variant="outline" className="gap-1">
-                                <Navigation className="h-3.5 w-3.5" /> Voir GPS
-                              </Button>
-                            </Link>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1"
+                              onClick={() => navigate({ to: "/chauffeur/trips", search: { tripId: t.id } })}
+                            >
+                              <Navigation className="h-3.5 w-3.5" /> Voir GPS
+                            </Button>
                           ) : (
                             <div className="flex gap-2">
-                              <Link to="/chauffeur/trips">
-                                <Button size="sm" variant="outline" className="gap-1">
-                                  <MapPin className="h-3.5 w-3.5" /> Voir GPS
-                                </Button>
-                              </Link>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1"
+                                onClick={() => navigate({ to: "/chauffeur/trips", search: { tripId: t.id } })}
+                              >
+                                <MapPin className="h-3.5 w-3.5" /> Voir GPS
+                              </Button>
                               <Button
                                 size="sm"
                                 onClick={() => handleStartGps(t.id)}
