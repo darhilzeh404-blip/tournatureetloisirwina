@@ -572,9 +572,34 @@ function AdminReservations() {
                               {r.status === "CONFIRMED" && !r.paiement_valide && (
                                 <span className="text-[10px] text-muted-foreground italic">Validez le paiement</span>
                               )}
-                              <Button size="icon" variant="ghost" className="h-8 w-8" title="Voir">
+                              <Button size="icon" variant="ghost" className="h-8 w-8" title="Voir détails" onClick={() => setDetailsTarget(r)}>
                                 <Eye className="h-4 w-4" />
                               </Button>
+                              {r.archived_at ? (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-success"
+                                  title="Restaurer"
+                                  onClick={() => archiveReservation(r, true)}
+                                  disabled={archivingId === r.id}
+                                >
+                                  {archivingId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArchiveRestore className="h-4 w-4" />}
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-destructive"
+                                  title="Archiver (suppression douce)"
+                                  onClick={() => {
+                                    if (confirm("Archiver cette réservation ? Elle ne sera plus visible par le client.")) archiveReservation(r);
+                                  }}
+                                  disabled={archivingId === r.id}
+                                >
+                                  {archivingId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+                                </Button>
+                              )}
                             </div>
                           </td>
                         </tr>
