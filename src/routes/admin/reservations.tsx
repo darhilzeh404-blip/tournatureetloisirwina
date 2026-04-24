@@ -27,6 +27,8 @@ interface Reservation {
   paiement_valide: boolean;
   details: Record<string, unknown>;
   created_at: string;
+  archived_at: string | null;
+  admin_comment: string | null;
 }
 
 interface PaymentRow {
