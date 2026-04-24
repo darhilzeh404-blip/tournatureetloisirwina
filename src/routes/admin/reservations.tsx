@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
-import { CheckCircle, XCircle, Eye, Search, UserPlus, Loader2, X, MapPin, Receipt, ShieldCheck } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Search, UserPlus, Loader2, X, MapPin, Receipt, ShieldCheck, Archive, ArchiveRestore } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,8 @@ interface Reservation {
   paiement_valide: boolean;
   details: Record<string, unknown>;
   created_at: string;
+  archived_at: string | null;
+  admin_comment: string | null;
 }
 
 interface PaymentRow {
@@ -90,8 +92,11 @@ function AdminReservations() {
   const [loading, setLoading] = useState(true);
   const [assignTarget, setAssignTarget] = useState<Reservation | null>(null);
   const [payments, setPayments] = useState<Map<string, PaymentRow>>(new Map());
+  const [allPayments, setAllPayments] = useState<Map<string, PaymentRow[]>>(new Map());
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [validatingId, setValidatingId] = useState<string | null>(null);
+  const [detailsTarget, setDetailsTarget] = useState<Reservation | null>(null);
+  const [archivingId, setArchivingId] = useState<string | null>(null);
 
   // Auth guard
   useEffect(() => {
@@ -141,12 +146,17 @@ function AdminReservations() {
         (tripsData as Trip[] | null)?.forEach((t) => tmap.set(t.reservation_id, t));
         setTrips(tmap);
 
-        // garde le paiement le plus récent par réservation
+        // garde le paiement le plus récent par réservation + tous les paiements
         const pmap = new Map<string, PaymentRow>();
+        const pAll = new Map<string, PaymentRow[]>();
         (paymentsData as PaymentRow[] | null)?.forEach((p) => {
           if (!pmap.has(p.reservation_id)) pmap.set(p.reservation_id, p);
+          const arr = pAll.get(p.reservation_id) ?? [];
+          arr.push(p);
+          pAll.set(p.reservation_id, arr);
         });
         setPayments(pmap);
+        setAllPayments(pAll);
       }
 
       // Drivers + gerants lists
@@ -203,9 +213,35 @@ function AdminReservations() {
     const matchSearch =
       clientName.toLowerCase().includes(search.toLowerCase()) ||
       r.id.toLowerCase().includes(search.toLowerCase());
+    const isArchived = !!r.archived_at;
+    if (tab === "archived") return matchSearch && isArchived;
+    if (isArchived) return false;
     if (tab === "all") return matchSearch;
     return matchSearch && r.status === tab;
   });
+
+  const archiveReservation = async (r: Reservation, restore = false) => {
+    setArchivingId(r.id);
+    try {
+      const { error } = await supabase
+        .from("reservations")
+        .update({ archived_at: restore ? null : new Date().toISOString() })
+        .eq("id", r.id);
+      if (error) throw error;
+      // Archive aussi paiements + trips liés
+      await Promise.all([
+        supabase.from("payments").update({ archived_at: restore ? null : new Date().toISOString() }).eq("reservation_id", r.id),
+        supabase.from("trips").update({ archived_at: restore ? null : new Date().toISOString() }).eq("reservation_id", r.id),
+      ]);
+      toast.success(restore ? "Réservation restaurée." : "Réservation archivée.");
+      loadAll();
+    } catch (err) {
+      console.error("[ARCHIVE]", err);
+      toast.error("Erreur lors de l'archivage.");
+    } finally {
+      setArchivingId(null);
+    }
+  };
 
   const updateStatus = async (id: string, status: Status) => {
     const { error } = await supabase.from("reservations").update({ status }).eq("id", id);
@@ -412,10 +448,11 @@ function AdminReservations() {
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="all">Toutes ({reservations.length})</TabsTrigger>
-          <TabsTrigger value="PENDING_PAYMENT">En attente ({reservations.filter((r) => r.status === "PENDING_PAYMENT").length})</TabsTrigger>
-          <TabsTrigger value="CONFIRMED">Confirmées ({reservations.filter((r) => r.status === "CONFIRMED").length})</TabsTrigger>
-          <TabsTrigger value="REJECTED">Refusées ({reservations.filter((r) => r.status === "REJECTED").length})</TabsTrigger>
+          <TabsTrigger value="all">Toutes ({reservations.filter(r => !r.archived_at).length})</TabsTrigger>
+          <TabsTrigger value="PENDING_PAYMENT">En attente ({reservations.filter((r) => !r.archived_at && r.status === "PENDING_PAYMENT").length})</TabsTrigger>
+          <TabsTrigger value="CONFIRMED">Confirmées ({reservations.filter((r) => !r.archived_at && r.status === "CONFIRMED").length})</TabsTrigger>
+          <TabsTrigger value="REJECTED">Refusées ({reservations.filter((r) => !r.archived_at && r.status === "REJECTED").length})</TabsTrigger>
+          <TabsTrigger value="archived">Archivées ({reservations.filter(r => !!r.archived_at).length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value={tab}>
@@ -535,9 +572,34 @@ function AdminReservations() {
                               {r.status === "CONFIRMED" && !r.paiement_valide && (
                                 <span className="text-[10px] text-muted-foreground italic">Validez le paiement</span>
                               )}
-                              <Button size="icon" variant="ghost" className="h-8 w-8" title="Voir">
+                              <Button size="icon" variant="ghost" className="h-8 w-8" title="Voir détails" onClick={() => setDetailsTarget(r)}>
                                 <Eye className="h-4 w-4" />
                               </Button>
+                              {r.archived_at ? (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-success"
+                                  title="Restaurer"
+                                  onClick={() => archiveReservation(r, true)}
+                                  disabled={archivingId === r.id}
+                                >
+                                  {archivingId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArchiveRestore className="h-4 w-4" />}
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-destructive"
+                                  title="Archiver (suppression douce)"
+                                  onClick={() => {
+                                    if (confirm("Archiver cette réservation ? Elle ne sera plus visible par le client.")) archiveReservation(r);
+                                  }}
+                                  disabled={archivingId === r.id}
+                                >
+                                  {archivingId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
+                                </Button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -595,6 +657,169 @@ function AdminReservations() {
           </div>
         </div>
       )}
+
+      {detailsTarget && (
+        <DetailsDialog
+          reservation={detailsTarget}
+          profile={profiles.get(detailsTarget.user_id) ?? null}
+          trip={trips.get(detailsTarget.id) ?? null}
+          driver={(() => {
+            const t = trips.get(detailsTarget.id);
+            return t?.driver_id ? drivers.find(d => d.user_id === t.driver_id) ?? null : null;
+          })()}
+          gerant={(() => {
+            const t = trips.get(detailsTarget.id);
+            return t?.gerant_id ? gerants.find(g => g.user_id === t.gerant_id) ?? null : null;
+          })()}
+          payments={allPayments.get(detailsTarget.id) ?? []}
+          onClose={() => setDetailsTarget(null)}
+          onViewProof={viewProof}
+          serviceLabel={SERVICE_LABELS[detailsTarget.service_type] ?? detailsTarget.service_type}
+        />
+      )}
+    </div>
+  );
+}
+
+function DetailsDialog({
+  reservation,
+  profile,
+  trip,
+  driver,
+  gerant,
+  payments,
+  onClose,
+  onViewProof,
+  serviceLabel,
+}: {
+  reservation: Reservation;
+  profile: Profile | null;
+  trip: Trip | null;
+  driver: Profile | null;
+  gerant: Profile | null;
+  payments: PaymentRow[];
+  onClose: () => void;
+  onViewProof: (path: string) => void;
+  serviceLabel: string;
+}) {
+  const st = STATUS_MAP[reservation.status];
+  const details = reservation.details ?? {};
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 overflow-y-auto" onClick={onClose}>
+      <div className="w-full max-w-2xl rounded-2xl bg-card p-5 shadow-xl my-8" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold">Détails de la réservation</h2>
+            <p className="text-xs text-muted-foreground font-mono">{reservation.id}</p>
+          </div>
+          <button onClick={onClose} className="rounded-md p-1 hover:bg-secondary"><X className="h-4 w-4" /></button>
+        </div>
+
+        <div className="space-y-4 text-sm">
+          {/* Statut + montants */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg border p-3">
+              <div className="text-xs text-muted-foreground mb-1">Statut</div>
+              <Badge variant={st.variant}>{st.label}</Badge>
+              {reservation.paiement_valide && (
+                <Badge variant="default" className="ml-2 text-[10px] gap-1">
+                  <ShieldCheck className="h-3 w-3" /> Paiement validé
+                </Badge>
+              )}
+            </div>
+            <div className="rounded-lg border p-3">
+              <div className="text-xs text-muted-foreground mb-1">Montants</div>
+              <div className="font-medium">{formatXAF(reservation.paid_amount)} / {formatXAF(reservation.total_amount)}</div>
+            </div>
+          </div>
+
+          {/* Client */}
+          <div className="rounded-lg border p-3">
+            <div className="text-xs font-semibold text-muted-foreground mb-2">👤 CLIENT</div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><span className="text-muted-foreground">Nom : </span>{profile?.full_name ?? "—"}</div>
+              <div><span className="text-muted-foreground">Email : </span>{profile?.email ?? "—"}</div>
+              <div><span className="text-muted-foreground">Téléphone : </span>{profile?.phone ?? "—"}</div>
+              <div><span className="text-muted-foreground">User ID : </span><span className="font-mono text-xs">{reservation.user_id.slice(0, 8)}…</span></div>
+            </div>
+          </div>
+
+          {/* Service */}
+          <div className="rounded-lg border p-3">
+            <div className="text-xs font-semibold text-muted-foreground mb-2">🚌 SERVICE</div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><span className="text-muted-foreground">Type : </span>{serviceLabel}</div>
+              <div><span className="text-muted-foreground">Date : </span>{new Date(reservation.reservation_date).toLocaleDateString("fr-FR")}</div>
+              <div><span className="text-muted-foreground">Créée : </span>{new Date(reservation.created_at).toLocaleString("fr-FR")}</div>
+            </div>
+            {Object.keys(details).length > 0 && (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-xs text-primary">Voir tous les détails saisis</summary>
+                <pre className="mt-2 max-h-48 overflow-auto rounded bg-muted/50 p-2 text-[11px]">{JSON.stringify(details, null, 2)}</pre>
+              </details>
+            )}
+          </div>
+
+          {/* Trajet */}
+          {trip && (
+            <div className="rounded-lg border p-3">
+              <div className="text-xs font-semibold text-muted-foreground mb-2">📍 TRAJET</div>
+              <div className="space-y-1">
+                <div><span className="text-muted-foreground">Statut : </span><Badge variant="secondary" className="text-[10px]">{trip.status}</Badge></div>
+                {driver && <div>👤 Chauffeur : <strong>{driver.full_name}</strong> · {driver.phone ?? "—"}</div>}
+                {gerant && <div>🧭 Gérant : <strong>{gerant.full_name}</strong> · {gerant.phone ?? "—"}</div>}
+              </div>
+            </div>
+          )}
+
+          {/* Paiements */}
+          <div className="rounded-lg border p-3">
+            <div className="text-xs font-semibold text-muted-foreground mb-2">💳 PAIEMENTS ({payments.length})</div>
+            {payments.length === 0 ? (
+              <div className="text-muted-foreground italic text-xs">Aucun paiement enregistré.</div>
+            ) : (
+              <div className="space-y-2">
+                {payments.map(p => (
+                  <div key={p.id} className="flex items-center justify-between rounded border bg-muted/30 p-2 text-xs">
+                    <div>
+                      <div className="font-medium">{formatXAF(p.amount)}</div>
+                      <div className="text-muted-foreground">{new Date(p.created_at).toLocaleString("fr-FR")}</div>
+                      {p.transaction_ref && <div className="font-mono text-[10px]">Ref: {p.transaction_ref}</div>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={p.status === "VALIDATED" ? "default" : p.status === "REJECTED" ? "destructive" : "outline"}>
+                        {p.status}
+                      </Badge>
+                      {p.receipt_url && (
+                        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => onViewProof(p.receipt_url!)}>
+                          <Receipt className="h-3 w-3 mr-1" /> Preuve
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {reservation.admin_comment && (
+            <div className="rounded-lg border border-warning/30 bg-warning/10 p-3">
+              <div className="text-xs font-semibold text-muted-foreground mb-1">📝 Commentaire admin</div>
+              <div>{reservation.admin_comment}</div>
+            </div>
+          )}
+
+          {reservation.archived_at && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs">
+              ⚠️ Réservation archivée le {new Date(reservation.archived_at).toLocaleString("fr-FR")}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 flex justify-end">
+          <Button variant="outline" onClick={onClose}>Fermer</Button>
+        </div>
+      </div>
     </div>
   );
 }
