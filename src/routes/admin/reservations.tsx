@@ -146,12 +146,17 @@ function AdminReservations() {
         (tripsData as Trip[] | null)?.forEach((t) => tmap.set(t.reservation_id, t));
         setTrips(tmap);
 
-        // garde le paiement le plus récent par réservation
+        // garde le paiement le plus récent par réservation + tous les paiements
         const pmap = new Map<string, PaymentRow>();
+        const pAll = new Map<string, PaymentRow[]>();
         (paymentsData as PaymentRow[] | null)?.forEach((p) => {
           if (!pmap.has(p.reservation_id)) pmap.set(p.reservation_id, p);
+          const arr = pAll.get(p.reservation_id) ?? [];
+          arr.push(p);
+          pAll.set(p.reservation_id, arr);
         });
         setPayments(pmap);
+        setAllPayments(pAll);
       }
 
       // Drivers + gerants lists
