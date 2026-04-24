@@ -213,9 +213,35 @@ function AdminReservations() {
     const matchSearch =
       clientName.toLowerCase().includes(search.toLowerCase()) ||
       r.id.toLowerCase().includes(search.toLowerCase());
+    const isArchived = !!r.archived_at;
+    if (tab === "archived") return matchSearch && isArchived;
+    if (isArchived) return false;
     if (tab === "all") return matchSearch;
     return matchSearch && r.status === tab;
   });
+
+  const archiveReservation = async (r: Reservation, restore = false) => {
+    setArchivingId(r.id);
+    try {
+      const { error } = await supabase
+        .from("reservations")
+        .update({ archived_at: restore ? null : new Date().toISOString() })
+        .eq("id", r.id);
+      if (error) throw error;
+      // Archive aussi paiements + trips liés
+      await Promise.all([
+        supabase.from("payments").update({ archived_at: restore ? null : new Date().toISOString() }).eq("reservation_id", r.id),
+        supabase.from("trips").update({ archived_at: restore ? null : new Date().toISOString() }).eq("reservation_id", r.id),
+      ]);
+      toast.success(restore ? "Réservation restaurée." : "Réservation archivée.");
+      loadAll();
+    } catch (err) {
+      console.error("[ARCHIVE]", err);
+      toast.error("Erreur lors de l'archivage.");
+    } finally {
+      setArchivingId(null);
+    }
+  };
 
   const updateStatus = async (id: string, status: Status) => {
     const { error } = await supabase.from("reservations").update({ status }).eq("id", id);
