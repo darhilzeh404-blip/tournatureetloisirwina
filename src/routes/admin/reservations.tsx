@@ -448,10 +448,11 @@ function AdminReservations() {
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="all">Toutes ({reservations.length})</TabsTrigger>
-          <TabsTrigger value="PENDING_PAYMENT">En attente ({reservations.filter((r) => r.status === "PENDING_PAYMENT").length})</TabsTrigger>
-          <TabsTrigger value="CONFIRMED">Confirmées ({reservations.filter((r) => r.status === "CONFIRMED").length})</TabsTrigger>
-          <TabsTrigger value="REJECTED">Refusées ({reservations.filter((r) => r.status === "REJECTED").length})</TabsTrigger>
+          <TabsTrigger value="all">Toutes ({reservations.filter(r => !r.archived_at).length})</TabsTrigger>
+          <TabsTrigger value="PENDING_PAYMENT">En attente ({reservations.filter((r) => !r.archived_at && r.status === "PENDING_PAYMENT").length})</TabsTrigger>
+          <TabsTrigger value="CONFIRMED">Confirmées ({reservations.filter((r) => !r.archived_at && r.status === "CONFIRMED").length})</TabsTrigger>
+          <TabsTrigger value="REJECTED">Refusées ({reservations.filter((r) => !r.archived_at && r.status === "REJECTED").length})</TabsTrigger>
+          <TabsTrigger value="archived">Archivées ({reservations.filter(r => !!r.archived_at).length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value={tab}>
