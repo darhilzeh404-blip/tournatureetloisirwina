@@ -59,6 +59,13 @@ function MapAutoFit({
   followMarkerId?: string;
 }) {
   const map = useMap();
+  // E2E hook: expose the Leaflet map + current markers on window so Playwright
+  // can assert exact coordinates. No-op in production (just a window property).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    (window as unknown as { __leafletMap?: L.Map }).__leafletMap = map;
+    (window as unknown as { __leafletMarkers?: MapMarker[] }).__leafletMarkers = markers;
+  }, [map, markers]);
   useEffect(() => {
     if (followMarkerId) {
       const m = markers.find((x) => x.id === followMarkerId);
