@@ -139,6 +139,7 @@ export type Database = {
       client_positions: {
         Row: {
           accuracy: number | null
+          archived_at: string | null
           client_id: string
           heading: number | null
           latitude: number
@@ -149,6 +150,7 @@ export type Database = {
         }
         Insert: {
           accuracy?: number | null
+          archived_at?: string | null
           client_id: string
           heading?: number | null
           latitude: number
@@ -159,6 +161,7 @@ export type Database = {
         }
         Update: {
           accuracy?: number | null
+          archived_at?: string | null
           client_id?: string
           heading?: number | null
           latitude?: number
@@ -180,6 +183,7 @@ export type Database = {
       driver_positions: {
         Row: {
           accuracy: number | null
+          archived_at: string | null
           driver_id: string
           heading: number | null
           latitude: number
@@ -190,6 +194,7 @@ export type Database = {
         }
         Insert: {
           accuracy?: number | null
+          archived_at?: string | null
           driver_id: string
           heading?: number | null
           latitude: number
@@ -200,6 +205,7 @@ export type Database = {
         }
         Update: {
           accuracy?: number | null
+          archived_at?: string | null
           driver_id?: string
           heading?: number | null
           latitude?: number
@@ -258,6 +264,7 @@ export type Database = {
         Row: {
           admin_comment: string | null
           amount: number
+          archived_at: string | null
           created_at: string
           id: string
           method: string
@@ -271,6 +278,7 @@ export type Database = {
         Insert: {
           admin_comment?: string | null
           amount: number
+          archived_at?: string | null
           created_at?: string
           id?: string
           method?: string
@@ -284,6 +292,7 @@ export type Database = {
         Update: {
           admin_comment?: string | null
           amount?: number
+          archived_at?: string | null
           created_at?: string
           id?: string
           method?: string
@@ -306,6 +315,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          archived_at: string | null
           created_at: string
           email: string | null
           full_name: string
@@ -316,6 +326,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           email?: string | null
           full_name?: string
@@ -326,6 +337,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           email?: string | null
           full_name?: string
@@ -340,6 +352,7 @@ export type Database = {
       reservations: {
         Row: {
           admin_comment: string | null
+          archived_at: string | null
           created_at: string
           details: Json
           id: string
@@ -354,6 +367,7 @@ export type Database = {
         }
         Insert: {
           admin_comment?: string | null
+          archived_at?: string | null
           created_at?: string
           details?: Json
           id?: string
@@ -368,6 +382,7 @@ export type Database = {
         }
         Update: {
           admin_comment?: string | null
+          archived_at?: string | null
           created_at?: string
           details?: Json
           id?: string
@@ -701,6 +716,7 @@ export type Database = {
       }
       trips: {
         Row: {
+          archived_at: string | null
           client_id: string
           completed_at: string | null
           created_at: string
@@ -720,6 +736,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           client_id: string
           completed_at?: string | null
           created_at?: string
@@ -739,6 +756,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           client_id?: string
           completed_at?: string | null
           created_at?: string
