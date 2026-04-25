@@ -100,9 +100,9 @@ function ChauffeurPage() {
     else toast.error("Notifications refusées.");
   };
 
-  const loadTrips = useCallback(async (silent = false) => {
+  const loadTrips = useCallback(async (silent = false, background = false) => {
     if (!user) return;
-    if (silent) setRefreshing(true);
+    if (silent && !background) setRefreshing(true);
     else setLoadingTrips(true);
 
     const { data, error } = await supabase
@@ -139,7 +139,7 @@ function ChauffeurPage() {
 
     setLastRefreshAt(new Date());
     setLoadingTrips(false);
-    setRefreshing(false);
+    if (!background) setRefreshing(false);
   }, [gpsTrip, user]);
 
   useEffect(() => {
@@ -261,7 +261,7 @@ function ChauffeurPage() {
   };
 
   const refreshNow = useCallback(async (silent = false) => {
-    await loadTrips(true);
+    await loadTrips(true, silent);
     if (!gpsTrip) return;
     const fix = await getDriverPosition({ silent, loading: !silent }).catch(() => null);
     if (fix) await saveDriverPosition(gpsTrip, fix);
