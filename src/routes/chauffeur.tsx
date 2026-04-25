@@ -65,6 +65,7 @@ function ChauffeurPage() {
   const [gpsTrip, setGpsTrip] = useState<Trip | null>(null);
   const [driverFix, setDriverFix] = useState<DriverFix | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [lastRefreshAt, setLastRefreshAt] = useState<Date | null>(null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -136,6 +137,7 @@ function ChauffeurPage() {
       }
     }
 
+    setLastRefreshAt(new Date());
     setLoadingTrips(false);
     setRefreshing(false);
   }, [gpsTrip, user]);
@@ -161,13 +163,13 @@ function ChauffeurPage() {
     };
   }, [loadTrips, notify, user]);
 
-  const getDriverPosition = useCallback(() => {
+  const getDriverPosition = useCallback((options?: { silent?: boolean; loading?: boolean }) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      toast.error("GPS non supporté par ce navigateur.");
+      if (!options?.silent) toast.error("GPS non supporté par ce navigateur.");
       return Promise.reject(new Error("unsupported"));
     }
 
-    setGpsLoading(true);
+    if (options?.loading !== false) setGpsLoading(true);
     return new Promise<DriverFix>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -179,15 +181,15 @@ function ChauffeurPage() {
             speed: position.coords.speed,
           };
           setDriverFix(fix);
-          setGpsLoading(false);
+          if (options?.loading !== false) setGpsLoading(false);
           resolve(fix);
         },
         (error) => {
-          setGpsLoading(false);
+          if (options?.loading !== false) setGpsLoading(false);
           const message = error.code === error.PERMISSION_DENIED
             ? "Autorisez la localisation pour utiliser Voir GPS."
             : "Position GPS indisponible. Vérifiez le signal et le HTTPS.";
-          toast.error(message);
+          if (!options?.silent) toast.error(message);
           reject(error);
         },
         { enableHighAccuracy: true, maximumAge: 3000, timeout: 12000 }
