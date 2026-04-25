@@ -102,8 +102,13 @@ function ChauffeurPage() {
 
   const loadTrips = useCallback(async (silent = false, background = false) => {
     if (!user) return;
-    if (silent && !background) setRefreshing(true);
-    else setLoadingTrips(true);
+    if (background) {
+      // no visible loader for automatic refresh
+    } else if (silent) {
+      setRefreshing(true);
+    } else {
+      setLoadingTrips(true);
+    }
 
     const { data, error } = await supabase
       .from("trips")
