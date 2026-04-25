@@ -65,6 +65,7 @@ function ChauffeurPage() {
   const [gpsTrip, setGpsTrip] = useState<Trip | null>(null);
   const [driverFix, setDriverFix] = useState<DriverFix | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [lastRefreshAt, setLastRefreshAt] = useState<Date | null>(null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -99,10 +100,15 @@ function ChauffeurPage() {
     else toast.error("Notifications refusées.");
   };
 
-  const loadTrips = useCallback(async (silent = false) => {
+  const loadTrips = useCallback(async (silent = false, background = false) => {
     if (!user) return;
-    if (silent) setRefreshing(true);
-    else setLoadingTrips(true);
+    if (background) {
+      // no visible loader for automatic refresh
+    } else if (silent) {
+      setRefreshing(true);
+    } else {
+      setLoadingTrips(true);
+    }
 
     const { data, error } = await supabase
       .from("trips")
@@ -136,8 +142,9 @@ function ChauffeurPage() {
       }
     }
 
+    setLastRefreshAt(new Date());
     setLoadingTrips(false);
-    setRefreshing(false);
+    if (!background) setRefreshing(false);
   }, [gpsTrip, user]);
 
   useEffect(() => {
@@ -161,13 +168,13 @@ function ChauffeurPage() {
     };
   }, [loadTrips, notify, user]);
 
-  const getDriverPosition = useCallback(() => {
+  const getDriverPosition = useCallback((options?: { silent?: boolean; loading?: boolean }) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      toast.error("GPS non supporté par ce navigateur.");
+      if (!options?.silent) toast.error("GPS non supporté par ce navigateur.");
       return Promise.reject(new Error("unsupported"));
     }
 
-    setGpsLoading(true);
+    if (options?.loading !== false) setGpsLoading(true);
     return new Promise<DriverFix>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -179,15 +186,15 @@ function ChauffeurPage() {
             speed: position.coords.speed,
           };
           setDriverFix(fix);
-          setGpsLoading(false);
+          if (options?.loading !== false) setGpsLoading(false);
           resolve(fix);
         },
         (error) => {
-          setGpsLoading(false);
+          if (options?.loading !== false) setGpsLoading(false);
           const message = error.code === error.PERMISSION_DENIED
             ? "Autorisez la localisation pour utiliser Voir GPS."
             : "Position GPS indisponible. Vérifiez le signal et le HTTPS.";
-          toast.error(message);
+          if (!options?.silent) toast.error(message);
           reject(error);
         },
         { enableHighAccuracy: true, maximumAge: 3000, timeout: 12000 }
@@ -258,8 +265,26 @@ function ChauffeurPage() {
     if (fix) await saveDriverPosition(trip, fix);
   };
 
+  const refreshNow = useCallback(async (silent = false) => {
+    await loadTrips(true, silent);
+    if (!gpsTrip) return;
+    const fix = await getDriverPosition({ silent, loading: !silent }).catch(() => null);
+    if (fix) await saveDriverPosition(gpsTrip, fix);
+  }, [getDriverPosition, gpsTrip, loadTrips]);
+
+  useEffect(() => {
+    if (!user) return;
+    const interval = window.setInterval(() => {
+      refreshNow(true);
+    }, 25_000);
+    return () => window.clearInterval(interval);
+  }, [refreshNow, user]);
+
   const activeCount = trips.filter((trip) => trip.status === "active").length;
   const assignedCount = trips.length - activeCount;
+  const lastRefreshLabel = lastRefreshAt
+    ? lastRefreshAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    : "—";
 
   if (isLoading) {
     return <div className="driver-app flex min-h-screen items-center justify-center bg-background text-foreground">Chargement…</div>;
@@ -276,7 +301,7 @@ function ChauffeurPage() {
               <h1 className="text-2xl font-extrabold tracking-normal">Trips actifs</h1>
             </div>
             <div className="flex items-center gap-2">
-              <Button size="icon" variant="secondary" onClick={() => loadTrips(true)} disabled={refreshing} aria-label="Rafraîchir">
+              <Button size="icon" variant="secondary" onClick={() => refreshNow(false)} disabled={refreshing} aria-label="Rafraîchir">
                 <RefreshCw className={refreshing ? "animate-spin" : ""} />
               </Button>
               <Button size="icon" variant="secondary" onClick={enableNotifications} aria-label="Activer les notifications">
@@ -296,6 +321,12 @@ function ChauffeurPage() {
               <p className="text-2xl font-bold">{assignedCount}</p>
               <p className="text-xs text-muted-foreground">Assignés</p>
             </div>
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+            <span>Auto-refresh 25s · Dernier {lastRefreshLabel}</span>
+            <Button size="sm" variant="ghost" className="h-8 px-2 text-xs" onClick={() => refreshNow(false)} disabled={refreshing}>
+              {refreshing ? "Mise à jour…" : "Rafraîchir"}
+            </Button>
           </div>
         </header>
 
