@@ -260,8 +260,26 @@ function ChauffeurPage() {
     if (fix) await saveDriverPosition(trip, fix);
   };
 
+  const refreshNow = useCallback(async (silent = false) => {
+    await loadTrips(true);
+    if (!gpsTrip) return;
+    const fix = await getDriverPosition({ silent, loading: !silent }).catch(() => null);
+    if (fix) await saveDriverPosition(gpsTrip, fix);
+  }, [getDriverPosition, gpsTrip, loadTrips]);
+
+  useEffect(() => {
+    if (!user) return;
+    const interval = window.setInterval(() => {
+      refreshNow(true);
+    }, 25_000);
+    return () => window.clearInterval(interval);
+  }, [refreshNow, user]);
+
   const activeCount = trips.filter((trip) => trip.status === "active").length;
   const assignedCount = trips.length - activeCount;
+  const lastRefreshLabel = lastRefreshAt
+    ? lastRefreshAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    : "—";
 
   if (isLoading) {
     return <div className="driver-app flex min-h-screen items-center justify-center bg-background text-foreground">Chargement…</div>;
@@ -278,7 +296,7 @@ function ChauffeurPage() {
               <h1 className="text-2xl font-extrabold tracking-normal">Trips actifs</h1>
             </div>
             <div className="flex items-center gap-2">
-              <Button size="icon" variant="secondary" onClick={() => loadTrips(true)} disabled={refreshing} aria-label="Rafraîchir">
+              <Button size="icon" variant="secondary" onClick={() => refreshNow(false)} disabled={refreshing} aria-label="Rafraîchir">
                 <RefreshCw className={refreshing ? "animate-spin" : ""} />
               </Button>
               <Button size="icon" variant="secondary" onClick={enableNotifications} aria-label="Activer les notifications">
@@ -298,6 +316,12 @@ function ChauffeurPage() {
               <p className="text-2xl font-bold">{assignedCount}</p>
               <p className="text-xs text-muted-foreground">Assignés</p>
             </div>
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+            <span>Auto-refresh 25s · Dernier {lastRefreshLabel}</span>
+            <Button size="sm" variant="ghost" className="h-8 px-2 text-xs" onClick={() => refreshNow(false)} disabled={refreshing}>
+              {refreshing ? "Mise à jour…" : "Rafraîchir"}
+            </Button>
           </div>
         </header>
 
