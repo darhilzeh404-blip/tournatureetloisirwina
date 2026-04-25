@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VtcRouteImport } from './routes/vtc'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
 import { Route as TransportPublicRouteImport } from './routes/transport-public'
 import { Route as TransportExtraScolaireRouteImport } from './routes/transport-extra-scolaire'
@@ -42,6 +43,11 @@ import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 
+const VtcRoute = VtcRouteImport.update({
+  id: '/vtc',
+  path: '/vtc',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TransportScolaireRoute = TransportScolaireRouteImport.update({
   id: '/transport-scolaire',
   path: '/transport-scolaire',
@@ -221,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
+  '/vtc': typeof VtcRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -254,6 +261,7 @@ export interface FileRoutesByTo {
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
+  '/vtc': typeof VtcRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -289,6 +297,7 @@ export interface FileRoutesById {
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
+  '/vtc': typeof VtcRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/transport-extra-scolaire'
     | '/transport-public'
     | '/transport-scolaire'
+    | '/vtc'
     | '/admin/bus'
     | '/admin/circuits'
     | '/admin/clients'
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/transport-extra-scolaire'
     | '/transport-public'
     | '/transport-scolaire'
+    | '/vtc'
     | '/admin/bus'
     | '/admin/circuits'
     | '/admin/clients'
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/transport-extra-scolaire'
     | '/transport-public'
     | '/transport-scolaire'
+    | '/vtc'
     | '/admin/bus'
     | '/admin/circuits'
     | '/admin/clients'
@@ -427,6 +439,7 @@ export interface RootRouteChildren {
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
   TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
+  VtcRoute: typeof VtcRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
@@ -434,6 +447,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vtc': {
+      id: '/vtc'
+      path: '/vtc'
+      fullPath: '/vtc'
+      preLoaderRoute: typeof VtcRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/transport-scolaire': {
       id: '/transport-scolaire'
       path: '/transport-scolaire'
@@ -721,6 +741,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
   TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
+  VtcRoute: VtcRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
