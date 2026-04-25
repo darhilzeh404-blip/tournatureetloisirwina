@@ -66,6 +66,15 @@ function ChauffeurPage() {
   const [gpsLoading, setGpsLoading] = useState(false);
 
   useEffect(() => {
+    const root = document.documentElement;
+    const hadDark = root.classList.contains("dark");
+    root.classList.add("dark");
+    return () => {
+      if (!hadDark) root.classList.remove("dark");
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isLoading && (!isAuthenticated || (role !== "chauffeur" && role !== "admin"))) {
       navigate({ to: "/connexion" });
     }
