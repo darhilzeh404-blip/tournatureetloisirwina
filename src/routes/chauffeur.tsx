@@ -432,7 +432,9 @@ function GpsPanel({ trip, client, driverFix, gpsLoading, onClose, onLocate }: {
         <div className="relative flex-1 min-h-0">
           {markers.length > 0 ? (
             <MapErrorBoundary>
-              <LiveMap markers={markers} center={center} zoom={14} showRoute height="100%" followMarkerId={driverFix ? "driver" : undefined} />
+              <Suspense fallback={<div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
+                <LiveMap markers={markers} center={center} zoom={14} showRoute height="100%" followMarkerId={driverFix ? "driver" : undefined} />
+              </Suspense>
             </MapErrorBoundary>
           ) : (
             <div className="flex h-full items-center justify-center p-8 text-center text-muted-foreground">
