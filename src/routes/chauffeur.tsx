@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Bell, Check, Crosshair, Loader2, LocateFixed, LogOut, MapPin, Navigation, RefreshCw, Route as RouteIcon, ShieldAlert, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import type { MapMarker } from "@/components/LiveMap";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -52,6 +52,7 @@ interface DriverFix {
 }
 
 const activeStatuses = ["pending", "assigned", "active"];
+const LiveMap = lazy(() => import("@/components/LiveMap").then((module) => ({ default: module.LiveMap })));
 
 function ChauffeurPage() {
   const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
