@@ -394,7 +394,7 @@ function GpsPanel({ trip, client, driverFix, gpsLoading, onClose, onLocate }: {
   onLocate: () => void;
 }) {
   const { position: clientPosition } = useClientPosition(trip.client_id);
-  const markers = useMemo(() => buildMarkers(trip, driverFix, clientPosition, client?.full_name), [client?.full_name, clientPosition, driverFix, trip]);
+  const markers = useMemo(() => buildMarkers(trip, driverFix, clientPosition, client?.full_name ?? undefined), [client?.full_name, clientPosition, driverFix, trip]);
   const center = driverFix
     ? [driverFix.latitude, driverFix.longitude] as [number, number]
     : markers[0]
