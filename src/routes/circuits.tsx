@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Globe, ArrowRight } from "lucide-react";
+import { Globe, ArrowRight, CarFront } from "lucide-react";
 import { fetchOffersByType, type Offer } from "@/server/fetch-offers";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
@@ -33,6 +33,16 @@ function CircuitsPage() {
   const offers = Route.useLoaderData();
   const [circuits, setCircuits] = useState<Circuit[]>([]);
   const [target, setTarget] = useState<BookingTarget | null>(null);
+
+  const vtcHref = (destination: string, source: string) => {
+    const params = new URLSearchParams({
+      pickup: "Mon hôtel",
+      destination: `Point de départ — ${destination}`,
+      scheduled_at: nextMorningAtEight(),
+      source,
+    });
+    return `/vtc?${params.toString()}`;
+  };
 
   useEffect(() => {
     supabase
@@ -91,6 +101,12 @@ function CircuitsPage() {
                         Réserver <ArrowRight className="h-4 w-4" />
                       </button>
                     </div>
+                    <a
+                      href={vtcHref(offer.title, "circuit")}
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
+                    >
+                      <CarFront className="h-4 w-4" /> Ajouter un transfert VTC depuis mon hôtel
+                    </a>
                   </div>
                 </div>
               ))}
@@ -129,6 +145,12 @@ function CircuitsPage() {
                         Réserver <ArrowRight className="h-4 w-4" />
                       </button>
                     </div>
+                    <a
+                      href={vtcHref(c.nom, "circuit")}
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
+                    >
+                      <CarFront className="h-4 w-4" /> Ajouter un transfert VTC depuis mon hôtel
+                    </a>
                   </div>
                 </article>
               ))}
@@ -148,4 +170,11 @@ function CircuitsPage() {
       {target && <BookingDialog target={target} onClose={() => setTarget(null)} />}
     </>
   );
+}
+
+function nextMorningAtEight() {
+  const date = new Date(Date.now() + 48 * 3600 * 1000);
+  date.setHours(8, 0, 0, 0);
+  const offsetMs = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }

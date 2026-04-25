@@ -179,6 +179,16 @@ function ReserverTransport() {
   const busUnit = busVip ? selectedBus.vip : selectedBus.std;
   const busTotal = busUnit * busDays;
 
+  const busVtcHref = (busName = selectedBus.name) => {
+    const params = new URLSearchParams({
+      pickup: "Mon hôtel",
+      destination: `Station de départ — ${busUsage} (${busName})`,
+      scheduled_at: dateToDateTimeLocal(busDate),
+      source: "bus",
+    });
+    return `/vtc?${params.toString()}`;
+  };
+
   const submitBus = async () => {
     if (!ensureAuth()) return;
     if (!busDate) {
@@ -370,14 +380,18 @@ function ReserverTransport() {
             <Field label="Capacité">
               <div className="grid grid-cols-3 gap-2">
                 {BUS_FLEET.map((b) => (
-                  <button
-                    key={b.id}
-                    type="button"
-                    onClick={() => setBusModel(b.id)}
-                    className={`rounded-xl border px-2 py-3 text-center text-xs font-semibold transition-colors ${busModel === b.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}
-                  >
-                    {b.capacity} places
-                  </button>
+                  <div key={b.id} className={`rounded-xl border p-2 text-center transition-colors ${busModel === b.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+                    <button
+                      type="button"
+                      onClick={() => setBusModel(b.id)}
+                      className="w-full text-xs font-semibold"
+                    >
+                      {b.capacity} places
+                    </button>
+                    <a href={busVtcHref(b.name)} className="mt-2 inline-flex w-full items-center justify-center rounded-lg bg-primary/10 px-1.5 py-1.5 text-[10px] font-bold text-primary">
+                      Book a private VTC transfer
+                    </a>
+                  </div>
                 ))}
               </div>
             </Field>
@@ -489,4 +503,12 @@ function SubmitBtn({ loading, onClick, label }: { loading: boolean; onClick: () 
       {loading ? "Réservation..." : label}
     </button>
   );
+}
+
+function dateToDateTimeLocal(date: string) {
+  if (date) return `${date}T08:00`;
+  const next = new Date(Date.now() + 48 * 3600 * 1000);
+  next.setHours(8, 0, 0, 0);
+  const offsetMs = next.getTimezoneOffset() * 60000;
+  return new Date(next.getTime() - offsetMs).toISOString().slice(0, 16);
 }
