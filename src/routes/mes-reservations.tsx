@@ -58,6 +58,9 @@ function formatXAF(amount: number) {
 function summarize(details: Record<string, unknown> | null, type: ServiceType): string {
   if (!details) return SERVICE_LABEL[type];
   const d = details as Record<string, string | number | boolean>;
+  if (d.category === "VTC") {
+    return `${d.pickup ?? "Départ"} → ${d.destination ?? "Arrivée"}${d.vehicle_type ? ` — ${d.vehicle_type}` : ""}`;
+  }
   if (type === "CIRCUIT_TOURISTIQUE") {
     const dest = d.destination || d.circuit;
     const persons = d.persons ? ` — ${d.persons} pers.` : "";
@@ -259,7 +262,7 @@ function MesReservationsPage() {
                         </span>
                       </div>
                       <h3 className="mt-1 font-bold text-card-foreground">
-                        {SERVICE_LABEL[res.service_type]}
+                        {res.details?.category === "VTC" ? "Transfert privé VTC" : SERVICE_LABEL[res.service_type]}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         {summarize(res.details, res.service_type)}
@@ -281,8 +284,16 @@ function MesReservationsPage() {
                       )}
                     </div>
                   </div>
-                  {(canPay || res.trip_id) && (
+                  {(canPay || res.trip_id || res.details?.category === "VTC") && (
                     <div className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-4">
+                      {res.details?.category === "VTC" && (
+                        <Link to="/vtc/suivi/$reservationId" params={{ reservationId: res.id }}>
+                          <Button size="sm" variant="outline" className="gap-2">
+                            <MapPin className="h-4 w-4" />
+                            Suivi VTC
+                          </Button>
+                        </Link>
+                      )}
                       {res.trip_id && (
                         <Link to="/suivi/$tripId" params={{ tripId: res.trip_id }}>
                           <Button size="sm" variant="outline" className="gap-2">
