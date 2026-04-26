@@ -477,13 +477,16 @@ function TripCard({ trip, client, busy, onAccept, onRefuse, onGps }: {
   );
 }
 
-function GpsPanel({ trip, client, driverFix, gpsLoading, onClose, onLocate }: {
+function GpsPanel({ trip, client, driverFix, gpsLoading, onClose, onLocate, onStart, onComplete, busy }: {
   trip: Trip;
   client?: Profile;
   driverFix: DriverFix | null;
   gpsLoading: boolean;
   onClose: () => void;
   onLocate: () => void;
+  onStart: () => void;
+  onComplete: () => void;
+  busy: boolean;
 }) {
   const { position: clientPosition } = useClientPosition(trip.client_id);
   const markers = useMemo(() => buildMarkers(trip, driverFix, clientPosition, client?.full_name ?? undefined), [client?.full_name, clientPosition, driverFix, trip]);
@@ -529,6 +532,16 @@ function GpsPanel({ trip, client, driverFix, gpsLoading, onClose, onLocate }: {
         </div>
 
         <div className="border-t border-border bg-card p-4">
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            <Button onClick={onStart} disabled={busy || trip.status === "active"} variant="secondary" className="h-12 rounded-2xl gap-2">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Commencer
+            </Button>
+            <Button onClick={onComplete} disabled={busy} className="h-12 rounded-2xl gap-2">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Terminer
+            </Button>
+          </div>
           <div className="rounded-2xl border border-border bg-background p-3">
             <p className="text-xs text-muted-foreground">Trajet</p>
             <p className="truncate text-sm font-semibold">{trip.origin_address || "Départ"}</p>
