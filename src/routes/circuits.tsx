@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Globe, ArrowRight, CarFront } from "lucide-react";
+import { Globe, ArrowRight, CarFront, Navigation } from "lucide-react";
 import { fetchOffersByType, type Offer } from "@/server/fetch-offers";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
@@ -43,6 +43,13 @@ function CircuitsPage() {
     });
     return `/vtc?${params.toString()}`;
   };
+
+  const gpsSlug = (value: string) => value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
   useEffect(() => {
     supabase
@@ -107,6 +114,13 @@ function CircuitsPage() {
                     >
                       <CarFront className="h-4 w-4" /> Ajouter un transfert VTC depuis mon hôtel
                     </a>
+                    <Link
+                      to="/circuits/suivi/$slug"
+                      params={{ slug: gpsSlug(offer.title) }}
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border bg-card px-4 py-2 text-xs font-bold text-foreground transition-colors hover:bg-secondary"
+                    >
+                      <Navigation className="h-4 w-4 text-primary" /> Suivre le GPS vers ce circuit
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -151,6 +165,13 @@ function CircuitsPage() {
                     >
                       <CarFront className="h-4 w-4" /> Ajouter un transfert VTC depuis mon hôtel
                     </a>
+                    <Link
+                      to="/circuits/suivi/$slug"
+                      params={{ slug: gpsSlug(c.slug || c.nom) }}
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border bg-card px-4 py-2 text-xs font-bold text-foreground transition-colors hover:bg-secondary"
+                    >
+                      <Navigation className="h-4 w-4 text-primary" /> Suivre le GPS vers ce circuit
+                    </Link>
                   </div>
                 </article>
               ))}

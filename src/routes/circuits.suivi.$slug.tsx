@@ -1,0 +1,119 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, Clock, LocateFixed, MapPin, Navigation, Route as RouteIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import { distanceKm, estimateEtaMinutes, useGeolocation } from "@/hooks/use-geolocation";
+import { useOsrmRoute } from "@/hooks/use-osrm-route";
+
+export const Route = createFileRoute("/circuits/suivi/$slug")({
+  head: () => ({
+    meta: [
+      { title: "GPS circuit — Agence Wina" },
+      { name: "description", content: "Suivez l’itinéraire GPS depuis votre position vers le circuit touristique choisi." },
+    ],
+  }),
+  component: CircuitGpsPage,
+});
+
+const CIRCUIT_POINTS: Record<string, { name: string; lat: number; lng: number }> = {
+  "akanda-pongara": { name: "Parcs Nationaux d’Akanda et Pongara", lat: 0.5009, lng: 9.3274 },
+  "parcs-nationaux-dakanda-et-pongara": { name: "Parcs Nationaux d’Akanda et Pongara", lat: 0.5009, lng: 9.3274 },
+  "wonga-wongue": { name: "Réserve de Wonga Wongué", lat: -0.5907, lng: 9.3778 },
+  "reserve-de-wonga-wongue": { name: "Réserve de Wonga Wongué", lat: -0.5907, lng: 9.3778 },
+  "meyang": { name: "Chutes de Meyang", lat: 0.3542, lng: 10.0669 },
+  "chutes-de-meyang": { name: "Chutes de Meyang", lat: 0.3542, lng: 10.0669 },
+  cocobeach: { name: "Cocobeach", lat: 1.0007, lng: 9.5821 },
+  "baie-de-la-mondah": { name: "Baie de la Mondah", lat: 0.5812, lng: 9.3636 },
+  "arboretum-raponda-walker": { name: "Arboretum Raponda Walker", lat: 0.5097, lng: 9.3994 },
+};
+
+function CircuitGpsPage() {
+  const { slug } = Route.useParams();
+  const destination = CIRCUIT_POINTS[slug] ?? { name: titleFromSlug(slug), lat: 0.4162, lng: 9.4673 };
+  const { position, error } = useGeolocation({ enabled: true });
+  const from = position ? { lat: position.latitude, lng: position.longitude } : null;
+  const to = { lat: destination.lat, lng: destination.lng };
+  const refreshKey = position ? `${position.latitude.toFixed(3)}-${position.longitude.toFixed(3)}` : "waiting";
+  const { route, loading: routeLoading } = useOsrmRoute(from, to, Boolean(from), refreshKey);
+  const fallbackDistance = position ? distanceKm(position, { latitude: destination.lat, longitude: destination.lng }) : null;
+  const distance = route?.distanceKm ?? fallbackDistance;
+  const eta = route?.durationMin ?? (fallbackDistance ? estimateEtaMinutes(fallbackDistance) : null);
+
+  const markers: MapMarker[] = [
+    { id: "destination", type: "destination", lat: destination.lat, lng: destination.lng, label: destination.name },
+  ];
+  if (position) {
+    markers.unshift({ id: "client", type: "client", lat: position.latitude, lng: position.longitude, label: "Votre position" });
+  }
+
+  return (
+    <div className="flex h-screen flex-col bg-background">
+      <header className="flex items-center gap-3 border-b bg-card p-3">
+        <Link to="/circuits">
+          <Button size="icon" variant="ghost"><ArrowLeft className="h-5 w-5" /></Button>
+        </Link>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate font-bold">GPS circuit</h1>
+          <p className="truncate text-xs text-muted-foreground">Vers {destination.name}</p>
+        </div>
+        <Badge className="border-success/30 bg-success/10 text-success">Actif</Badge>
+      </header>
+
+      <main className="relative flex-1">
+        <LiveMap
+          markers={markers}
+          showRoute
+          routePath={route?.geometry}
+          followMarkerId={position ? "client" : undefined}
+          height="100%"
+        />
+
+        <div className="absolute left-4 right-4 top-4 rounded-2xl border bg-card/95 p-4 shadow-lg backdrop-blur">
+          <div className="flex items-start gap-3">
+            <div className="rounded-full bg-primary/10 p-3"><RouteIcon className="h-5 w-5 text-primary" /></div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold">{destination.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {position ? "Votre position GPS est suivie en direct." : "Autorisez la localisation pour démarrer le guidage."}
+              </p>
+              {error && <p className="mt-2 text-xs text-destructive">{error.message}</p>}
+            </div>
+          </div>
+        </div>
+
+        <div className="absolute bottom-4 left-4 right-4 rounded-2xl border bg-card/95 p-4 shadow-lg backdrop-blur">
+          <div className="grid grid-cols-3 gap-3 text-center text-sm">
+            <div>
+              <MapPin className="mx-auto h-4 w-4 text-primary" />
+              <p className="mt-1 text-xs text-muted-foreground">Distance</p>
+              <p className="font-bold">{distance ? `${distance.toFixed(1)} km` : "—"}</p>
+            </div>
+            <div>
+              <Clock className="mx-auto h-4 w-4 text-primary" />
+              <p className="mt-1 text-xs text-muted-foreground">ETA</p>
+              <p className="font-bold">{routeLoading ? "…" : eta ? `${eta} min` : "—"}</p>
+            </div>
+            <div>
+              <LocateFixed className="mx-auto h-4 w-4 text-primary" />
+              <p className="mt-1 text-xs text-muted-foreground">GPS</p>
+              <p className="font-bold">{position ? "OK" : "Attente"}</p>
+            </div>
+          </div>
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-primary-foreground"
+          >
+            <Navigation className="h-4 w-4" /> Ouvrir dans Maps
+          </a>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function titleFromSlug(slug: string) {
+  return slug.split("-").filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+}
