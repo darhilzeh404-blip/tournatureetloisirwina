@@ -52,6 +52,7 @@ function TripTrackingPage() {
         .from("trips")
         .select("*")
         .eq("id", tripId)
+        .is("archived_at", null)
         .maybeSingle();
       if (!mounted) return;
       setTrip(data as Trip | null);
@@ -72,7 +73,11 @@ function TripTrackingPage() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "trips", filter: `id=eq.${tripId}` },
-        (payload) => mounted && setTrip(payload.new as Trip)
+        (payload) => {
+          if (!mounted) return;
+          const next = payload.new as Trip & { archived_at?: string | null };
+          setTrip(next.archived_at || next.status === "completed" ? null : next);
+        }
       )
       .subscribe();
 
