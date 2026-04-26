@@ -19,6 +19,43 @@ interface Point {
   lng: number;
 }
 
+interface OsrmRawStep {
+  name?: string;
+  distance: number;
+  duration: number;
+  maneuver: {
+    type: string;
+    modifier?: string;
+    location: [number, number];
+  };
+}
+
+function formatStep(step: OsrmRawStep): OsrmStep {
+  const road = step.name ? ` sur ${step.name}` : "";
+  const action = instructionFor(step.maneuver.type, step.maneuver.modifier);
+  return {
+    instruction: `${action}${road}`,
+    distanceM: step.distance,
+    durationMin: Math.max(1, Math.round(step.duration / 60)),
+    location: { lat: step.maneuver.location[1], lng: step.maneuver.location[0] },
+  };
+}
+
+function instructionFor(type: string, modifier?: string) {
+  if (type === "depart") return "Démarrer";
+  if (type === "arrive") return "Vous êtes arrivé";
+  if (type === "roundabout") return "Entrer dans le rond-point";
+  if (type === "merge") return "Rejoindre la voie";
+  if (type === "new name") return "Continuer";
+  if (type === "turn") {
+    if (modifier?.includes("left")) return "Tourner à gauche";
+    if (modifier?.includes("right")) return "Tourner à droite";
+  }
+  if (modifier?.includes("left")) return "Rester à gauche";
+  if (modifier?.includes("right")) return "Rester à droite";
+  return "Continuer tout droit";
+}
+
 /**
  * Fetches a real road route from OSRM (public demo server, free, no API key).
  * Returns null while loading or on error.
