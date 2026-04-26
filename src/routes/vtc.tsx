@@ -80,7 +80,7 @@ function VtcPage() {
     setLoading(true);
     try {
       const reservationDate = scheduledAt.slice(0, 10);
-      const { error } = await supabase.from("reservations").insert({
+      const { data, error } = await supabase.from("reservations").insert({
         user_id: user.id,
         service_type: "LOCATION_BUS" as const,
         reservation_date: reservationDate,
@@ -96,10 +96,10 @@ function VtcPage() {
           estimated_price: estimate,
           source: search.get("source") || "direct",
         },
-      });
+      }).select("id").single();
       if (error) throw error;
       toast.success("Transfert VTC pré-réservé");
-      navigate({ to: "/mes-reservations" });
+      navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de la réservation VTC");
     } finally {

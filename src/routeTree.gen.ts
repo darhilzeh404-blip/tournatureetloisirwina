@@ -41,6 +41,7 @@ import { Route as AdminOffresRouteImport } from './routes/admin/offres'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
+import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 
 const VtcRoute = VtcRouteImport.update({
@@ -203,6 +204,11 @@ const AdminBusRoute = AdminBusRouteImport.update({
   path: '/bus',
   getParentRoute: () => AdminRoute,
 } as any)
+const VtcSuiviReservationIdRoute = VtcSuiviReservationIdRouteImport.update({
+  id: '/suivi/$reservationId',
+  path: '/suivi/$reservationId',
+  getParentRoute: () => VtcRoute,
+} as any)
 const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
   id: '/api/admin/create-user',
   path: '/api/admin/create-user',
@@ -227,7 +233,7 @@ export interface FileRoutesByFullPath {
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
-  '/vtc': typeof VtcRoute
+  '/vtc': typeof VtcRouteWithChildren
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -261,7 +268,7 @@ export interface FileRoutesByTo {
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
-  '/vtc': typeof VtcRoute
+  '/vtc': typeof VtcRouteWithChildren
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -277,6 +284,7 @@ export interface FileRoutesByTo {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin': typeof AdminIndexRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -297,7 +305,7 @@ export interface FileRoutesById {
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
-  '/vtc': typeof VtcRoute
+  '/vtc': typeof VtcRouteWithChildren
   '/admin/bus': typeof AdminBusRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -313,6 +321,7 @@ export interface FileRoutesById {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -350,6 +359,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin/'
     | '/api/admin/create-user'
+    | '/vtc/suivi/$reservationId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin'
     | '/api/admin/create-user'
+    | '/vtc/suivi/$reservationId'
   id:
     | '__root__'
     | '/'
@@ -419,6 +430,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin/'
     | '/api/admin/create-user'
+    | '/vtc/suivi/$reservationId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -439,7 +451,7 @@ export interface RootRouteChildren {
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
   TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
-  VtcRoute: typeof VtcRoute
+  VtcRoute: typeof VtcRouteWithChildren
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
@@ -671,6 +683,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBusRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/vtc/suivi/$reservationId': {
+      id: '/vtc/suivi/$reservationId'
+      path: '/suivi/$reservationId'
+      fullPath: '/vtc/suivi/$reservationId'
+      preLoaderRoute: typeof VtcSuiviReservationIdRouteImport
+      parentRoute: typeof VtcRoute
+    }
     '/api/admin/create-user': {
       id: '/api/admin/create-user'
       path: '/api/admin/create-user'
@@ -723,6 +742,16 @@ const ChauffeurRouteWithChildren = ChauffeurRoute._addFileChildren(
   ChauffeurRouteChildren,
 )
 
+interface VtcRouteChildren {
+  VtcSuiviReservationIdRoute: typeof VtcSuiviReservationIdRoute
+}
+
+const VtcRouteChildren: VtcRouteChildren = {
+  VtcSuiviReservationIdRoute: VtcSuiviReservationIdRoute,
+}
+
+const VtcRouteWithChildren = VtcRoute._addFileChildren(VtcRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivitesRoute: ActivitesRoute,
@@ -741,7 +770,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
   TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
-  VtcRoute: VtcRoute,
+  VtcRoute: VtcRouteWithChildren,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
