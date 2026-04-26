@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { ArrowLeft, Clock, LocateFixed, MapPin, Navigation, Route as RouteIcon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, CheckCircle2, Clock, LocateFixed, MapPin, Navigation, Route as RouteIcon, Volume2, VolumeX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
@@ -32,8 +32,11 @@ const CIRCUIT_POINTS: Record<string, { name: string; lat: number; lng: number }>
 function CircuitGpsPage() {
   const { slug } = Route.useParams();
   const [guidance, setGuidance] = useState(false);
+  const [voiceGuidance, setVoiceGuidance] = useState(false);
+  const [arrived, setArrived] = useState(false);
+  const lastSpokenStepRef = useRef<number | null>(null);
   const destination = CIRCUIT_POINTS[slug] ?? { name: titleFromSlug(slug), lat: 0.4162, lng: 9.4673 };
-  const { position, error } = useGeolocation({ enabled: true });
+  const { position, error } = useGeolocation({ enabled: !arrived });
   const from = position ? { lat: position.latitude, lng: position.longitude } : null;
   const to = { lat: destination.lat, lng: destination.lng };
   const refreshKey = position ? `${position.latitude.toFixed(3)}-${position.longitude.toFixed(3)}` : "waiting";
@@ -56,6 +59,29 @@ function CircuitGpsPage() {
   }, [position, route?.steps]);
   const activeStep = route?.steps[activeStepIndex];
 
+  useEffect(() => {
+    if (!guidance || !voiceGuidance || !activeStep || arrived || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (lastSpokenStepRef.current === activeStepIndex) return;
+    lastSpokenStepRef.current = activeStepIndex;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(`${activeStep.instruction}. Dans ${formatStepDistance(activeStep.distanceM)}.`);
+    utterance.lang = "fr-FR";
+    utterance.rate = 0.95;
+    window.speechSynthesis.speak(utterance);
+  }, [activeStep, activeStepIndex, arrived, guidance, voiceGuidance]);
+
+  const finishGuidance = () => {
+    setArrived(true);
+    setGuidance(false);
+    setVoiceGuidance(false);
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(`Vous êtes arrivé à ${destination.name}. Fin du guidage.`);
+      utterance.lang = "fr-FR";
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   const markers: MapMarker[] = [
     { id: "destination", type: "destination", lat: destination.lat, lng: destination.lng, label: destination.name },
   ];
@@ -73,7 +99,7 @@ function CircuitGpsPage() {
           <h1 className="truncate font-bold">GPS circuit</h1>
           <p className="truncate text-xs text-muted-foreground">Vers {destination.name}</p>
         </div>
-        <Badge className="border-success/30 bg-success/10 text-success">Actif</Badge>
+        <Badge className={arrived ? "border-success/30 bg-success/10 text-success" : "border-success/30 bg-success/10 text-success"}>{arrived ? "Arrivé" : "Actif"}</Badge>
       </header>
 
       <main className="relative flex-1">
@@ -98,13 +124,31 @@ function CircuitGpsPage() {
           </div>
           <Button
             type="button"
-            onClick={() => setGuidance((value) => !value)}
-            disabled={!position}
+            onClick={() => {
+              setArrived(false);
+              setGuidance((value) => !value);
+            }}
+            disabled={!position || arrived}
             className="mt-3 w-full rounded-2xl gap-2"
             variant={guidance ? "default" : "secondary"}
           >
             <Navigation className="h-4 w-4" /> {guidance ? "Mode guidage activé" : "Activer le mode guidage"}
           </Button>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              onClick={() => setVoiceGuidance((value) => !value)}
+              disabled={!guidance || arrived}
+              className="rounded-2xl gap-2"
+              variant="outline"
+            >
+              {voiceGuidance ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {voiceGuidance ? "Voix active" : "Guidage vocal"}
+            </Button>
+            <Button type="button" onClick={finishGuidance} disabled={arrived} className="rounded-2xl gap-2" variant="secondary">
+              <CheckCircle2 className="h-4 w-4" /> Je suis arrivé
+            </Button>
+          </div>
         </div>
 
         {guidance && activeStep && (
@@ -112,8 +156,16 @@ function CircuitGpsPage() {
             <p className="text-xs font-semibold opacity-80">Étape {activeStepIndex + 1}/{route?.steps.length}</p>
             <p className="mt-1 text-lg font-extrabold leading-snug">{activeStep.instruction}</p>
             <p className="mt-2 text-xs opacity-85">
-              Dans {activeStep.distanceM >= 1000 ? `${(activeStep.distanceM / 1000).toFixed(1)} km` : `${Math.round(activeStep.distanceM)} m`} · environ {activeStep.durationMin} min
+              Dans {formatStepDistance(activeStep.distanceM)} · environ {activeStep.durationMin} min
             </p>
+          </div>
+        )}
+
+        {arrived && (
+          <div className="absolute left-4 right-4 top-36 rounded-2xl border border-success/30 bg-card/95 p-4 text-center shadow-xl backdrop-blur">
+            <CheckCircle2 className="mx-auto h-8 w-8 text-success" />
+            <p className="mt-2 font-extrabold">Arrivée confirmée</p>
+            <p className="mt-1 text-xs text-muted-foreground">Le guidage vers ce circuit est terminé.</p>
           </div>
         )}
 
