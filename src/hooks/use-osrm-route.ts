@@ -4,6 +4,14 @@ export interface OsrmRoute {
   geometry: [number, number][]; // [lat, lng] pairs
   distanceKm: number;
   durationMin: number;
+  steps: OsrmStep[];
+}
+
+export interface OsrmStep {
+  instruction: string;
+  distanceM: number;
+  durationMin: number;
+  location: { lat: number; lng: number };
 }
 
 interface Point {
@@ -41,7 +49,7 @@ export function useOsrmRoute(
         const url =
           `https://router.project-osrm.org/route/v1/driving/` +
           `${from.lng},${from.lat};${to.lng},${to.lat}` +
-          `?overview=full&geometries=geojson`;
+          `?overview=full&geometries=geojson&steps=true`;
 
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error(`OSRM ${res.status}`);
@@ -62,6 +70,7 @@ export function useOsrmRoute(
           geometry: coords,
           distanceKm: r.distance / 1000,
           durationMin: Math.round(r.duration / 60),
+          steps: ((r.legs?.[0]?.steps ?? []) as OsrmRawStep[]).map(formatStep),
         });
       } catch (e) {
         if (cancelled || (e as Error).name === "AbortError") return;
