@@ -9,6 +9,7 @@ export interface DriverPosition {
   heading: number | null;
   speed: number | null;
   updated_at: string;
+  archived_at: string | null;
 }
 
 /**
