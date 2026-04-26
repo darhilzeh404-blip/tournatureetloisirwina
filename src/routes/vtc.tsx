@@ -7,12 +7,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFCFA } from "@/lib/destinations";
 
-type VehicleType = "berline" | "4x4" | "van";
+type VehicleType = "eco" | "berline" | "confort" | "premium" | "4x4" | "suv" | "van" | "minibus";
 
 const VEHICLES: Record<VehicleType, { label: string; seats: string; base: number }> = {
+  eco: { label: "Éco", seats: "1–3 passagers", base: 12000 },
   berline: { label: "Berline", seats: "1–3 passagers", base: 15000 },
+  confort: { label: "Confort", seats: "1–4 passagers", base: 18000 },
+  premium: { label: "Premium", seats: "1–3 passagers", base: 26000 },
   "4x4": { label: "4x4", seats: "1–4 passagers", base: 22000 },
+  suv: { label: "SUV", seats: "1–5 passagers", base: 25000 },
   van: { label: "Van", seats: "1–7 passagers", base: 30000 },
+  minibus: { label: "Minibus", seats: "8–14 passagers", base: 45000 },
 };
 
 export const Route = createFileRoute("/vtc")({
@@ -137,9 +142,9 @@ function VtcPage() {
         </Field>
 
         <Field label="Type de véhicule" icon={<CarFront className="h-4 w-4 text-primary" />}>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(Object.keys(VEHICLES) as VehicleType[]).map((key) => (
-              <button key={key} type="button" onClick={() => setVehicle(key)} className={`rounded-xl border px-2 py-3 text-center text-xs font-semibold transition-colors ${vehicle === key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+              <button key={key} type="button" onClick={() => setVehicle(key)} className={`min-h-20 rounded-xl border px-2 py-3 text-center text-xs font-semibold transition-colors ${vehicle === key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
                 <span className="block font-bold">{VEHICLES[key].label}</span>
                 <span>{VEHICLES[key].seats}</span>
               </button>
