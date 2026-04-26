@@ -31,6 +31,7 @@ export function useDriverPosition(driverId: string | null | undefined) {
       .from("driver_positions")
       .select("*")
       .eq("driver_id", driverId)
+      .is("archived_at", null)
       .maybeSingle()
       .then(({ data }) => {
         if (mounted && data) setPosition(data as DriverPosition);
@@ -49,7 +50,8 @@ export function useDriverPosition(driverId: string | null | undefined) {
         (payload) => {
           if (!mounted) return;
           const next = payload.new as DriverPosition | null;
-          if (next) setPosition(next);
+        if (next?.archived_at) setPosition(null);
+        else if (next) setPosition(next);
         }
       )
       .subscribe();
@@ -75,6 +77,7 @@ export function useAllDriverPositions() {
     supabase
       .from("driver_positions")
       .select("*")
+      .is("archived_at", null)
       .then(({ data }) => {
         if (mounted && data) setPositions(data as DriverPosition[]);
       });
@@ -93,6 +96,10 @@ export function useAllDriverPositions() {
             return;
           }
           if (!newRow) return;
+          if (newRow.archived_at) {
+            setPositions((prev) => prev.filter((p) => p.driver_id !== newRow.driver_id));
+            return;
+          }
           setPositions((prev) => {
             const exists = prev.some((p) => p.driver_id === newRow.driver_id);
             return exists
