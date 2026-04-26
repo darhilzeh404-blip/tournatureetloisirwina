@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { ArrowLeft, Clock, LocateFixed, MapPin, Navigation, Route as RouteIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ const CIRCUIT_POINTS: Record<string, { name: string; lat: number; lng: number }>
 
 function CircuitGpsPage() {
   const { slug } = Route.useParams();
+  const [guidance, setGuidance] = useState(false);
   const destination = CIRCUIT_POINTS[slug] ?? { name: titleFromSlug(slug), lat: 0.4162, lng: 9.4673 };
   const { position, error } = useGeolocation({ enabled: true });
   const from = position ? { lat: position.latitude, lng: position.longitude } : null;
@@ -39,6 +41,20 @@ function CircuitGpsPage() {
   const fallbackDistance = position ? distanceKm(position, { latitude: destination.lat, longitude: destination.lng }) : null;
   const distance = route?.distanceKm ?? fallbackDistance;
   const eta = route?.durationMin ?? (fallbackDistance ? estimateEtaMinutes(fallbackDistance) : null);
+  const activeStepIndex = useMemo(() => {
+    if (!position || !route?.steps.length) return 0;
+    let bestIndex = 0;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    route.steps.forEach((step, index) => {
+      const d = distanceKm(position, { latitude: step.location.lat, longitude: step.location.lng });
+      if (d < bestDistance) {
+        bestDistance = d;
+        bestIndex = index;
+      }
+    });
+    return Math.min(bestIndex + (bestDistance < 0.04 ? 1 : 0), route.steps.length - 1);
+  }, [position, route?.steps]);
+  const activeStep = route?.steps[activeStepIndex];
 
   const markers: MapMarker[] = [
     { id: "destination", type: "destination", lat: destination.lat, lng: destination.lng, label: destination.name },
@@ -80,7 +96,26 @@ function CircuitGpsPage() {
               {error && <p className="mt-2 text-xs text-destructive">{error.message}</p>}
             </div>
           </div>
+          <Button
+            type="button"
+            onClick={() => setGuidance((value) => !value)}
+            disabled={!position}
+            className="mt-3 w-full rounded-2xl gap-2"
+            variant={guidance ? "default" : "secondary"}
+          >
+            <Navigation className="h-4 w-4" /> {guidance ? "Mode guidage activé" : "Activer le mode guidage"}
+          </Button>
         </div>
+
+        {guidance && activeStep && (
+          <div className="absolute left-4 right-4 top-36 rounded-2xl border bg-primary p-4 text-primary-foreground shadow-xl">
+            <p className="text-xs font-semibold opacity-80">Étape {activeStepIndex + 1}/{route?.steps.length}</p>
+            <p className="mt-1 text-lg font-extrabold leading-snug">{activeStep.instruction}</p>
+            <p className="mt-2 text-xs opacity-85">
+              Dans {activeStep.distanceM >= 1000 ? `${(activeStep.distanceM / 1000).toFixed(1)} km` : `${Math.round(activeStep.distanceM)} m`} · environ {activeStep.durationMin} min
+            </p>
+          </div>
+        )}
 
         <div className="absolute bottom-4 left-4 right-4 rounded-2xl border bg-card/95 p-4 shadow-lg backdrop-blur">
           <div className="grid grid-cols-3 gap-3 text-center text-sm">
@@ -108,6 +143,21 @@ function CircuitGpsPage() {
           >
             <Navigation className="h-4 w-4" /> Ouvrir dans Maps
           </a>
+          {guidance && route?.steps.length ? (
+            <div className="mt-3 max-h-36 overflow-y-auto rounded-xl border bg-background p-2">
+              {route.steps.slice(activeStepIndex, activeStepIndex + 4).map((step, index) => (
+                <div key={`${step.instruction}-${index}`} className="flex gap-2 border-b py-2 last:border-b-0">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    {activeStepIndex + index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold">{step.instruction}</p>
+                    <p className="text-[11px] text-muted-foreground">{Math.round(step.distanceM)} m · {step.durationMin} min</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </main>
     </div>
