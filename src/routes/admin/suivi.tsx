@@ -35,7 +35,8 @@ function AdminTrackingPage() {
       const { data: tripsData } = await supabase
         .from("trips")
         .select("*")
-        .in("status", ["pending", "active"]);
+        .in("status", ["pending", "assigned", "active"])
+        .is("archived_at", null);
       if (!mounted) return;
       setTrips((tripsData as Trip[]) || []);
 
@@ -87,7 +88,7 @@ function AdminTrackingPage() {
   }));
 
   const activeTrips = trips.filter((t) => t.status === "active");
-  const pendingTrips = trips.filter((t) => t.status === "pending");
+  const pendingTrips = trips.filter((t) => t.status === "pending" || t.status === "assigned");
 
   return (
     <div className="p-4 lg:p-6 h-screen flex flex-col">

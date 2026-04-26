@@ -213,6 +213,7 @@ function ChauffeurPage() {
         accuracy: fix.accuracy,
         heading: fix.heading,
         speed: fix.speed,
+        archived_at: null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "driver_id" }
@@ -263,6 +264,53 @@ function ChauffeurPage() {
     setGpsTrip(trip);
     const fix = await getDriverPosition().catch(() => null);
     if (fix) await saveDriverPosition(trip, fix);
+  };
+
+  const startTrip = async (trip: Trip) => {
+    setBusyTripId(trip.id);
+    try {
+      const fix = await getDriverPosition().catch(() => null);
+      const { error } = await supabase
+        .from("trips")
+        .update({ status: "active", started_at: new Date().toISOString(), archived_at: null })
+        .eq("id", trip.id);
+      if (error) throw error;
+      if (fix) await saveDriverPosition(trip, fix);
+      setGpsTrip((current) => current?.id === trip.id ? { ...current, status: "active" } : current);
+      notify("Course commencée", "Le client peut suivre votre position en direct.");
+      await loadTrips(true);
+    } catch (error) {
+      console.error("[chauffeur] start", error);
+      toast.error("Impossible de commencer cette course.");
+    } finally {
+      setBusyTripId(null);
+    }
+  };
+
+  const completeTrip = async (trip: Trip) => {
+    if (!user) return;
+    setBusyTripId(trip.id);
+    try {
+      const finishedAt = new Date().toISOString();
+      const { error } = await supabase
+        .from("trips")
+        .update({ status: "completed", completed_at: finishedAt, archived_at: finishedAt })
+        .eq("id", trip.id);
+      if (error) throw error;
+      await supabase
+        .from("driver_positions")
+        .update({ archived_at: finishedAt, updated_at: finishedAt })
+        .eq("driver_id", user.id)
+        .eq("trip_id", trip.id);
+      setTrips((current) => current.filter((item) => item.id !== trip.id));
+      setGpsTrip(null);
+      notify("Course terminée", "Elle est retirée du suivi client et du GPS admin.");
+    } catch (error) {
+      console.error("[chauffeur] complete", error);
+      toast.error("Impossible de terminer cette course.");
+    } finally {
+      setBusyTripId(null);
+    }
   };
 
   const refreshNow = useCallback(async (silent = false) => {
@@ -368,6 +416,9 @@ function ChauffeurPage() {
             const fix = await getDriverPosition().catch(() => null);
             if (fix) await saveDriverPosition(gpsTrip, fix);
           }}
+          onStart={() => startTrip(gpsTrip)}
+          onComplete={() => completeTrip(gpsTrip)}
+          busy={busyTripId === gpsTrip.id}
         />
       )}
     </main>
@@ -426,13 +477,16 @@ function TripCard({ trip, client, busy, onAccept, onRefuse, onGps }: {
   );
 }
 
-function GpsPanel({ trip, client, driverFix, gpsLoading, onClose, onLocate }: {
+function GpsPanel({ trip, client, driverFix, gpsLoading, onClose, onLocate, onStart, onComplete, busy }: {
   trip: Trip;
   client?: Profile;
   driverFix: DriverFix | null;
   gpsLoading: boolean;
   onClose: () => void;
   onLocate: () => void;
+  onStart: () => void;
+  onComplete: () => void;
+  busy: boolean;
 }) {
   const { position: clientPosition } = useClientPosition(trip.client_id);
   const markers = useMemo(() => buildMarkers(trip, driverFix, clientPosition, client?.full_name ?? undefined), [client?.full_name, clientPosition, driverFix, trip]);
@@ -478,6 +532,16 @@ function GpsPanel({ trip, client, driverFix, gpsLoading, onClose, onLocate }: {
         </div>
 
         <div className="border-t border-border bg-card p-4">
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            <Button onClick={onStart} disabled={busy || trip.status === "active"} variant="secondary" className="h-12 rounded-2xl gap-2">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Commencer
+            </Button>
+            <Button onClick={onComplete} disabled={busy} className="h-12 rounded-2xl gap-2">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Terminer
+            </Button>
+          </div>
           <div className="rounded-2xl border border-border bg-background p-3">
             <p className="text-xs text-muted-foreground">Trajet</p>
             <p className="truncate text-sm font-semibold">{trip.origin_address || "Départ"}</p>
