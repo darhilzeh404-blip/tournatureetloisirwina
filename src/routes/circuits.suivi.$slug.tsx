@@ -219,3 +219,7 @@ function CircuitGpsPage() {
 function titleFromSlug(slug: string) {
   return slug.split("-").filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
 }
+
+function formatStepDistance(distanceM: number) {
+  return distanceM >= 1000 ? `${(distanceM / 1000).toFixed(1)} kilomètres` : `${Math.round(distanceM)} mètres`;
+}
