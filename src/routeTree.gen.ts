@@ -42,6 +42,7 @@ import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
+import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 
 const VtcRoute = VtcRouteImport.update({
@@ -209,6 +210,11 @@ const VtcSuiviReservationIdRoute = VtcSuiviReservationIdRouteImport.update({
   path: '/suivi/$reservationId',
   getParentRoute: () => VtcRoute,
 } as any)
+const CircuitsSuiviSlugRoute = CircuitsSuiviSlugRouteImport.update({
+  id: '/suivi/$slug',
+  path: '/suivi/$slug',
+  getParentRoute: () => CircuitsRoute,
+} as any)
 const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
   id: '/api/admin/create-user',
   path: '/api/admin/create-user',
@@ -220,7 +226,7 @@ export interface FileRoutesByFullPath {
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
   '/chauffeur': typeof ChauffeurRouteWithChildren
-  '/circuits': typeof CircuitsRoute
+  '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
@@ -249,13 +255,14 @@ export interface FileRoutesByFullPath {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
-  '/circuits': typeof CircuitsRoute
+  '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
@@ -284,6 +291,7 @@ export interface FileRoutesByTo {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin': typeof AdminIndexRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
 }
 export interface FileRoutesById {
@@ -292,7 +300,7 @@ export interface FileRoutesById {
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
   '/chauffeur': typeof ChauffeurRouteWithChildren
-  '/circuits': typeof CircuitsRoute
+  '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
 }
 export interface FileRouteTypes {
@@ -359,6 +368,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin/'
     | '/api/admin/create-user'
+    | '/circuits/suivi/$slug'
     | '/vtc/suivi/$reservationId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -394,6 +404,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin'
     | '/api/admin/create-user'
+    | '/circuits/suivi/$slug'
     | '/vtc/suivi/$reservationId'
   id:
     | '__root__'
@@ -430,6 +441,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin/'
     | '/api/admin/create-user'
+    | '/circuits/suivi/$slug'
     | '/vtc/suivi/$reservationId'
   fileRoutesById: FileRoutesById
 }
@@ -438,7 +450,7 @@ export interface RootRouteChildren {
   ActivitesRoute: typeof ActivitesRoute
   AdminRoute: typeof AdminRouteWithChildren
   ChauffeurRoute: typeof ChauffeurRouteWithChildren
-  CircuitsRoute: typeof CircuitsRoute
+  CircuitsRoute: typeof CircuitsRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
   EspaceClientRoute: typeof EspaceClientRoute
   GerantRoute: typeof GerantRoute
@@ -690,6 +702,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VtcSuiviReservationIdRouteImport
       parentRoute: typeof VtcRoute
     }
+    '/circuits/suivi/$slug': {
+      id: '/circuits/suivi/$slug'
+      path: '/suivi/$slug'
+      fullPath: '/circuits/suivi/$slug'
+      preLoaderRoute: typeof CircuitsSuiviSlugRouteImport
+      parentRoute: typeof CircuitsRoute
+    }
     '/api/admin/create-user': {
       id: '/api/admin/create-user'
       path: '/api/admin/create-user'
@@ -742,6 +761,18 @@ const ChauffeurRouteWithChildren = ChauffeurRoute._addFileChildren(
   ChauffeurRouteChildren,
 )
 
+interface CircuitsRouteChildren {
+  CircuitsSuiviSlugRoute: typeof CircuitsSuiviSlugRoute
+}
+
+const CircuitsRouteChildren: CircuitsRouteChildren = {
+  CircuitsSuiviSlugRoute: CircuitsSuiviSlugRoute,
+}
+
+const CircuitsRouteWithChildren = CircuitsRoute._addFileChildren(
+  CircuitsRouteChildren,
+)
+
 interface VtcRouteChildren {
   VtcSuiviReservationIdRoute: typeof VtcSuiviReservationIdRoute
 }
@@ -757,7 +788,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActivitesRoute: ActivitesRoute,
   AdminRoute: AdminRouteWithChildren,
   ChauffeurRoute: ChauffeurRouteWithChildren,
-  CircuitsRoute: CircuitsRoute,
+  CircuitsRoute: CircuitsRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
   EspaceClientRoute: EspaceClientRoute,
   GerantRoute: GerantRoute,
