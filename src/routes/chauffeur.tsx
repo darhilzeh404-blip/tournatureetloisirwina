@@ -213,6 +213,7 @@ function ChauffeurPage() {
         accuracy: fix.accuracy,
         heading: fix.heading,
         speed: fix.speed,
+        archived_at: null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "driver_id" }
@@ -263,6 +264,53 @@ function ChauffeurPage() {
     setGpsTrip(trip);
     const fix = await getDriverPosition().catch(() => null);
     if (fix) await saveDriverPosition(trip, fix);
+  };
+
+  const startTrip = async (trip: Trip) => {
+    setBusyTripId(trip.id);
+    try {
+      const fix = await getDriverPosition().catch(() => null);
+      const { error } = await supabase
+        .from("trips")
+        .update({ status: "active", started_at: new Date().toISOString(), archived_at: null })
+        .eq("id", trip.id);
+      if (error) throw error;
+      if (fix) await saveDriverPosition(trip, fix);
+      setGpsTrip((current) => current?.id === trip.id ? { ...current, status: "active" } : current);
+      notify("Course commencée", "Le client peut suivre votre position en direct.");
+      await loadTrips(true);
+    } catch (error) {
+      console.error("[chauffeur] start", error);
+      toast.error("Impossible de commencer cette course.");
+    } finally {
+      setBusyTripId(null);
+    }
+  };
+
+  const completeTrip = async (trip: Trip) => {
+    if (!user) return;
+    setBusyTripId(trip.id);
+    try {
+      const finishedAt = new Date().toISOString();
+      const { error } = await supabase
+        .from("trips")
+        .update({ status: "completed", completed_at: finishedAt, archived_at: finishedAt })
+        .eq("id", trip.id);
+      if (error) throw error;
+      await supabase
+        .from("driver_positions")
+        .update({ archived_at: finishedAt, updated_at: finishedAt })
+        .eq("driver_id", user.id)
+        .eq("trip_id", trip.id);
+      setTrips((current) => current.filter((item) => item.id !== trip.id));
+      setGpsTrip(null);
+      notify("Course terminée", "Elle est retirée du suivi client et du GPS admin.");
+    } catch (error) {
+      console.error("[chauffeur] complete", error);
+      toast.error("Impossible de terminer cette course.");
+    } finally {
+      setBusyTripId(null);
+    }
   };
 
   const refreshNow = useCallback(async (silent = false) => {
@@ -368,6 +416,9 @@ function ChauffeurPage() {
             const fix = await getDriverPosition().catch(() => null);
             if (fix) await saveDriverPosition(gpsTrip, fix);
           }}
+          onStart={() => startTrip(gpsTrip)}
+          onComplete={() => completeTrip(gpsTrip)}
+          busy={busyTripId === gpsTrip.id}
         />
       )}
     </main>
