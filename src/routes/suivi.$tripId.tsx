@@ -39,6 +39,25 @@ function TripTrackingPage() {
   const [driverName, setDriverName] = useState<string>("");
 
   const driverPos = useDriverPosition(trip?.driver_id ?? null);
+  const fromPoint =
+    driverPos && trip?.status === "active"
+      ? { lat: Number(driverPos.latitude), lng: Number(driverPos.longitude) }
+      : trip?.origin_lat && trip.origin_lng
+      ? { lat: Number(trip.origin_lat), lng: Number(trip.origin_lng) }
+      : null;
+  const toPoint =
+    trip?.destination_lat && trip.destination_lng
+      ? { lat: Number(trip.destination_lat), lng: Number(trip.destination_lng) }
+      : null;
+  const refreshKey = driverPos
+    ? `${Number(driverPos.latitude).toFixed(3)}-${Number(driverPos.longitude).toFixed(3)}`
+    : "static";
+  const { route: osrmRoute, loading: routeLoading } = useOsrmRoute(
+    fromPoint,
+    toPoint,
+    Boolean(fromPoint && toPoint),
+    refreshKey
+  );
 
   useEffect(() => {
     if (!isLoading && !user) navigate({ to: "/connexion" });
@@ -127,32 +146,6 @@ function TripTrackingPage() {
       label: driverName || "Chauffeur",
     });
   }
-
-  // Real road route via OSRM:
-  // - active trip with driver position → driver → destination (live ETA)
-  // - otherwise → origin → destination (planned route preview)
-  const fromPoint =
-    driverPos && trip.status === "active"
-      ? { lat: Number(driverPos.latitude), lng: Number(driverPos.longitude) }
-      : trip.origin_lat && trip.origin_lng
-      ? { lat: Number(trip.origin_lat), lng: Number(trip.origin_lng) }
-      : null;
-  const toPoint =
-    trip.destination_lat && trip.destination_lng
-      ? { lat: Number(trip.destination_lat), lng: Number(trip.destination_lng) }
-      : null;
-
-  // Re-route only when driver moves ~100m (3 decimals ≈ 110m) to avoid spamming OSRM
-  const refreshKey = driverPos
-    ? `${Number(driverPos.latitude).toFixed(3)}-${Number(driverPos.longitude).toFixed(3)}`
-    : "static";
-
-  const { route: osrmRoute, loading: routeLoading } = useOsrmRoute(
-    fromPoint,
-    toPoint,
-    Boolean(fromPoint && toPoint),
-    refreshKey
-  );
 
   const liveEta: number | null =
     osrmRoute && driverPos && trip.status === "active"
