@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
 import { useDriverPosition } from "@/hooks/use-driver-position";
+import { useShareClientPosition } from "@/hooks/use-client-position";
+import { distanceKm, estimateEtaMinutes } from "@/hooks/use-geolocation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -64,7 +66,9 @@ function VtcTrackingPage() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [driverName, setDriverName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [sharePosition, setSharePosition] = useState(false);
   const driverPos = useDriverPosition(trip?.driver_id ?? null);
+  const clientPosition = useShareClientPosition(user?.id, trip?.id, sharePosition && trip?.status !== "completed");
 
   const loadTracking = async () => {
     if (!user) return;
@@ -145,6 +149,20 @@ function VtcTrackingPage() {
 
   const details = reservation?.details ?? {};
   const status = reservation ? STATUS_COPY[reservation.status] : null;
+  const tripEta = useMemo(() => {
+    if (trip?.eta_minutes) return trip.eta_minutes;
+    if (!driverPos) return null;
+    const pickupPoint = trip?.origin_lat && trip.origin_lng ? { latitude: Number(trip.origin_lat), longitude: Number(trip.origin_lng) } : null;
+    const destinationPoint = trip?.destination_lat && trip.destination_lng ? { latitude: Number(trip.destination_lat), longitude: Number(trip.destination_lng) } : null;
+    const target = trip?.status === "active" && destinationPoint ? destinationPoint : pickupPoint;
+    if (!target) return null;
+    return estimateEtaMinutes(distanceKm({ latitude: Number(driverPos.latitude), longitude: Number(driverPos.longitude) }, target));
+  }, [driverPos, trip]);
+  const milestones = [
+    { key: "pickup", label: "Pris en charge", active: Boolean(trip), done: Boolean(trip && ["assigned", "active", "completed"].includes(trip.status)) },
+    { key: "route", label: "En route", active: trip?.status === "active", done: trip?.status === "active" || trip?.status === "completed" },
+    { key: "arrived", label: "Arrivé", active: trip?.status === "completed", done: trip?.status === "completed" },
+  ];
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Chargement du suivi VTC...</div>;
 
@@ -184,6 +202,40 @@ function VtcTrackingPage() {
           <div className="rounded-xl border bg-background p-3">
             <p className="flex items-center gap-2 text-xs text-muted-foreground"><Navigation className="h-3.5 w-3.5" /> Chauffeur</p>
             <p className="mt-1 font-semibold">{driverName || (trip?.driver_id ? "Chauffeur assigné" : "En attente")}</p>
+          </div>
+        </section>
+
+        <section className="grid gap-3 border-b bg-background p-4 text-sm lg:grid-cols-[1fr_auto]">
+          <div className="rounded-xl border bg-card p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" /> Estimation d’arrivée</p>
+                <p className="mt-1 text-lg font-extrabold">{tripEta ? `${tripEta} min` : "En attente"}</p>
+              </div>
+              <Badge variant="outline">Temps réel</Badge>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {milestones.map((step) => (
+                <div key={step.key} className={`rounded-lg border px-2 py-2 text-center ${step.done ? "border-primary/40 bg-primary/10 text-primary" : "bg-background text-muted-foreground"}`}>
+                  <span className={`mx-auto mb-1 block h-2 w-2 rounded-full ${step.active ? "bg-primary" : step.done ? "bg-primary/70" : "bg-muted"}`} />
+                  <p className="text-[11px] font-semibold">{step.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border bg-card p-3">
+            <Button
+              type="button"
+              onClick={() => setSharePosition((value) => !value)}
+              disabled={!trip || trip.status === "completed"}
+              className="w-full gap-2 rounded-xl"
+              variant={sharePosition ? "default" : "secondary"}
+            >
+              <MapPin className="h-4 w-4" /> {sharePosition ? "Position partagée" : "Partager la position avec le chauffeur"}
+            </Button>
+            <p className={`mt-2 text-xs ${clientPosition.error ? "text-destructive" : "text-muted-foreground"}`}>
+              {clientPosition.error ? clientPosition.error.message : sharePosition ? "Votre position est transmise au chauffeur." : "Activez pour faciliter le départ."}
+            </p>
           </div>
         </section>
 

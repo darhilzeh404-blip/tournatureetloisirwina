@@ -19,9 +19,10 @@ export interface ClientPosition {
  */
 export function useShareClientPosition(
   clientId: string | null | undefined,
-  activeTripId: string | null | undefined
+  activeTripId: string | null | undefined,
+  manualEnabled = true
 ) {
-  const enabled = !!clientId && !!activeTripId;
+  const enabled = manualEnabled && !!clientId && !!activeTripId;
 
   const { position, error } = useGeolocation({
     enabled,
