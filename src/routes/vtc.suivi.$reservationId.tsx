@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
 import { useDriverPosition } from "@/hooks/use-driver-position";
+import { useShareClientPosition } from "@/hooks/use-client-position";
+import { distanceKm, estimateEtaMinutes } from "@/hooks/use-geolocation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -64,7 +66,9 @@ function VtcTrackingPage() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [driverName, setDriverName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [sharePosition, setSharePosition] = useState(false);
   const driverPos = useDriverPosition(trip?.driver_id ?? null);
+  const clientPosition = useShareClientPosition(user?.id, trip?.id, sharePosition && trip?.status !== "completed");
 
   const loadTracking = async () => {
     if (!user) return;
@@ -145,6 +149,20 @@ function VtcTrackingPage() {
 
   const details = reservation?.details ?? {};
   const status = reservation ? STATUS_COPY[reservation.status] : null;
+  const tripEta = useMemo(() => {
+    if (trip?.eta_minutes) return trip.eta_minutes;
+    if (!driverPos) return null;
+    const pickupPoint = trip?.origin_lat && trip.origin_lng ? { latitude: Number(trip.origin_lat), longitude: Number(trip.origin_lng) } : null;
+    const destinationPoint = trip?.destination_lat && trip.destination_lng ? { latitude: Number(trip.destination_lat), longitude: Number(trip.destination_lng) } : null;
+    const target = trip?.status === "active" && destinationPoint ? destinationPoint : pickupPoint;
+    if (!target) return null;
+    return estimateEtaMinutes(distanceKm({ latitude: Number(driverPos.latitude), longitude: Number(driverPos.longitude) }, target));
+  }, [driverPos, trip]);
+  const milestones = [
+    { key: "pickup", label: "Pris en charge", active: Boolean(trip), done: Boolean(trip && ["assigned", "active", "completed"].includes(trip.status)) },
+    { key: "route", label: "En route", active: trip?.status === "active", done: trip?.status === "active" || trip?.status === "completed" },
+    { key: "arrived", label: "Arrivé", active: trip?.status === "completed", done: trip?.status === "completed" },
+  ];
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Chargement du suivi VTC...</div>;
 
