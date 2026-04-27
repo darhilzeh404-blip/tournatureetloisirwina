@@ -9,9 +9,14 @@ import { formatFCFA } from "@/lib/destinations";
 
 type VehicleType = "eco" | "berline" | "confort" | "premium" | "4x4" | "suv" | "van" | "minibus";
 
-const VEHICLES: Record<VehicleType, { label: string; seats: string; base: number }> = {
+const VEHICLES: Record<VehicleType, { label: string; seats: string; base: number; examples?: string }> = {
   eco: { label: "Éco", seats: "1–3 passagers", base: 12000 },
-  berline: { label: "Berline", seats: "1–3 passagers", base: 15000 },
+  berline: {
+    label: "Berline",
+    seats: "1–3 passagers",
+    base: 15000,
+    examples: "Toyota Yaris, Corolla, Starlet · Suzuki Swift, Baleno · Hyundai Sonata, Advance, i30, i40 · KIA Picanto, Morning, K3, K5, K7",
+  },
   confort: { label: "Confort", seats: "1–4 passagers", base: 18000 },
   premium: { label: "Premium", seats: "1–3 passagers", base: 26000 },
   "4x4": { label: "4x4", seats: "1–4 passagers", base: 22000 },
@@ -150,6 +155,12 @@ function VtcPage() {
               </button>
             ))}
           </div>
+          {VEHICLES[vehicle].examples && (
+            <div className="mt-3 rounded-xl border bg-card p-3 text-xs leading-relaxed text-muted-foreground">
+              <span className="font-semibold text-foreground">Exemples de berlines : </span>
+              {VEHICLES[vehicle].examples}
+            </div>
+          )}
         </Field>
 
         <Field label="Nombre de passagers" icon={<Users className="h-4 w-4 text-primary" />}>
