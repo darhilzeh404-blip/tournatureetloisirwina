@@ -205,6 +205,40 @@ function VtcTrackingPage() {
           </div>
         </section>
 
+        <section className="grid gap-3 border-b bg-background p-4 text-sm lg:grid-cols-[1fr_auto]">
+          <div className="rounded-xl border bg-card p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" /> Estimation d’arrivée</p>
+                <p className="mt-1 text-lg font-extrabold">{tripEta ? `${tripEta} min` : "En attente"}</p>
+              </div>
+              <Badge variant="outline">Temps réel</Badge>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {milestones.map((step) => (
+                <div key={step.key} className={`rounded-lg border px-2 py-2 text-center ${step.done ? "border-primary/40 bg-primary/10 text-primary" : "bg-background text-muted-foreground"}`}>
+                  <span className={`mx-auto mb-1 block h-2 w-2 rounded-full ${step.active ? "bg-primary" : step.done ? "bg-primary/70" : "bg-muted"}`} />
+                  <p className="text-[11px] font-semibold">{step.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border bg-card p-3">
+            <Button
+              type="button"
+              onClick={() => setSharePosition((value) => !value)}
+              disabled={!trip || trip.status === "completed"}
+              className="w-full gap-2 rounded-xl"
+              variant={sharePosition ? "default" : "secondary"}
+            >
+              <MapPin className="h-4 w-4" /> {sharePosition ? "Position partagée" : "Partager la position avec le chauffeur"}
+            </Button>
+            <p className={`mt-2 text-xs ${clientPosition.error ? "text-destructive" : "text-muted-foreground"}`}>
+              {clientPosition.error ? clientPosition.error.message : sharePosition ? "Votre position est transmise au chauffeur." : "Activez pour faciliter le départ."}
+            </p>
+          </div>
+        </section>
+
         <section className="relative min-h-[420px] flex-1">
           {markers.length > 0 ? (
             <LiveMap markers={markers} showRoute followMarkerId={driverPos ? "driver" : undefined} height="100%" />
