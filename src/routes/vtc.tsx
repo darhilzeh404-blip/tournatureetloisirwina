@@ -9,6 +9,23 @@ import { formatFCFA } from "@/lib/destinations";
 
 type VehicleType = "eco" | "berline" | "confort" | "premium" | "4x4" | "suv" | "van" | "minibus";
 
+const BERLINE_MODELS = [
+  { name: "Toyota Yaris", base: 15000, kmRate: 450, minuteRate: 120 },
+  { name: "Toyota Corolla", base: 17000, kmRate: 520, minuteRate: 140 },
+  { name: "Toyota Starlet", base: 15000, kmRate: 450, minuteRate: 120 },
+  { name: "Suzuki Swift", base: 15000, kmRate: 450, minuteRate: 120 },
+  { name: "Suzuki Baleno", base: 16000, kmRate: 480, minuteRate: 130 },
+  { name: "Hyundai Sonata", base: 20000, kmRate: 650, minuteRate: 180 },
+  { name: "Hyundai Advance", base: 17000, kmRate: 520, minuteRate: 140 },
+  { name: "Hyundai i30", base: 17000, kmRate: 520, minuteRate: 140 },
+  { name: "Hyundai i40", base: 19000, kmRate: 600, minuteRate: 160 },
+  { name: "KIA Picanto", base: 14000, kmRate: 420, minuteRate: 110 },
+  { name: "KIA Morning", base: 14000, kmRate: 420, minuteRate: 110 },
+  { name: "KIA K3", base: 17000, kmRate: 520, minuteRate: 140 },
+  { name: "KIA K5", base: 20000, kmRate: 650, minuteRate: 180 },
+  { name: "KIA K7", base: 23000, kmRate: 780, minuteRate: 220 },
+];
+
 const VEHICLES: Record<VehicleType, { label: string; seats: string; base: number; examples?: string }> = {
   eco: { label: "Éco", seats: "1–3 passagers", base: 12000 },
   berline: {
@@ -48,13 +65,24 @@ function VtcPage() {
   const [destination, setDestination] = useState(search.get("destination") || "");
   const [scheduledAt, setScheduledAt] = useState(search.get("scheduled_at") || "");
   const [vehicle, setVehicle] = useState<VehicleType>((search.get("vehicle") as VehicleType) || "berline");
+  const [berlineModel, setBerlineModel] = useState(BERLINE_MODELS[0].name);
   const [passengers, setPassengers] = useState(Number(search.get("passengers") || "1"));
+  const [distanceKm, setDistanceKm] = useState(Number(search.get("distance_km") || "0"));
+  const [etaMinutes, setEtaMinutes] = useState(Number(search.get("eta_minutes") || "0"));
   const [loading, setLoading] = useState(false);
 
-  const estimate = useMemo(() => {
+  const selectedBerline = BERLINE_MODELS.find((model) => model.name === berlineModel) ?? BERLINE_MODELS[0];
+  const estimateDetails = useMemo(() => {
+    const activeBase = vehicle === "berline" ? selectedBerline.base : VEHICLES[vehicle].base;
+    const kmRate = vehicle === "berline" ? selectedBerline.kmRate : Math.round(VEHICLES[vehicle].base * 0.035);
+    const minuteRate = vehicle === "berline" ? selectedBerline.minuteRate : Math.round(VEHICLES[vehicle].base * 0.01);
+    const distanceFee = Math.max(0, distanceKm) * kmRate;
+    const etaFee = Math.max(0, etaMinutes) * minuteRate;
     const passengerFee = Math.max(0, passengers - 1) * 2500;
-    return VEHICLES[vehicle].base + passengerFee;
-  }, [passengers, vehicle]);
+    const total = Math.round(activeBase + distanceFee + etaFee + passengerFee);
+    return { base: activeBase, distanceFee, etaFee, passengerFee, total };
+  }, [berlineModel, distanceKm, etaMinutes, passengers, selectedBerline, vehicle]);
+  const estimate = estimateDetails.total;
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
