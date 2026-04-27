@@ -119,7 +119,7 @@ function CircuitsPage() {
                       params={{ slug: gpsSlug(offer.title) }}
                       className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border bg-card px-4 py-2 text-xs font-bold text-foreground transition-colors hover:bg-secondary"
                     >
-                      <Navigation className="h-4 w-4 text-primary" /> Suivre le GPS vers ce circuit
+                      <Navigation className="h-4 w-4 text-primary" /> Naviguer vers le circuit
                     </Link>
                   </div>
                 </div>
@@ -170,7 +170,7 @@ function CircuitsPage() {
                       params={{ slug: gpsSlug(c.slug || c.nom) }}
                       className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border bg-card px-4 py-2 text-xs font-bold text-foreground transition-colors hover:bg-secondary"
                     >
-                      <Navigation className="h-4 w-4 text-primary" /> Suivre le GPS vers ce circuit
+                      <Navigation className="h-4 w-4 text-primary" /> Naviguer vers le circuit
                     </Link>
                   </div>
                 </article>
