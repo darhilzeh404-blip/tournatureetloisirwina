@@ -125,8 +125,12 @@ function VtcPage() {
           destination,
           scheduled_at: scheduledAt,
           vehicle_type: VEHICLES[vehicle].label,
+          vehicle_model: vehicle === "berline" ? berlineModel : null,
           passengers,
+          distance_km: distanceKm,
+          eta_minutes: etaMinutes,
           estimated_price: estimate,
+          price_breakdown: estimateDetails,
           source: search.get("source") || "direct",
         },
       }).select("id").single();
