@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, CheckCircle2, Clock, LocateFixed, MapPin, Navigation, Route as RouteIcon, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, ExternalLink, LocateFixed, MapPin, Navigation, Route as RouteIcon, Volume2, VolumeX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
@@ -36,6 +36,7 @@ function CircuitGpsPage() {
   const [arrived, setArrived] = useState(false);
   const lastSpokenStepRef = useRef<number | null>(null);
   const destination = CIRCUIT_POINTS[slug] ?? { name: titleFromSlug(slug), lat: 0.4162, lng: 9.4673 };
+  const navigationHttpsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`;
   const { position, error } = useGeolocation({ enabled: !arrived });
   const from = position ? { lat: position.latitude, lng: position.longitude } : null;
   const to = { lat: destination.lat, lng: destination.lng };
@@ -188,12 +189,12 @@ function CircuitGpsPage() {
             </div>
           </div>
           <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`}
+            href={navigationHttpsUrl}
             target="_blank"
             rel="noreferrer"
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-primary-foreground"
           >
-            <Navigation className="h-4 w-4" /> Ouvrir dans Maps
+            <ExternalLink className="h-4 w-4" /> Ouvrir la navigation HTTPS
           </a>
           {guidance && route?.steps.length ? (
             <div className="mt-3 max-h-36 overflow-y-auto rounded-xl border bg-background p-2">
