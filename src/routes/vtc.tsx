@@ -191,6 +191,25 @@ function VtcPage() {
           )}
         </Field>
 
+        {vehicle === "berline" && (
+          <Field label="Modèle berline" icon={<CarFront className="h-4 w-4 text-primary" />}>
+            <select value={berlineModel} onChange={(e) => setBerlineModel(e.target.value)} className="input-base">
+              {BERLINE_MODELS.map((model) => (
+                <option key={model.name} value={model.name}>{model.name}</option>
+              ))}
+            </select>
+          </Field>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Distance estimée (km)" icon={<Navigation className="h-4 w-4 text-primary" />}>
+            <input type="number" min={0} step="0.1" value={distanceKm} onChange={(e) => setDistanceKm(Number(e.target.value))} className="input-base" placeholder="Ex. 12.5" />
+          </Field>
+          <Field label="ETA estimée (min)" icon={<Calendar className="h-4 w-4 text-primary" />}>
+            <input type="number" min={0} step={1} value={etaMinutes} onChange={(e) => setEtaMinutes(Number(e.target.value))} className="input-base" placeholder="Ex. 25" />
+          </Field>
+        </div>
+
         <Field label="Nombre de passagers" icon={<Users className="h-4 w-4 text-primary" />}>
           <input type="number" min={1} max={7} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="input-base" />
         </Field>
@@ -198,6 +217,12 @@ function VtcPage() {
         <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-5 text-center">
           <p className="text-xs text-muted-foreground">Estimation transfert privé</p>
           <p className="mt-1 text-2xl font-extrabold text-primary">{formatFCFA(estimate)}</p>
+          <div className="mt-4 grid gap-2 text-left text-xs text-muted-foreground sm:grid-cols-2">
+            <p>Base véhicule : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.base)}</span></p>
+            <p>Distance : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.distanceFee)}</span></p>
+            <p>Temps ETA : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.etaFee)}</span></p>
+            <p>Passagers : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.passengerFee)}</span></p>
+          </div>
         </div>
 
         <button type="button" onClick={submit} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50">
