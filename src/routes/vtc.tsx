@@ -9,6 +9,23 @@ import { formatFCFA } from "@/lib/destinations";
 
 type VehicleType = "eco" | "berline" | "confort" | "premium" | "4x4" | "suv" | "van" | "minibus";
 
+const BERLINE_MODELS = [
+  { name: "Toyota Yaris", base: 15000, kmRate: 450, minuteRate: 120 },
+  { name: "Toyota Corolla", base: 17000, kmRate: 520, minuteRate: 140 },
+  { name: "Toyota Starlet", base: 15000, kmRate: 450, minuteRate: 120 },
+  { name: "Suzuki Swift", base: 15000, kmRate: 450, minuteRate: 120 },
+  { name: "Suzuki Baleno", base: 16000, kmRate: 480, minuteRate: 130 },
+  { name: "Hyundai Sonata", base: 20000, kmRate: 650, minuteRate: 180 },
+  { name: "Hyundai Advance", base: 17000, kmRate: 520, minuteRate: 140 },
+  { name: "Hyundai i30", base: 17000, kmRate: 520, minuteRate: 140 },
+  { name: "Hyundai i40", base: 19000, kmRate: 600, minuteRate: 160 },
+  { name: "KIA Picanto", base: 14000, kmRate: 420, minuteRate: 110 },
+  { name: "KIA Morning", base: 14000, kmRate: 420, minuteRate: 110 },
+  { name: "KIA K3", base: 17000, kmRate: 520, minuteRate: 140 },
+  { name: "KIA K5", base: 20000, kmRate: 650, minuteRate: 180 },
+  { name: "KIA K7", base: 23000, kmRate: 780, minuteRate: 220 },
+];
+
 const VEHICLES: Record<VehicleType, { label: string; seats: string; base: number; examples?: string }> = {
   eco: { label: "Éco", seats: "1–3 passagers", base: 12000 },
   berline: {
@@ -48,13 +65,24 @@ function VtcPage() {
   const [destination, setDestination] = useState(search.get("destination") || "");
   const [scheduledAt, setScheduledAt] = useState(search.get("scheduled_at") || "");
   const [vehicle, setVehicle] = useState<VehicleType>((search.get("vehicle") as VehicleType) || "berline");
+  const [berlineModel, setBerlineModel] = useState(BERLINE_MODELS[0].name);
   const [passengers, setPassengers] = useState(Number(search.get("passengers") || "1"));
+  const [distanceKm, setDistanceKm] = useState(Number(search.get("distance_km") || "0"));
+  const [etaMinutes, setEtaMinutes] = useState(Number(search.get("eta_minutes") || "0"));
   const [loading, setLoading] = useState(false);
 
-  const estimate = useMemo(() => {
+  const selectedBerline = BERLINE_MODELS.find((model) => model.name === berlineModel) ?? BERLINE_MODELS[0];
+  const estimateDetails = useMemo(() => {
+    const activeBase = vehicle === "berline" ? selectedBerline.base : VEHICLES[vehicle].base;
+    const kmRate = vehicle === "berline" ? selectedBerline.kmRate : Math.round(VEHICLES[vehicle].base * 0.035);
+    const minuteRate = vehicle === "berline" ? selectedBerline.minuteRate : Math.round(VEHICLES[vehicle].base * 0.01);
+    const distanceFee = Math.max(0, distanceKm) * kmRate;
+    const etaFee = Math.max(0, etaMinutes) * minuteRate;
     const passengerFee = Math.max(0, passengers - 1) * 2500;
-    return VEHICLES[vehicle].base + passengerFee;
-  }, [passengers, vehicle]);
+    const total = Math.round(activeBase + distanceFee + etaFee + passengerFee);
+    return { base: activeBase, distanceFee, etaFee, passengerFee, total };
+  }, [berlineModel, distanceKm, etaMinutes, passengers, selectedBerline, vehicle]);
+  const estimate = estimateDetails.total;
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -97,8 +125,12 @@ function VtcPage() {
           destination,
           scheduled_at: scheduledAt,
           vehicle_type: VEHICLES[vehicle].label,
+          vehicle_model: vehicle === "berline" ? berlineModel : null,
           passengers,
+          distance_km: distanceKm,
+          eta_minutes: etaMinutes,
           estimated_price: estimate,
+          price_breakdown: estimateDetails,
           source: search.get("source") || "direct",
         },
       }).select("id").single();
@@ -163,6 +195,25 @@ function VtcPage() {
           )}
         </Field>
 
+        {vehicle === "berline" && (
+          <Field label="Modèle berline" icon={<CarFront className="h-4 w-4 text-primary" />}>
+            <select value={berlineModel} onChange={(e) => setBerlineModel(e.target.value)} className="input-base">
+              {BERLINE_MODELS.map((model) => (
+                <option key={model.name} value={model.name}>{model.name}</option>
+              ))}
+            </select>
+          </Field>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Distance estimée (km)" icon={<Navigation className="h-4 w-4 text-primary" />}>
+            <input type="number" min={0} step="0.1" value={distanceKm} onChange={(e) => setDistanceKm(Number(e.target.value))} className="input-base" placeholder="Ex. 12.5" />
+          </Field>
+          <Field label="ETA estimée (min)" icon={<Calendar className="h-4 w-4 text-primary" />}>
+            <input type="number" min={0} step={1} value={etaMinutes} onChange={(e) => setEtaMinutes(Number(e.target.value))} className="input-base" placeholder="Ex. 25" />
+          </Field>
+        </div>
+
         <Field label="Nombre de passagers" icon={<Users className="h-4 w-4 text-primary" />}>
           <input type="number" min={1} max={7} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="input-base" />
         </Field>
@@ -170,6 +221,12 @@ function VtcPage() {
         <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-5 text-center">
           <p className="text-xs text-muted-foreground">Estimation transfert privé</p>
           <p className="mt-1 text-2xl font-extrabold text-primary">{formatFCFA(estimate)}</p>
+          <div className="mt-4 grid gap-2 text-left text-xs text-muted-foreground sm:grid-cols-2">
+            <p>Base véhicule : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.base)}</span></p>
+            <p>Distance : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.distanceFee)}</span></p>
+            <p>Temps ETA : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.etaFee)}</span></p>
+            <p>Passagers : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.passengerFee)}</span></p>
+          </div>
         </div>
 
         <button type="button" onClick={submit} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50">
