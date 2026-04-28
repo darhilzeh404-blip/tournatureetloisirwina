@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Globe, ArrowRight, CarFront, Navigation } from "lucide-react";
 import { fetchOffersByType, type Offer } from "@/server/fetch-offers";
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/circuits")({
 
 function CircuitsPage() {
   const offers = Route.useLoaderData();
+  const navigate = useNavigate();
   const [circuits, setCircuits] = useState<Circuit[]>([]);
   const [target, setTarget] = useState<BookingTarget | null>(null);
 
@@ -50,6 +51,10 @@ function CircuitsPage() {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+
+  const openCircuitNavigation = (slug: string) => {
+    navigate({ to: "/circuits/suivi/$slug", params: { slug } });
+  };
 
   useEffect(() => {
     supabase
@@ -86,7 +91,24 @@ function CircuitsPage() {
             <h2 className="mb-4 text-lg font-bold">Nos offres</h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {offers.map((offer: Offer) => (
-                <div key={offer.id} className="card-hover overflow-hidden rounded-2xl border bg-card">
+                <article
+                  key={offer.id}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`Naviguer vers le circuit ${offer.title}`}
+                  onClick={(event) => {
+                    if (isInteractiveTarget(event.target)) return;
+                    openCircuitNavigation(gpsSlug(offer.title));
+                  }}
+                  onKeyDown={(event) => {
+                    if (isInteractiveTarget(event.target)) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openCircuitNavigation(gpsSlug(offer.title));
+                    }
+                  }}
+                  className="card-hover cursor-pointer overflow-hidden rounded-2xl border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
                   {offer.image_url && <img src={offer.image_url} alt={offer.title} className="h-40 w-full object-cover" />}
                   <div className="flex items-center gap-3 border-b p-5">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -124,7 +146,7 @@ function CircuitsPage() {
                       <span>Naviguer vers le circuit</span>
                     </Link>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           </div>
@@ -135,7 +157,24 @@ function CircuitsPage() {
             <h2 className="mb-4 text-lg font-bold">Tous les circuits</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {circuits.map((c) => (
-                <article key={c.id} className="card-hover overflow-hidden rounded-2xl border bg-card transition-shadow hover:shadow-md">
+                <article
+                  key={c.id}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`Naviguer vers le circuit ${c.nom}`}
+                  onClick={(event) => {
+                    if (isInteractiveTarget(event.target)) return;
+                    openCircuitNavigation(gpsSlug(c.slug || c.nom));
+                  }}
+                  onKeyDown={(event) => {
+                    if (isInteractiveTarget(event.target)) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openCircuitNavigation(gpsSlug(c.slug || c.nom));
+                    }
+                  }}
+                  className="card-hover cursor-pointer overflow-hidden rounded-2xl border bg-card transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
                   {c.image_url ? (
                     <img src={c.image_url} alt={c.nom} className="h-44 w-full object-cover" loading="lazy" />
                   ) : (
@@ -202,4 +241,8 @@ function nextMorningAtEight() {
   date.setHours(8, 0, 0, 0);
   const offsetMs = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function isInteractiveTarget(target: EventTarget | null) {
+  return target instanceof HTMLElement && Boolean(target.closest("a, button, input, select, textarea"));
 }

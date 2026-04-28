@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, ArrowRight, Palmtree, Compass, Navigation } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
@@ -37,10 +37,15 @@ type Circuit = {
 };
 
 function ActivitesPage() {
+  const navigate = useNavigate();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [circuits, setCircuits] = useState<Circuit[]>([]);
   const [loading, setLoading] = useState(true);
   const [target, setTarget] = useState<BookingTarget | null>(null);
+
+  const openCircuitNavigation = (slug: string) => {
+    navigate({ to: "/circuits/suivi/$slug", params: { slug } });
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -87,7 +92,24 @@ function ActivitesPage() {
               </h2>
               <div className="space-y-3">
                 {circuits.map((c) => (
-                  <article key={c.id} className="rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md">
+                  <article
+                    key={c.id}
+                    role="link"
+                    tabIndex={0}
+                    aria-label={`Naviguer vers le circuit ${c.nom}`}
+                    onClick={(event) => {
+                      if (isInteractiveTarget(event.target)) return;
+                      openCircuitNavigation(c.slug || gpsSlug(c.nom));
+                    }}
+                    onKeyDown={(event) => {
+                      if (isInteractiveTarget(event.target)) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openCircuitNavigation(c.slug || gpsSlug(c.nom));
+                      }
+                    }}
+                    className="cursor-pointer rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <h3 className="text-base font-bold">{c.nom}</h3>
@@ -191,4 +213,8 @@ function gpsSlug(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function isInteractiveTarget(target: EventTarget | null) {
+  return target instanceof HTMLElement && Boolean(target.closest("a, button, input, select, textarea"));
 }

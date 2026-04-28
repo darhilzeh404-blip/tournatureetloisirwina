@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Bus, Palmtree, ArrowRight, MapPin, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -38,9 +38,14 @@ const stagger = {
 };
 
 function EspaceClient() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
   const [target, setTarget] = useState<BookingTarget | null>(null);
+
+  const openCircuitNavigation = (slug: string) => {
+    navigate({ to: "/circuits/suivi/$slug", params: { slug } });
+  };
 
   return (
     <div className="pb-20">
@@ -120,10 +125,24 @@ function EspaceClient() {
           {DESTINATIONS.map((dest) => (
             <motion.article
               key={dest.id}
+              role="link"
+              tabIndex={0}
+              aria-label={`Naviguer vers le circuit ${dest.name}`}
+              onClick={(event) => {
+                if (isInteractiveTarget(event.target)) return;
+                openCircuitNavigation(DESTINATION_SLUG[dest.id] ?? gpsSlug(dest.name));
+              }}
+              onKeyDown={(event) => {
+                if (isInteractiveTarget(event.target)) return;
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openCircuitNavigation(DESTINATION_SLUG[dest.id] ?? gpsSlug(dest.name));
+                }
+              }}
               variants={fadeUp}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.97 }}
-              className="group w-40 shrink-0 overflow-hidden rounded-2xl border bg-card text-left transition-shadow hover:shadow-lg"
+              className="group w-40 shrink-0 cursor-pointer overflow-hidden rounded-2xl border bg-card text-left transition-shadow hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <div className="relative h-28 overflow-hidden">
                 <img
@@ -225,4 +244,8 @@ function gpsSlug(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function isInteractiveTarget(target: EventTarget | null) {
+  return target instanceof HTMLElement && Boolean(target.closest("a, button, input, select, textarea"));
 }
