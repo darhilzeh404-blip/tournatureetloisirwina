@@ -164,9 +164,11 @@ function EspaceClient() {
                 <Link
                   to="/circuits/suivi/$slug"
                   params={{ slug: DESTINATION_SLUG[dest.id] ?? gpsSlug(dest.name) }}
-                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border bg-card px-3 py-2 text-[11px] font-bold text-foreground hover:bg-secondary"
+                  aria-label={`Naviguer vers le circuit ${dest.name}`}
+                  className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border bg-card px-3 py-3 text-xs font-bold leading-tight text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  <Navigation className="h-3.5 w-3.5 text-primary" /> Naviguer
+                  <Navigation className="h-4 w-4 shrink-0 text-primary" />
+                  <span>Naviguer</span>
                 </Link>
               </div>
             </motion.article>
