@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bus, Palmtree, ArrowRight, MapPin } from "lucide-react";
+import { Bus, Palmtree, ArrowRight, MapPin, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -118,21 +118,11 @@ function EspaceClient() {
 
         <motion.div variants={stagger} className="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
           {DESTINATIONS.map((dest) => (
-            <motion.button
+            <motion.article
               key={dest.id}
-              type="button"
               variants={fadeUp}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() =>
-                setTarget({
-                  kind: "circuit",
-                  id: null,
-                  slug: DESTINATION_SLUG[dest.id],
-                  name: dest.name,
-                  basePrice: dest.price,
-                })
-              }
               className="group w-40 shrink-0 overflow-hidden rounded-2xl border bg-card text-left transition-shadow hover:shadow-lg"
             >
               <div className="relative h-28 overflow-hidden">
@@ -156,8 +146,30 @@ function EspaceClient() {
                   {formatFCFA(dest.price)}
                   <span className="text-[10px] font-normal text-muted-foreground">/pers</span>
                 </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setTarget({
+                      kind: "circuit",
+                      id: null,
+                      slug: DESTINATION_SLUG[dest.id],
+                      name: dest.name,
+                      basePrice: dest.price,
+                    })
+                  }
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-[11px] font-bold text-primary-foreground hover:bg-primary/90"
+                >
+                  Réserver
+                </button>
+                <Link
+                  to="/circuits/suivi/$slug"
+                  params={{ slug: DESTINATION_SLUG[dest.id] ?? gpsSlug(dest.name) }}
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border bg-card px-3 py-2 text-[11px] font-bold text-foreground hover:bg-secondary"
+                >
+                  <Navigation className="h-3.5 w-3.5 text-primary" /> Naviguer
+                </Link>
               </div>
-            </motion.button>
+            </motion.article>
           ))}
         </motion.div>
       </motion.section>
@@ -202,4 +214,13 @@ function EspaceClient() {
       <ClientNav />
     </div>
   );
+}
+
+function gpsSlug(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
