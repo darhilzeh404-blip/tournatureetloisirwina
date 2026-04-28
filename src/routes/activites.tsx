@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, ArrowRight, Palmtree, Compass } from "lucide-react";
+import { Loader2, ArrowRight, Palmtree, Compass, Navigation } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFCFA } from "@/lib/destinations";
@@ -98,21 +98,30 @@ function ActivitesPage() {
                         <p className="text-[10px] text-muted-foreground">/personne</p>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTarget({
-                          kind: "circuit",
-                          id: c.id,
-                          slug: c.slug,
-                          name: c.nom,
-                          basePrice: c.base_price,
-                        })
-                      }
-                      className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90"
-                    >
-                      Réserver ce circuit <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTarget({
+                            kind: "circuit",
+                            id: c.id,
+                            slug: c.slug,
+                            name: c.nom,
+                            basePrice: c.base_price,
+                          })
+                        }
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90"
+                      >
+                        Réserver ce circuit <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                      <Link
+                        to="/circuits/suivi/$slug"
+                        params={{ slug: c.slug || gpsSlug(c.nom) }}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary"
+                      >
+                        <Navigation className="h-3.5 w-3.5 text-primary" /> Naviguer vers le circuit
+                      </Link>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -171,4 +180,13 @@ function ActivitesPage() {
       <ClientNav />
     </div>
   );
+}
+
+function gpsSlug(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
