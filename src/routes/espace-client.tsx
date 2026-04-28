@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bus, Palmtree, ArrowRight, MapPin } from "lucide-react";
+import { Bus, Palmtree, ArrowRight, MapPin, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -156,6 +156,14 @@ function EspaceClient() {
                   {formatFCFA(dest.price)}
                   <span className="text-[10px] font-normal text-muted-foreground">/pers</span>
                 </p>
+                <Link
+                  to="/circuits/suivi/$slug"
+                  params={{ slug: DESTINATION_SLUG[dest.id] ?? gpsSlug(dest.name) }}
+                  onClick={(event) => event.stopPropagation()}
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border bg-card px-3 py-2 text-[11px] font-bold text-foreground hover:bg-secondary"
+                >
+                  <Navigation className="h-3.5 w-3.5 text-primary" /> Naviguer
+                </Link>
               </div>
             </motion.button>
           ))}
@@ -202,4 +210,13 @@ function EspaceClient() {
       <ClientNav />
     </div>
   );
+}
+
+function gpsSlug(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
