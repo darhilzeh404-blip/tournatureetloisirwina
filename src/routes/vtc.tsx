@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Calendar, CarFront, Loader2, MapPin, Navigation, Users } from "lucide-react";
+import { Calendar, CarFront, Clock, Gem, HeartHandshake, Loader2, MapPin, Navigation, Users } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,39 +8,76 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatFCFA } from "@/lib/destinations";
 
 type VehicleType = "eco" | "berline" | "confort" | "premium" | "4x4" | "suv" | "van" | "minibus";
+type FareCategory = "classique" | "vip" | "mariage-berline" | "mariage-suv";
+
+type FareOption = {
+  id: string;
+  category: FareCategory;
+  zone: string;
+  service: string;
+  price: number;
+  hint?: string;
+};
 
 const BERLINE_MODELS = [
-  { name: "Toyota Yaris", base: 15000, kmRate: 450, minuteRate: 120 },
-  { name: "Toyota Corolla", base: 17000, kmRate: 520, minuteRate: 140 },
-  { name: "Toyota Starlet", base: 15000, kmRate: 450, minuteRate: 120 },
-  { name: "Suzuki Swift", base: 15000, kmRate: 450, minuteRate: 120 },
-  { name: "Suzuki Baleno", base: 16000, kmRate: 480, minuteRate: 130 },
-  { name: "Hyundai Sonata", base: 20000, kmRate: 650, minuteRate: 180 },
-  { name: "Hyundai Advance", base: 17000, kmRate: 520, minuteRate: 140 },
-  { name: "Hyundai i30", base: 17000, kmRate: 520, minuteRate: 140 },
-  { name: "Hyundai i40", base: 19000, kmRate: 600, minuteRate: 160 },
-  { name: "KIA Picanto", base: 14000, kmRate: 420, minuteRate: 110 },
-  { name: "KIA Morning", base: 14000, kmRate: 420, minuteRate: 110 },
-  { name: "KIA K3", base: 17000, kmRate: 520, minuteRate: 140 },
-  { name: "KIA K5", base: 20000, kmRate: 650, minuteRate: 180 },
-  { name: "KIA K7", base: 23000, kmRate: 780, minuteRate: 220 },
+  "Toyota Yaris",
+  "Toyota Corolla",
+  "Toyota Starlet",
+  "Suzuki Swift",
+  "Suzuki Baleno",
+  "Hyundai Sonata",
+  "Hyundai Advance",
+  "Hyundai i30",
+  "Hyundai i40",
+  "KIA Picanto",
+  "KIA Morning",
+  "KIA K3",
+  "KIA K5",
+  "KIA K7",
 ];
 
-const VEHICLES: Record<VehicleType, { label: string; seats: string; base: number; examples?: string }> = {
-  eco: { label: "Éco", seats: "1–3 passagers", base: 12000 },
+const VEHICLES: Record<VehicleType, { label: string; seats: string; examples?: string }> = {
+  eco: { label: "Éco", seats: "1–3 passagers" },
   berline: {
     label: "Berline",
     seats: "1–3 passagers",
-    base: 15000,
     examples: "Toyota Yaris, Corolla, Starlet · Suzuki Swift, Baleno · Hyundai Sonata, Advance, i30, i40 · KIA Picanto, Morning, K3, K5, K7",
   },
-  confort: { label: "Confort", seats: "1–4 passagers", base: 18000 },
-  premium: { label: "Premium", seats: "1–3 passagers", base: 26000 },
-  "4x4": { label: "4x4", seats: "1–4 passagers", base: 22000 },
-  suv: { label: "SUV", seats: "1–5 passagers", base: 25000 },
-  van: { label: "Van", seats: "1–7 passagers", base: 30000 },
-  minibus: { label: "Minibus", seats: "8–14 passagers", base: 45000 },
+  confort: { label: "Confort", seats: "1–4 passagers" },
+  premium: { label: "Premium", seats: "1–3 passagers" },
+  "4x4": { label: "4x4", seats: "1–4 passagers" },
+  suv: { label: "SUV", seats: "1–5 passagers" },
+  van: { label: "Van", seats: "1–7 passagers" },
+  minibus: { label: "Minibus", seats: "8–14 passagers" },
 };
+
+const FARE_CATEGORIES: Record<FareCategory, { title: string; subtitle: string; icon: typeof CarFront }> = {
+  classique: { title: "VTC classique", subtitle: "Courses express et forfaits 1h", icon: CarFront },
+  vip: { title: "VTC VIP", subtitle: "Confort premium et service prioritaire", icon: Gem },
+  "mariage-berline": { title: "Berline VIP mariage", subtitle: "Forfaits cérémonie en berline", icon: HeartHandshake },
+  "mariage-suv": { title: "SUV VIP mariage", subtitle: "Forfaits cérémonie en SUV", icon: HeartHandshake },
+};
+
+const FARE_OPTIONS: FareOption[] = [
+  { id: "classique-akanda-express", category: "classique", zone: "Akanda", service: "Course express", price: 2000 },
+  { id: "classique-akanda-1h", category: "classique", zone: "Akanda", service: "Course express 1h", price: 5000 },
+  { id: "classique-lbv-express", category: "classique", zone: "Akanda ↔ LBV", service: "Course express", price: 5000 },
+  { id: "classique-lbv-1h", category: "classique", zone: "Akanda ↔ LBV", service: "Course express 1h", price: 8000 },
+  { id: "classique-owendo-express", category: "classique", zone: "Akanda ↔ Owendo", service: "Course express", price: 8000 },
+  { id: "classique-owendo-1h", category: "classique", zone: "Akanda ↔ Owendo", service: "Course express 1h", price: 10000 },
+  { id: "vip-akanda-express", category: "vip", zone: "Akanda", service: "Course express", price: 5000 },
+  { id: "vip-akanda-1h", category: "vip", zone: "Akanda", service: "Course express 1h", price: 10000 },
+  { id: "vip-lbv-express", category: "vip", zone: "Akanda ↔ LBV", service: "Course express", price: 10000 },
+  { id: "vip-lbv-1h", category: "vip", zone: "Akanda ↔ LBV", service: "Course express 1h", price: 15000 },
+  { id: "vip-owendo-express", category: "vip", zone: "Akanda ↔ Owendo", service: "Course express", price: 15000 },
+  { id: "vip-owendo-1h", category: "vip", zone: "Akanda ↔ Owendo", service: "Course express 1h", price: 20000 },
+  { id: "mariage-berline-12h", category: "mariage-berline", zone: "Mariage", service: "Une journée de 12h", price: 100000, hint: "Berline VIP" },
+  { id: "mariage-berline-24h", category: "mariage-berline", zone: "Mariage", service: "Un jour de 24h", price: 200000, hint: "Berline VIP" },
+  { id: "mariage-suv-12h", category: "mariage-suv", zone: "Mariage", service: "Une journée de 12h", price: 200000, hint: "SUV VIP" },
+  { id: "mariage-suv-24h", category: "mariage-suv", zone: "Mariage", service: "Un jour de 24h", price: 400000, hint: "SUV VIP" },
+];
+
+const fareCategoryOrder: FareCategory[] = ["classique", "vip", "mariage-berline", "mariage-suv"];
 
 export const Route = createFileRoute("/vtc")({
   head: () => ({
@@ -65,24 +102,20 @@ function VtcPage() {
   const [destination, setDestination] = useState(search.get("destination") || "");
   const [scheduledAt, setScheduledAt] = useState(search.get("scheduled_at") || "");
   const [vehicle, setVehicle] = useState<VehicleType>((search.get("vehicle") as VehicleType) || "berline");
-  const [berlineModel, setBerlineModel] = useState(BERLINE_MODELS[0].name);
+  const [berlineModel, setBerlineModel] = useState(BERLINE_MODELS[0]);
+  const [selectedFareId, setSelectedFareId] = useState(search.get("fare") || FARE_OPTIONS[0].id);
   const [passengers, setPassengers] = useState(Number(search.get("passengers") || "1"));
-  const [distanceKm, setDistanceKm] = useState(Number(search.get("distance_km") || "0"));
-  const [etaMinutes, setEtaMinutes] = useState(Number(search.get("eta_minutes") || "0"));
   const [loading, setLoading] = useState(false);
 
-  const selectedBerline = BERLINE_MODELS.find((model) => model.name === berlineModel) ?? BERLINE_MODELS[0];
-  const estimateDetails = useMemo(() => {
-    const activeBase = vehicle === "berline" ? selectedBerline.base : VEHICLES[vehicle].base;
-    const kmRate = vehicle === "berline" ? selectedBerline.kmRate : Math.round(VEHICLES[vehicle].base * 0.035);
-    const minuteRate = vehicle === "berline" ? selectedBerline.minuteRate : Math.round(VEHICLES[vehicle].base * 0.01);
-    const distanceFee = Math.max(0, distanceKm) * kmRate;
-    const etaFee = Math.max(0, etaMinutes) * minuteRate;
-    const passengerFee = Math.max(0, passengers - 1) * 2500;
-    const total = Math.round(activeBase + distanceFee + etaFee + passengerFee);
-    return { base: activeBase, distanceFee, etaFee, passengerFee, total };
-  }, [berlineModel, distanceKm, etaMinutes, passengers, selectedBerline, vehicle]);
-  const estimate = estimateDetails.total;
+  const selectedFare = useMemo(() => FARE_OPTIONS.find((fare) => fare.id === selectedFareId) ?? FARE_OPTIONS[0], [selectedFareId]);
+  const estimate = selectedFare.price;
+
+  const selectFare = (fare: FareOption) => {
+    setSelectedFareId(fare.id);
+    if (fare.category === "vip" || fare.category === "mariage-berline") setVehicle("premium");
+    if (fare.category === "mariage-suv") setVehicle("suv");
+    if (fare.category === "classique") setVehicle("berline");
+  };
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -127,10 +160,11 @@ function VtcPage() {
           vehicle_type: VEHICLES[vehicle].label,
           vehicle_model: vehicle === "berline" ? berlineModel : null,
           passengers,
-          distance_km: distanceKm,
-          eta_minutes: etaMinutes,
+          fare_id: selectedFare.id,
+          fare_category: FARE_CATEGORIES[selectedFare.category].title,
+          fare_zone: selectedFare.zone,
+          fare_service: selectedFare.service,
           estimated_price: estimate,
-          price_breakdown: estimateDetails,
           source: search.get("source") || "direct",
         },
       }).select("id").single();
@@ -161,6 +195,58 @@ function VtcPage() {
       </section>
 
       <main className="mx-auto max-w-3xl space-y-5 px-5 pt-6">
+        <section className="space-y-3" aria-labelledby="vtc-tarifs">
+          <div>
+            <h2 id="vtc-tarifs" className="text-lg font-extrabold text-foreground">Choisir un tarif VTC</h2>
+            <p className="text-sm text-muted-foreground">Tarifs fixes, sans calcul au kilométrage.</p>
+          </div>
+
+          {fareCategoryOrder.map((category) => {
+            const meta = FARE_CATEGORIES[category];
+            const Icon = meta.icon;
+            const options = FARE_OPTIONS.filter((fare) => fare.category === category);
+            return (
+              <div key={category} className="rounded-2xl border bg-card p-3 shadow-sm">
+                <div className="mb-3 flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-foreground">{meta.title}</h3>
+                    <p className="text-xs text-muted-foreground">{meta.subtitle}</p>
+                  </div>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {options.map((fare) => {
+                    const active = selectedFare.id === fare.id;
+                    return (
+                      <button
+                        key={fare.id}
+                        type="button"
+                        onClick={() => selectFare(fare)}
+                        className={`min-h-24 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${active ? "border-primary bg-primary/10" : "border-border bg-background hover:border-primary/50"}`}
+                        aria-pressed={active}
+                      >
+                        <span className="flex items-start justify-between gap-3">
+                          <span>
+                            <span className="block text-sm font-bold text-foreground">{fare.zone}</span>
+                            <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Clock className="h-3.5 w-3.5 shrink-0" />
+                              {fare.service}
+                            </span>
+                            {fare.hint && <span className="mt-1 block text-xs font-semibold text-primary">{fare.hint}</span>}
+                          </span>
+                          <span className="shrink-0 text-sm font-extrabold text-primary">{formatFCFA(fare.price)}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </section>
+
         <Field label="Adresse ou lieu de départ" icon={<MapPin className="h-4 w-4 text-primary" />}>
           <div className="flex gap-2">
             <input value={pickup} onChange={(e) => setPickup(e.target.value)} className="input-base" placeholder="Hôtel, aéroport, quartier" />
@@ -178,7 +264,7 @@ function VtcPage() {
           <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="input-base" />
         </Field>
 
-        <Field label="Type de véhicule" icon={<CarFront className="h-4 w-4 text-primary" />}>
+        <Field label="Véhicule souhaité" icon={<CarFront className="h-4 w-4 text-primary" />}>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(Object.keys(VEHICLES) as VehicleType[]).map((key) => (
               <button key={key} type="button" onClick={() => setVehicle(key)} className={`min-h-20 rounded-xl border px-2 py-3 text-center text-xs font-semibold transition-colors ${vehicle === key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
@@ -199,33 +285,24 @@ function VtcPage() {
           <Field label="Modèle berline" icon={<CarFront className="h-4 w-4 text-primary" />}>
             <select value={berlineModel} onChange={(e) => setBerlineModel(e.target.value)} className="input-base">
               {BERLINE_MODELS.map((model) => (
-                <option key={model.name} value={model.name}>{model.name}</option>
+                <option key={model} value={model}>{model}</option>
               ))}
             </select>
           </Field>
         )}
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Distance estimée (km)" icon={<Navigation className="h-4 w-4 text-primary" />}>
-            <input type="number" min={0} step="0.1" value={distanceKm} onChange={(e) => setDistanceKm(Number(e.target.value))} className="input-base" placeholder="Ex. 12.5" />
-          </Field>
-          <Field label="ETA estimée (min)" icon={<Calendar className="h-4 w-4 text-primary" />}>
-            <input type="number" min={0} step={1} value={etaMinutes} onChange={(e) => setEtaMinutes(Number(e.target.value))} className="input-base" placeholder="Ex. 25" />
-          </Field>
-        </div>
 
         <Field label="Nombre de passagers" icon={<Users className="h-4 w-4 text-primary" />}>
           <input type="number" min={1} max={7} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="input-base" />
         </Field>
 
         <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-5 text-center">
-          <p className="text-xs text-muted-foreground">Estimation transfert privé</p>
+          <p className="text-xs text-muted-foreground">Tarif sélectionné</p>
           <p className="mt-1 text-2xl font-extrabold text-primary">{formatFCFA(estimate)}</p>
           <div className="mt-4 grid gap-2 text-left text-xs text-muted-foreground sm:grid-cols-2">
-            <p>Base véhicule : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.base)}</span></p>
-            <p>Distance : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.distanceFee)}</span></p>
-            <p>Temps ETA : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.etaFee)}</span></p>
-            <p>Passagers : <span className="font-semibold text-foreground">{formatFCFA(estimateDetails.passengerFee)}</span></p>
+            <p>Formule : <span className="font-semibold text-foreground">{FARE_CATEGORIES[selectedFare.category].title}</span></p>
+            <p>Zone : <span className="font-semibold text-foreground">{selectedFare.zone}</span></p>
+            <p>Service : <span className="font-semibold text-foreground">{selectedFare.service}</span></p>
+            <p>Prix fixe : <span className="font-semibold text-foreground">{formatFCFA(selectedFare.price)}</span></p>
           </div>
         </div>
 
