@@ -74,6 +74,14 @@ const FARE_OPTIONS: FareOption[] = [
 ];
 
 const fareCategoryOrder: FareCategory[] = ["classique", "vip"];
+const getInstantAvailability = (fare: FareOption) => {
+  const minutes = fare.category === "vip" ? 20 : fare.zone.includes("Owendo") ? 18 : fare.zone.includes("LBV") ? 15 : 10;
+  return {
+    minutes,
+    label: `${minutes} min en moyenne`,
+    message: `Votre demande est envoyée aux chauffeurs disponibles. Un chauffeur doit confirmer avant le départ ; vous serez notifié dès l’assignation.`,
+  };
+};
 
 export const Route = createFileRoute("/vtc")({
   head: () => ({
@@ -110,6 +118,7 @@ function VtcPage() {
   const isHourlyFare = selectedFare.service.includes("1h");
   const billableHours = isHourlyFare ? Math.max(1, durationValue) * (durationUnit === "days" ? 24 : 1) : 1;
   const estimate = selectedFare.price * billableHours;
+  const instantAvailability = useMemo(() => getInstantAvailability(selectedFare), [selectedFare]);
 
   const selectFare = (fare: FareOption) => {
     setSelectedFareId(fare.id);
@@ -168,6 +177,9 @@ function VtcPage() {
           scheduled_at: effectiveScheduledAt,
           ride_timing: rideTiming,
           instant_request: rideTiming === "now",
+          availability_estimate_minutes: rideTiming === "now" ? instantAvailability.minutes : null,
+          availability_estimate_label: rideTiming === "now" ? instantAvailability.label : null,
+          pre_confirmation_message: rideTiming === "now" ? instantAvailability.message : null,
           vehicle_type: VEHICLES[vehicle].label,
           vehicle_model: vehicle === "berline" ? berlineModel : null,
           passengers,
