@@ -100,10 +100,14 @@ function VtcPage() {
   const [berlineModel, setBerlineModel] = useState(BERLINE_MODELS[0]);
   const [selectedFareId, setSelectedFareId] = useState(search.get("fare") || FARE_OPTIONS[0].id);
   const [passengers, setPassengers] = useState(Number(search.get("passengers") || "1"));
+  const [durationUnit, setDurationUnit] = useState<"hours" | "days">("hours");
+  const [durationValue, setDurationValue] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const selectedFare = useMemo(() => FARE_OPTIONS.find((fare) => fare.id === selectedFareId) ?? FARE_OPTIONS[0], [selectedFareId]);
-  const estimate = selectedFare.price;
+  const isHourlyFare = selectedFare.service.includes("1h");
+  const billableHours = isHourlyFare ? Math.max(1, durationValue) * (durationUnit === "days" ? 24 : 1) : 1;
+  const estimate = selectedFare.price * billableHours;
 
   const selectFare = (fare: FareOption) => {
     setSelectedFareId(fare.id);
@@ -137,6 +141,10 @@ function VtcPage() {
       toast.error("Indiquez au moins 1 passager");
       return;
     }
+    if (isHourlyFare && durationValue < 1) {
+      toast.error("Indiquez une durée valide");
+      return;
+    }
     setLoading(true);
     try {
       const reservationDate = scheduledAt.slice(0, 10);
@@ -158,6 +166,9 @@ function VtcPage() {
           fare_category: FARE_CATEGORIES[selectedFare.category].title,
           fare_zone: selectedFare.zone,
           fare_service: selectedFare.service,
+          duration_unit: isHourlyFare ? durationUnit : "fixed",
+          duration_value: isHourlyFare ? durationValue : 1,
+          billable_hours: billableHours,
           estimated_price: estimate,
           source: search.get("source") || "direct",
         },
@@ -258,6 +269,35 @@ function VtcPage() {
           <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="input-base" />
         </Field>
 
+        {isHourlyFare && (
+          <Field label="Durée souhaitée" icon={<Clock className="h-4 w-4 text-primary" />}>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <input
+                type="number"
+                min={1}
+                value={durationValue}
+                onChange={(e) => setDurationValue(Math.max(1, Number(e.target.value) || 1))}
+                className="input-base"
+                aria-label="Nombre d'heures ou de jours"
+              />
+              <div className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card">
+                {(["hours", "days"] as const).map((unit) => (
+                  <button
+                    key={unit}
+                    type="button"
+                    onClick={() => setDurationUnit(unit)}
+                    className={`min-h-12 px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${durationUnit === unit ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+                    aria-pressed={durationUnit === unit}
+                  >
+                    {unit === "hours" ? "Heures" : "Jours"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">Le tarif 1h est multiplié par la durée choisie. 1 jour = 24h.</p>
+          </Field>
+        )}
+
         <Field label="Véhicule souhaité" icon={<CarFront className="h-4 w-4 text-primary" />}>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(Object.keys(VEHICLES) as VehicleType[]).map((key) => (
@@ -296,7 +336,8 @@ function VtcPage() {
             <p>Formule : <span className="font-semibold text-foreground">{FARE_CATEGORIES[selectedFare.category].title}</span></p>
             <p>Zone : <span className="font-semibold text-foreground">{selectedFare.zone}</span></p>
             <p>Service : <span className="font-semibold text-foreground">{selectedFare.service}</span></p>
-            <p>Prix fixe : <span className="font-semibold text-foreground">{formatXAF(selectedFare.price)}</span></p>
+            <p>Prix de base : <span className="font-semibold text-foreground">{formatXAF(selectedFare.price)}</span></p>
+            {isHourlyFare && <p>Durée : <span className="font-semibold text-foreground">{durationValue} {durationUnit === "hours" ? "h" : "jour(s)"} · {billableHours}h facturées</span></p>}
           </div>
         </div>
 
