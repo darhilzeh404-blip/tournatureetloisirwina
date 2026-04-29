@@ -311,7 +311,10 @@ function VtcPage() {
           {rideTiming === "scheduled" ? (
             <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="input-base mt-2" />
           ) : (
-            <p className="mt-2 rounded-xl border bg-primary/5 p-3 text-xs font-semibold text-primary">Commande immédiate : votre demande est envoyée pour une prise en charge dès que possible.</p>
+            <div className="mt-2 rounded-xl border bg-primary/5 p-3 text-xs leading-relaxed text-primary">
+              <p className="font-extrabold">Disponibilité estimée : {instantAvailability.label}</p>
+              <p className="mt-1 font-semibold">{instantAvailability.message}</p>
+            </div>
           )}
         </Field>
 
@@ -382,6 +385,7 @@ function VtcPage() {
             <p>Formule : <span className="font-semibold text-foreground">{FARE_CATEGORIES[selectedFare.category].title}</span></p>
             <p>Zone : <span className="font-semibold text-foreground">{selectedFare.zone}</span></p>
             <p>Moment : <span className="font-semibold text-foreground">{rideTiming === "now" ? "Maintenant" : "Planifié"}</span></p>
+            {rideTiming === "now" && <p>Disponibilité : <span className="font-semibold text-foreground">{instantAvailability.label}</span></p>}
             <p>Service : <span className="font-semibold text-foreground">{selectedFare.service}</span></p>
             <p>Prix de base : <span className="font-semibold text-foreground">{formatXAF(selectedFare.price)}</span></p>
             {isHourlyFare && <p>Durée : <span className="font-semibold text-foreground">{durationValue} {durationUnit === "hours" ? "h" : "jour(s)"} · {billableHours}h facturées</span></p>}
