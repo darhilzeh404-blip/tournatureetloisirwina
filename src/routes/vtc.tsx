@@ -336,7 +336,8 @@ function VtcPage() {
             <p>Formule : <span className="font-semibold text-foreground">{FARE_CATEGORIES[selectedFare.category].title}</span></p>
             <p>Zone : <span className="font-semibold text-foreground">{selectedFare.zone}</span></p>
             <p>Service : <span className="font-semibold text-foreground">{selectedFare.service}</span></p>
-            <p>Prix fixe : <span className="font-semibold text-foreground">{formatXAF(selectedFare.price)}</span></p>
+            <p>Prix de base : <span className="font-semibold text-foreground">{formatXAF(selectedFare.price)}</span></p>
+            {isHourlyFare && <p>Durée : <span className="font-semibold text-foreground">{durationValue} {durationUnit === "hours" ? "h" : "jour(s)"} · {billableHours}h facturées</span></p>}
           </div>
         </div>
 
