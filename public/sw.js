@@ -38,6 +38,18 @@ self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      const visibleClient = clients.find((client) => "focus" in client);
+      if (visibleClient) return visibleClient.focus();
+      if (self.clients.openWindow) return self.clients.openWindow("/");
+      return undefined;
+    })
+  );
+});
+
 function isAssetRequest(url) {
   return /\.(?:js|css|woff2?|ttf|otf|png|jpg|jpeg|svg|webp|ico|gif)$/i.test(url.pathname);
 }

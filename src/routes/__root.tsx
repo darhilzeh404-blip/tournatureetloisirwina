@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { IosInstallBanner } from "@/components/IosInstallBanner";
+import { AppNotifications } from "@/components/AppNotifications";
 import { registerServiceWorker } from "@/lib/pwa";
 
 import appCss from "../styles.css?url";
@@ -106,6 +107,7 @@ function RootComponent() {
       )}
       <InstallPrompt />
       <IosInstallBanner />
+      <AppNotifications />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );
