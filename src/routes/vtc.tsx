@@ -100,10 +100,14 @@ function VtcPage() {
   const [berlineModel, setBerlineModel] = useState(BERLINE_MODELS[0]);
   const [selectedFareId, setSelectedFareId] = useState(search.get("fare") || FARE_OPTIONS[0].id);
   const [passengers, setPassengers] = useState(Number(search.get("passengers") || "1"));
+  const [durationUnit, setDurationUnit] = useState<"hours" | "days">("hours");
+  const [durationValue, setDurationValue] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const selectedFare = useMemo(() => FARE_OPTIONS.find((fare) => fare.id === selectedFareId) ?? FARE_OPTIONS[0], [selectedFareId]);
-  const estimate = selectedFare.price;
+  const isHourlyFare = selectedFare.service.includes("1h");
+  const billableHours = isHourlyFare ? Math.max(1, durationValue) * (durationUnit === "days" ? 24 : 1) : 1;
+  const estimate = selectedFare.price * billableHours;
 
   const selectFare = (fare: FareOption) => {
     setSelectedFareId(fare.id);
@@ -137,6 +141,10 @@ function VtcPage() {
       toast.error("Indiquez au moins 1 passager");
       return;
     }
+    if (isHourlyFare && durationValue < 1) {
+      toast.error("Indiquez une durée valide");
+      return;
+    }
     setLoading(true);
     try {
       const reservationDate = scheduledAt.slice(0, 10);
@@ -158,6 +166,9 @@ function VtcPage() {
           fare_category: FARE_CATEGORIES[selectedFare.category].title,
           fare_zone: selectedFare.zone,
           fare_service: selectedFare.service,
+          duration_unit: isHourlyFare ? durationUnit : "fixed",
+          duration_value: isHourlyFare ? durationValue : 1,
+          billable_hours: billableHours,
           estimated_price: estimate,
           source: search.get("source") || "direct",
         },
