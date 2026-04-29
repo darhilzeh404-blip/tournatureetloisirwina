@@ -107,8 +107,7 @@ function VtcPage() {
 
   const selectFare = (fare: FareOption) => {
     setSelectedFareId(fare.id);
-    if (fare.category === "vip" || fare.category === "mariage-berline") setVehicle("premium");
-    if (fare.category === "mariage-suv") setVehicle("suv");
+    if (fare.category === "vip") setVehicle("premium");
     if (fare.category === "classique") setVehicle("berline");
   };
 
@@ -231,7 +230,7 @@ function VtcPage() {
                             </span>
                             {fare.hint && <span className="mt-1 block text-xs font-semibold text-primary">{fare.hint}</span>}
                           </span>
-                          <span className="shrink-0 text-sm font-extrabold text-primary">{formatFCFA(fare.price)}</span>
+                          <span className="shrink-0 text-sm font-extrabold text-primary">{formatXAF(fare.price)}</span>
                         </span>
                       </button>
                     );
@@ -292,12 +291,12 @@ function VtcPage() {
 
         <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-5 text-center">
           <p className="text-xs text-muted-foreground">Tarif sélectionné</p>
-          <p className="mt-1 text-2xl font-extrabold text-primary">{formatFCFA(estimate)}</p>
+          <p className="mt-1 text-2xl font-extrabold text-primary">{formatXAF(estimate)}</p>
           <div className="mt-4 grid gap-2 text-left text-xs text-muted-foreground sm:grid-cols-2">
             <p>Formule : <span className="font-semibold text-foreground">{FARE_CATEGORIES[selectedFare.category].title}</span></p>
             <p>Zone : <span className="font-semibold text-foreground">{selectedFare.zone}</span></p>
             <p>Service : <span className="font-semibold text-foreground">{selectedFare.service}</span></p>
-            <p>Prix fixe : <span className="font-semibold text-foreground">{formatFCFA(selectedFare.price)}</span></p>
+            <p>Prix fixe : <span className="font-semibold text-foreground">{formatXAF(selectedFare.price)}</span></p>
           </div>
         </div>
 
