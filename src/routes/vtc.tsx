@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 
 type VehicleType = "eco" | "berline" | "confort" | "premium" | "4x4" | "suv" | "van" | "minibus";
 type FareCategory = "classique" | "vip";
@@ -102,6 +103,7 @@ function VtcPage() {
   const [passengers, setPassengers] = useState(Number(search.get("passengers") || "1"));
   const [durationUnit, setDurationUnit] = useState<"hours" | "days">("hours");
   const [durationValue, setDurationValue] = useState(1);
+  const [rideTiming, setRideTiming] = useState<"now" | "scheduled">("scheduled");
   const [loading, setLoading] = useState(false);
 
   const selectedFare = useMemo(() => FARE_OPTIONS.find((fare) => fare.id === selectedFareId) ?? FARE_OPTIONS[0], [selectedFareId]);
@@ -133,8 +135,12 @@ function VtcPage() {
       navigate({ to: "/connexion" });
       return;
     }
-    if (!pickup.trim() || !destination.trim() || !scheduledAt) {
-      toast.error("Départ, arrivée et horaire sont obligatoires");
+    if (!pickup.trim() || !destination.trim()) {
+      toast.error("Départ et arrivée sont obligatoires");
+      return;
+    }
+    if (rideTiming === "scheduled" && !scheduledAt) {
+      toast.error("Choisissez une date et heure pour une réservation planifiée");
       return;
     }
     if (passengers < 1) {
@@ -147,7 +153,8 @@ function VtcPage() {
     }
     setLoading(true);
     try {
-      const reservationDate = scheduledAt.slice(0, 10);
+      const effectiveScheduledAt = rideTiming === "now" ? new Date().toISOString() : scheduledAt;
+      const reservationDate = effectiveScheduledAt.slice(0, 10);
       const { data, error } = await supabase.from("reservations").insert({
         user_id: user.id,
         service_type: "LOCATION_BUS" as const,
@@ -158,7 +165,9 @@ function VtcPage() {
           category: "VTC",
           pickup,
           destination,
-          scheduled_at: scheduledAt,
+          scheduled_at: effectiveScheduledAt,
+          ride_timing: rideTiming,
+          instant_request: rideTiming === "now",
           vehicle_type: VEHICLES[vehicle].label,
           vehicle_model: vehicle === "berline" ? berlineModel : null,
           passengers,
@@ -174,7 +183,12 @@ function VtcPage() {
         },
       }).select("id").single();
       if (error) throw error;
-      toast.success("Transfert VTC pré-réservé");
+      await requestNotificationPermission();
+      await showAppNotification("Demande VTC enregistrée", {
+        body: rideTiming === "now" ? "Votre demande immédiate a été envoyée." : "Votre transfert VTC a été pré-réservé.",
+        tag: `vtc-${data.id}`,
+      });
+      toast.success(rideTiming === "now" ? "Demande VTC immédiate envoyée" : "Transfert VTC pré-réservé");
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de la réservation VTC");
