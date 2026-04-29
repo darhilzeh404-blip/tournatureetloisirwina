@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 
 type VehicleType = "eco" | "berline" | "confort" | "premium" | "4x4" | "suv" | "van" | "minibus";
 type FareCategory = "classique" | "vip";
@@ -102,6 +103,7 @@ function VtcPage() {
   const [passengers, setPassengers] = useState(Number(search.get("passengers") || "1"));
   const [durationUnit, setDurationUnit] = useState<"hours" | "days">("hours");
   const [durationValue, setDurationValue] = useState(1);
+  const [rideTiming, setRideTiming] = useState<"now" | "scheduled">("scheduled");
   const [loading, setLoading] = useState(false);
 
   const selectedFare = useMemo(() => FARE_OPTIONS.find((fare) => fare.id === selectedFareId) ?? FARE_OPTIONS[0], [selectedFareId]);
@@ -133,8 +135,12 @@ function VtcPage() {
       navigate({ to: "/connexion" });
       return;
     }
-    if (!pickup.trim() || !destination.trim() || !scheduledAt) {
-      toast.error("Départ, arrivée et horaire sont obligatoires");
+    if (!pickup.trim() || !destination.trim()) {
+      toast.error("Départ et arrivée sont obligatoires");
+      return;
+    }
+    if (rideTiming === "scheduled" && !scheduledAt) {
+      toast.error("Choisissez une date et heure pour une réservation planifiée");
       return;
     }
     if (passengers < 1) {
@@ -147,7 +153,8 @@ function VtcPage() {
     }
     setLoading(true);
     try {
-      const reservationDate = scheduledAt.slice(0, 10);
+      const effectiveScheduledAt = rideTiming === "now" ? new Date().toISOString() : scheduledAt;
+      const reservationDate = effectiveScheduledAt.slice(0, 10);
       const { data, error } = await supabase.from("reservations").insert({
         user_id: user.id,
         service_type: "LOCATION_BUS" as const,
@@ -158,7 +165,9 @@ function VtcPage() {
           category: "VTC",
           pickup,
           destination,
-          scheduled_at: scheduledAt,
+          scheduled_at: effectiveScheduledAt,
+          ride_timing: rideTiming,
+          instant_request: rideTiming === "now",
           vehicle_type: VEHICLES[vehicle].label,
           vehicle_model: vehicle === "berline" ? berlineModel : null,
           passengers,
@@ -174,7 +183,12 @@ function VtcPage() {
         },
       }).select("id").single();
       if (error) throw error;
-      toast.success("Transfert VTC pré-réservé");
+      await requestNotificationPermission();
+      await showAppNotification("Demande VTC enregistrée", {
+        body: rideTiming === "now" ? "Votre demande immédiate a été envoyée." : "Votre transfert VTC a été pré-réservé.",
+        tag: `vtc-${data.id}`,
+      });
+      toast.success(rideTiming === "now" ? "Demande VTC immédiate envoyée" : "Transfert VTC pré-réservé");
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de la réservation VTC");
@@ -265,8 +279,28 @@ function VtcPage() {
           <input value={destination} onChange={(e) => setDestination(e.target.value)} className="input-base" placeholder="Circuit, station de bus, hôtel" />
         </Field>
 
-        <Field label="Date et heure souhaitées" icon={<Calendar className="h-4 w-4 text-primary" />}>
-          <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="input-base" />
+        <Field label="Moment de la course" icon={<Calendar className="h-4 w-4 text-primary" />}>
+          <div className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card">
+            {([
+              { value: "now", label: "Maintenant" },
+              { value: "scheduled", label: "Planifier" },
+            ] as const).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setRideTiming(option.value)}
+                className={`min-h-12 px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${rideTiming === option.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+                aria-pressed={rideTiming === option.value}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          {rideTiming === "scheduled" ? (
+            <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="input-base mt-2" />
+          ) : (
+            <p className="mt-2 rounded-xl border bg-primary/5 p-3 text-xs font-semibold text-primary">Commande immédiate : votre demande est envoyée pour une prise en charge dès que possible.</p>
+          )}
         </Field>
 
         {isHourlyFare && (
@@ -335,6 +369,7 @@ function VtcPage() {
           <div className="mt-4 grid gap-2 text-left text-xs text-muted-foreground sm:grid-cols-2">
             <p>Formule : <span className="font-semibold text-foreground">{FARE_CATEGORIES[selectedFare.category].title}</span></p>
             <p>Zone : <span className="font-semibold text-foreground">{selectedFare.zone}</span></p>
+            <p>Moment : <span className="font-semibold text-foreground">{rideTiming === "now" ? "Maintenant" : "Planifié"}</span></p>
             <p>Service : <span className="font-semibold text-foreground">{selectedFare.service}</span></p>
             <p>Prix de base : <span className="font-semibold text-foreground">{formatXAF(selectedFare.price)}</span></p>
             {isHourlyFare && <p>Durée : <span className="font-semibold text-foreground">{durationValue} {durationUnit === "hours" ? "h" : "jour(s)"} · {billableHours}h facturées</span></p>}
@@ -343,7 +378,7 @@ function VtcPage() {
 
         <button type="button" onClick={submit} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50">
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CarFront className="h-4 w-4" />}
-          {loading ? "Réservation..." : "Réserver mon transfert VTC"}
+          {loading ? "Réservation..." : rideTiming === "now" ? "Commander un VTC maintenant" : "Réserver mon transfert VTC"}
         </button>
       </main>
 
