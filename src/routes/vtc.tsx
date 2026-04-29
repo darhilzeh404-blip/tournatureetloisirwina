@@ -269,6 +269,35 @@ function VtcPage() {
           <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="input-base" />
         </Field>
 
+        {isHourlyFare && (
+          <Field label="Durée souhaitée" icon={<Clock className="h-4 w-4 text-primary" />}>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <input
+                type="number"
+                min={1}
+                value={durationValue}
+                onChange={(e) => setDurationValue(Math.max(1, Number(e.target.value) || 1))}
+                className="input-base"
+                aria-label="Nombre d'heures ou de jours"
+              />
+              <div className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card">
+                {(["hours", "days"] as const).map((unit) => (
+                  <button
+                    key={unit}
+                    type="button"
+                    onClick={() => setDurationUnit(unit)}
+                    className={`min-h-12 px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${durationUnit === unit ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+                    aria-pressed={durationUnit === unit}
+                  >
+                    {unit === "hours" ? "Heures" : "Jours"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">Le tarif 1h est multiplié par la durée choisie. 1 jour = 24h.</p>
+          </Field>
+        )}
+
         <Field label="Véhicule souhaité" icon={<CarFront className="h-4 w-4 text-primary" />}>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(Object.keys(VEHICLES) as VehicleType[]).map((key) => (
