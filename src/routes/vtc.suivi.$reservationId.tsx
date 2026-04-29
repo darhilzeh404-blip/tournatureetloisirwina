@@ -149,6 +149,9 @@ function VtcTrackingPage() {
 
   const details = reservation?.details ?? {};
   const status = reservation ? STATUS_COPY[reservation.status] : null;
+  const isInstantRequest = details.instant_request === true;
+  const availabilityLabel = typeof details.availability_estimate_label === "string" ? details.availability_estimate_label : null;
+  const preConfirmationMessage = typeof details.pre_confirmation_message === "string" ? details.pre_confirmation_message : null;
   const tripEta = useMemo(() => {
     if (trip?.eta_minutes) return trip.eta_minutes;
     if (!driverPos) return null;
@@ -204,6 +207,18 @@ function VtcTrackingPage() {
             <p className="mt-1 font-semibold">{driverName || (trip?.driver_id ? "Chauffeur assigné" : "En attente")}</p>
           </div>
         </section>
+
+        {isInstantRequest && !trip?.driver_id && (
+          <section className="border-b bg-primary/5 p-4">
+            <div className="rounded-xl border border-primary/20 bg-card p-4 text-sm">
+              <p className="flex items-center gap-2 text-xs font-bold text-primary"><Clock className="h-3.5 w-3.5" /> Disponibilité estimée</p>
+              <p className="mt-1 text-lg font-extrabold text-foreground">{availabilityLabel ?? "10 à 20 min en moyenne"}</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                {preConfirmationMessage ?? "Votre demande est envoyée aux chauffeurs disponibles. Un chauffeur doit confirmer avant le départ ; vous serez notifié dès l’assignation."}
+              </p>
+            </div>
+          </section>
+        )}
 
         <section className="grid gap-3 border-b bg-background p-4 text-sm lg:grid-cols-[1fr_auto]">
           <div className="rounded-xl border bg-card p-3">

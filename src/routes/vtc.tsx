@@ -74,6 +74,14 @@ const FARE_OPTIONS: FareOption[] = [
 ];
 
 const fareCategoryOrder: FareCategory[] = ["classique", "vip"];
+const getInstantAvailability = (fare: FareOption) => {
+  const minutes = fare.category === "vip" ? 20 : fare.zone.includes("Owendo") ? 18 : fare.zone.includes("LBV") ? 15 : 10;
+  return {
+    minutes,
+    label: `${minutes} min en moyenne`,
+    message: `Votre demande est envoyée aux chauffeurs disponibles. Un chauffeur doit confirmer avant le départ ; vous serez notifié dès l’assignation.`,
+  };
+};
 
 export const Route = createFileRoute("/vtc")({
   head: () => ({
@@ -110,6 +118,7 @@ function VtcPage() {
   const isHourlyFare = selectedFare.service.includes("1h");
   const billableHours = isHourlyFare ? Math.max(1, durationValue) * (durationUnit === "days" ? 24 : 1) : 1;
   const estimate = selectedFare.price * billableHours;
+  const instantAvailability = useMemo(() => getInstantAvailability(selectedFare), [selectedFare]);
 
   const selectFare = (fare: FareOption) => {
     setSelectedFareId(fare.id);
@@ -168,6 +177,9 @@ function VtcPage() {
           scheduled_at: effectiveScheduledAt,
           ride_timing: rideTiming,
           instant_request: rideTiming === "now",
+          availability_estimate_minutes: rideTiming === "now" ? instantAvailability.minutes : null,
+          availability_estimate_label: rideTiming === "now" ? instantAvailability.label : null,
+          pre_confirmation_message: rideTiming === "now" ? instantAvailability.message : null,
           vehicle_type: VEHICLES[vehicle].label,
           vehicle_model: vehicle === "berline" ? berlineModel : null,
           passengers,
@@ -299,7 +311,10 @@ function VtcPage() {
           {rideTiming === "scheduled" ? (
             <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="input-base mt-2" />
           ) : (
-            <p className="mt-2 rounded-xl border bg-primary/5 p-3 text-xs font-semibold text-primary">Commande immédiate : votre demande est envoyée pour une prise en charge dès que possible.</p>
+            <div className="mt-2 rounded-xl border bg-primary/5 p-3 text-xs leading-relaxed text-primary">
+              <p className="font-extrabold">Disponibilité estimée : {instantAvailability.label}</p>
+              <p className="mt-1 font-semibold">{instantAvailability.message}</p>
+            </div>
           )}
         </Field>
 
@@ -370,6 +385,7 @@ function VtcPage() {
             <p>Formule : <span className="font-semibold text-foreground">{FARE_CATEGORIES[selectedFare.category].title}</span></p>
             <p>Zone : <span className="font-semibold text-foreground">{selectedFare.zone}</span></p>
             <p>Moment : <span className="font-semibold text-foreground">{rideTiming === "now" ? "Maintenant" : "Planifié"}</span></p>
+            {rideTiming === "now" && <p>Disponibilité : <span className="font-semibold text-foreground">{instantAvailability.label}</span></p>}
             <p>Service : <span className="font-semibold text-foreground">{selectedFare.service}</span></p>
             <p>Prix de base : <span className="font-semibold text-foreground">{formatXAF(selectedFare.price)}</span></p>
             {isHourlyFare && <p>Durée : <span className="font-semibold text-foreground">{durationValue} {durationUnit === "hours" ? "h" : "jour(s)"} · {billableHours}h facturées</span></p>}
