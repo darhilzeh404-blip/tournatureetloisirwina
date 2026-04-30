@@ -49,6 +49,7 @@ const SERVICE_LABEL: Record<ServiceType, string> = {
   TRANSPORT_SCOLAIRE: "Transport Scolaire",
   LOCATION_BUS: "Location de Bus",
   CIRCUIT_TOURISTIQUE: "Circuit Touristique",
+  VTC: "Transfert privé VTC",
 };
 
 function formatXAF(amount: number) {
