@@ -285,9 +285,9 @@ function MesReservationsPage() {
                       )}
                     </div>
                   </div>
-                  {(canPay || res.trip_id || res.details?.category === "VTC") && (
+                  {(canPay || res.trip_id || res.service_type === "VTC") && (
                     <div className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-4">
-                      {res.details?.category === "VTC" && (
+                      {res.service_type === "VTC" && (
                         <Link to="/vtc/suivi/$reservationId" params={{ reservationId: res.id }}>
                           <Button size="sm" variant="outline" className="gap-2">
                             <MapPin className="h-4 w-4" />
