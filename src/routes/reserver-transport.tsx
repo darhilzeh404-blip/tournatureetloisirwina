@@ -201,6 +201,7 @@ function ReserverTransport() {
       : selectedBusTrip.pricing[busDirection]
     : selectedBusTrip.pricing.byCapacity[busCapacity];
   const busTotal = isDirectionalBusTrip ? busUnit : busUnit * busDays;
+  const dailyBusPrices = selectedBusTrip.pricing.type === "daily" ? selectedBusTrip.pricing.byCapacity : null;
 
   const submitBus = async () => {
     if (!ensureAuth()) return;
@@ -431,10 +432,10 @@ function ReserverTransport() {
             ) : (
               <Field label="Capacité du bus">
                 <div className="grid grid-cols-2 gap-2">
-                  {selectedBusTrip.pricing.type === "daily" &&
+                  {dailyBusPrices &&
                     ([16, 32] as const).map((capacity) => (
                       <button key={capacity} type="button" onClick={() => setBusCapacity(capacity)} className={pillCls(busCapacity === capacity)}>
-                        Bus {capacity} places · {formatFCFA(selectedBusTrip.pricing.byCapacity[capacity])}/journée
+                        Bus {capacity} places · {formatFCFA(dailyBusPrices[capacity])}/journée
                       </button>
                     ))}
                 </div>
