@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Loader2,
   Calendar,
+  MapPin,
 } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -45,13 +46,30 @@ const EXTRA_ACTIVITIES = [
   { id: "natation", emoji: "🏊", label: "Natation & danse", price: 25_000 },
 ];
 
-const BUS_FLEET = [
-  { id: "32", name: "Bus 32 places", capacity: 32, std: 250_000, vip: 350_000 },
-  { id: "16", name: "Minibus 16 places", capacity: 16, std: 180_000, vip: 250_000 },
-  { id: "14", name: "Minibus 14 places", capacity: 14, std: 150_000, vip: 220_000 },
+const GROUP_BUS_TRIPS = [
+  {
+    id: "parc-akanda",
+    title: "Trajet Parc d’Akanda",
+    gathering: "Parking SANgel",
+    note: "Aller et retour facturés séparément pour les déplacements en groupe.",
+    destinations: ["Cap Santa-Clara", "Cap Estérias", "Cap des Pères", "Cap Caravane", "Boulokoboué", "Malibé 1", "Malibé 2", "Ndossi village", "Akouago-village"],
+    pricing: { type: "direction", aller: 20_000, retour: 20_000 },
+  },
+  {
+    id: "ntoum-donguila",
+    title: "Trajet Ntoum-Meyan & Donguila",
+    gathering: "ABC Mall des Charbonnages",
+    destinations: ["LBV - Donguila", "LBV - Meyang"],
+    pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
+  },
+  {
+    id: "cocobeach",
+    title: "Trajet LBV - Cocobeach",
+    gathering: "ABC Mall des Charbonnages",
+    destinations: ["LBV - Cocobeach"],
+    pricing: { type: "daily", byCapacity: { 16: 192_000, 32: 384_000 } },
+  },
 ] as const;
-
-const BUS_USAGES = ["Mariage", "Excursion", "Urbain", "Événement entreprise", "Autre"] as const;
 
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
@@ -169,25 +187,20 @@ function ReserverTransport() {
   };
 
   // ─────────── Form Bus ───────────
-  const [busModel, setBusModel] = useState<string>(BUS_FLEET[0].id);
-  const [busVip, setBusVip] = useState(false);
-  const [busUsage, setBusUsage] = useState<string>(BUS_USAGES[0]);
+  const [busTripId, setBusTripId] = useState<string>(GROUP_BUS_TRIPS[0].id);
+  const [busDirection, setBusDirection] = useState<"aller" | "retour" | "aller_retour">("aller");
+  const [busCapacity, setBusCapacity] = useState<16 | 32>(16);
   const [busDate, setBusDate] = useState("");
   const [busDays, setBusDays] = useState(1);
 
-  const selectedBus = BUS_FLEET.find((b) => b.id === busModel)!;
-  const busUnit = busVip ? selectedBus.vip : selectedBus.std;
-  const busTotal = busUnit * busDays;
-
-  const busVtcHref = (busName = selectedBus.name) => {
-    const params = new URLSearchParams({
-      pickup: "Mon hôtel",
-      destination: `Station de départ — ${busUsage} (${busName})`,
-      scheduled_at: dateToDateTimeLocal(busDate),
-      source: "bus",
-    });
-    return `/vtc?${params.toString()}`;
-  };
+  const selectedBusTrip = GROUP_BUS_TRIPS.find((trip) => trip.id === busTripId)!;
+  const isDirectionalBusTrip = selectedBusTrip.pricing.type === "direction";
+  const busUnit = isDirectionalBusTrip
+    ? busDirection === "aller_retour"
+      ? selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour
+      : selectedBusTrip.pricing[busDirection]
+    : selectedBusTrip.pricing.byCapacity[busCapacity];
+  const busTotal = isDirectionalBusTrip ? busUnit : busUnit * busDays;
 
   const submitBus = async () => {
     if (!ensureAuth()) return;
@@ -204,11 +217,14 @@ function ReserverTransport() {
         total_amount: busTotal,
         paid_amount: 0,
         details: {
-          vehicule: selectedBus.name,
-          capacite: selectedBus.capacity,
-          standing: busVip ? "VIP" : "Standard",
-          usage: busUsage,
-          jours: busDays,
+          trajet_groupe: selectedBusTrip.title,
+          lieu_rassemblement: selectedBusTrip.gathering,
+          destinations: selectedBusTrip.destinations,
+          formule: isDirectionalBusTrip
+            ? busDirection === "aller_retour" ? "Aller + retour" : busDirection === "aller" ? "Aller" : "Retour"
+            : `${busCapacity} places`,
+          jours: isDirectionalBusTrip ? undefined : busDays,
+          tarif_unitaire: busUnit,
         },
       });
       if (error) throw error;
