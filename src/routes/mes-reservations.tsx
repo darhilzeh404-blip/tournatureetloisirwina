@@ -263,7 +263,7 @@ function MesReservationsPage() {
                         </span>
                       </div>
                       <h3 className="mt-1 font-bold text-card-foreground">
-                        {res.details?.category === "VTC" ? "Transfert privé VTC" : SERVICE_LABEL[res.service_type]}
+                        {SERVICE_LABEL[res.service_type]}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         {summarize(res.details, res.service_type)}
