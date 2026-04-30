@@ -190,7 +190,7 @@ function ReserverTransport() {
   const [busTripId, setBusTripId] = useState<string>(GROUP_BUS_TRIPS[0].id);
   const [busDirection, setBusDirection] = useState<"aller" | "retour" | "aller_retour">("aller");
   const [busCapacity, setBusCapacity] = useState<16 | 32>(16);
-  const [busDate, setBusDate] = useState("");
+  const [busDepartureAt, setBusDepartureAt] = useState("");
   const [busDays, setBusDays] = useState(1);
 
   const selectedBusTrip = GROUP_BUS_TRIPS.find((trip) => trip.id === busTripId)!;
@@ -205,8 +205,8 @@ function ReserverTransport() {
 
   const submitBus = async () => {
     if (!ensureAuth()) return;
-    if (!busDate) {
-      toast.error("Choisissez une date");
+    if (!busDepartureAt) {
+      toast.error("Choisissez la date et l'heure de départ");
       return;
     }
     setSubmitting(true);
@@ -218,6 +218,8 @@ function ReserverTransport() {
         formule: isDirectionalBusTrip
           ? busDirection === "aller_retour" ? "Aller + retour" : busDirection === "aller" ? "Aller" : "Retour"
           : `${busCapacity} places`,
+        depart_prevu: busDepartureAt,
+        heure_depart: busDepartureAt.split("T")[1] ?? "",
         ...(isDirectionalBusTrip ? {} : { jours: busDays }),
         tarif_unitaire: busUnit,
       };
@@ -225,7 +227,7 @@ function ReserverTransport() {
       const { error } = await supabase.from("reservations").insert({
         user_id: user!.id,
         service_type: "LOCATION_BUS" as const,
-        reservation_date: busDate,
+        reservation_date: busDepartureAt.split("T")[0],
         total_amount: busTotal,
         paid_amount: 0,
         details: reservationDetails,
