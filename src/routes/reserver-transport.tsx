@@ -210,22 +210,24 @@ function ReserverTransport() {
     }
     setSubmitting(true);
     try {
+      const reservationDetails = {
+        trajet_groupe: selectedBusTrip.title,
+        lieu_rassemblement: selectedBusTrip.gathering,
+        destinations: [...selectedBusTrip.destinations],
+        formule: isDirectionalBusTrip
+          ? busDirection === "aller_retour" ? "Aller + retour" : busDirection === "aller" ? "Aller" : "Retour"
+          : `${busCapacity} places`,
+        ...(isDirectionalBusTrip ? {} : { jours: busDays }),
+        tarif_unitaire: busUnit,
+      };
+
       const { error } = await supabase.from("reservations").insert({
         user_id: user!.id,
         service_type: "LOCATION_BUS" as const,
         reservation_date: busDate,
         total_amount: busTotal,
         paid_amount: 0,
-        details: {
-          trajet_groupe: selectedBusTrip.title,
-          lieu_rassemblement: selectedBusTrip.gathering,
-          destinations: selectedBusTrip.destinations,
-          formule: isDirectionalBusTrip
-            ? busDirection === "aller_retour" ? "Aller + retour" : busDirection === "aller" ? "Aller" : "Retour"
-            : `${busCapacity} places`,
-          jours: isDirectionalBusTrip ? undefined : busDays,
-          tarif_unitaire: busUnit,
-        },
+        details: reservationDetails,
       });
       if (error) throw error;
       toast.success("Réservation bus créée 🚌");
