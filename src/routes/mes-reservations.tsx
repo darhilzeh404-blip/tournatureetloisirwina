@@ -59,7 +59,7 @@ function formatXAF(amount: number) {
 function summarize(details: Record<string, unknown> | null, type: ServiceType): string {
   if (!details) return SERVICE_LABEL[type];
   const d = details as Record<string, string | number | boolean>;
-  if (d.category === "VTC") {
+  if (type === "VTC") {
     return `${d.pickup ?? "Départ"} → ${d.destination ?? "Arrivée"}${d.vehicle_type ? ` — ${d.vehicle_type}` : ""}`;
   }
   if (type === "CIRCUIT_TOURISTIQUE") {
