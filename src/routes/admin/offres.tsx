@@ -34,6 +34,7 @@ const SERVICE_LABELS: Record<string, string> = {
   TRANSPORT_SCOLAIRE: "Transport scolaire",
   LOCATION_BUS: "Location de bus",
   CIRCUIT_TOURISTIQUE: "Circuit touristique",
+  VTC: "VTC / Transfert",
 };
 
 function OfferFormDialog({
