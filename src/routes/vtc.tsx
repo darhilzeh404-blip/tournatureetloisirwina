@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Calendar, CarFront, Clock, Gem, Loader2, MapPin, Navigation, Users } from "lucide-react";
+import { Calendar, CarFront, ChevronDown, Clock, Gem, Loader2, MapPin, Navigation, Sparkles, Users, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
