@@ -431,11 +431,12 @@ function ReserverTransport() {
             ) : (
               <Field label="Capacité du bus">
                 <div className="grid grid-cols-2 gap-2">
-                  {([16, 32] as const).map((capacity) => (
-                    <button key={capacity} type="button" onClick={() => setBusCapacity(capacity)} className={pillCls(busCapacity === capacity)}>
-                      Bus {capacity} places · {formatFCFA(selectedBusTrip.pricing.byCapacity[capacity])}/journée
-                    </button>
-                  ))}
+                  {selectedBusTrip.pricing.type === "daily" &&
+                    ([16, 32] as const).map((capacity) => (
+                      <button key={capacity} type="button" onClick={() => setBusCapacity(capacity)} className={pillCls(busCapacity === capacity)}>
+                        Bus {capacity} places · {formatFCFA(selectedBusTrip.pricing.byCapacity[capacity])}/journée
+                      </button>
+                    ))}
                 </div>
               </Field>
             )}
