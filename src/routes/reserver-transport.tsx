@@ -8,6 +8,9 @@ import {
   Loader2,
   Calendar,
   MapPin,
+  ChevronDown,
+  Info,
+  Users,
 } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
