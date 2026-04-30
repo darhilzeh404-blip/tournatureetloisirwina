@@ -445,11 +445,11 @@ function ReserverTransport() {
             )}
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Date" icon={<Calendar className="h-4 w-4 text-primary" />}>
+              <Field label="Date et heure de départ" icon={<Calendar className="h-4 w-4 text-primary" />}>
                 <input
-                  type="date"
-                  value={busDate}
-                  onChange={(e) => setBusDate(e.target.value)}
+                  type="datetime-local"
+                  value={busDepartureAt}
+                  onChange={(e) => setBusDepartureAt(e.target.value)}
                   className="input-base"
                 />
               </Field>
