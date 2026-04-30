@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Loader2,
   Calendar,
+  MapPin,
 } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -45,13 +46,30 @@ const EXTRA_ACTIVITIES = [
   { id: "natation", emoji: "🏊", label: "Natation & danse", price: 25_000 },
 ];
 
-const BUS_FLEET = [
-  { id: "32", name: "Bus 32 places", capacity: 32, std: 250_000, vip: 350_000 },
-  { id: "16", name: "Minibus 16 places", capacity: 16, std: 180_000, vip: 250_000 },
-  { id: "14", name: "Minibus 14 places", capacity: 14, std: 150_000, vip: 220_000 },
+const GROUP_BUS_TRIPS = [
+  {
+    id: "parc-akanda",
+    title: "Trajet Parc d’Akanda",
+    gathering: "Parking SANgel",
+    note: "Aller et retour facturés séparément pour les déplacements en groupe.",
+    destinations: ["Cap Santa-Clara", "Cap Estérias", "Cap des Pères", "Cap Caravane", "Boulokoboué", "Malibé 1", "Malibé 2", "Ndossi village", "Akouago-village"],
+    pricing: { type: "direction", aller: 20_000, retour: 20_000 },
+  },
+  {
+    id: "ntoum-donguila",
+    title: "Trajet Ntoum-Meyan & Donguila",
+    gathering: "ABC Mall des Charbonnages",
+    destinations: ["LBV - Donguila", "LBV - Meyang"],
+    pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
+  },
+  {
+    id: "cocobeach",
+    title: "Trajet LBV - Cocobeach",
+    gathering: "ABC Mall des Charbonnages",
+    destinations: ["LBV - Cocobeach"],
+    pricing: { type: "daily", byCapacity: { 16: 192_000, 32: 384_000 } },
+  },
 ] as const;
-
-const BUS_USAGES = ["Mariage", "Excursion", "Urbain", "Événement entreprise", "Autre"] as const;
 
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
@@ -169,25 +187,21 @@ function ReserverTransport() {
   };
 
   // ─────────── Form Bus ───────────
-  const [busModel, setBusModel] = useState<string>(BUS_FLEET[0].id);
-  const [busVip, setBusVip] = useState(false);
-  const [busUsage, setBusUsage] = useState<string>(BUS_USAGES[0]);
+  const [busTripId, setBusTripId] = useState<string>(GROUP_BUS_TRIPS[0].id);
+  const [busDirection, setBusDirection] = useState<"aller" | "retour" | "aller_retour">("aller");
+  const [busCapacity, setBusCapacity] = useState<16 | 32>(16);
   const [busDate, setBusDate] = useState("");
   const [busDays, setBusDays] = useState(1);
 
-  const selectedBus = BUS_FLEET.find((b) => b.id === busModel)!;
-  const busUnit = busVip ? selectedBus.vip : selectedBus.std;
-  const busTotal = busUnit * busDays;
-
-  const busVtcHref = (busName = selectedBus.name) => {
-    const params = new URLSearchParams({
-      pickup: "Mon hôtel",
-      destination: `Station de départ — ${busUsage} (${busName})`,
-      scheduled_at: dateToDateTimeLocal(busDate),
-      source: "bus",
-    });
-    return `/vtc?${params.toString()}`;
-  };
+  const selectedBusTrip = GROUP_BUS_TRIPS.find((trip) => trip.id === busTripId)!;
+  const isDirectionalBusTrip = selectedBusTrip.pricing.type === "direction";
+  const busUnit = isDirectionalBusTrip
+    ? busDirection === "aller_retour"
+      ? selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour
+      : selectedBusTrip.pricing[busDirection]
+    : selectedBusTrip.pricing.byCapacity[busCapacity];
+  const busTotal = isDirectionalBusTrip ? busUnit : busUnit * busDays;
+  const dailyBusPrices = selectedBusTrip.pricing.type === "daily" ? selectedBusTrip.pricing.byCapacity : null;
 
   const submitBus = async () => {
     if (!ensureAuth()) return;
@@ -197,19 +211,24 @@ function ReserverTransport() {
     }
     setSubmitting(true);
     try {
+      const reservationDetails = {
+        trajet_groupe: selectedBusTrip.title,
+        lieu_rassemblement: selectedBusTrip.gathering,
+        destinations: [...selectedBusTrip.destinations],
+        formule: isDirectionalBusTrip
+          ? busDirection === "aller_retour" ? "Aller + retour" : busDirection === "aller" ? "Aller" : "Retour"
+          : `${busCapacity} places`,
+        ...(isDirectionalBusTrip ? {} : { jours: busDays }),
+        tarif_unitaire: busUnit,
+      };
+
       const { error } = await supabase.from("reservations").insert({
         user_id: user!.id,
         service_type: "LOCATION_BUS" as const,
         reservation_date: busDate,
         total_amount: busTotal,
         paid_amount: 0,
-        details: {
-          vehicule: selectedBus.name,
-          capacite: selectedBus.capacity,
-          standing: busVip ? "VIP" : "Standard",
-          usage: busUsage,
-          jours: busDays,
-        },
+        details: reservationDetails,
       });
       if (error) throw error;
       toast.success("Réservation bus créée 🚌");
@@ -365,47 +384,63 @@ function ReserverTransport() {
 
           {/* ─── BUS ─── */}
           <TabsContent value="bus" className="mt-5 space-y-4">
-            <Field label="Type d'usage">
-              <select
-                value={busUsage}
-                onChange={(e) => setBusUsage(e.target.value)}
-                className="input-base"
-              >
-                {BUS_USAGES.map((u) => (
-                  <option key={u} value={u}>{u}</option>
-                ))}
-              </select>
-            </Field>
+            <div className="rounded-2xl border bg-card p-4">
+              <p className="text-sm font-bold">Déplacements en groupe uniquement</p>
+              <p className="mt-1 text-xs text-muted-foreground">Sélectionnez un trajet organisé, le lieu de rassemblement et la formule adaptée.</p>
+            </div>
 
-            <Field label="Capacité">
-              <div className="grid grid-cols-3 gap-2">
-                {BUS_FLEET.map((b) => (
-                  <div key={b.id} className={`rounded-xl border p-2 text-center transition-colors ${busModel === b.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+            <Field label="Trajet de groupe">
+              <div className="space-y-2">
+                {GROUP_BUS_TRIPS.map((trip) => {
+                  const active = busTripId === trip.id;
+                  return (
                     <button
+                      key={trip.id}
                       type="button"
-                      onClick={() => setBusModel(b.id)}
-                      className="w-full text-xs font-semibold"
+                      onClick={() => setBusTripId(trip.id)}
+                      className={`w-full rounded-2xl border p-4 text-left transition-colors ${active ? "border-primary bg-primary/10" : "border-border bg-card"}`}
                     >
-                      {b.capacity} places
+                      <span className="block text-sm font-bold">{trip.title}</span>
+                      <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 text-primary" /> Rassemblement : {trip.gathering}
+                      </span>
                     </button>
-                    <a href={busVtcHref(b.name)} className="mt-2 inline-flex w-full items-center justify-center rounded-lg bg-primary/10 px-1.5 py-1.5 text-[10px] font-bold text-primary">
-                      Book a private VTC transfer
-                    </a>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Field>
 
-            <Field label="Standing">
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setBusVip(false)} className={pillCls(!busVip)}>
-                  Standard · {formatFCFA(selectedBus.std)}/jour
-                </button>
-                <button type="button" onClick={() => setBusVip(true)} className={pillCls(busVip)}>
-                  VIP · {formatFCFA(selectedBus.vip)}/jour
-                </button>
+            <div className="rounded-2xl border bg-secondary/40 p-4">
+              <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Itinéraire</p>
+              <div className="flex flex-wrap gap-2">
+                {selectedBusTrip.destinations.map((destination) => (
+                  <span key={destination} className="rounded-full border bg-card px-3 py-1 text-xs font-semibold">
+                    {destination}
+                  </span>
+                ))}
               </div>
-            </Field>
+            </div>
+
+            {isDirectionalBusTrip ? (
+              <Field label="Formule">
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => setBusDirection("aller")} className={pillCls(busDirection === "aller")}>Aller · {formatFCFA(selectedBusTrip.pricing.aller)}</button>
+                  <button type="button" onClick={() => setBusDirection("retour")} className={pillCls(busDirection === "retour")}>Retour · {formatFCFA(selectedBusTrip.pricing.retour)}</button>
+                  <button type="button" onClick={() => setBusDirection("aller_retour")} className={pillCls(busDirection === "aller_retour")}>A/R · {formatFCFA(selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour)}</button>
+                </div>
+              </Field>
+            ) : (
+              <Field label="Capacité du bus">
+                <div className="grid grid-cols-2 gap-2">
+                  {dailyBusPrices &&
+                    ([16, 32] as const).map((capacity) => (
+                      <button key={capacity} type="button" onClick={() => setBusCapacity(capacity)} className={pillCls(busCapacity === capacity)}>
+                        Bus {capacity} places · {formatFCFA(dailyBusPrices[capacity])}/journée
+                      </button>
+                    ))}
+                </div>
+              </Field>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Date" icon={<Calendar className="h-4 w-4 text-primary" />}>
@@ -416,12 +451,14 @@ function ReserverTransport() {
                   className="input-base"
                 />
               </Field>
-              <Field label="Nombre de jours">
-                <NumberStepper value={busDays} onChange={setBusDays} />
-              </Field>
+              {!isDirectionalBusTrip && (
+                <Field label="Nombre de jours">
+                  <NumberStepper value={busDays} onChange={setBusDays} />
+                </Field>
+              )}
             </div>
 
-            <PriceCard total={busTotal} subtitle={`${selectedBus.name} · ${busDays} jour(s) · ${busVip ? "VIP" : "Standard"}`} />
+            <PriceCard total={busTotal} subtitle={`${selectedBusTrip.title} · ${isDirectionalBusTrip ? "forfait trajet" : `${busCapacity} places · ${busDays} jour(s)`}`} />
             <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver Bus" />
           </TabsContent>
         </Tabs>

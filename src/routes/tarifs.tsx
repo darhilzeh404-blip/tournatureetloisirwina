@@ -31,6 +31,27 @@ function formatXAF(amount: number) {
   return new Intl.NumberFormat("fr-FR").format(amount) + " XAF";
 }
 
+const GROUP_BUS_PRICING = [
+  {
+    title: "Parc d’Akanda",
+    gathering: "Parking SANgel",
+    destinations: ["Cap Santa-Clara", "Cap Estérias", "Cap des Pères", "Cap Caravane", "Boulokoboué", "Malibé 1", "Malibé 2", "Ndossi village", "Akouago-village"],
+    rows: [["Aller", 20_000], ["Retour", 20_000]] as [string, number][],
+  },
+  {
+    title: "Ntoum-Meyan & Donguila",
+    gathering: "ABC Mall des Charbonnages",
+    destinations: ["LBV - Donguila", "LBV - Meyang"],
+    rows: [["Bus 16 places / journée", 100_000], ["Bus 32 places / journée", 200_000]] as [string, number][],
+  },
+  {
+    title: "LBV - Cocobeach",
+    gathering: "ABC Mall des Charbonnages",
+    destinations: ["LBV - Cocobeach"],
+    rows: [["Bus 16 places / journée", 192_000], ["Bus 32 places / journée", 384_000]] as [string, number][],
+  },
+];
+
 function TarifsPage() {
   const { isAuthenticated, isLoading, role } = useAuth();
   const navigate = useNavigate();
@@ -219,7 +240,7 @@ function TarifsPage() {
           </motion.div>
         </motion.section>
 
-        {/* TRANSPORT URBAIN / MARIAGE / EXCURSION */}
+        {/* TRANSPORT DE GROUPE */}
         <motion.section
           initial="hidden"
           whileInView="show"
@@ -230,40 +251,43 @@ function TarifsPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <Bus className="h-5 w-5 text-primary" />
             </div>
-            <h2 className="text-xl font-bold">Transport urbain / Mariage / Excursion</h2>
+            <h2 className="text-xl font-bold">Transport de groupe</h2>
           </motion.div>
 
-          <motion.div variants={fadeUp} className="rounded-2xl border bg-card p-5">
-            <p className="text-sm font-semibold">Capacités disponibles :</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {["32 places", "16 places", "14 places"].map((cap) => (
-                <span
-                  key={cap}
-                  className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground"
-                >
-                  {cap}
-                </span>
-              ))}
-            </div>
+          <motion.div variants={fadeUp} className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+            <p className="text-sm font-semibold text-primary">Ces tarifs concernent uniquement les déplacements en groupe.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Les lieux de rassemblement sont indiqués pour faciliter l’organisation du départ.</p>
           </motion.div>
 
-          <motion.div variants={fadeUp} className="mt-4 grid gap-3 sm:grid-cols-2">
-            <PricingBlock
-              variant="standard"
-              title="Standard — 32 places"
-              rows={[
-                ["Journée", 180000],
-                ["Demi-journée", 100000],
-              ]}
-            />
-            <PricingBlock
-              variant="vip"
-              title="VIP — 32 places"
-              rows={[
-                ["Journée", 250000],
-                ["Demi-journée", 130000],
-              ]}
-            />
+          <motion.div variants={fadeUp} className="mt-4 grid gap-4">
+            {GROUP_BUS_PRICING.map((group) => (
+              <div key={group.title} className="rounded-2xl border bg-card p-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                    <MapPin className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold">{group.title}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">Rassemblement : {group.gathering}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {group.destinations.map((destination) => (
+                    <span key={destination} className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
+                      {destination}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-4 rounded-xl bg-secondary/50 p-3">
+                  {group.rows.map(([label, price]) => (
+                    <div key={label} className="flex items-baseline justify-between gap-3 border-b border-dashed border-border py-2 first:pt-0 last:border-0 last:pb-0">
+                      <span className="text-sm text-muted-foreground">{label}</span>
+                      <span className="text-sm font-extrabold text-primary">{formatXAF(price)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </motion.div>
         </motion.section>
 
