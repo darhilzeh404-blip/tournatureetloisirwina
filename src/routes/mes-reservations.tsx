@@ -49,6 +49,7 @@ const SERVICE_LABEL: Record<ServiceType, string> = {
   TRANSPORT_SCOLAIRE: "Transport Scolaire",
   LOCATION_BUS: "Location de Bus",
   CIRCUIT_TOURISTIQUE: "Circuit Touristique",
+  VTC: "Transfert privé VTC",
 };
 
 function formatXAF(amount: number) {
@@ -58,7 +59,7 @@ function formatXAF(amount: number) {
 function summarize(details: Record<string, unknown> | null, type: ServiceType): string {
   if (!details) return SERVICE_LABEL[type];
   const d = details as Record<string, string | number | boolean>;
-  if (d.category === "VTC") {
+  if (type === "VTC") {
     return `${d.pickup ?? "Départ"} → ${d.destination ?? "Arrivée"}${d.vehicle_type ? ` — ${d.vehicle_type}` : ""}`;
   }
   if (type === "CIRCUIT_TOURISTIQUE") {
@@ -262,7 +263,7 @@ function MesReservationsPage() {
                         </span>
                       </div>
                       <h3 className="mt-1 font-bold text-card-foreground">
-                        {res.details?.category === "VTC" ? "Transfert privé VTC" : SERVICE_LABEL[res.service_type]}
+                        {SERVICE_LABEL[res.service_type]}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         {summarize(res.details, res.service_type)}
@@ -284,9 +285,9 @@ function MesReservationsPage() {
                       )}
                     </div>
                   </div>
-                  {(canPay || res.trip_id || res.details?.category === "VTC") && (
+                  {(canPay || res.trip_id || res.service_type === "VTC") && (
                     <div className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-4">
-                      {res.details?.category === "VTC" && (
+                      {res.service_type === "VTC" && (
                         <Link to="/vtc/suivi/$reservationId" params={{ reservationId: res.id }}>
                           <Button size="sm" variant="outline" className="gap-2">
                             <MapPin className="h-4 w-4" />

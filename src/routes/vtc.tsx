@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Calendar, CarFront, Clock, Gem, Loader2, MapPin, Navigation, Users } from "lucide-react";
+import { Calendar, CarFront, ChevronDown, Clock, Gem, Loader2, MapPin, Navigation, Sparkles, Users, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -166,12 +166,11 @@ function VtcPage() {
       const reservationDate = effectiveScheduledAt.slice(0, 10);
       const { data, error } = await supabase.from("reservations").insert({
         user_id: user.id,
-        service_type: "LOCATION_BUS" as const,
+        service_type: "VTC" as const,
         reservation_date: reservationDate,
         total_amount: estimate,
         paid_amount: 0,
         details: {
-          category: "VTC",
           pickup,
           destination,
           scheduled_at: effectiveScheduledAt,
@@ -210,196 +209,242 @@ function VtcPage() {
   };
 
   return (
-    <div className="min-h-screen pb-24">
-      <section className="hero-gradient px-5 pb-6 pt-8">
-        <div className="mx-auto max-w-3xl">
+    <div className="min-h-screen bg-background pb-28">
+      {/* Hero premium */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 px-5 pb-10 pt-10">
+        <div className="absolute inset-0 opacity-10" aria-hidden>
+          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-primary-foreground blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-primary-foreground blur-2xl" />
+        </div>
+        <div className="relative mx-auto max-w-3xl">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-foreground/20">
-              <CarFront className="h-6 w-6 text-primary-foreground" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-foreground/15 backdrop-blur-sm ring-1 ring-primary-foreground/20">
+              <CarFront className="h-7 w-7 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-primary-foreground">VTC / Transfert</h1>
-              <p className="text-sm text-primary-foreground/80">Chauffeur privé depuis votre hôtel</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primary-foreground/70">Service Premium</p>
+              <h1 className="text-2xl font-extrabold leading-tight text-primary-foreground">VTC & Transferts privés</h1>
             </div>
           </div>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-primary-foreground/85">
+            Chauffeur dédié, tarifs fixes sans surprise. Réservez à la minute ou planifiez votre course.
+          </p>
         </div>
       </section>
 
-      <main className="mx-auto max-w-3xl space-y-5 px-5 pt-6">
-        <section className="space-y-3" aria-labelledby="vtc-tarifs">
-          <div>
-            <h2 id="vtc-tarifs" className="text-lg font-extrabold text-foreground">Choisir un tarif VTC</h2>
-            <p className="text-sm text-muted-foreground">Tarifs fixes, sans calcul au kilométrage.</p>
-          </div>
-
-          {fareCategoryOrder.map((category) => {
-            const meta = FARE_CATEGORIES[category];
-            const Icon = meta.icon;
-            const options = FARE_OPTIONS.filter((fare) => fare.category === category);
-            return (
-              <div key={category} className="rounded-2xl border bg-card p-3 shadow-sm">
-                <div className="mb-3 flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
+      <main className="mx-auto -mt-5 max-w-3xl space-y-4 px-4">
+        {/* Étape 1 — Tarif (toujours ouvert) */}
+        <Section
+          step="1"
+          title="Choisir votre formule"
+          description="Tarifs fixes par zone — sans calcul kilométrique"
+          icon={<Sparkles className="h-5 w-5" />}
+        >
+          <div className="space-y-3">
+            {fareCategoryOrder.map((category) => {
+              const meta = FARE_CATEGORIES[category];
+              const Icon = meta.icon;
+              const options = FARE_OPTIONS.filter((fare) => fare.category === category);
+              return (
+                <div key={category} className="rounded-2xl border bg-secondary/30 p-3">
+                  <div className="mb-3 flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <Icon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-extrabold text-foreground">{meta.title}</h3>
+                      <p className="text-xs text-muted-foreground">{meta.subtitle}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-extrabold text-foreground">{meta.title}</h3>
-                    <p className="text-xs text-muted-foreground">{meta.subtitle}</p>
-                  </div>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {options.map((fare) => {
-                    const active = selectedFare.id === fare.id;
-                    return (
-                      <button
-                        key={fare.id}
-                        type="button"
-                        onClick={() => selectFare(fare)}
-                        className={`min-h-24 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${active ? "border-primary bg-primary/10" : "border-border bg-background hover:border-primary/50"}`}
-                        aria-pressed={active}
-                      >
-                        <span className="flex items-start justify-between gap-3">
-                          <span>
-                            <span className="block text-sm font-bold text-foreground">{fare.zone}</span>
-                            <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Clock className="h-3.5 w-3.5 shrink-0" />
-                              {fare.service}
-                            </span>
-                            {fare.hint && <span className="mt-1 block text-xs font-semibold text-primary">{fare.hint}</span>}
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {options.map((fare) => {
+                      const active = selectedFare.id === fare.id;
+                      return (
+                        <button
+                          key={fare.id}
+                          type="button"
+                          onClick={() => selectFare(fare)}
+                          className={`group relative overflow-hidden rounded-xl border-2 p-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40 hover:shadow-sm"}`}
+                          aria-pressed={active}
+                        >
+                          {active && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />}
+                          <span className="block text-sm font-bold text-foreground">{fare.zone}</span>
+                          <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3 shrink-0" />
+                            {fare.service}
                           </span>
-                          <span className="shrink-0 text-sm font-extrabold text-primary">{formatXAF(fare.price)}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
+                          <span className="mt-2 block text-base font-extrabold text-primary">{formatXAF(fare.price)}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </section>
-
-        <Field label="Adresse ou lieu de départ" icon={<MapPin className="h-4 w-4 text-primary" />}>
-          <div className="flex gap-2">
-            <input value={pickup} onChange={(e) => setPickup(e.target.value)} className="input-base" placeholder="Hôtel, aéroport, quartier" />
-            <button type="button" onClick={useCurrentLocation} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border bg-card" aria-label="Utiliser ma position">
-              <Navigation className="h-4 w-4 text-primary" />
-            </button>
+              );
+            })}
           </div>
-        </Field>
+        </Section>
 
-        <Field label="Adresse ou lieu d’arrivée" icon={<MapPin className="h-4 w-4 text-primary" />}>
-          <input value={destination} onChange={(e) => setDestination(e.target.value)} className="input-base" placeholder="Circuit, station de bus, hôtel" />
-        </Field>
+        {/* Étape 2 — Itinéraire */}
+        <Section
+          step="2"
+          title="Votre itinéraire"
+          description="Adresse de prise en charge et destination"
+          icon={<MapPin className="h-5 w-5" />}
+        >
+          <div className="space-y-3">
+            <Field label="Lieu de départ" icon={<MapPin className="h-4 w-4 text-primary" />}>
+              <div className="flex gap-2">
+                <input value={pickup} onChange={(e) => setPickup(e.target.value)} className="input-base" placeholder="Hôtel, aéroport, quartier" />
+                <button type="button" onClick={useCurrentLocation} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border bg-card hover:bg-primary/5" aria-label="Utiliser ma position">
+                  <Navigation className="h-4 w-4 text-primary" />
+                </button>
+              </div>
+            </Field>
 
-        <Field label="Moment de la course" icon={<Calendar className="h-4 w-4 text-primary" />}>
-          <div className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card">
+            <Field label="Lieu d'arrivée" icon={<MapPin className="h-4 w-4 text-primary" />}>
+              <input value={destination} onChange={(e) => setDestination(e.target.value)} className="input-base" placeholder="Circuit, station de bus, hôtel" />
+            </Field>
+          </div>
+        </Section>
+
+        {/* Étape 3 — Moment */}
+        <Section
+          step="3"
+          title="Quand voulez-vous partir ?"
+          description={rideTiming === "now" ? "Course immédiate" : "Course planifiée"}
+          icon={<Zap className="h-5 w-5" />}
+        >
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted p-1">
             {([
-              { value: "now", label: "Maintenant" },
-              { value: "scheduled", label: "Planifier" },
-            ] as const).map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setRideTiming(option.value)}
-                className={`min-h-12 px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${rideTiming === option.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
-                aria-pressed={rideTiming === option.value}
-              >
-                {option.label}
-              </button>
-            ))}
+              { value: "now", label: "Maintenant", icon: Zap },
+              { value: "scheduled", label: "Planifier", icon: Calendar },
+            ] as const).map((option) => {
+              const Icon = option.icon;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setRideTiming(option.value)}
+                  className={`flex min-h-12 items-center justify-center gap-2 rounded-lg px-3 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${rideTiming === option.value ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                  aria-pressed={rideTiming === option.value}
+                >
+                  <Icon className="h-4 w-4" />
+                  {option.label}
+                </button>
+              );
+            })}
           </div>
           {rideTiming === "scheduled" ? (
-            <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="input-base mt-2" />
+            <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="input-base mt-3" />
           ) : (
-            <div className="mt-2 rounded-xl border bg-primary/5 p-3 text-xs leading-relaxed text-primary">
-              <p className="font-extrabold">Disponibilité estimée : {instantAvailability.label}</p>
-              <p className="mt-1 font-semibold">{instantAvailability.message}</p>
+            <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed">
+              <p className="flex items-center gap-1.5 font-extrabold text-primary">
+                <Zap className="h-3.5 w-3.5" /> Disponibilité estimée : {instantAvailability.label}
+              </p>
+              <p className="mt-1.5 text-muted-foreground">{instantAvailability.message}</p>
             </div>
           )}
-        </Field>
 
-        {isHourlyFare && (
-          <Field label="Durée souhaitée" icon={<Clock className="h-4 w-4 text-primary" />}>
-            <div className="grid grid-cols-[1fr_auto] gap-2">
-              <input
-                type="number"
-                min={1}
-                value={durationValue}
-                onChange={(e) => setDurationValue(Math.max(1, Number(e.target.value) || 1))}
-                className="input-base"
-                aria-label="Nombre d'heures ou de jours"
-              />
-              <div className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card">
-                {(["hours", "days"] as const).map((unit) => (
-                  <button
-                    key={unit}
-                    type="button"
-                    onClick={() => setDurationUnit(unit)}
-                    className={`min-h-12 px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${durationUnit === unit ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
-                    aria-pressed={durationUnit === unit}
-                  >
-                    {unit === "hours" ? "Heures" : "Jours"}
-                  </button>
-                ))}
+          {isHourlyFare && (
+            <div className="mt-4">
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+                <Clock className="h-4 w-4 text-primary" /> Durée souhaitée
+              </label>
+              <div className="grid grid-cols-[1fr_auto] gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  value={durationValue}
+                  onChange={(e) => setDurationValue(Math.max(1, Number(e.target.value) || 1))}
+                  className="input-base"
+                  aria-label="Nombre d'heures ou de jours"
+                />
+                <div className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card">
+                  {(["hours", "days"] as const).map((unit) => (
+                    <button
+                      key={unit}
+                      type="button"
+                      onClick={() => setDurationUnit(unit)}
+                      className={`min-h-12 px-4 text-xs font-bold transition-colors ${durationUnit === unit ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+                    >
+                      {unit === "hours" ? "Heures" : "Jours"}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">Le tarif 1h est multiplié par la durée choisie. 1 jour = 24h.</p>
-          </Field>
-        )}
-
-        <Field label="Véhicule souhaité" icon={<CarFront className="h-4 w-4 text-primary" />}>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {(Object.keys(VEHICLES) as VehicleType[]).map((key) => (
-              <button key={key} type="button" onClick={() => setVehicle(key)} className={`min-h-20 rounded-xl border px-2 py-3 text-center text-xs font-semibold transition-colors ${vehicle === key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
-                <span className="block font-bold">{VEHICLES[key].label}</span>
-                <span>{VEHICLES[key].seats}</span>
-              </button>
-            ))}
-          </div>
-          {VEHICLES[vehicle].examples && (
-            <div className="mt-3 rounded-xl border bg-card p-3 text-xs leading-relaxed text-muted-foreground">
-              <span className="font-semibold text-foreground">Exemples de berlines : </span>
-              {VEHICLES[vehicle].examples}
+              <p className="mt-2 text-xs text-muted-foreground">Tarif 1h × durée. 1 jour = 24h.</p>
             </div>
           )}
-        </Field>
+        </Section>
 
-        {vehicle === "berline" && (
-          <Field label="Modèle berline" icon={<CarFront className="h-4 w-4 text-primary" />}>
-            <select value={berlineModel} onChange={(e) => setBerlineModel(e.target.value)} className="input-base">
-              {BERLINE_MODELS.map((model) => (
-                <option key={model} value={model}>{model}</option>
+        {/* Étape 4 — Détails (dépliante) */}
+        <CollapsibleSection
+          step="4"
+          title="Véhicule & passagers"
+          description={`${VEHICLES[vehicle].label} · ${passengers} passager(s)`}
+          icon={<CarFront className="h-5 w-5" />}
+          defaultOpen={false}
+        >
+          <Field label="Type de véhicule" icon={<CarFront className="h-4 w-4 text-primary" />}>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(Object.keys(VEHICLES) as VehicleType[]).map((key) => (
+                <button key={key} type="button" onClick={() => setVehicle(key)} className={`min-h-20 rounded-xl border-2 px-2 py-3 text-center text-xs font-semibold transition-all ${vehicle === key ? "border-primary bg-primary/5 text-primary shadow-sm" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}>
+                  <span className="block font-bold">{VEHICLES[key].label}</span>
+                  <span className="text-[10px]">{VEHICLES[key].seats}</span>
+                </button>
               ))}
-            </select>
+            </div>
+            {VEHICLES[vehicle].examples && (
+              <div className="mt-3 rounded-xl border bg-secondary/40 p-3 text-xs leading-relaxed">
+                <span className="font-bold text-foreground">Exemples : </span>
+                <span className="text-muted-foreground">{VEHICLES[vehicle].examples}</span>
+              </div>
+            )}
           </Field>
-        )}
 
-        <Field label="Nombre de passagers" icon={<Users className="h-4 w-4 text-primary" />}>
-          <input type="number" min={1} max={7} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="input-base" />
-        </Field>
+          {vehicle === "berline" && (
+            <Field label="Modèle berline" icon={<CarFront className="h-4 w-4 text-primary" />}>
+              <select value={berlineModel} onChange={(e) => setBerlineModel(e.target.value)} className="input-base">
+                {BERLINE_MODELS.map((model) => (
+                  <option key={model} value={model}>{model}</option>
+                ))}
+              </select>
+            </Field>
+          )}
 
-        <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-5 text-center">
-          <p className="text-xs text-muted-foreground">Tarif sélectionné</p>
-          <p className="mt-1 text-2xl font-extrabold text-primary">{formatXAF(estimate)}</p>
-          <div className="mt-4 grid gap-2 text-left text-xs text-muted-foreground sm:grid-cols-2">
-            <p>Formule : <span className="font-semibold text-foreground">{FARE_CATEGORIES[selectedFare.category].title}</span></p>
-            <p>Zone : <span className="font-semibold text-foreground">{selectedFare.zone}</span></p>
-            <p>Moment : <span className="font-semibold text-foreground">{rideTiming === "now" ? "Maintenant" : "Planifié"}</span></p>
-            {rideTiming === "now" && <p>Disponibilité : <span className="font-semibold text-foreground">{instantAvailability.label}</span></p>}
-            <p>Service : <span className="font-semibold text-foreground">{selectedFare.service}</span></p>
-            <p>Prix de base : <span className="font-semibold text-foreground">{formatXAF(selectedFare.price)}</span></p>
-            {isHourlyFare && <p>Durée : <span className="font-semibold text-foreground">{durationValue} {durationUnit === "hours" ? "h" : "jour(s)"} · {billableHours}h facturées</span></p>}
+          <Field label="Nombre de passagers" icon={<Users className="h-4 w-4 text-primary" />}>
+            <input type="number" min={1} max={7} value={passengers} onChange={(e) => setPassengers(Number(e.target.value))} className="input-base" />
+          </Field>
+        </CollapsibleSection>
+
+        {/* Récapitulatif premium */}
+        <div className="overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 via-card to-card shadow-sm">
+          <div className="border-b border-primary/10 bg-primary/5 px-5 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-primary">Récapitulatif</p>
+          </div>
+          <div className="p-5 text-center">
+            <p className="text-xs text-muted-foreground">Tarif estimé</p>
+            <p className="mt-1 text-3xl font-extrabold text-primary">{formatXAF(estimate)}</p>
+          </div>
+          <div className="grid gap-2 border-t border-border/50 bg-card/50 p-4 text-left text-xs sm:grid-cols-2">
+            <SummaryLine label="Formule" value={FARE_CATEGORIES[selectedFare.category].title} />
+            <SummaryLine label="Zone" value={selectedFare.zone} />
+            <SummaryLine label="Moment" value={rideTiming === "now" ? "Maintenant" : "Planifié"} />
+            {rideTiming === "now" && <SummaryLine label="Disponibilité" value={instantAvailability.label} />}
+            <SummaryLine label="Service" value={selectedFare.service} />
+            <SummaryLine label="Prix de base" value={formatXAF(selectedFare.price)} />
+            {isHourlyFare && <SummaryLine label="Durée" value={`${durationValue} ${durationUnit === "hours" ? "h" : "jour(s)"} · ${billableHours}h`} />}
           </div>
         </div>
 
-        <button type="button" onClick={submit} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50">
+        <button type="button" onClick={submit} disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-xl active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100">
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CarFront className="h-4 w-4" />}
           {loading ? "Réservation..." : rideTiming === "now" ? "Commander un VTC maintenant" : "Réserver mon transfert VTC"}
         </button>
       </main>
 
       <ClientNav />
-      <style>{`.input-base{width:100%;border-radius:.75rem;border:1px solid hsl(var(--border));background:hsl(var(--card));padding:.75rem;font-size:.875rem}.input-base:focus{outline:none;box-shadow:0 0 0 2px hsl(var(--primary)/.4)}`}</style>
+      <style>{`.input-base{width:100%;border-radius:.75rem;border:1px solid hsl(var(--border));background:hsl(var(--card));padding:.75rem;font-size:.875rem;transition:border-color .15s,box-shadow .15s}.input-base:focus{outline:none;border-color:hsl(var(--primary));box-shadow:0 0 0 3px hsl(var(--primary)/.15)}`}</style>
     </div>
   );
 }
@@ -410,5 +455,57 @@ function Field({ label, icon, children }: { label: string; icon?: React.ReactNod
       <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">{icon} {label}</label>
       {children}
     </div>
+  );
+}
+
+function Section({ step, title, description, icon, children }: { step: string; title: string; description?: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+      <header className="flex items-center gap-3 border-b border-border/50 bg-secondary/40 px-4 py-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Étape {step}</p>
+          <h2 className="truncate text-sm font-extrabold text-foreground">{title}</h2>
+          {description && <p className="truncate text-xs text-muted-foreground">{description}</p>}
+        </div>
+      </header>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+function CollapsibleSection({ step, title, description, icon, children, defaultOpen = false }: { step: string; title: string; description?: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-3 border-b border-border/50 bg-secondary/40 px-4 py-3 text-left transition-colors hover:bg-secondary/60"
+        aria-expanded={open}
+      >
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Étape {step} · {open ? "Ouvert" : "Toucher pour déplier"}</p>
+          <h2 className="truncate text-sm font-extrabold text-foreground">{title}</h2>
+          {description && <p className="truncate text-xs text-muted-foreground">{description}</p>}
+        </div>
+        <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="space-y-3 p-4">{children}</div>}
+    </section>
+  );
+}
+
+function SummaryLine({ label, value }: { label: string; value: string }) {
+  return (
+    <p className="flex items-center justify-between gap-3 text-muted-foreground">
+      <span>{label}</span>
+      <span className="truncate text-right font-semibold text-foreground">{value}</span>
+    </p>
   );
 }

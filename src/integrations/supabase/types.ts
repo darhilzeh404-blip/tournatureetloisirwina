@@ -947,6 +947,7 @@ export type Database = {
         | "TRANSPORT_SCOLAIRE"
         | "LOCATION_BUS"
         | "CIRCUIT_TOURISTIQUE"
+        | "VTC"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1086,6 +1087,7 @@ export const Constants = {
         "TRANSPORT_SCOLAIRE",
         "LOCATION_BUS",
         "CIRCUIT_TOURISTIQUE",
+        "VTC",
       ],
     },
   },

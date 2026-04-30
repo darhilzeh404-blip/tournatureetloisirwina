@@ -8,6 +8,9 @@ import {
   Loader2,
   Calendar,
   MapPin,
+  ChevronDown,
+  Info,
+  Users,
 } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -386,82 +389,142 @@ function ReserverTransport() {
 
           {/* ─── BUS ─── */}
           <TabsContent value="bus" className="mt-5 space-y-4">
-            <div className="rounded-2xl border bg-card p-4">
-              <p className="text-sm font-bold">Déplacements en groupe uniquement</p>
-              <p className="mt-1 text-xs text-muted-foreground">Sélectionnez un trajet organisé, le lieu de rassemblement et la formule adaptée.</p>
+            {/* Bandeau d'info clair */}
+            <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-extrabold text-foreground">Déplacements en groupe</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                    Trois itinéraires organisés. Pour des courses individuelles avec chauffeur,
+                    utilisez le service VTC depuis l'onglet dédié.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <Field label="Trajet de groupe">
+            {/* Étape 1 — Choix du trajet */}
+            <SectionCard step="1" title="Choisir un trajet" icon={<MapPin className="h-4 w-4" />}>
               <div className="space-y-2">
                 {GROUP_BUS_TRIPS.map((trip) => {
                   const active = busTripId === trip.id;
+                  const isDirectional = trip.pricing.type === "direction";
+                  const priceHint = isDirectional
+                    ? `Aller ${formatFCFA(trip.pricing.aller)} · Retour ${formatFCFA(trip.pricing.retour)}`
+                    : `Dès ${formatFCFA(trip.pricing.byCapacity[16])}/jour`;
                   return (
                     <button
                       key={trip.id}
                       type="button"
                       onClick={() => setBusTripId(trip.id)}
-                      className={`w-full rounded-2xl border p-4 text-left transition-colors ${active ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                      className={`relative w-full overflow-hidden rounded-2xl border-2 p-4 text-left transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40 hover:shadow-sm"}`}
+                      aria-pressed={active}
                     >
-                      <span className="block text-sm font-bold">{trip.title}</span>
+                      {active && <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-primary" />}
+                      <span className="block text-sm font-bold text-foreground">{trip.title}</span>
                       <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5 text-primary" /> Rassemblement : {trip.gathering}
+                        <MapPin className="h-3 w-3 shrink-0 text-primary" /> {trip.gathering}
+                      </span>
+                      <span className="mt-2 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary">
+                        {priceHint}
                       </span>
                     </button>
                   );
                 })}
               </div>
-            </Field>
+            </SectionCard>
 
-            <div className="rounded-2xl border bg-secondary/40 p-4">
-              <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Itinéraire</p>
-              <div className="flex flex-wrap gap-2">
-                {selectedBusTrip.destinations.map((destination) => (
-                  <span key={destination} className="rounded-full border bg-card px-3 py-1 text-xs font-semibold">
-                    {destination}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {isDirectionalBusTrip ? (
-              <Field label="Formule">
-                <div className="grid grid-cols-3 gap-2">
-                  <button type="button" onClick={() => setBusDirection("aller")} className={pillCls(busDirection === "aller")}>Aller · {formatFCFA(selectedBusTrip.pricing.aller)}</button>
-                  <button type="button" onClick={() => setBusDirection("retour")} className={pillCls(busDirection === "retour")}>Retour · {formatFCFA(selectedBusTrip.pricing.retour)}</button>
-                  <button type="button" onClick={() => setBusDirection("aller_retour")} className={pillCls(busDirection === "aller_retour")}>A/R · {formatFCFA(selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour)}</button>
+            {/* Étape 2 — Détails du trajet (dépliant) */}
+            <CollapsibleCard
+              step="2"
+              title="Voir l'itinéraire complet"
+              hint={`${selectedBusTrip.destinations.length} arrêt(s)`}
+              icon={<Info className="h-4 w-4" />}
+              defaultOpen={false}
+            >
+              <div className="space-y-3">
+                <div className="rounded-xl border bg-secondary/40 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Lieu de rassemblement</p>
+                  <p className="mt-0.5 flex items-center gap-1.5 text-sm font-bold text-foreground">
+                    <MapPin className="h-3.5 w-3.5 text-primary" /> {selectedBusTrip.gathering}
+                  </p>
                 </div>
-              </Field>
-            ) : (
-              <Field label="Capacité du bus">
+                <div>
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Destinations desservies</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedBusTrip.destinations.map((destination) => (
+                      <span key={destination} className="rounded-full border bg-card px-3 py-1 text-xs font-semibold text-foreground">
+                        {destination}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CollapsibleCard>
+
+            {/* Étape 3 — Formule */}
+            <SectionCard step="3" title={isDirectionalBusTrip ? "Choisir le sens" : "Choisir la capacité"} icon={<Bus className="h-4 w-4" />}>
+              {isDirectionalBusTrip ? (
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => setBusDirection("aller")} className={pillCls(busDirection === "aller")}>
+                    <span className="block text-[11px] uppercase">Aller</span>
+                    <span className="mt-0.5 block text-xs font-extrabold">{formatFCFA(selectedBusTrip.pricing.aller)}</span>
+                  </button>
+                  <button type="button" onClick={() => setBusDirection("retour")} className={pillCls(busDirection === "retour")}>
+                    <span className="block text-[11px] uppercase">Retour</span>
+                    <span className="mt-0.5 block text-xs font-extrabold">{formatFCFA(selectedBusTrip.pricing.retour)}</span>
+                  </button>
+                  <button type="button" onClick={() => setBusDirection("aller_retour")} className={pillCls(busDirection === "aller_retour")}>
+                    <span className="block text-[11px] uppercase">A/R</span>
+                    <span className="mt-0.5 block text-xs font-extrabold">{formatFCFA(selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour)}</span>
+                  </button>
+                </div>
+              ) : (
                 <div className="grid grid-cols-2 gap-2">
                   {dailyBusPrices &&
                     ([16, 32] as const).map((capacity) => (
                       <button key={capacity} type="button" onClick={() => setBusCapacity(capacity)} className={pillCls(busCapacity === capacity)}>
-                        Bus {capacity} places · {formatFCFA(dailyBusPrices[capacity])}/journée
+                        <span className="block text-[11px] uppercase">Bus {capacity} places</span>
+                        <span className="mt-0.5 block text-xs font-extrabold">{formatFCFA(dailyBusPrices[capacity])}/journée</span>
                       </button>
                     ))}
                 </div>
-              </Field>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Date et heure de départ" icon={<Calendar className="h-4 w-4 text-primary" />}>
-                <input
-                  type="datetime-local"
-                  value={busDepartureAt}
-                  onChange={(e) => setBusDepartureAt(e.target.value)}
-                  className="input-base"
-                />
-              </Field>
-              {!isDirectionalBusTrip && (
-                <Field label="Nombre de jours">
-                  <NumberStepper value={busDays} onChange={setBusDays} />
-                </Field>
               )}
+            </SectionCard>
+
+            {/* Étape 4 — Date/heure */}
+            <SectionCard step="4" title="Date et heure de départ" icon={<Calendar className="h-4 w-4" />}>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Field label="Départ prévu" icon={<Calendar className="h-4 w-4 text-primary" />}>
+                  <input
+                    type="datetime-local"
+                    value={busDepartureAt}
+                    onChange={(e) => setBusDepartureAt(e.target.value)}
+                    className="input-base"
+                  />
+                </Field>
+                {!isDirectionalBusTrip && (
+                  <Field label="Nombre de jours">
+                    <NumberStepper value={busDays} onChange={setBusDays} />
+                  </Field>
+                )}
+              </div>
+            </SectionCard>
+
+            {/* Récap premium */}
+            <div className="overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 via-card to-card shadow-sm">
+              <div className="border-b border-primary/10 bg-primary/5 px-5 py-3">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-primary">Récapitulatif</p>
+              </div>
+              <div className="p-5 text-center">
+                <p className="text-xs text-muted-foreground">{selectedBusTrip.title} · {isDirectionalBusTrip ? "forfait trajet" : `${busCapacity} places · ${busDays} jour(s)`}</p>
+                <p className="mt-1 text-3xl font-extrabold text-primary">{formatFCFA(busTotal)}</p>
+              </div>
             </div>
 
-            <PriceCard total={busTotal} subtitle={`${selectedBusTrip.title} · ${isDirectionalBusTrip ? "forfait trajet" : `${busCapacity} places · ${busDays} jour(s)`}`} />
-            <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver Bus" />
+            <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver le bus" />
           </TabsContent>
         </Tabs>
       </div>
@@ -518,7 +581,52 @@ function NumberStepper({ value, onChange }: { value: number; onChange: (n: numbe
 }
 
 function pillCls(active: boolean) {
-  return `rounded-xl border px-3 py-3 text-xs font-semibold transition-colors ${active ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`;
+  return `rounded-xl border-2 px-3 py-3 text-xs font-semibold transition-all ${active ? "border-primary bg-primary/5 text-primary shadow-sm" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`;
+}
+
+function SectionCard({ step, title, icon, children }: { step: string; title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+      <header className="flex items-center gap-2.5 border-b border-border/50 bg-secondary/40 px-4 py-2.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          {icon}
+        </span>
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Étape {step}</p>
+          <h2 className="truncate text-sm font-extrabold text-foreground">{title}</h2>
+        </div>
+      </header>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+function CollapsibleCard({ step, title, hint, icon, children, defaultOpen = false }: { step: string; title: string; hint?: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-2.5 border-b border-border/50 bg-secondary/40 px-4 py-2.5 text-left transition-colors hover:bg-secondary/60"
+        aria-expanded={open}
+      >
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          {icon}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Étape {step} · {open ? "Ouvert" : "Toucher pour déplier"}
+          </p>
+          <h2 className="truncate text-sm font-extrabold text-foreground">
+            {title}{hint ? <span className="ml-1.5 font-semibold text-muted-foreground">· {hint}</span> : null}
+          </h2>
+        </div>
+        <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="p-4">{children}</div>}
+    </section>
+  );
 }
 
 function PriceCard({ total, subtitle }: { total: number; subtitle: string }) {
