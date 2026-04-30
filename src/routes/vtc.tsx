@@ -166,12 +166,11 @@ function VtcPage() {
       const reservationDate = effectiveScheduledAt.slice(0, 10);
       const { data, error } = await supabase.from("reservations").insert({
         user_id: user.id,
-        service_type: "LOCATION_BUS" as const,
+        service_type: "VTC" as const,
         reservation_date: reservationDate,
         total_amount: estimate,
         paid_amount: 0,
         details: {
-          category: "VTC",
           pickup,
           destination,
           scheduled_at: effectiveScheduledAt,
