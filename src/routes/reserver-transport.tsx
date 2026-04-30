@@ -383,47 +383,62 @@ function ReserverTransport() {
 
           {/* ─── BUS ─── */}
           <TabsContent value="bus" className="mt-5 space-y-4">
-            <Field label="Type d'usage">
-              <select
-                value={busUsage}
-                onChange={(e) => setBusUsage(e.target.value)}
-                className="input-base"
-              >
-                {BUS_USAGES.map((u) => (
-                  <option key={u} value={u}>{u}</option>
-                ))}
-              </select>
-            </Field>
+            <div className="rounded-2xl border bg-card p-4">
+              <p className="text-sm font-bold">Déplacements en groupe uniquement</p>
+              <p className="mt-1 text-xs text-muted-foreground">Sélectionnez un trajet organisé, le lieu de rassemblement et la formule adaptée.</p>
+            </div>
 
-            <Field label="Capacité">
-              <div className="grid grid-cols-3 gap-2">
-                {BUS_FLEET.map((b) => (
-                  <div key={b.id} className={`rounded-xl border p-2 text-center transition-colors ${busModel === b.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"}`}>
+            <Field label="Trajet de groupe">
+              <div className="space-y-2">
+                {GROUP_BUS_TRIPS.map((trip) => {
+                  const active = busTripId === trip.id;
+                  return (
                     <button
+                      key={trip.id}
                       type="button"
-                      onClick={() => setBusModel(b.id)}
-                      className="w-full text-xs font-semibold"
+                      onClick={() => setBusTripId(trip.id)}
+                      className={`w-full rounded-2xl border p-4 text-left transition-colors ${active ? "border-primary bg-primary/10" : "border-border bg-card"}`}
                     >
-                      {b.capacity} places
+                      <span className="block text-sm font-bold">{trip.title}</span>
+                      <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 text-primary" /> Rassemblement : {trip.gathering}
+                      </span>
                     </button>
-                    <a href={busVtcHref(b.name)} className="mt-2 inline-flex w-full items-center justify-center rounded-lg bg-primary/10 px-1.5 py-1.5 text-[10px] font-bold text-primary">
-                      Book a private VTC transfer
-                    </a>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Field>
 
-            <Field label="Standing">
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setBusVip(false)} className={pillCls(!busVip)}>
-                  Standard · {formatFCFA(selectedBus.std)}/jour
-                </button>
-                <button type="button" onClick={() => setBusVip(true)} className={pillCls(busVip)}>
-                  VIP · {formatFCFA(selectedBus.vip)}/jour
-                </button>
+            <div className="rounded-2xl border bg-secondary/40 p-4">
+              <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Itinéraire</p>
+              <div className="flex flex-wrap gap-2">
+                {selectedBusTrip.destinations.map((destination) => (
+                  <span key={destination} className="rounded-full border bg-card px-3 py-1 text-xs font-semibold">
+                    {destination}
+                  </span>
+                ))}
               </div>
-            </Field>
+            </div>
+
+            {isDirectionalBusTrip ? (
+              <Field label="Formule">
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => setBusDirection("aller")} className={pillCls(busDirection === "aller")}>Aller · {formatFCFA(selectedBusTrip.pricing.aller)}</button>
+                  <button type="button" onClick={() => setBusDirection("retour")} className={pillCls(busDirection === "retour")}>Retour · {formatFCFA(selectedBusTrip.pricing.retour)}</button>
+                  <button type="button" onClick={() => setBusDirection("aller_retour")} className={pillCls(busDirection === "aller_retour")}>A/R · {formatFCFA(selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour)}</button>
+                </div>
+              </Field>
+            ) : (
+              <Field label="Capacité du bus">
+                <div className="grid grid-cols-2 gap-2">
+                  {([16, 32] as const).map((capacity) => (
+                    <button key={capacity} type="button" onClick={() => setBusCapacity(capacity)} className={pillCls(busCapacity === capacity)}>
+                      Bus {capacity} places · {formatFCFA(selectedBusTrip.pricing.byCapacity[capacity])}/journée
+                    </button>
+                  ))}
+                </div>
+              </Field>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Date" icon={<Calendar className="h-4 w-4 text-primary" />}>
@@ -434,12 +449,14 @@ function ReserverTransport() {
                   className="input-base"
                 />
               </Field>
-              <Field label="Nombre de jours">
-                <NumberStepper value={busDays} onChange={setBusDays} />
-              </Field>
+              {!isDirectionalBusTrip && (
+                <Field label="Nombre de jours">
+                  <NumberStepper value={busDays} onChange={setBusDays} />
+                </Field>
+              )}
             </div>
 
-            <PriceCard total={busTotal} subtitle={`${selectedBus.name} · ${busDays} jour(s) · ${busVip ? "VIP" : "Standard"}`} />
+            <PriceCard total={busTotal} subtitle={`${selectedBusTrip.title} · ${isDirectionalBusTrip ? "forfait trajet" : `${busCapacity} places · ${busDays} jour(s)`}`} />
             <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver Bus" />
           </TabsContent>
         </Tabs>
