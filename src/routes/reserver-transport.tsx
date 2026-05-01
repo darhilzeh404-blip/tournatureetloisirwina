@@ -59,25 +59,40 @@ const GROUP_BUS_TRIPS = [
     pricing: { type: "direction", aller: 20_000, retour: 20_000 },
   },
   {
-    id: "ntoum-donguila",
-    title: "Trajet Ntoum-Meyan & Donguila",
+    id: "lbv-donguila",
+    title: "LBV - Donguila",
     gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Donguila", "LBV - Meyang"],
+    destinations: ["LBV - Donguila"],
+    pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
+  },
+  {
+    id: "lbv-meyang",
+    title: "LBV - Meyang",
+    gathering: "ABC Mall des Charbonnages",
+    destinations: ["LBV - Meyang"],
     pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
   },
   {
     id: "cocobeach",
-    title: "Trajet LBV - Cocobeach",
+    title: "LBV - Cocobeach",
     gathering: "ABC Mall des Charbonnages",
     destinations: ["LBV - Cocobeach"],
     pricing: { type: "daily", byCapacity: { 16: 192_000, 32: 384_000 } },
   },
 ] as const;
 
+// Tarifs Location bus pour événements (urbain / mariage / excursion)
+const EVENT_BUS_PRICING = {
+  standard: { journee: 180_000, demi: 100_000 },
+  vip: { journee: 250_000, demi: 130_000 },
+} as const;
+const EVENT_BUS_CAPACITIES = ["14 places", "16 places", "32 places"] as const;
+
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState("scolaire");
+  const [busSubTab, setBusSubTab] = useState<"groupe" | "evenement">("groupe");
   const [submitting, setSubmitting] = useState(false);
 
   const ensureAuth = () => {
@@ -389,21 +404,43 @@ function ReserverTransport() {
 
           {/* ─── BUS ─── */}
           <TabsContent value="bus" className="mt-5 space-y-4">
-            {/* Bandeau d'info clair */}
-            <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm font-extrabold text-foreground">Déplacements en groupe</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                    Trois itinéraires organisés. Pour des courses individuelles avec chauffeur,
-                    utilisez le service VTC depuis l'onglet dédié.
-                  </p>
-                </div>
-              </div>
+            {/* Sous-onglets Bus */}
+            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted p-1">
+              <button
+                type="button"
+                onClick={() => setBusSubTab("groupe")}
+                className={`rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${busSubTab === "groupe" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+              >
+                <Users className="mx-auto mb-0.5 h-4 w-4" />
+                Déplacement en groupe
+              </button>
+              <button
+                type="button"
+                onClick={() => setBusSubTab("evenement")}
+                className={`rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${busSubTab === "evenement" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+              >
+                <Sparkles className="mx-auto mb-0.5 h-4 w-4" />
+                Location événements
+              </button>
             </div>
+
+            {busSubTab === "groupe" && (
+              <div className="space-y-4">
+                {/* Bandeau d'info clair */}
+                <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-extrabold text-foreground">Déplacements en groupe</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                        Itinéraires organisés. Pour des courses individuelles avec chauffeur,
+                        utilisez le service VTC depuis l'onglet dédié.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
             {/* Étape 1 — Choix du trajet */}
             <SectionCard step="1" title="Choisir un trajet" icon={<MapPin className="h-4 w-4" />}>
@@ -524,7 +561,61 @@ function ReserverTransport() {
               </div>
             </div>
 
-            <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver le bus" />
+                <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver le bus" />
+              </div>
+            )}
+
+            {busSubTab === "evenement" && (
+              <div className="space-y-4">
+                {/* Bandeau */}
+                <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                      <Sparkles className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-extrabold text-foreground">Location bus pour événements</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                        Transport urbain · Mariage · Excursion. Bus 14, 16 et 32 places.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Capacités disponibles */}
+                <SectionCard step="1" title="Capacités disponibles" icon={<Bus className="h-4 w-4" />}>
+                  <div className="grid grid-cols-3 gap-2">
+                    {EVENT_BUS_CAPACITIES.map((c) => (
+                      <div key={c} className="rounded-xl border bg-secondary/40 px-3 py-3 text-center">
+                        <p className="text-xs font-bold text-foreground">{c}</p>
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
+
+                {/* Tarifs Standard */}
+                <SectionCard step="2" title="Tarif Standard · 32 places" icon={<Info className="h-4 w-4" />}>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <PriceLine label="Journée" value={EVENT_BUS_PRICING.standard.journee} />
+                    <PriceLine label="Demi-journée" value={EVENT_BUS_PRICING.standard.demi} />
+                  </div>
+                </SectionCard>
+
+                {/* Tarifs VIP */}
+                <SectionCard step="3" title="Tarif VIP · 32 places" icon={<Sparkles className="h-4 w-4" />}>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <PriceLine label="Journée" value={EVENT_BUS_PRICING.vip.journee} highlight />
+                    <PriceLine label="Demi-journée" value={EVENT_BUS_PRICING.vip.demi} highlight />
+                  </div>
+                </SectionCard>
+
+                <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 text-center">
+                  <p className="text-xs text-muted-foreground">
+                    Pour réserver un bus événementiel, contactez-nous depuis votre espace client.
+                  </p>
+                </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -649,6 +740,15 @@ function SubmitBtn({ loading, onClick, label }: { loading: boolean; onClick: () 
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
       {loading ? "Réservation..." : label}
     </button>
+  );
+}
+
+function PriceLine({ label, value, highlight = false }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div className={`flex items-center justify-between rounded-xl border-2 px-4 py-3 ${highlight ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
+      <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+      <span className={`text-sm font-extrabold ${highlight ? "text-primary" : "text-foreground"}`}>{formatFCFA(value)}</span>
+    </div>
   );
 }
 
