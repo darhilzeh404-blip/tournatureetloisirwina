@@ -92,6 +92,7 @@ function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState("scolaire");
+  const [busSubTab, setBusSubTab] = useState<"groupe" | "evenement">("groupe");
   const [submitting, setSubmitting] = useState(false);
 
   const ensureAuth = () => {
