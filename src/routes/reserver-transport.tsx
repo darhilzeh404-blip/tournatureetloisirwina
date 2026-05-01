@@ -404,21 +404,43 @@ function ReserverTransport() {
 
           {/* ─── BUS ─── */}
           <TabsContent value="bus" className="mt-5 space-y-4">
-            {/* Bandeau d'info clair */}
-            <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm font-extrabold text-foreground">Déplacements en groupe</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                    Trois itinéraires organisés. Pour des courses individuelles avec chauffeur,
-                    utilisez le service VTC depuis l'onglet dédié.
-                  </p>
-                </div>
-              </div>
+            {/* Sous-onglets Bus */}
+            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted p-1">
+              <button
+                type="button"
+                onClick={() => setBusSubTab("groupe")}
+                className={`rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${busSubTab === "groupe" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+              >
+                <Users className="mx-auto mb-0.5 h-4 w-4" />
+                Déplacement en groupe
+              </button>
+              <button
+                type="button"
+                onClick={() => setBusSubTab("evenement")}
+                className={`rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${busSubTab === "evenement" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+              >
+                <Sparkles className="mx-auto mb-0.5 h-4 w-4" />
+                Location événements
+              </button>
             </div>
+
+            {busSubTab === "groupe" && (
+              <div className="space-y-4">
+                {/* Bandeau d'info clair */}
+                <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-extrabold text-foreground">Déplacements en groupe</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                        Itinéraires organisés. Pour des courses individuelles avec chauffeur,
+                        utilisez le service VTC depuis l'onglet dédié.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
             {/* Étape 1 — Choix du trajet */}
             <SectionCard step="1" title="Choisir un trajet" icon={<MapPin className="h-4 w-4" />}>
