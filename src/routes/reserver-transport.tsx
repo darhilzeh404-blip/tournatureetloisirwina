@@ -204,7 +204,64 @@ function ReserverTransport() {
     }
   };
 
-  // ─────────── Form Bus ───────────
+  // ─────────── Form Bus événements ───────────
+  const [evtFormule, setEvtFormule] = useState<"journee" | "demi">("journee");
+  const [evtStanding, setEvtStanding] = useState<"standard" | "vip">("standard");
+  const [evtCapacity, setEvtCapacity] = useState<14 | 16 | 32>(32);
+  const [evtDate, setEvtDate] = useState("");
+  const [evtNom, setEvtNom] = useState("");
+  const [evtTel, setEvtTel] = useState("");
+
+  const evtUnit = EVENT_BUS_PRICING[evtStanding][evtFormule];
+  // Tarifs publiés pour 32 places. Réduction proportionnelle indicative pour 14/16 places.
+  const evtCapacityFactor = evtCapacity === 32 ? 1 : evtCapacity === 16 ? 0.7 : 0.6;
+  const evtTotal = Math.round(evtUnit * evtCapacityFactor);
+
+  const submitEvenement = async () => {
+    if (!ensureAuth()) return;
+    const nom = evtNom.trim();
+    const tel = evtTel.trim();
+    if (nom.length < 2 || nom.length > 100) {
+      toast.error("Nom invalide (2 à 100 caractères)");
+      return;
+    }
+    if (!/^[0-9+\s().-]{8,20}$/.test(tel)) {
+      toast.error("Téléphone invalide");
+      return;
+    }
+    if (!evtDate) {
+      toast.error("Choisissez la date de l'événement");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("reservations").insert({
+        user_id: user!.id,
+        service_type: "LOCATION_BUS" as const,
+        reservation_date: evtDate,
+        total_amount: evtTotal,
+        paid_amount: 0,
+        details: {
+          type_location: "Événementiel",
+          formule: evtFormule === "journee" ? "Journée" : "Demi-journée",
+          standing: evtStanding === "vip" ? "VIP" : "Standard",
+          capacite: `${evtCapacity} places`,
+          contact_nom: nom,
+          contact_telephone: tel,
+          tarif_unitaire_32_places: evtUnit,
+        },
+      });
+      if (error) throw error;
+      toast.success("Demande de location événementielle créée 🎉");
+      navigate({ to: "/mes-reservations" });
+    } catch (err: any) {
+      toast.error(err.message || "Erreur");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ─────────── Form Bus groupe ───────────
   const [busTripId, setBusTripId] = useState<string>(GROUP_BUS_TRIPS[0].id);
   const [busDirection, setBusDirection] = useState<"aller" | "retour" | "aller_retour">("aller");
   const [busCapacity, setBusCapacity] = useState<16 | 32>(16);
@@ -609,11 +666,89 @@ function ReserverTransport() {
                   </div>
                 </SectionCard>
 
-                <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 text-center">
+                {/* Formulaire de réservation événementielle */}
+                <SectionCard step="4" title="Votre réservation" icon={<Calendar className="h-4 w-4" />}>
+                  <div className="space-y-4">
+                    <Field label="Formule">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button type="button" onClick={() => setEvtFormule("journee")} className={pillCls(evtFormule === "journee")}>
+                          Journée
+                        </button>
+                        <button type="button" onClick={() => setEvtFormule("demi")} className={pillCls(evtFormule === "demi")}>
+                          Demi-journée
+                        </button>
+                      </div>
+                    </Field>
+
+                    <Field label="Standing">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button type="button" onClick={() => setEvtStanding("standard")} className={pillCls(evtStanding === "standard")}>
+                          Standard · {formatFCFA(EVENT_BUS_PRICING.standard[evtFormule])}
+                        </button>
+                        <button type="button" onClick={() => setEvtStanding("vip")} className={pillCls(evtStanding === "vip")}>
+                          VIP · {formatFCFA(EVENT_BUS_PRICING.vip[evtFormule])}
+                        </button>
+                      </div>
+                    </Field>
+
+                    <Field label="Capacité">
+                      <div className="grid grid-cols-3 gap-2">
+                        {([14, 16, 32] as const).map((c) => (
+                          <button key={c} type="button" onClick={() => setEvtCapacity(c)} className={pillCls(evtCapacity === c)}>
+                            {c} places
+                          </button>
+                        ))}
+                      </div>
+                      {evtCapacity !== 32 && (
+                        <p className="mt-1.5 text-[11px] text-muted-foreground">
+                          Tarif officiel publié pour 32 places. Estimation indicative pour {evtCapacity} places — confirmation par l'agence.
+                        </p>
+                      )}
+                    </Field>
+
+                    <Field label="Date de l'événement" icon={<Calendar className="h-4 w-4 text-primary" />}>
+                      <input
+                        type="date"
+                        value={evtDate}
+                        min={new Date(Date.now() + 48 * 3600 * 1000).toISOString().split("T")[0]}
+                        onChange={(e) => setEvtDate(e.target.value)}
+                        className="input-base"
+                      />
+                    </Field>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <Field label="Nom complet" icon={<Users className="h-4 w-4 text-primary" />}>
+                        <input
+                          type="text"
+                          value={evtNom}
+                          onChange={(e) => setEvtNom(e.target.value)}
+                          maxLength={100}
+                          placeholder="Votre nom"
+                          className="input-base"
+                        />
+                      </Field>
+                      <Field label="Téléphone">
+                        <input
+                          type="tel"
+                          value={evtTel}
+                          onChange={(e) => setEvtTel(e.target.value)}
+                          maxLength={20}
+                          placeholder="+241 ..."
+                          className="input-base"
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                </SectionCard>
+
+                <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 to-card p-5">
                   <p className="text-xs text-muted-foreground">
-                    Pour réserver un bus événementiel, contactez-nous depuis votre espace client.
+                    {evtStanding === "vip" ? "VIP" : "Standard"} · {evtFormule === "journee" ? "Journée" : "Demi-journée"} · {evtCapacity} places
                   </p>
+                  <p className="mt-1 text-3xl font-extrabold text-primary">{formatFCFA(evtTotal)}</p>
                 </div>
+
+                <SubmitBtn loading={submitting} onClick={submitEvenement} label="Réserver le bus événementiel" />
               </div>
             )}
           </TabsContent>
