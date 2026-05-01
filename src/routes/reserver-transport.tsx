@@ -235,7 +235,7 @@ function ReserverTransport() {
     }
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("reservations").insert({
+      const { data: inserted, error } = await supabase.from("reservations").insert({
         user_id: user!.id,
         service_type: "LOCATION_BUS" as const,
         reservation_date: evtDate,
@@ -249,11 +249,12 @@ function ReserverTransport() {
           contact_nom: nom,
           contact_telephone: tel,
           tarif_unitaire_32_places: evtUnit,
+          requires_admin_validation: true,
         },
-      });
+      }).select("id").single();
       if (error) throw error;
-      toast.success("Demande de location événementielle créée 🎉");
-      navigate({ to: "/mes-reservations" });
+      toast.success("Réservation créée 🎉 Versez 50% d'acompte pour la soumettre à validation.");
+      navigate({ to: "/paiement/$reservationId", params: { reservationId: inserted!.id } });
     } catch (err: any) {
       toast.error(err.message || "Erreur");
     } finally {
