@@ -146,6 +146,12 @@ function PaiementPage() {
       toast.error("Montant invalide");
       return;
     }
+    const minDeposit = Math.ceil(reservation.total_amount * 0.5);
+    const remaining = Math.max(minDeposit - reservation.paid_amount, 0);
+    if (remaining > 0 && amount < remaining) {
+      toast.error(`Acompte minimum requis : ${formatXAF(remaining)} (50% du total)`);
+      return;
+    }
     setSubmitting(true);
     setUploadFailed(false);
     try {
