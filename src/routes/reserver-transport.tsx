@@ -59,20 +59,34 @@ const GROUP_BUS_TRIPS = [
     pricing: { type: "direction", aller: 20_000, retour: 20_000 },
   },
   {
-    id: "ntoum-donguila",
-    title: "Trajet Ntoum-Meyan & Donguila",
+    id: "lbv-donguila",
+    title: "LBV - Donguila",
     gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Donguila", "LBV - Meyang"],
+    destinations: ["LBV - Donguila"],
+    pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
+  },
+  {
+    id: "lbv-meyang",
+    title: "LBV - Meyang",
+    gathering: "ABC Mall des Charbonnages",
+    destinations: ["LBV - Meyang"],
     pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
   },
   {
     id: "cocobeach",
-    title: "Trajet LBV - Cocobeach",
+    title: "LBV - Cocobeach",
     gathering: "ABC Mall des Charbonnages",
     destinations: ["LBV - Cocobeach"],
     pricing: { type: "daily", byCapacity: { 16: 192_000, 32: 384_000 } },
   },
 ] as const;
+
+// Tarifs Location bus pour événements (urbain / mariage / excursion)
+const EVENT_BUS_PRICING = {
+  standard: { journee: 180_000, demi: 100_000 },
+  vip: { journee: 250_000, demi: 130_000 },
+} as const;
+const EVENT_BUS_CAPACITIES = ["14 places", "16 places", "32 places"] as const;
 
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
