@@ -204,7 +204,64 @@ function ReserverTransport() {
     }
   };
 
-  // ─────────── Form Bus ───────────
+  // ─────────── Form Bus événements ───────────
+  const [evtFormule, setEvtFormule] = useState<"journee" | "demi">("journee");
+  const [evtStanding, setEvtStanding] = useState<"standard" | "vip">("standard");
+  const [evtCapacity, setEvtCapacity] = useState<14 | 16 | 32>(32);
+  const [evtDate, setEvtDate] = useState("");
+  const [evtNom, setEvtNom] = useState("");
+  const [evtTel, setEvtTel] = useState("");
+
+  const evtUnit = EVENT_BUS_PRICING[evtStanding][evtFormule];
+  // Tarifs publiés pour 32 places. Réduction proportionnelle indicative pour 14/16 places.
+  const evtCapacityFactor = evtCapacity === 32 ? 1 : evtCapacity === 16 ? 0.7 : 0.6;
+  const evtTotal = Math.round(evtUnit * evtCapacityFactor);
+
+  const submitEvenement = async () => {
+    if (!ensureAuth()) return;
+    const nom = evtNom.trim();
+    const tel = evtTel.trim();
+    if (nom.length < 2 || nom.length > 100) {
+      toast.error("Nom invalide (2 à 100 caractères)");
+      return;
+    }
+    if (!/^[0-9+\s().-]{8,20}$/.test(tel)) {
+      toast.error("Téléphone invalide");
+      return;
+    }
+    if (!evtDate) {
+      toast.error("Choisissez la date de l'événement");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("reservations").insert({
+        user_id: user!.id,
+        service_type: "LOCATION_BUS" as const,
+        reservation_date: evtDate,
+        total_amount: evtTotal,
+        paid_amount: 0,
+        details: {
+          type_location: "Événementiel",
+          formule: evtFormule === "journee" ? "Journée" : "Demi-journée",
+          standing: evtStanding === "vip" ? "VIP" : "Standard",
+          capacite: `${evtCapacity} places`,
+          contact_nom: nom,
+          contact_telephone: tel,
+          tarif_unitaire_32_places: evtUnit,
+        },
+      });
+      if (error) throw error;
+      toast.success("Demande de location événementielle créée 🎉");
+      navigate({ to: "/mes-reservations" });
+    } catch (err: any) {
+      toast.error(err.message || "Erreur");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ─────────── Form Bus groupe ───────────
   const [busTripId, setBusTripId] = useState<string>(GROUP_BUS_TRIPS[0].id);
   const [busDirection, setBusDirection] = useState<"aller" | "retour" | "aller_retour">("aller");
   const [busCapacity, setBusCapacity] = useState<16 | 32>(16);
