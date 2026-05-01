@@ -743,6 +743,15 @@ function SubmitBtn({ loading, onClick, label }: { loading: boolean; onClick: () 
   );
 }
 
+function PriceLine({ label, value, highlight = false }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div className={`flex items-center justify-between rounded-xl border-2 px-4 py-3 ${highlight ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
+      <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+      <span className={`text-sm font-extrabold ${highlight ? "text-primary" : "text-foreground"}`}>{formatFCFA(value)}</span>
+    </div>
+  );
+}
+
 function dateToDateTimeLocal(date: string) {
   if (date) return `${date}T08:00`;
   const next = new Date(Date.now() + 48 * 3600 * 1000);
