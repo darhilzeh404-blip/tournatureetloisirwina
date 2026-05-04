@@ -292,6 +292,14 @@ function ReserverTransport() {
       toast.error("Choisissez la date et l'heure de départ");
       return;
     }
+    if (busReturnAt && busReturnAt < busDepartureAt) {
+      toast.error("La date de retour doit être après le départ");
+      return;
+    }
+    if (busPersonnes < 1) {
+      toast.error("Indiquez au moins 1 personne");
+      return;
+    }
     setSubmitting(true);
     try {
       const reservationDetails = {
@@ -303,6 +311,11 @@ function ReserverTransport() {
           : `${busCapacity} places`,
         depart_prevu: busDepartureAt,
         heure_depart: busDepartureAt.split("T")[1] ?? "",
+        retour_prevu: busReturnAt || null,
+        nb_personnes: busPersonnes,
+        avec_enfants: busHasChildren,
+        nb_enfants: busHasChildren ? busEnfants : 0,
+        climatisation: busClim,
         ...(isDirectionalBusTrip ? {} : { jours: busDays }),
         tarif_unitaire: busUnit,
       };
