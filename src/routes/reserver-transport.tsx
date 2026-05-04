@@ -63,21 +63,21 @@ const GROUP_BUS_TRIPS = [
     title: "LBV - Donguila",
     gathering: "ABC Mall des Charbonnages",
     destinations: ["LBV - Donguila"],
-    pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
+    pricing: { type: "daily", byCapacity: { 16: 100_000, 24: 150_000, 32: 200_000 } },
   },
   {
     id: "lbv-meyang",
     title: "LBV - Meyang",
     gathering: "ABC Mall des Charbonnages",
     destinations: ["LBV - Meyang"],
-    pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
+    pricing: { type: "daily", byCapacity: { 16: 100_000, 24: 150_000, 32: 200_000 } },
   },
   {
     id: "cocobeach",
     title: "LBV - Cocobeach",
     gathering: "ABC Mall des Charbonnages",
     destinations: ["LBV - Cocobeach"],
-    pricing: { type: "daily", byCapacity: { 16: 192_000, 32: 384_000 } },
+    pricing: { type: "daily", byCapacity: { 16: 192_000, 24: 288_000, 32: 384_000 } },
   },
 ] as const;
 
