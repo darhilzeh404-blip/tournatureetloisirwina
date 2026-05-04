@@ -811,43 +811,38 @@ function pillCls(active: boolean) {
   return `rounded-xl border-2 px-3 py-3 text-xs font-semibold transition-all ${active ? "border-primary bg-primary/5 text-primary shadow-sm" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`;
 }
 
-function SectionCard({ step, title, icon, children }: { step: string; title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function SectionCard({ title, icon, children }: { step?: string; title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-      <header className="flex items-center gap-2.5 border-b border-border/50 bg-secondary/40 px-4 py-2.5">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+      <header className="flex items-center gap-2.5 border-b border-border/50 bg-secondary/40 px-4 py-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           {icon}
         </span>
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Étape {step}</p>
-          <h2 className="truncate text-sm font-extrabold text-foreground">{title}</h2>
-        </div>
+        <h2 className="truncate text-sm font-extrabold text-foreground">{title}</h2>
       </header>
       <div className="p-4">{children}</div>
     </section>
   );
 }
 
-function CollapsibleCard({ step, title, hint, icon, children, defaultOpen = false }: { step: string; title: string; hint?: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
+function CollapsibleCard({ title, hint, icon, children, defaultOpen = false }: { step?: string; title: string; hint?: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2.5 border-b border-border/50 bg-secondary/40 px-4 py-2.5 text-left transition-colors hover:bg-secondary/60"
+        className="flex w-full items-center gap-2.5 border-b border-border/50 bg-secondary/40 px-4 py-3 text-left transition-colors hover:bg-secondary/60"
         aria-expanded={open}
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           {icon}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            Étape {step} · {open ? "Ouvert" : "Toucher pour déplier"}
-          </p>
           <h2 className="truncate text-sm font-extrabold text-foreground">
             {title}{hint ? <span className="ml-1.5 font-semibold text-muted-foreground">· {hint}</span> : null}
           </h2>
+          <p className="truncate text-[11px] text-muted-foreground">{open ? "Toucher pour replier" : "Toucher pour déplier"}</p>
         </div>
         <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
