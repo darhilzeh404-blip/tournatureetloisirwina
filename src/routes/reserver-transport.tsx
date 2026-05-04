@@ -624,7 +624,7 @@ function ReserverTransport() {
             )}
 
             {busSubTab === "evenement" && (
-              <div className="space-y-4">
+              <div className="space-y-4 pb-28">
                 {/* Bandeau */}
                 <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
                   <div className="flex items-start gap-3">
@@ -634,79 +634,76 @@ function ReserverTransport() {
                     <div>
                       <p className="text-sm font-extrabold text-foreground">Location bus pour événements</p>
                       <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                        Transport urbain · Mariage · Excursion. Bus 14, 16 et 32 places.
+                        Transport urbain · Mariage · Excursion
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Capacités disponibles */}
-                <SectionCard step="1" title="Capacités disponibles" icon={<Bus className="h-4 w-4" />}>
+                {/* Onglets Standard / VIP */}
+                <Tabs value={evtStanding} onValueChange={(v) => setEvtStanding(v as "standard" | "vip")} className="w-full">
+                  <TabsList className="grid h-12 w-full grid-cols-2 rounded-2xl bg-muted p-1">
+                    <TabsTrigger value="standard" className="rounded-xl text-sm font-bold">Standard</TabsTrigger>
+                    <TabsTrigger value="vip" className="rounded-xl text-sm font-bold">VIP ⭐</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
+                {/* Capacités */}
+                <div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Capacité</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {EVENT_BUS_CAPACITIES.map((c) => (
-                      <div key={c} className="rounded-xl border bg-secondary/40 px-3 py-3 text-center">
-                        <p className="text-xs font-bold text-foreground">{c}</p>
-                      </div>
-                    ))}
+                    {([14, 16, 32] as const).map((c) => {
+                      const active = evtCapacity === c;
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setEvtCapacity(c)}
+                          className={`rounded-2xl border-2 p-4 text-center transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40"}`}
+                          aria-pressed={active}
+                        >
+                          <p className="text-2xl font-extrabold text-foreground">{c}</p>
+                          <p className="text-[11px] font-semibold text-muted-foreground">places</p>
+                        </button>
+                      );
+                    })}
                   </div>
-                </SectionCard>
+                  {evtCapacity !== 32 && (
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      Tarif officiel publié pour 32 places. Estimation indicative pour {evtCapacity} places.
+                    </p>
+                  )}
+                </div>
 
-                {/* Tarifs Standard */}
-                <SectionCard step="2" title="Tarif Standard · 32 places" icon={<Info className="h-4 w-4" />}>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <PriceLine label="Journée" value={EVENT_BUS_PRICING.standard.journee} />
-                    <PriceLine label="Demi-journée" value={EVENT_BUS_PRICING.standard.demi} />
+                {/* Durée */}
+                <div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Durée</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { v: "journee" as const, l: "Journée" },
+                      { v: "demi" as const, l: "Demi-journée" },
+                    ]).map((o) => {
+                      const active = evtFormule === o.v;
+                      const price = EVENT_BUS_PRICING[evtStanding][o.v];
+                      return (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => setEvtFormule(o.v)}
+                          className={`rounded-2xl border-2 p-4 text-left transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40"}`}
+                          aria-pressed={active}
+                        >
+                          <p className="text-sm font-extrabold text-foreground">{o.l}</p>
+                          <p className="mt-1 text-base font-extrabold text-primary">{formatFCFA(price)}</p>
+                        </button>
+                      );
+                    })}
                   </div>
-                </SectionCard>
+                </div>
 
-                {/* Tarifs VIP */}
-                <SectionCard step="3" title="Tarif VIP · 32 places" icon={<Sparkles className="h-4 w-4" />}>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <PriceLine label="Journée" value={EVENT_BUS_PRICING.vip.journee} highlight />
-                    <PriceLine label="Demi-journée" value={EVENT_BUS_PRICING.vip.demi} highlight />
-                  </div>
-                </SectionCard>
-
-                {/* Formulaire de réservation événementielle */}
-                <SectionCard step="4" title="Votre réservation" icon={<Calendar className="h-4 w-4" />}>
-                  <div className="space-y-4">
-                    <Field label="Formule">
-                      <div className="grid grid-cols-2 gap-2">
-                        <button type="button" onClick={() => setEvtFormule("journee")} className={pillCls(evtFormule === "journee")}>
-                          Journée
-                        </button>
-                        <button type="button" onClick={() => setEvtFormule("demi")} className={pillCls(evtFormule === "demi")}>
-                          Demi-journée
-                        </button>
-                      </div>
-                    </Field>
-
-                    <Field label="Standing">
-                      <div className="grid grid-cols-2 gap-2">
-                        <button type="button" onClick={() => setEvtStanding("standard")} className={pillCls(evtStanding === "standard")}>
-                          Standard · {formatFCFA(EVENT_BUS_PRICING.standard[evtFormule])}
-                        </button>
-                        <button type="button" onClick={() => setEvtStanding("vip")} className={pillCls(evtStanding === "vip")}>
-                          VIP · {formatFCFA(EVENT_BUS_PRICING.vip[evtFormule])}
-                        </button>
-                      </div>
-                    </Field>
-
-                    <Field label="Capacité">
-                      <div className="grid grid-cols-3 gap-2">
-                        {([14, 16, 32] as const).map((c) => (
-                          <button key={c} type="button" onClick={() => setEvtCapacity(c)} className={pillCls(evtCapacity === c)}>
-                            {c} places
-                          </button>
-                        ))}
-                      </div>
-                      {evtCapacity !== 32 && (
-                        <p className="mt-1.5 text-[11px] text-muted-foreground">
-                          Tarif officiel publié pour 32 places. Estimation indicative pour {evtCapacity} places — confirmation par l'agence.
-                        </p>
-                      )}
-                    </Field>
-
+                {/* Coordonnées (dépliantes) */}
+                <CollapsibleCard title="Vos coordonnées et date" icon={<Calendar className="h-4 w-4" />} defaultOpen={true}>
+                  <div className="space-y-3">
                     <Field label="Date de l'événement" icon={<Calendar className="h-4 w-4 text-primary" />}>
                       <input
                         type="date"
@@ -716,40 +713,37 @@ function ReserverTransport() {
                         className="input-base"
                       />
                     </Field>
-
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <Field label="Nom complet" icon={<Users className="h-4 w-4 text-primary" />}>
-                        <input
-                          type="text"
-                          value={evtNom}
-                          onChange={(e) => setEvtNom(e.target.value)}
-                          maxLength={100}
-                          placeholder="Votre nom"
-                          className="input-base"
-                        />
+                        <input type="text" value={evtNom} onChange={(e) => setEvtNom(e.target.value)} maxLength={100} placeholder="Votre nom" className="input-base" />
                       </Field>
                       <Field label="Téléphone">
-                        <input
-                          type="tel"
-                          value={evtTel}
-                          onChange={(e) => setEvtTel(e.target.value)}
-                          maxLength={20}
-                          placeholder="+241 ..."
-                          className="input-base"
-                        />
+                        <input type="tel" value={evtTel} onChange={(e) => setEvtTel(e.target.value)} maxLength={20} placeholder="+241 ..." className="input-base" />
                       </Field>
                     </div>
                   </div>
-                </SectionCard>
+                </CollapsibleCard>
 
-                <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 to-card p-5">
-                  <p className="text-xs text-muted-foreground">
-                    {evtStanding === "vip" ? "VIP" : "Standard"} · {evtFormule === "journee" ? "Journée" : "Demi-journée"} · {evtCapacity} places
-                  </p>
-                  <p className="mt-1 text-3xl font-extrabold text-primary">{formatFCFA(evtTotal)}</p>
+                {/* Barre récapitulative fixe */}
+                <div className="fixed inset-x-0 bottom-16 z-40 border-t bg-card/95 px-4 py-3 shadow-[0_-8px_24px_-8px_rgba(0,0,0,0.15)] backdrop-blur supports-[backdrop-filter]:bg-card/80">
+                  <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        {evtStanding === "vip" ? "VIP" : "Standard"} · {evtFormule === "journee" ? "Journée" : "Demi-journée"} · {evtCapacity} places
+                      </p>
+                      <p className="text-xl font-extrabold text-primary">{formatFCFA(evtTotal)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={submitting}
+                      onClick={submitEvenement}
+                      className="flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:opacity-50"
+                    >
+                      {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                      Réserver maintenant
+                    </button>
+                  </div>
                 </div>
-
-                <SubmitBtn loading={submitting} onClick={submitEvenement} label="Réserver le bus événementiel" />
               </div>
             )}
           </TabsContent>
