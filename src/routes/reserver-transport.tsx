@@ -715,19 +715,19 @@ function ReserverTransport() {
                 {/* Capacités */}
                 <div>
                   <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Capacité</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {([14, 16, 32] as const).map((c) => {
+                  <div className="grid grid-cols-4 gap-2">
+                    {([14, 16, 24, 32] as const).map((c) => {
                       const active = evtCapacity === c;
                       return (
                         <button
                           key={c}
                           type="button"
                           onClick={() => setEvtCapacity(c)}
-                          className={`rounded-2xl border-2 p-4 text-center transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40"}`}
+                          className={`rounded-2xl border-2 p-3 text-center transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40"}`}
                           aria-pressed={active}
                         >
-                          <p className="text-2xl font-extrabold text-foreground">{c}</p>
-                          <p className="text-[11px] font-semibold text-muted-foreground">places</p>
+                          <p className="text-xl font-extrabold text-foreground">{c}</p>
+                          <p className="text-[10px] font-semibold text-muted-foreground">places</p>
                         </button>
                       );
                     })}
@@ -737,6 +737,29 @@ function ReserverTransport() {
                       Tarif officiel publié pour 32 places. Estimation indicative pour {evtCapacity} places.
                     </p>
                   )}
+                </div>
+
+                {/* Climatisation */}
+                <div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Climatisation</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEvtClim(true)}
+                      className={`rounded-2xl border-2 p-3 text-center text-sm font-extrabold transition-all ${evtClim ? "border-primary bg-primary/5 shadow-md text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}
+                      aria-pressed={evtClim}
+                    >
+                      Climatisé ❄️
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEvtClim(false)}
+                      className={`rounded-2xl border-2 p-3 text-center text-sm font-extrabold transition-all ${!evtClim ? "border-primary bg-primary/5 shadow-md text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}
+                      aria-pressed={!evtClim}
+                    >
+                      Non climatisé
+                    </button>
+                  </div>
                 </div>
 
                 {/* Durée */}
