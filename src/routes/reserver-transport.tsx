@@ -247,6 +247,7 @@ function ReserverTransport() {
           formule: evtFormule === "journee" ? "Journée" : "Demi-journée",
           standing: evtStanding === "vip" ? "VIP" : "Standard",
           capacite: `${evtCapacity} places`,
+          climatisation: evtClim,
           contact_nom: nom,
           contact_telephone: tel,
           tarif_unitaire_32_places: evtUnit,
