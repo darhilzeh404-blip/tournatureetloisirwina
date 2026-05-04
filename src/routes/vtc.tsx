@@ -598,13 +598,12 @@ function PriceRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Section({ step, title, description, icon, children }: { step: string; title: string; description?: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Section({ title, description, icon, children }: { step?: string; title: string; description?: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
       <header className="flex items-center gap-3 border-b border-border/50 bg-secondary/40 px-4 py-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">{icon}</div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Étape {step}</p>
           <h2 className="truncate text-sm font-extrabold text-foreground">{title}</h2>
           {description && <p className="truncate text-xs text-muted-foreground">{description}</p>}
         </div>
@@ -614,16 +613,15 @@ function Section({ step, title, description, icon, children }: { step: string; t
   );
 }
 
-function CollapsibleSection({ step, title, description, icon, children, defaultOpen = false }: { step: string; title: string; description?: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
+function CollapsibleSection({ title, description, icon, children, defaultOpen = false }: { step?: string; title: string; description?: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
       <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 border-b border-border/50 bg-secondary/40 px-4 py-3 text-left transition-colors hover:bg-secondary/60" aria-expanded={open}>
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">{icon}</div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Étape {step} · {open ? "Ouvert" : "Toucher pour déplier"}</p>
           <h2 className="truncate text-sm font-extrabold text-foreground">{title}</h2>
-          {description && <p className="truncate text-xs text-muted-foreground">{description}</p>}
+          {description ? <p className="truncate text-xs text-muted-foreground">{description}</p> : <p className="truncate text-[11px] text-muted-foreground">{open ? "Toucher pour replier" : "Toucher pour déplier"}</p>}
         </div>
         <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
