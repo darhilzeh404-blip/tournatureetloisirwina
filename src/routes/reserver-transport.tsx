@@ -63,21 +63,21 @@ const GROUP_BUS_TRIPS = [
     title: "LBV - Donguila",
     gathering: "ABC Mall des Charbonnages",
     destinations: ["LBV - Donguila"],
-    pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
+    pricing: { type: "daily", byCapacity: { 16: 100_000, 24: 150_000, 32: 200_000 } },
   },
   {
     id: "lbv-meyang",
     title: "LBV - Meyang",
     gathering: "ABC Mall des Charbonnages",
     destinations: ["LBV - Meyang"],
-    pricing: { type: "daily", byCapacity: { 16: 100_000, 32: 200_000 } },
+    pricing: { type: "daily", byCapacity: { 16: 100_000, 24: 150_000, 32: 200_000 } },
   },
   {
     id: "cocobeach",
     title: "LBV - Cocobeach",
     gathering: "ABC Mall des Charbonnages",
     destinations: ["LBV - Cocobeach"],
-    pricing: { type: "daily", byCapacity: { 16: 192_000, 32: 384_000 } },
+    pricing: { type: "daily", byCapacity: { 16: 192_000, 24: 288_000, 32: 384_000 } },
   },
 ] as const;
 
@@ -86,7 +86,7 @@ const EVENT_BUS_PRICING = {
   standard: { journee: 180_000, demi: 100_000 },
   vip: { journee: 250_000, demi: 130_000 },
 } as const;
-const EVENT_BUS_CAPACITIES = ["14 places", "16 places", "32 places"] as const;
+const EVENT_BUS_CAPACITIES = ["14 places", "16 places", "24 places", "32 places"] as const;
 
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
@@ -207,14 +207,15 @@ function ReserverTransport() {
   // ─────────── Form Bus événements ───────────
   const [evtFormule, setEvtFormule] = useState<"journee" | "demi">("journee");
   const [evtStanding, setEvtStanding] = useState<"standard" | "vip">("standard");
-  const [evtCapacity, setEvtCapacity] = useState<14 | 16 | 32>(32);
+  const [evtCapacity, setEvtCapacity] = useState<14 | 16 | 24 | 32>(32);
+  const [evtClim, setEvtClim] = useState<boolean>(true);
   const [evtDate, setEvtDate] = useState("");
   const [evtNom, setEvtNom] = useState("");
   const [evtTel, setEvtTel] = useState("");
 
   const evtUnit = EVENT_BUS_PRICING[evtStanding][evtFormule];
-  // Tarifs publiés pour 32 places. Réduction proportionnelle indicative pour 14/16 places.
-  const evtCapacityFactor = evtCapacity === 32 ? 1 : evtCapacity === 16 ? 0.7 : 0.6;
+  // Tarifs publiés pour 32 places. Réduction proportionnelle indicative pour 14/16/24 places.
+  const evtCapacityFactor = evtCapacity === 32 ? 1 : evtCapacity === 24 ? 0.85 : evtCapacity === 16 ? 0.7 : 0.6;
   const evtTotal = Math.round(evtUnit * evtCapacityFactor);
 
   const submitEvenement = async () => {
@@ -246,6 +247,7 @@ function ReserverTransport() {
           formule: evtFormule === "journee" ? "Journée" : "Demi-journée",
           standing: evtStanding === "vip" ? "VIP" : "Standard",
           capacite: `${evtCapacity} places`,
+          climatisation: evtClim,
           contact_nom: nom,
           contact_telephone: tel,
           tarif_unitaire_32_places: evtUnit,
@@ -265,9 +267,14 @@ function ReserverTransport() {
   // ─────────── Form Bus groupe ───────────
   const [busTripId, setBusTripId] = useState<string>(GROUP_BUS_TRIPS[0].id);
   const [busDirection, setBusDirection] = useState<"aller" | "retour" | "aller_retour">("aller");
-  const [busCapacity, setBusCapacity] = useState<16 | 32>(16);
+  const [busCapacity, setBusCapacity] = useState<16 | 24 | 32>(16);
   const [busDepartureAt, setBusDepartureAt] = useState("");
+  const [busReturnAt, setBusReturnAt] = useState("");
   const [busDays, setBusDays] = useState(1);
+  const [busPersonnes, setBusPersonnes] = useState(1);
+  const [busHasChildren, setBusHasChildren] = useState(false);
+  const [busEnfants, setBusEnfants] = useState(0);
+  const [busClim, setBusClim] = useState<boolean>(true);
 
   const selectedBusTrip = GROUP_BUS_TRIPS.find((trip) => trip.id === busTripId)!;
   const isDirectionalBusTrip = selectedBusTrip.pricing.type === "direction";
@@ -285,6 +292,14 @@ function ReserverTransport() {
       toast.error("Choisissez la date et l'heure de départ");
       return;
     }
+    if (busReturnAt && busReturnAt < busDepartureAt) {
+      toast.error("La date de retour doit être après le départ");
+      return;
+    }
+    if (busPersonnes < 1) {
+      toast.error("Indiquez au moins 1 personne");
+      return;
+    }
     setSubmitting(true);
     try {
       const reservationDetails = {
@@ -296,6 +311,11 @@ function ReserverTransport() {
           : `${busCapacity} places`,
         depart_prevu: busDepartureAt,
         heure_depart: busDepartureAt.split("T")[1] ?? "",
+        retour_prevu: busReturnAt || null,
+        nb_personnes: busPersonnes,
+        avec_enfants: busHasChildren,
+        nb_enfants: busHasChildren ? busEnfants : 0,
+        climatisation: busClim,
         ...(isDirectionalBusTrip ? {} : { jours: busDays }),
         tarif_unitaire: busUnit,
       };
@@ -577,22 +597,34 @@ function ReserverTransport() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {dailyBusPrices &&
-                    ([16, 32] as const).map((capacity) => (
+                    ([16, 24, 32] as const).map((capacity) => (
                       <button key={capacity} type="button" onClick={() => setBusCapacity(capacity)} className={pillCls(busCapacity === capacity)}>
-                        <span className="block text-[11px] uppercase">Bus {capacity} places</span>
-                        <span className="mt-0.5 block text-xs font-extrabold">{formatFCFA(dailyBusPrices[capacity])}/journée</span>
+                        <span className="block text-[11px] uppercase">{capacity} places</span>
+                        <span className="mt-0.5 block text-xs font-extrabold">{formatFCFA(dailyBusPrices[capacity])}/jour</span>
                       </button>
                     ))}
                 </div>
               )}
             </SectionCard>
 
-            {/* Étape 4 — Date/heure */}
-            <SectionCard step="4" title="Date et heure de départ" icon={<Calendar className="h-4 w-4" />}>
+            {/* Climatisation */}
+            <SectionCard title="Climatisation" icon={<Sparkles className="h-4 w-4" />}>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setBusClim(true)} className={pillCls(busClim === true)}>
+                  <span className="block text-xs font-extrabold">Climatisé ❄️</span>
+                </button>
+                <button type="button" onClick={() => setBusClim(false)} className={pillCls(busClim === false)}>
+                  <span className="block text-xs font-extrabold">Non climatisé</span>
+                </button>
+              </div>
+            </SectionCard>
+
+            {/* Dates départ / retour */}
+            <SectionCard title="Dates et heures" icon={<Calendar className="h-4 w-4" />}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Field label="Départ prévu" icon={<Calendar className="h-4 w-4 text-primary" />}>
+                <Field label="Date & heure de départ" icon={<Calendar className="h-4 w-4 text-primary" />}>
                   <input
                     type="datetime-local"
                     value={busDepartureAt}
@@ -600,9 +632,41 @@ function ReserverTransport() {
                     className="input-base"
                   />
                 </Field>
+                <Field label="Date & heure de retour (optionnel)" icon={<Calendar className="h-4 w-4 text-primary" />}>
+                  <input
+                    type="datetime-local"
+                    value={busReturnAt}
+                    onChange={(e) => setBusReturnAt(e.target.value)}
+                    min={busDepartureAt || undefined}
+                    className="input-base"
+                  />
+                </Field>
                 {!isDirectionalBusTrip && (
                   <Field label="Nombre de jours">
                     <NumberStepper value={busDays} onChange={setBusDays} />
+                  </Field>
+                )}
+              </div>
+            </SectionCard>
+
+            {/* Voyageurs */}
+            <SectionCard title="Voyageurs" icon={<Users className="h-4 w-4" />}>
+              <div className="space-y-3">
+                <Field label="Nombre de personnes" icon={<Users className="h-4 w-4 text-primary" />}>
+                  <NumberStepper value={busPersonnes} onChange={setBusPersonnes} />
+                </Field>
+                <label className="flex cursor-pointer items-center justify-between rounded-xl border bg-card px-3 py-3 text-sm">
+                  <span className="font-semibold text-foreground">Y aura-t-il des enfants ?</span>
+                  <input
+                    type="checkbox"
+                    checked={busHasChildren}
+                    onChange={(e) => setBusHasChildren(e.target.checked)}
+                    className="h-5 w-5 accent-primary"
+                  />
+                </label>
+                {busHasChildren && (
+                  <Field label="Nombre d'enfants">
+                    <NumberStepper value={busEnfants} onChange={(n) => setBusEnfants(Math.max(0, n))} />
                   </Field>
                 )}
               </div>
@@ -651,19 +715,19 @@ function ReserverTransport() {
                 {/* Capacités */}
                 <div>
                   <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Capacité</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {([14, 16, 32] as const).map((c) => {
+                  <div className="grid grid-cols-4 gap-2">
+                    {([14, 16, 24, 32] as const).map((c) => {
                       const active = evtCapacity === c;
                       return (
                         <button
                           key={c}
                           type="button"
                           onClick={() => setEvtCapacity(c)}
-                          className={`rounded-2xl border-2 p-4 text-center transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40"}`}
+                          className={`rounded-2xl border-2 p-3 text-center transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40"}`}
                           aria-pressed={active}
                         >
-                          <p className="text-2xl font-extrabold text-foreground">{c}</p>
-                          <p className="text-[11px] font-semibold text-muted-foreground">places</p>
+                          <p className="text-xl font-extrabold text-foreground">{c}</p>
+                          <p className="text-[10px] font-semibold text-muted-foreground">places</p>
                         </button>
                       );
                     })}
@@ -673,6 +737,29 @@ function ReserverTransport() {
                       Tarif officiel publié pour 32 places. Estimation indicative pour {evtCapacity} places.
                     </p>
                   )}
+                </div>
+
+                {/* Climatisation */}
+                <div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">Climatisation</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEvtClim(true)}
+                      className={`rounded-2xl border-2 p-3 text-center text-sm font-extrabold transition-all ${evtClim ? "border-primary bg-primary/5 shadow-md text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}
+                      aria-pressed={evtClim}
+                    >
+                      Climatisé ❄️
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEvtClim(false)}
+                      className={`rounded-2xl border-2 p-3 text-center text-sm font-extrabold transition-all ${!evtClim ? "border-primary bg-primary/5 shadow-md text-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}
+                      aria-pressed={!evtClim}
+                    >
+                      Non climatisé
+                    </button>
+                  </div>
                 </div>
 
                 {/* Durée */}
