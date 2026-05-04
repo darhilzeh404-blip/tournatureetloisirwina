@@ -597,22 +597,34 @@ function ReserverTransport() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {dailyBusPrices &&
-                    ([16, 32] as const).map((capacity) => (
+                    ([16, 24, 32] as const).map((capacity) => (
                       <button key={capacity} type="button" onClick={() => setBusCapacity(capacity)} className={pillCls(busCapacity === capacity)}>
-                        <span className="block text-[11px] uppercase">Bus {capacity} places</span>
-                        <span className="mt-0.5 block text-xs font-extrabold">{formatFCFA(dailyBusPrices[capacity])}/journée</span>
+                        <span className="block text-[11px] uppercase">{capacity} places</span>
+                        <span className="mt-0.5 block text-xs font-extrabold">{formatFCFA(dailyBusPrices[capacity])}/jour</span>
                       </button>
                     ))}
                 </div>
               )}
             </SectionCard>
 
-            {/* Étape 4 — Date/heure */}
-            <SectionCard step="4" title="Date et heure de départ" icon={<Calendar className="h-4 w-4" />}>
+            {/* Climatisation */}
+            <SectionCard title="Climatisation" icon={<Sparkles className="h-4 w-4" />}>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setBusClim(true)} className={pillCls(busClim === true)}>
+                  <span className="block text-xs font-extrabold">Climatisé ❄️</span>
+                </button>
+                <button type="button" onClick={() => setBusClim(false)} className={pillCls(busClim === false)}>
+                  <span className="block text-xs font-extrabold">Non climatisé</span>
+                </button>
+              </div>
+            </SectionCard>
+
+            {/* Dates départ / retour */}
+            <SectionCard title="Dates et heures" icon={<Calendar className="h-4 w-4" />}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Field label="Départ prévu" icon={<Calendar className="h-4 w-4 text-primary" />}>
+                <Field label="Date & heure de départ" icon={<Calendar className="h-4 w-4 text-primary" />}>
                   <input
                     type="datetime-local"
                     value={busDepartureAt}
@@ -620,9 +632,41 @@ function ReserverTransport() {
                     className="input-base"
                   />
                 </Field>
+                <Field label="Date & heure de retour (optionnel)" icon={<Calendar className="h-4 w-4 text-primary" />}>
+                  <input
+                    type="datetime-local"
+                    value={busReturnAt}
+                    onChange={(e) => setBusReturnAt(e.target.value)}
+                    min={busDepartureAt || undefined}
+                    className="input-base"
+                  />
+                </Field>
                 {!isDirectionalBusTrip && (
                   <Field label="Nombre de jours">
                     <NumberStepper value={busDays} onChange={setBusDays} />
+                  </Field>
+                )}
+              </div>
+            </SectionCard>
+
+            {/* Voyageurs */}
+            <SectionCard title="Voyageurs" icon={<Users className="h-4 w-4" />}>
+              <div className="space-y-3">
+                <Field label="Nombre de personnes" icon={<Users className="h-4 w-4 text-primary" />}>
+                  <NumberStepper value={busPersonnes} onChange={setBusPersonnes} />
+                </Field>
+                <label className="flex cursor-pointer items-center justify-between rounded-xl border bg-card px-3 py-3 text-sm">
+                  <span className="font-semibold text-foreground">Y aura-t-il des enfants ?</span>
+                  <input
+                    type="checkbox"
+                    checked={busHasChildren}
+                    onChange={(e) => setBusHasChildren(e.target.checked)}
+                    className="h-5 w-5 accent-primary"
+                  />
+                </label>
+                {busHasChildren && (
+                  <Field label="Nombre d'enfants">
+                    <NumberStepper value={busEnfants} onChange={(n) => setBusEnfants(Math.max(0, n))} />
                   </Field>
                 )}
               </div>
