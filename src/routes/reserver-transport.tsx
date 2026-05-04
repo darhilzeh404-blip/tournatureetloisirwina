@@ -86,7 +86,7 @@ const EVENT_BUS_PRICING = {
   standard: { journee: 180_000, demi: 100_000 },
   vip: { journee: 250_000, demi: 130_000 },
 } as const;
-const EVENT_BUS_CAPACITIES = ["14 places", "16 places", "32 places"] as const;
+const EVENT_BUS_CAPACITIES = ["14 places", "16 places", "24 places", "32 places"] as const;
 
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
