@@ -267,9 +267,14 @@ function ReserverTransport() {
   // ─────────── Form Bus groupe ───────────
   const [busTripId, setBusTripId] = useState<string>(GROUP_BUS_TRIPS[0].id);
   const [busDirection, setBusDirection] = useState<"aller" | "retour" | "aller_retour">("aller");
-  const [busCapacity, setBusCapacity] = useState<16 | 32>(16);
+  const [busCapacity, setBusCapacity] = useState<16 | 24 | 32>(16);
   const [busDepartureAt, setBusDepartureAt] = useState("");
+  const [busReturnAt, setBusReturnAt] = useState("");
   const [busDays, setBusDays] = useState(1);
+  const [busPersonnes, setBusPersonnes] = useState(1);
+  const [busHasChildren, setBusHasChildren] = useState(false);
+  const [busEnfants, setBusEnfants] = useState(0);
+  const [busClim, setBusClim] = useState<boolean>(true);
 
   const selectedBusTrip = GROUP_BUS_TRIPS.find((trip) => trip.id === busTripId)!;
   const isDirectionalBusTrip = selectedBusTrip.pricing.type === "direction";
