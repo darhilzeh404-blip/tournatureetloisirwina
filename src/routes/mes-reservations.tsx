@@ -149,7 +149,11 @@ function MesReservationsPage() {
         },
         (payload) => {
           if (payload.eventType === "UPDATE" && payload.new) {
-            const updated = payload.new as Reservation;
+            const updated = payload.new as Reservation & { archived_at?: string | null };
+            if (updated.archived_at) {
+              setReservations((prev) => prev.filter((r) => r.id !== updated.id));
+              return;
+            }
             setReservations((prev) =>
               prev.map((r) => (r.id === updated.id ? { ...r, ...updated, trip_id: r.trip_id } : r))
             );
@@ -176,9 +180,10 @@ function MesReservationsPage() {
         "postgres_changes",
         { event: "*", schema: "public", table: "trips", filter: `client_id=eq.${user.id}` },
         (payload) => {
-          const t = (payload.new ?? payload.old) as { id: string; reservation_id: string } | null;
+          const t = (payload.new ?? payload.old) as { id: string; reservation_id: string; archived_at?: string | null; status?: string } | null;
           if (!t) return;
-          if (payload.eventType === "DELETE") {
+          const isGone = payload.eventType === "DELETE" || !!t.archived_at || t.status === "completed" || t.status === "cancelled";
+          if (isGone) {
             setReservations((prev) =>
               prev.map((r) => (r.id === t.reservation_id ? { ...r, trip_id: null } : r))
             );
