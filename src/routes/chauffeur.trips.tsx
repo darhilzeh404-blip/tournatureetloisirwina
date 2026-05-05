@@ -120,18 +120,7 @@ function DriverTripsPage() {
 
   const completeTrip = async (t: Trip) => {
     setActionLoading(true);
-    const now = new Date().toISOString();
-    const { error } = await supabase
-      .from("trips")
-      .update({ status: "completed", completed_at: now, archived_at: now })
-      .eq("id", t.id);
-    // Archive any linked reservation as well so it disappears everywhere
-    if (!error && t.reservation_id) {
-      await supabase
-        .from("reservations")
-        .update({ archived_at: now })
-        .eq("id", t.reservation_id);
-    }
+    const { error } = await supabase.rpc("archive_trip_and_reservation", { _trip_id: t.id });
     setActionLoading(false);
     if (error) {
       console.error("completeTrip error", error);
@@ -139,6 +128,7 @@ function DriverTripsPage() {
     } else {
       toast.success("Course terminée.");
       setActiveTrip(null);
+      setTrips((prev) => prev.filter((x) => x.id !== t.id));
       await loadTrips();
     }
   };
