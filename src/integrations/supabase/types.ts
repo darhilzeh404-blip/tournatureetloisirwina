@@ -897,6 +897,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      archive_trip_and_reservation: {
+        Args: { _trip_id: string }
+        Returns: undefined
+      }
       complete_ride: {
         Args: { _ride_id: string }
         Returns: {

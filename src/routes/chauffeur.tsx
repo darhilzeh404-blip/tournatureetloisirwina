@@ -291,17 +291,8 @@ function ChauffeurPage() {
     if (!user) return;
     setBusyTripId(trip.id);
     try {
-      const finishedAt = new Date().toISOString();
-      const { error } = await supabase
-        .from("trips")
-        .update({ status: "completed", completed_at: finishedAt, archived_at: finishedAt })
-        .eq("id", trip.id);
+      const { error } = await supabase.rpc("archive_trip_and_reservation", { _trip_id: trip.id });
       if (error) throw error;
-      await supabase
-        .from("driver_positions")
-        .update({ archived_at: finishedAt, updated_at: finishedAt })
-        .eq("driver_id", user.id)
-        .eq("trip_id", trip.id);
       setTrips((current) => current.filter((item) => item.id !== trip.id));
       setGpsTrip(null);
       notify("Course terminée", "Elle est retirée du suivi client et du GPS admin.");
