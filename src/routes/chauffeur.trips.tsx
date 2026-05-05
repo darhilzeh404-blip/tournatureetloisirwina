@@ -126,11 +126,11 @@ function DriverTripsPage() {
       .update({ status: "completed", completed_at: now, archived_at: now })
       .eq("id", t.id);
     // Archive any linked reservation as well so it disappears everywhere
-    if (!error) {
+    if (!error && t.reservation_id) {
       await supabase
         .from("reservations")
-        .update({ status: "completed", archived_at: now })
-        .eq("id", t.id === t.id ? (t as Trip & { reservation_id?: string }).reservation_id ?? "" : "");
+        .update({ archived_at: now })
+        .eq("id", t.reservation_id);
     }
     setActionLoading(false);
     if (error) {
