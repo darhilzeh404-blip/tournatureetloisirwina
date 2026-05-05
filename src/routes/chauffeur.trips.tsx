@@ -292,30 +292,28 @@ function DriverTripsPage() {
               </div>
 
               {clientPos && (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${clientPos.latitude},${clientPos.longitude}&travelmode=driving`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 block"
-                >
-                  <Button variant="secondary" className="w-full gap-2">
+                <Button asChild variant="secondary" className="mt-2 w-full gap-2">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${clientPos.latitude},${clientPos.longitude}&travelmode=driving`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <Navigation className="h-4 w-4" />
-                    Ouvrir dans Google Maps
-                  </Button>
-                </a>
+                    Naviguer vers le client
+                  </a>
+                </Button>
               )}
               {!clientPos && trip.destination_lat && trip.destination_lng && (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 block"
-                >
-                  <Button variant="outline" className="w-full gap-2">
+                <Button asChild variant="outline" className="mt-2 w-full gap-2">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <Flag className="h-4 w-4" />
-                    Ouvrir destination dans Google Maps
-                  </Button>
-                </a>
+                    Naviguer vers la destination
+                  </a>
+                </Button>
               )}
             </div>
           </div>
