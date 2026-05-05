@@ -24,6 +24,7 @@ interface Trip {
   id: string;
   client_id: string;
   driver_id: string | null;
+  reservation_id: string | null;
   origin_address: string;
   origin_lat: number | null;
   origin_lng: number | null;
