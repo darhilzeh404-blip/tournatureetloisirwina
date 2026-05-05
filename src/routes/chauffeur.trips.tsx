@@ -24,6 +24,7 @@ interface Trip {
   id: string;
   client_id: string;
   driver_id: string | null;
+  reservation_id: string | null;
   origin_address: string;
   origin_lat: number | null;
   origin_lng: number | null;
@@ -108,19 +109,38 @@ function DriverTripsPage() {
       .update({ status: "active", started_at: new Date().toISOString() })
       .eq("id", t.id);
     setActionLoading(false);
-    if (error) toast.error("Impossible de démarrer la course.");
-    else toast.success("Course démarrée. Suivi du client activé.");
+    if (error) {
+      console.error("startTrip error", error);
+      toast.error("Impossible de démarrer la course.");
+    } else {
+      toast.success("Course démarrée. Suivi du client activé.");
+      await loadTrips();
+    }
   };
 
   const completeTrip = async (t: Trip) => {
     setActionLoading(true);
+    const now = new Date().toISOString();
     const { error } = await supabase
       .from("trips")
-      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .update({ status: "completed", completed_at: now, archived_at: now })
       .eq("id", t.id);
+    // Archive any linked reservation as well so it disappears everywhere
+    if (!error && t.reservation_id) {
+      await supabase
+        .from("reservations")
+        .update({ archived_at: now })
+        .eq("id", t.reservation_id);
+    }
     setActionLoading(false);
-    if (error) toast.error("Erreur lors de la finalisation.");
-    else toast.success("Course terminée.");
+    if (error) {
+      console.error("completeTrip error", error);
+      toast.error("Erreur lors de la finalisation.");
+    } else {
+      toast.success("Course terminée.");
+      setActiveTrip(null);
+      await loadTrips();
+    }
   };
 
   // Markers : position du client (live), point de départ prévu, destination
@@ -259,7 +279,7 @@ function DriverTripsPage() {
               </div>
 
               <div className="mt-3 flex gap-2">
-                {trip.status === "pending" && (
+                {(trip.status === "pending" || trip.status === "assigned") && (
                   <Button onClick={() => startTrip(trip)} disabled={actionLoading} className="flex-1 gap-2">
                     <Play className="h-4 w-4" /> Démarrer la course
                   </Button>
@@ -272,30 +292,28 @@ function DriverTripsPage() {
               </div>
 
               {clientPos && (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${clientPos.latitude},${clientPos.longitude}&travelmode=driving`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 block"
-                >
-                  <Button variant="secondary" className="w-full gap-2">
+                <Button asChild variant="secondary" className="mt-2 w-full gap-2">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${clientPos.latitude},${clientPos.longitude}&travelmode=driving`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <Navigation className="h-4 w-4" />
-                    Ouvrir dans Google Maps
-                  </Button>
-                </a>
+                    Naviguer vers le client
+                  </a>
+                </Button>
               )}
               {!clientPos && trip.destination_lat && trip.destination_lng && (
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 block"
-                >
-                  <Button variant="outline" className="w-full gap-2">
+                <Button asChild variant="outline" className="mt-2 w-full gap-2">
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <Flag className="h-4 w-4" />
-                    Ouvrir destination dans Google Maps
-                  </Button>
-                </a>
+                    Naviguer vers la destination
+                  </a>
+                </Button>
               )}
             </div>
           </div>
