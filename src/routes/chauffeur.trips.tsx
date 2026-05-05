@@ -108,19 +108,38 @@ function DriverTripsPage() {
       .update({ status: "active", started_at: new Date().toISOString() })
       .eq("id", t.id);
     setActionLoading(false);
-    if (error) toast.error("Impossible de démarrer la course.");
-    else toast.success("Course démarrée. Suivi du client activé.");
+    if (error) {
+      console.error("startTrip error", error);
+      toast.error("Impossible de démarrer la course.");
+    } else {
+      toast.success("Course démarrée. Suivi du client activé.");
+      await loadTrips();
+    }
   };
 
   const completeTrip = async (t: Trip) => {
     setActionLoading(true);
+    const now = new Date().toISOString();
     const { error } = await supabase
       .from("trips")
-      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .update({ status: "completed", completed_at: now, archived_at: now })
       .eq("id", t.id);
+    // Archive any linked reservation as well so it disappears everywhere
+    if (!error) {
+      await supabase
+        .from("reservations")
+        .update({ status: "completed", archived_at: now })
+        .eq("id", t.id === t.id ? (t as Trip & { reservation_id?: string }).reservation_id ?? "" : "");
+    }
     setActionLoading(false);
-    if (error) toast.error("Erreur lors de la finalisation.");
-    else toast.success("Course terminée.");
+    if (error) {
+      console.error("completeTrip error", error);
+      toast.error("Erreur lors de la finalisation.");
+    } else {
+      toast.success("Course terminée.");
+      setActiveTrip(null);
+      await loadTrips();
+    }
   };
 
   // Markers : position du client (live), point de départ prévu, destination
