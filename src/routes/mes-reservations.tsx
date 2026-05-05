@@ -111,6 +111,7 @@ function MesReservationsPage() {
         .from("reservations")
         .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at")
         .eq("user_id", user.id)
+        .is("archived_at", null)
         .order("created_at", { ascending: false });
       if (cancelled) return;
       if (error) {
@@ -125,7 +126,8 @@ function MesReservationsPage() {
         const { data: trips } = await supabase
           .from("trips")
           .select("id, reservation_id")
-          .in("reservation_id", ids);
+          .in("reservation_id", ids)
+          .is("archived_at", null);
         const tripMap: Record<string, string> = {};
         (trips ?? []).forEach((t) => (tripMap[t.reservation_id] = t.id));
         list.forEach((r) => (r.trip_id = tripMap[r.id] ?? null));
@@ -147,7 +149,11 @@ function MesReservationsPage() {
         },
         (payload) => {
           if (payload.eventType === "UPDATE" && payload.new) {
-            const updated = payload.new as Reservation;
+            const updated = payload.new as Reservation & { archived_at?: string | null };
+            if (updated.archived_at) {
+              setReservations((prev) => prev.filter((r) => r.id !== updated.id));
+              return;
+            }
             setReservations((prev) =>
               prev.map((r) => (r.id === updated.id ? { ...r, ...updated, trip_id: r.trip_id } : r))
             );
@@ -174,9 +180,10 @@ function MesReservationsPage() {
         "postgres_changes",
         { event: "*", schema: "public", table: "trips", filter: `client_id=eq.${user.id}` },
         (payload) => {
-          const t = (payload.new ?? payload.old) as { id: string; reservation_id: string } | null;
+          const t = (payload.new ?? payload.old) as { id: string; reservation_id: string; archived_at?: string | null; status?: string } | null;
           if (!t) return;
-          if (payload.eventType === "DELETE") {
+          const isGone = payload.eventType === "DELETE" || !!t.archived_at || t.status === "completed" || t.status === "cancelled";
+          if (isGone) {
             setReservations((prev) =>
               prev.map((r) => (r.id === t.reservation_id ? { ...r, trip_id: null } : r))
             );

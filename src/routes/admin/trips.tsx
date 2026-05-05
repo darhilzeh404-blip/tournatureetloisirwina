@@ -74,8 +74,8 @@ function AdminTripsPage() {
   const load = async () => {
     setLoading(true);
     const [{ data: resData }, { data: tripData }, { data: driverRoles }] = await Promise.all([
-      supabase.from("reservations").select("*").eq("status", "CONFIRMED").order("reservation_date"),
-      supabase.from("trips").select("*").order("created_at", { ascending: false }),
+      supabase.from("reservations").select("*").eq("status", "CONFIRMED").is("archived_at", null).order("reservation_date"),
+      supabase.from("trips").select("*").is("archived_at", null).order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "chauffeur"),
     ]);
 
@@ -109,6 +109,14 @@ function AdminTripsPage() {
 
   useEffect(() => {
     load();
+    const channel = supabase
+      .channel("admin-trips-list")
+      .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, () => load())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const openAssign = (res: Reservation) => {
