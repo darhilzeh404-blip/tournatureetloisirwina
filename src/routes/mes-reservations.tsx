@@ -111,6 +111,7 @@ function MesReservationsPage() {
         .from("reservations")
         .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at")
         .eq("user_id", user.id)
+        .is("archived_at", null)
         .order("created_at", { ascending: false });
       if (cancelled) return;
       if (error) {
@@ -125,7 +126,8 @@ function MesReservationsPage() {
         const { data: trips } = await supabase
           .from("trips")
           .select("id, reservation_id")
-          .in("reservation_id", ids);
+          .in("reservation_id", ids)
+          .is("archived_at", null);
         const tripMap: Record<string, string> = {};
         (trips ?? []).forEach((t) => (tripMap[t.reservation_id] = t.id));
         list.forEach((r) => (r.trip_id = tripMap[r.id] ?? null));
