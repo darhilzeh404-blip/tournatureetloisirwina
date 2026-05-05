@@ -279,7 +279,7 @@ function DriverTripsPage() {
               </div>
 
               <div className="mt-3 flex gap-2">
-                {trip.status === "pending" && (
+                {(trip.status === "pending" || trip.status === "assigned") && (
                   <Button onClick={() => startTrip(trip)} disabled={actionLoading} className="flex-1 gap-2">
                     <Play className="h-4 w-4" /> Démarrer la course
                   </Button>
