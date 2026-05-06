@@ -23,6 +23,7 @@ import { Route as GerantRouteImport } from './routes/gerant'
 import { Route as EspaceClientRouteImport } from './routes/espace-client'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CircuitsRouteImport } from './routes/circuits'
+import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
 import { Route as ChauffeurRouteImport } from './routes/chauffeur'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ActivitesRouteImport } from './routes/activites'
@@ -114,6 +115,11 @@ const ConnexionRoute = ConnexionRouteImport.update({
 const CircuitsRoute = CircuitsRouteImport.update({
   id: '/circuits',
   path: '/circuits',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChauffeurVtcRoute = ChauffeurVtcRouteImport.update({
+  id: '/chauffeur-vtc',
+  path: '/chauffeur-vtc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChauffeurRoute = ChauffeurRouteImport.update({
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
   '/chauffeur': typeof ChauffeurRouteWithChildren
+  '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/espace-client': typeof EspaceClientRoute
@@ -269,6 +276,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
+  '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/espace-client': typeof EspaceClientRoute
@@ -308,6 +316,7 @@ export interface FileRoutesById {
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
   '/chauffeur': typeof ChauffeurRouteWithChildren
+  '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/espace-client': typeof EspaceClientRoute
@@ -348,6 +357,7 @@ export interface FileRouteTypes {
     | '/activites'
     | '/admin'
     | '/chauffeur'
+    | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
     | '/espace-client'
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/'
     | '/activites'
     | '/chauffeur'
+    | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
     | '/espace-client'
@@ -423,6 +434,7 @@ export interface FileRouteTypes {
     | '/activites'
     | '/admin'
     | '/chauffeur'
+    | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
     | '/espace-client'
@@ -462,6 +474,7 @@ export interface RootRouteChildren {
   ActivitesRoute: typeof ActivitesRoute
   AdminRoute: typeof AdminRouteWithChildren
   ChauffeurRoute: typeof ChauffeurRouteWithChildren
+  ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
   EspaceClientRoute: typeof EspaceClientRoute
@@ -579,6 +592,13 @@ declare module '@tanstack/react-router' {
       path: '/circuits'
       fullPath: '/circuits'
       preLoaderRoute: typeof CircuitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chauffeur-vtc': {
+      id: '/chauffeur-vtc'
+      path: '/chauffeur-vtc'
+      fullPath: '/chauffeur-vtc'
+      preLoaderRoute: typeof ChauffeurVtcRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chauffeur': {
@@ -809,6 +829,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActivitesRoute: ActivitesRoute,
   AdminRoute: AdminRouteWithChildren,
   ChauffeurRoute: ChauffeurRouteWithChildren,
+  ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
   EspaceClientRoute: EspaceClientRoute,
