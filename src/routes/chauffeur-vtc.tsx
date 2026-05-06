@@ -1,0 +1,403 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ArrowLeft, CheckCircle, Clock, History, LayoutDashboard, Loader2, LogOut,
+  MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { MapErrorBoundary } from "@/components/MapErrorBoundary";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+
+export const Route = createFileRoute("/chauffeur-vtc")({
+  head: () => ({
+    meta: [
+      { title: "Chauffeur VTC — Agence Wina" },
+      { name: "description", content: "Interface chauffeur VTC : tableau de bord, courses et historique." },
+    ],
+  }),
+  component: ChauffeurVtcPage,
+});
+
+const LiveMap = lazy(() => import("@/components/LiveMap").then((m) => ({ default: m.LiveMap })));
+
+const COMMISSION_RATE = 0.2;
+const FCFA = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
+
+interface VtcTrip {
+  id: string;
+  client_id: string;
+  driver_id: string | null;
+  reservation_id: string;
+  origin_address: string;
+  origin_lat: number | null;
+  origin_lng: number | null;
+  destination_address: string;
+  destination_lat: number | null;
+  destination_lng: number | null;
+  status: string;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  archived_at: string | null;
+  reservations: { service_type: string; total_amount: number; reservation_date: string } | null;
+}
+
+type Tab = "dashboard" | "courses" | "historique";
+
+function ChauffeurVtcPage() {
+  const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<Tab>("dashboard");
+  const [active, setActive] = useState<VtcTrip[]>([]);
+  const [completed, setCompleted] = useState<VtcTrip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || (role !== "chauffeur" && role !== "admin"))) {
+      navigate({ to: "/connexion" });
+    }
+  }, [isAuthenticated, isLoading, role, navigate]);
+
+  const load = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    // Active VTC trips
+    const { data: act, error: e1 } = await supabase
+      .from("trips")
+      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+      .eq("driver_id", user.id)
+      .eq("reservations.service_type", "VTC")
+      .in("status", ["pending", "assigned", "active"])
+      .is("archived_at", null)
+      .order("created_at", { ascending: false });
+
+    // Completed VTC trips (history). Include archived ones.
+    const { data: done, error: e2 } = await supabase
+      .from("trips")
+      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+      .eq("driver_id", user.id)
+      .eq("reservations.service_type", "VTC")
+      .eq("status", "completed")
+      .order("completed_at", { ascending: false, nullsFirst: false })
+      .limit(100);
+
+    if (e1) console.error("[vtc] active", e1);
+    if (e2) console.error("[vtc] history", e2);
+    setActive((act as unknown as VtcTrip[]) ?? []);
+    setCompleted((done as unknown as VtcTrip[]) ?? []);
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    load();
+    const ch = supabase
+      .channel(`chauffeur-vtc-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "trips", filter: `driver_id=eq.${user.id}` },
+        () => load(),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user, load]);
+
+  // Live driver position for the dashboard map
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    const id = navigator.geolocation.watchPosition(
+      (p) => setDriverPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, []);
+
+  const stats = useMemo(() => {
+    const now = new Date();
+    const startOfDay = new Date(now); startOfDay.setHours(0, 0, 0, 0);
+    const startOfWeek = new Date(startOfDay); startOfWeek.setDate(startOfDay.getDate() - ((startOfDay.getDay() + 6) % 7));
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const buckets = { day: { count: 0, gross: 0 }, week: { count: 0, gross: 0 }, month: { count: 0, gross: 0 } };
+    for (const t of completed) {
+      const ts = t.completed_at ? new Date(t.completed_at) : null;
+      if (!ts) continue;
+      const amt = t.reservations?.total_amount ?? 0;
+      if (ts >= startOfDay) { buckets.day.count++; buckets.day.gross += amt; }
+      if (ts >= startOfWeek) { buckets.week.count++; buckets.week.gross += amt; }
+      if (ts >= startOfMonth) { buckets.month.count++; buckets.month.gross += amt; }
+    }
+    return buckets;
+  }, [completed]);
+
+  const startTrip = async (t: VtcTrip) => {
+    setBusyId(t.id);
+    const { error } = await supabase
+      .from("trips")
+      .update({ status: "active", started_at: new Date().toISOString() })
+      .eq("id", t.id);
+    setBusyId(null);
+    if (error) { toast.error("Impossible de démarrer la course"); return; }
+    toast.success("Course démarrée");
+    load();
+  };
+
+  const completeTrip = async (t: VtcTrip) => {
+    setBusyId(t.id);
+    const { error } = await supabase.rpc("archive_trip_and_reservation", { _trip_id: t.id });
+    setBusyId(null);
+    if (error) { toast.error("Erreur lors de la finalisation"); return; }
+    toast.success("Course terminée");
+    load();
+  };
+
+  if (isLoading) return <div className="flex min-h-screen items-center justify-center">Chargement…</div>;
+  if (!isAuthenticated) return null;
+
+  return (
+    <main className="min-h-screen bg-background pb-24">
+      <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur">
+        <div className="mx-auto flex max-w-md items-center gap-2 px-4 py-3">
+          <Link to="/chauffeur"><Button size="icon" variant="ghost"><ArrowLeft className="h-5 w-5" /></Button></Link>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Espace chauffeur</p>
+            <h1 className="truncate text-lg font-extrabold">VTC indépendant</h1>
+          </div>
+          <Button size="icon" variant="ghost" onClick={() => load()} aria-label="Rafraîchir"><RefreshCw className="h-4 w-4" /></Button>
+          <Button size="icon" variant="ghost" onClick={() => { signOut(); navigate({ to: "/" }); }} aria-label="Déconnexion"><LogOut className="h-4 w-4" /></Button>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-md px-4 pt-4">
+        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} />}
+        {tab === "courses" && (
+          <CoursesTab
+            trips={active}
+            loading={loading}
+            busyId={busyId}
+            onStart={startTrip}
+            onComplete={completeTrip}
+          />
+        )}
+        {tab === "historique" && <HistoryTab trips={completed} loading={loading} />}
+      </div>
+
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t bg-card/95 backdrop-blur">
+        <div className="mx-auto grid max-w-md grid-cols-3">
+          <TabBtn active={tab === "dashboard"} onClick={() => setTab("dashboard")} icon={<LayoutDashboard className="h-5 w-5" />} label="Dashboard" />
+          <TabBtn active={tab === "courses"} onClick={() => setTab("courses")} icon={<RouteIcon className="h-5 w-5" />} label="Courses" badge={active.length || undefined} />
+          <TabBtn active={tab === "historique"} onClick={() => setTab("historique")} icon={<History className="h-5 w-5" />} label="Historique" />
+        </div>
+      </nav>
+    </main>
+  );
+}
+
+function TabBtn({ active, onClick, icon, label, badge }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; badge?: number }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative flex flex-col items-center justify-center gap-1 py-3 text-xs font-medium transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
+    >
+      {icon}
+      <span>{label}</span>
+      {badge ? (
+        <span className="absolute right-6 top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">{badge}</span>
+      ) : null}
+    </button>
+  );
+}
+
+function DashboardTab({ stats, active, driverPos }: {
+  stats: { day: { count: number; gross: number }; week: { count: number; gross: number }; month: { count: number; gross: number } };
+  active: VtcTrip[];
+  driverPos: { lat: number; lng: number } | null;
+}) {
+  const markers = driverPos ? [{ id: "me", lat: driverPos.lat, lng: driverPos.lng, type: "driver" as const, label: "Vous" }] : [];
+
+  return (
+    <div className="space-y-4">
+      <Card className="overflow-hidden">
+        <div className="h-56 w-full">
+          <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-muted-foreground">Carte…</div>}>
+            <MapErrorBoundary>
+              {markers.length > 0 ? (
+                <LiveMap markers={markers} height="100%" zoom={14} center={[markers[0].lat, markers[0].lng]} />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-muted text-sm text-muted-foreground">
+                  <MapPin className="mr-2 h-4 w-4" /> Position GPS en attente…
+                </div>
+              )}
+            </MapErrorBoundary>
+          </Suspense>
+        </div>
+      </Card>
+
+      <StatBlock label="Aujourd'hui" data={stats.day} icon={<Clock className="h-4 w-4" />} />
+      <StatBlock label="Cette semaine" data={stats.week} icon={<TrendingUp className="h-4 w-4" />} />
+      <StatBlock label="Ce mois" data={stats.month} icon={<Wallet className="h-4 w-4" />} />
+
+      {stats.day.count === 0 && (
+        <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          Pas de courses aujourd'hui
+        </div>
+      )}
+
+      {active.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Course en cours</p>
+            <p className="mt-1 truncate font-bold">{active[0].origin_address} → {active[0].destination_address}</p>
+            <Badge className="mt-2" variant={active[0].status === "active" ? "default" : "secondary"}>{active[0].status}</Badge>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function StatBlock({ label, data, icon }: { label: string; data: { count: number; gross: number }; icon: React.ReactNode }) {
+  const net = data.gross * (1 - COMMISSION_RATE);
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{icon}{label}</p>
+          <Badge variant="secondary">{data.count} course{data.count > 1 ? "s" : ""}</Badge>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-[10px] uppercase text-muted-foreground">Brut</p>
+            <p className="text-lg font-bold">{FCFA(data.gross)}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase text-muted-foreground">Net (−20%)</p>
+            <p className="text-lg font-bold text-primary">{FCFA(net)}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CoursesTab({ trips, loading, busyId, onStart, onComplete }: {
+  trips: VtcTrip[]; loading: boolean; busyId: string | null;
+  onStart: (t: VtcTrip) => void; onComplete: (t: VtcTrip) => void;
+}) {
+  if (loading) {
+    return <div className="flex min-h-64 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+  if (trips.length === 0) {
+    return (
+      <div className="flex min-h-80 flex-col items-center justify-center rounded-3xl border border-border bg-card p-8 text-center">
+        <RouteIcon className="h-12 w-12 text-muted-foreground" />
+        <h2 className="mt-4 text-lg font-bold">Aucune course VTC</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Les nouvelles courses assignées apparaîtront ici.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {trips.map((t) => (
+        <Card key={t.id}>
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-2">
+              <Badge variant={t.status === "active" ? "default" : "secondary"}>{t.status === "active" ? "En cours" : "Assignée"}</Badge>
+              <p className="text-sm font-bold text-primary">{FCFA(t.reservations?.total_amount ?? 0)}</p>
+            </div>
+            <p className="mt-3 flex items-start gap-2 text-sm"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" /><span className="truncate">{t.origin_address}</span></p>
+            <p className="mt-1 flex items-start gap-2 text-sm"><Navigation className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" /><span className="truncate">{t.destination_address}</span></p>
+
+            <div className="mt-4 flex gap-2">
+              <Link to="/chauffeur/trips" search={{ tripId: t.id }} className="flex-1">
+                <Button variant="outline" className="w-full gap-2"><Navigation className="h-4 w-4" />Suivi</Button>
+              </Link>
+              {t.status !== "active" ? (
+                <Button onClick={() => onStart(t)} disabled={busyId === t.id} className="flex-1 gap-2">
+                  {busyId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                  Démarrer
+                </Button>
+              ) : (
+                <Button onClick={() => onComplete(t)} disabled={busyId === t.id} className="flex-1 gap-2">
+                  {busyId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                  Terminer
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function HistoryTab({ trips, loading }: { trips: VtcTrip[]; loading: boolean }) {
+  if (loading) {
+    return <div className="flex min-h-64 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+  if (trips.length === 0) {
+    return (
+      <div className="flex min-h-80 flex-col items-center justify-center rounded-3xl border border-border bg-card p-8 text-center">
+        <History className="h-12 w-12 text-muted-foreground" />
+        <h2 className="mt-4 text-lg font-bold">Pas encore d'historique</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Vos courses terminées apparaîtront ici.</p>
+      </div>
+    );
+  }
+
+  const totalGross = trips.reduce((s, t) => s + (t.reservations?.total_amount ?? 0), 0);
+  const totalNet = totalGross * (1 - COMMISSION_RATE);
+
+  return (
+    <div className="space-y-3">
+      <Card>
+        <CardContent className="grid grid-cols-2 gap-3 p-4">
+          <div>
+            <p className="text-[10px] uppercase text-muted-foreground">Total brut</p>
+            <p className="text-lg font-bold">{FCFA(totalGross)}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase text-muted-foreground">Total net</p>
+            <p className="text-lg font-bold text-primary">{FCFA(totalNet)}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="overflow-hidden rounded-2xl border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2">Date</th>
+              <th className="px-3 py-2 text-right">Brut</th>
+              <th className="px-3 py-2 text-right">Net</th>
+            </tr>
+          </thead>
+          <tbody>
+            {trips.map((t) => {
+              const gross = t.reservations?.total_amount ?? 0;
+              const net = gross * (1 - COMMISSION_RATE);
+              const date = t.completed_at ? new Date(t.completed_at) : null;
+              return (
+                <tr key={t.id} className="border-t">
+                  <td className="px-3 py-2">
+                    <p className="font-medium">{date?.toLocaleDateString("fr-FR") ?? "—"}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">{t.origin_address} → {t.destination_address}</p>
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">{FCFA(gross)}</td>
+                  <td className="px-3 py-2 text-right font-semibold tabular-nums text-primary">{FCFA(net)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
