@@ -113,11 +113,12 @@ function ChauffeurVtcPage() {
   useEffect(() => {
     if (!user) return;
     load();
+    // Listen to ALL trip changes (RLS filters; pool + own trips visible).
     const ch = supabase
       .channel(`chauffeur-vtc-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "trips", filter: `driver_id=eq.${user.id}` },
+        { event: "*", schema: "public", table: "trips" },
         () => load(),
       )
       .subscribe();
