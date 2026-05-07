@@ -262,12 +262,32 @@ function ChauffeurVtcPage() {
           <Button size="icon" variant="ghost" onClick={() => load()} aria-label="Rafraîchir"><RefreshCw className="h-4 w-4" /></Button>
           <Button size="icon" variant="ghost" onClick={() => { signOut(); navigate({ to: "/" }); }} aria-label="Déconnexion"><LogOut className="h-4 w-4" /></Button>
         </div>
+        <div className="mx-auto flex max-w-md items-center justify-between gap-3 border-t px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <span className={`relative flex h-2.5 w-2.5 ${isOnline ? "" : "opacity-40"}`}>
+              {isOnline && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />}
+              <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${isOnline ? "bg-green-500" : "bg-muted-foreground"}`} />
+            </span>
+            <p className="text-sm font-semibold">{isOnline ? "En ligne" : "Hors ligne"}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {isOnline ? "vous recevez les demandes" : "vous ne recevez aucune course"}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant={isOnline ? "outline" : "default"}
+            disabled={togglingOnline}
+            onClick={() => setOnline(!isOnline)}
+          >
+            {togglingOnline ? <Loader2 className="h-4 w-4 animate-spin" /> : (isOnline ? "Passer hors ligne" : "Passer en ligne")}
+          </Button>
+        </div>
       </header>
 
       <div className="mx-auto max-w-md px-4 pt-4">
-        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={pool.length} onGoPool={() => setTab("pool")} />}
+        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={pool.length} onGoPool={() => setTab("pool")} isOnline={isOnline} />}
         {tab === "pool" && (
-          <PoolTab trips={pool} loading={loading} busyId={busyId} onAccept={acceptTrip} />
+          <PoolTab trips={pool} loading={loading} busyId={busyId} onAccept={acceptTrip} isOnline={isOnline} onGoOnline={() => setOnline(true)} />
         )}
         {tab === "courses" && (
           <CoursesTab
