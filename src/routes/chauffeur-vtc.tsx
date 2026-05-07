@@ -255,10 +255,12 @@ function TabBtn({ active, onClick, icon, label, badge }: { active: boolean; onCl
   );
 }
 
-function DashboardTab({ stats, active, driverPos }: {
+function DashboardTab({ stats, active, driverPos, poolCount, onGoPool }: {
   stats: { day: { count: number; gross: number }; week: { count: number; gross: number }; month: { count: number; gross: number } };
   active: VtcTrip[];
   driverPos: { lat: number; lng: number } | null;
+  poolCount: number;
+  onGoPool: () => void;
 }) {
   const [followMe, setFollowMe] = useState(true);
   const currentTrip = active[0] ?? null;
