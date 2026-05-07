@@ -120,15 +120,20 @@ function ChauffeurVtcPage() {
     if (!user) return;
     setLoading(true);
 
-    // Pool: pending VTC trips, unassigned (visible to all online VTC drivers)
-    const { data: poolData, error: e0 } = await supabase
-      .from("trips")
-      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
-      .is("driver_id", null)
-      .eq("status", "pending")
-      .eq("reservations.service_type", "VTC")
-      .is("archived_at", null)
-      .order("created_at", { ascending: false });
+    // Pool: pending VTC trips, unassigned (only fetched when online)
+    let poolData: unknown[] = [];
+    if (isOnline) {
+      const { data, error: e0 } = await supabase
+        .from("trips")
+        .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+        .is("driver_id", null)
+        .eq("status", "pending")
+        .eq("reservations.service_type", "VTC")
+        .is("archived_at", null)
+        .order("created_at", { ascending: false });
+      if (e0) console.error("[vtc] pool", e0);
+      poolData = data ?? [];
+    }
 
     // Active VTC trips assigned to me
     const { data: act, error: e1 } = await supabase
