@@ -212,7 +212,10 @@ function ChauffeurVtcPage() {
       </header>
 
       <div className="mx-auto max-w-md px-4 pt-4">
-        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} />}
+        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={pool.length} onGoPool={() => setTab("pool")} />}
+        {tab === "pool" && (
+          <PoolTab trips={pool} loading={loading} busyId={busyId} onAccept={acceptTrip} />
+        )}
         {tab === "courses" && (
           <CoursesTab
             trips={active}
@@ -226,8 +229,9 @@ function ChauffeurVtcPage() {
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t bg-card/95 backdrop-blur">
-        <div className="mx-auto grid max-w-md grid-cols-3">
+        <div className="mx-auto grid max-w-md grid-cols-4">
           <TabBtn active={tab === "dashboard"} onClick={() => setTab("dashboard")} icon={<LayoutDashboard className="h-5 w-5" />} label="Dashboard" />
+          <TabBtn active={tab === "pool"} onClick={() => setTab("pool")} icon={<Zap className="h-5 w-5" />} label="Demandes" badge={pool.length || undefined} />
           <TabBtn active={tab === "courses"} onClick={() => setTab("courses")} icon={<RouteIcon className="h-5 w-5" />} label="Courses" badge={active.length || undefined} />
           <TabBtn active={tab === "historique"} onClick={() => setTab("historique")} icon={<History className="h-5 w-5" />} label="Historique" />
         </div>
