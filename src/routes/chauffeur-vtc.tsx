@@ -154,6 +154,25 @@ function ChauffeurVtcPage() {
     return buckets;
   }, [completed]);
 
+  const acceptTrip = async (t: VtcTrip) => {
+    setBusyId(t.id);
+    const { error } = await supabase.rpc("accept_vtc_trip", { _trip_id: t.id });
+    setBusyId(null);
+    if (error) {
+      const msg = error.message || "";
+      if (msg.includes("ALREADY_TAKEN")) {
+        toast.error("Course déjà prise par un autre chauffeur");
+      } else {
+        toast.error("Impossible d'accepter la course");
+      }
+      load();
+      return;
+    }
+    toast.success("Course acceptée !");
+    setTab("courses");
+    load();
+  };
+
   const startTrip = async (t: VtcTrip) => {
     setBusyId(t.id);
     const { error } = await supabase
