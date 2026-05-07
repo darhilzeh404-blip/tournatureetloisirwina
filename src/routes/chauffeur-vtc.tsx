@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft, CheckCircle, Clock, History, LayoutDashboard, Loader2, LogOut,
+  ArrowLeft, CheckCircle, Clock, Crosshair, History, LayoutDashboard, Loader2, LogOut,
   MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet,
 } from "lucide-react";
+import { useOsrmRoute } from "@/hooks/use-osrm-route";
+import type { MapMarker } from "@/components/LiveMap";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
