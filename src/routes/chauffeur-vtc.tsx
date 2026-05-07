@@ -48,7 +48,7 @@ interface VtcTrip {
   reservations: { service_type: string; total_amount: number; reservation_date: string } | null;
 }
 
-type Tab = "dashboard" | "courses" | "historique";
+type Tab = "dashboard" | "pool" | "courses" | "historique";
 
 function ChauffeurVtcPage() {
   const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
