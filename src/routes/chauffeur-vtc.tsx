@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft, CheckCircle, Clock, History, LayoutDashboard, Loader2, LogOut,
+  ArrowLeft, CheckCircle, Clock, Crosshair, History, LayoutDashboard, Loader2, LogOut,
   MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet,
 } from "lucide-react";
+import { useOsrmRoute } from "@/hooks/use-osrm-route";
+import type { MapMarker } from "@/components/LiveMap";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -220,16 +222,51 @@ function DashboardTab({ stats, active, driverPos }: {
   active: VtcTrip[];
   driverPos: { lat: number; lng: number } | null;
 }) {
-  const markers = driverPos ? [{ id: "me", lat: driverPos.lat, lng: driverPos.lng, type: "driver" as const, label: "Vous" }] : [];
+  const [followMe, setFollowMe] = useState(true);
+  const currentTrip = active[0] ?? null;
+
+  const origin = currentTrip?.origin_lat && currentTrip?.origin_lng
+    ? { lat: Number(currentTrip.origin_lat), lng: Number(currentTrip.origin_lng) }
+    : null;
+  const destination = currentTrip?.destination_lat && currentTrip?.destination_lng
+    ? { lat: Number(currentTrip.destination_lat), lng: Number(currentTrip.destination_lng) }
+    : null;
+
+  // Route from driver position (if active) or from origin to destination
+  const routeFrom = driverPos && currentTrip?.status === "active" ? driverPos : origin;
+  const refreshKey = driverPos
+    ? `${driverPos.lat.toFixed(3)}-${driverPos.lng.toFixed(3)}`
+    : "static";
+  const { route: osrmRoute } = useOsrmRoute(
+    routeFrom,
+    destination,
+    Boolean(routeFrom && destination),
+    refreshKey,
+  );
+
+  const markers: MapMarker[] = [];
+  if (driverPos) markers.push({ id: "me", lat: driverPos.lat, lng: driverPos.lng, type: "driver", label: "Vous" });
+  if (origin) markers.push({ id: "origin", lat: origin.lat, lng: origin.lng, type: "client", label: currentTrip?.origin_address || "Départ" });
+  if (destination) markers.push({ id: "dest", lat: destination.lat, lng: destination.lng, type: "destination", label: currentTrip?.destination_address || "Arrivée" });
+
+  const center: [number, number] | undefined = driverPos ? [driverPos.lat, driverPos.lng] : undefined;
 
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden">
-        <div className="h-56 w-full">
+        <div className="relative h-64 w-full">
           <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-muted-foreground">Carte…</div>}>
             <MapErrorBoundary>
               {markers.length > 0 ? (
-                <LiveMap markers={markers} height="100%" zoom={14} center={[markers[0].lat, markers[0].lng]} />
+                <LiveMap
+                  markers={markers}
+                  height="100%"
+                  zoom={14}
+                  center={center}
+                  showRoute={Boolean(currentTrip)}
+                  routePath={osrmRoute?.geometry}
+                  followMarkerId={followMe && driverPos ? "me" : undefined}
+                />
               ) : (
                 <div className="flex h-full items-center justify-center bg-muted text-sm text-muted-foreground">
                   <MapPin className="mr-2 h-4 w-4" /> Position GPS en attente…
@@ -237,6 +274,22 @@ function DashboardTab({ stats, active, driverPos }: {
               )}
             </MapErrorBoundary>
           </Suspense>
+          {driverPos && (
+            <Button
+              size="sm"
+              variant={followMe ? "default" : "secondary"}
+              onClick={() => setFollowMe((v) => !v)}
+              className="absolute bottom-3 right-3 z-[400] gap-1.5 shadow-lg"
+            >
+              <Crosshair className="h-4 w-4" />
+              {followMe ? "Suivi actif" : "Centrer sur moi"}
+            </Button>
+          )}
+          {osrmRoute && currentTrip && (
+            <div className="absolute left-3 top-3 z-[400] rounded-full bg-card/95 px-3 py-1.5 text-xs font-semibold shadow-md backdrop-blur">
+              {osrmRoute.distanceKm.toFixed(1)} km · {osrmRoute.durationMin} min
+            </div>
+          )}
         </div>
       </Card>
 
@@ -250,12 +303,12 @@ function DashboardTab({ stats, active, driverPos }: {
         </div>
       )}
 
-      {active.length > 0 && (
+      {currentTrip && (
         <Card>
           <CardContent className="p-4">
             <p className="text-xs font-semibold uppercase text-muted-foreground">Course en cours</p>
-            <p className="mt-1 truncate font-bold">{active[0].origin_address} → {active[0].destination_address}</p>
-            <Badge className="mt-2" variant={active[0].status === "active" ? "default" : "secondary"}>{active[0].status}</Badge>
+            <p className="mt-1 truncate font-bold">{currentTrip.origin_address} → {currentTrip.destination_address}</p>
+            <Badge className="mt-2" variant={currentTrip.status === "active" ? "default" : "secondary"}>{currentTrip.status}</Badge>
           </CardContent>
         </Card>
       )}
