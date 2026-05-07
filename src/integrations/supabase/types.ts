@@ -180,6 +180,27 @@ export type Database = {
           },
         ]
       }
+      driver_availability: {
+        Row: {
+          driver_id: string
+          is_online: boolean
+          last_seen_at: string
+          updated_at: string
+        }
+        Insert: {
+          driver_id: string
+          is_online?: boolean
+          last_seen_at?: string
+          updated_at?: string
+        }
+        Update: {
+          driver_id?: string
+          is_online?: boolean
+          last_seen_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       driver_positions: {
         Row: {
           accuracy: number | null
