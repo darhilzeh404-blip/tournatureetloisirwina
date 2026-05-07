@@ -54,6 +54,7 @@ function ChauffeurVtcPage() {
   const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("dashboard");
+  const [pool, setPool] = useState<VtcTrip[]>([]);
   const [active, setActive] = useState<VtcTrip[]>([]);
   const [completed, setCompleted] = useState<VtcTrip[]>([]);
   const [loading, setLoading] = useState(true);
