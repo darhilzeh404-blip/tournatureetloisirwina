@@ -897,6 +897,35 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      accept_vtc_trip: {
+        Args: { _trip_id: string }
+        Returns: {
+          archived_at: string | null
+          client_id: string
+          completed_at: string | null
+          created_at: string
+          destination_address: string
+          destination_lat: number | null
+          destination_lng: number | null
+          driver_id: string | null
+          eta_minutes: number | null
+          gerant_id: string | null
+          id: string
+          origin_address: string
+          origin_lat: number | null
+          origin_lng: number | null
+          reservation_id: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trips"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       archive_trip_and_reservation: {
         Args: { _trip_id: string }
         Returns: undefined

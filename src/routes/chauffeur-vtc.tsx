@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft, CheckCircle, Clock, Crosshair, History, LayoutDashboard, Loader2, LogOut,
-  MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet,
+  ArrowLeft, CheckCircle, Clock, Crosshair, Hand, History, LayoutDashboard, Loader2, LogOut,
+  MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet, Zap,
 } from "lucide-react";
 import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import type { MapMarker } from "@/components/LiveMap";
@@ -48,12 +48,13 @@ interface VtcTrip {
   reservations: { service_type: string; total_amount: number; reservation_date: string } | null;
 }
 
-type Tab = "dashboard" | "courses" | "historique";
+type Tab = "dashboard" | "pool" | "courses" | "historique";
 
 function ChauffeurVtcPage() {
   const { isAuthenticated, isLoading, role, user, signOut } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("dashboard");
+  const [pool, setPool] = useState<VtcTrip[]>([]);
   const [active, setActive] = useState<VtcTrip[]>([]);
   const [completed, setCompleted] = useState<VtcTrip[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,17 +70,28 @@ function ChauffeurVtcPage() {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    // Active VTC trips
+
+    // Pool: pending VTC trips, unassigned (visible to all online VTC drivers)
+    const { data: poolData, error: e0 } = await supabase
+      .from("trips")
+      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+      .is("driver_id", null)
+      .eq("status", "pending")
+      .eq("reservations.service_type", "VTC")
+      .is("archived_at", null)
+      .order("created_at", { ascending: false });
+
+    // Active VTC trips assigned to me
     const { data: act, error: e1 } = await supabase
       .from("trips")
       .select("*, reservations!inner(service_type, total_amount, reservation_date)")
       .eq("driver_id", user.id)
       .eq("reservations.service_type", "VTC")
-      .in("status", ["pending", "assigned", "active"])
+      .in("status", ["assigned", "active"])
       .is("archived_at", null)
       .order("created_at", { ascending: false });
 
-    // Completed VTC trips (history). Include archived ones.
+    // Completed VTC trips (history)
     const { data: done, error: e2 } = await supabase
       .from("trips")
       .select("*, reservations!inner(service_type, total_amount, reservation_date)")
@@ -89,8 +101,10 @@ function ChauffeurVtcPage() {
       .order("completed_at", { ascending: false, nullsFirst: false })
       .limit(100);
 
+    if (e0) console.error("[vtc] pool", e0);
     if (e1) console.error("[vtc] active", e1);
     if (e2) console.error("[vtc] history", e2);
+    setPool((poolData as unknown as VtcTrip[]) ?? []);
     setActive((act as unknown as VtcTrip[]) ?? []);
     setCompleted((done as unknown as VtcTrip[]) ?? []);
     setLoading(false);
@@ -99,11 +113,12 @@ function ChauffeurVtcPage() {
   useEffect(() => {
     if (!user) return;
     load();
+    // Listen to ALL trip changes (RLS filters; pool + own trips visible).
     const ch = supabase
       .channel(`chauffeur-vtc-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "trips", filter: `driver_id=eq.${user.id}` },
+        { event: "*", schema: "public", table: "trips" },
         () => load(),
       )
       .subscribe();
@@ -138,6 +153,25 @@ function ChauffeurVtcPage() {
     }
     return buckets;
   }, [completed]);
+
+  const acceptTrip = async (t: VtcTrip) => {
+    setBusyId(t.id);
+    const { error } = await supabase.rpc("accept_vtc_trip", { _trip_id: t.id });
+    setBusyId(null);
+    if (error) {
+      const msg = error.message || "";
+      if (msg.includes("ALREADY_TAKEN")) {
+        toast.error("Course déjà prise par un autre chauffeur");
+      } else {
+        toast.error("Impossible d'accepter la course");
+      }
+      load();
+      return;
+    }
+    toast.success("Course acceptée !");
+    setTab("courses");
+    load();
+  };
 
   const startTrip = async (t: VtcTrip) => {
     setBusyId(t.id);
@@ -178,7 +212,10 @@ function ChauffeurVtcPage() {
       </header>
 
       <div className="mx-auto max-w-md px-4 pt-4">
-        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} />}
+        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={pool.length} onGoPool={() => setTab("pool")} />}
+        {tab === "pool" && (
+          <PoolTab trips={pool} loading={loading} busyId={busyId} onAccept={acceptTrip} />
+        )}
         {tab === "courses" && (
           <CoursesTab
             trips={active}
@@ -192,8 +229,9 @@ function ChauffeurVtcPage() {
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t bg-card/95 backdrop-blur">
-        <div className="mx-auto grid max-w-md grid-cols-3">
+        <div className="mx-auto grid max-w-md grid-cols-4">
           <TabBtn active={tab === "dashboard"} onClick={() => setTab("dashboard")} icon={<LayoutDashboard className="h-5 w-5" />} label="Dashboard" />
+          <TabBtn active={tab === "pool"} onClick={() => setTab("pool")} icon={<Zap className="h-5 w-5" />} label="Demandes" badge={pool.length || undefined} />
           <TabBtn active={tab === "courses"} onClick={() => setTab("courses")} icon={<RouteIcon className="h-5 w-5" />} label="Courses" badge={active.length || undefined} />
           <TabBtn active={tab === "historique"} onClick={() => setTab("historique")} icon={<History className="h-5 w-5" />} label="Historique" />
         </div>
@@ -217,10 +255,12 @@ function TabBtn({ active, onClick, icon, label, badge }: { active: boolean; onCl
   );
 }
 
-function DashboardTab({ stats, active, driverPos }: {
+function DashboardTab({ stats, active, driverPos, poolCount, onGoPool }: {
   stats: { day: { count: number; gross: number }; week: { count: number; gross: number }; month: { count: number; gross: number } };
   active: VtcTrip[];
   driverPos: { lat: number; lng: number } | null;
+  poolCount: number;
+  onGoPool: () => void;
 }) {
   const [followMe, setFollowMe] = useState(true);
   const currentTrip = active[0] ?? null;
@@ -253,6 +293,21 @@ function DashboardTab({ stats, active, driverPos }: {
 
   return (
     <div className="space-y-4">
+      {poolCount > 0 && (
+        <button
+          onClick={onGoPool}
+          className="flex w-full items-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-4 text-left shadow-sm transition hover:shadow-md"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Zap className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold">{poolCount} demande{poolCount > 1 ? "s" : ""} en attente</p>
+            <p className="text-xs text-muted-foreground">Toucher pour accepter une course</p>
+          </div>
+          <Hand className="h-5 w-5 text-primary" />
+        </button>
+      )}
       <Card className="overflow-hidden">
         <div className="relative h-64 w-full">
           <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-muted-foreground">Carte…</div>}>
@@ -451,6 +506,58 @@ function HistoryTab({ trips, loading }: { trips: VtcTrip[]; loading: boolean }) 
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function PoolTab({ trips, loading, busyId, onAccept }: {
+  trips: VtcTrip[]; loading: boolean; busyId: string | null;
+  onAccept: (t: VtcTrip) => void;
+}) {
+  if (loading) {
+    return <div className="flex min-h-64 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+  if (trips.length === 0) {
+    return (
+      <div className="flex min-h-80 flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card p-8 text-center">
+        <Zap className="h-12 w-12 text-muted-foreground" />
+        <h2 className="mt-4 text-lg font-bold">Aucune demande pour l'instant</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Vous serez notifié dès qu'un client commande un VTC.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl bg-primary/5 p-3 text-center text-xs text-muted-foreground">
+        ⚡ {trips.length} demande{trips.length > 1 ? "s" : ""} disponible{trips.length > 1 ? "s" : ""} — premier arrivé, premier servi
+      </div>
+      {trips.map((t) => (
+        <Card key={t.id} className="border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-2">
+              <Badge className="bg-primary text-primary-foreground">Nouvelle demande</Badge>
+              <p className="text-sm font-bold text-primary">{FCFA(t.reservations?.total_amount ?? 0)}</p>
+            </div>
+            <p className="mt-3 flex items-start gap-2 text-sm">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">{t.origin_address}</span>
+            </p>
+            <p className="mt-1 flex items-start gap-2 text-sm">
+              <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">{t.destination_address}</span>
+            </p>
+            <Button
+              onClick={() => onAccept(t)}
+              disabled={busyId === t.id}
+              className="mt-4 w-full gap-2"
+              size="lg"
+            >
+              {busyId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Hand className="h-4 w-4" />}
+              Accepter la course
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
