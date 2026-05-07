@@ -367,7 +367,13 @@ function DashboardTab({ stats, active, driverPos, poolCount, onGoPool, isOnline 
 
   return (
     <div className="space-y-4">
-      {poolCount > 0 && (
+      {!isOnline && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+          <p className="font-bold text-amber-700 dark:text-amber-400">Vous êtes hors ligne</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Activez "En ligne" en haut pour recevoir des demandes VTC.</p>
+        </div>
+      )}
+      {isOnline && poolCount > 0 && (
         <button
           onClick={onGoPool}
           className="flex w-full items-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-4 text-left shadow-sm transition hover:shadow-md"
