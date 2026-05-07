@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft, CheckCircle, Clock, Crosshair, History, LayoutDashboard, Loader2, LogOut,
-  MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet,
+  ArrowLeft, CheckCircle, Clock, Crosshair, Hand, History, LayoutDashboard, Loader2, LogOut,
+  MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet, Zap,
 } from "lucide-react";
 import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import type { MapMarker } from "@/components/LiveMap";
