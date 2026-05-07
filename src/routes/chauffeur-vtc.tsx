@@ -509,3 +509,55 @@ function HistoryTab({ trips, loading }: { trips: VtcTrip[]; loading: boolean }) 
     </div>
   );
 }
+
+function PoolTab({ trips, loading, busyId, onAccept }: {
+  trips: VtcTrip[]; loading: boolean; busyId: string | null;
+  onAccept: (t: VtcTrip) => void;
+}) {
+  if (loading) {
+    return <div className="flex min-h-64 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+  if (trips.length === 0) {
+    return (
+      <div className="flex min-h-80 flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card p-8 text-center">
+        <Zap className="h-12 w-12 text-muted-foreground" />
+        <h2 className="mt-4 text-lg font-bold">Aucune demande pour l'instant</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Vous serez notifié dès qu'un client commande un VTC.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl bg-primary/5 p-3 text-center text-xs text-muted-foreground">
+        ⚡ {trips.length} demande{trips.length > 1 ? "s" : ""} disponible{trips.length > 1 ? "s" : ""} — premier arrivé, premier servi
+      </div>
+      {trips.map((t) => (
+        <Card key={t.id} className="border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-2">
+              <Badge className="bg-primary text-primary-foreground">Nouvelle demande</Badge>
+              <p className="text-sm font-bold text-primary">{FCFA(t.reservations?.total_amount ?? 0)}</p>
+            </div>
+            <p className="mt-3 flex items-start gap-2 text-sm">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">{t.origin_address}</span>
+            </p>
+            <p className="mt-1 flex items-start gap-2 text-sm">
+              <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="truncate">{t.destination_address}</span>
+            </p>
+            <Button
+              onClick={() => onAccept(t)}
+              disabled={busyId === t.id}
+              className="mt-4 w-full gap-2"
+              size="lg"
+            >
+              {busyId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Hand className="h-4 w-4" />}
+              Accepter la course
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
