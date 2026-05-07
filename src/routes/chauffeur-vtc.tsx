@@ -70,17 +70,28 @@ function ChauffeurVtcPage() {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    // Active VTC trips
+
+    // Pool: pending VTC trips, unassigned (visible to all online VTC drivers)
+    const { data: poolData, error: e0 } = await supabase
+      .from("trips")
+      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+      .is("driver_id", null)
+      .eq("status", "pending")
+      .eq("reservations.service_type", "VTC")
+      .is("archived_at", null)
+      .order("created_at", { ascending: false });
+
+    // Active VTC trips assigned to me
     const { data: act, error: e1 } = await supabase
       .from("trips")
       .select("*, reservations!inner(service_type, total_amount, reservation_date)")
       .eq("driver_id", user.id)
       .eq("reservations.service_type", "VTC")
-      .in("status", ["pending", "assigned", "active"])
+      .in("status", ["assigned", "active"])
       .is("archived_at", null)
       .order("created_at", { ascending: false });
 
-    // Completed VTC trips (history). Include archived ones.
+    // Completed VTC trips (history)
     const { data: done, error: e2 } = await supabase
       .from("trips")
       .select("*, reservations!inner(service_type, total_amount, reservation_date)")
@@ -90,8 +101,10 @@ function ChauffeurVtcPage() {
       .order("completed_at", { ascending: false, nullsFirst: false })
       .limit(100);
 
+    if (e0) console.error("[vtc] pool", e0);
     if (e1) console.error("[vtc] active", e1);
     if (e2) console.error("[vtc] history", e2);
+    setPool((poolData as unknown as VtcTrip[]) ?? []);
     setActive((act as unknown as VtcTrip[]) ?? []);
     setCompleted((done as unknown as VtcTrip[]) ?? []);
     setLoading(false);
