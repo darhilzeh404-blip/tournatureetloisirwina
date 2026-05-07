@@ -293,6 +293,21 @@ function DashboardTab({ stats, active, driverPos, poolCount, onGoPool }: {
 
   return (
     <div className="space-y-4">
+      {poolCount > 0 && (
+        <button
+          onClick={onGoPool}
+          className="flex w-full items-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-4 text-left shadow-sm transition hover:shadow-md"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Zap className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold">{poolCount} demande{poolCount > 1 ? "s" : ""} en attente</p>
+            <p className="text-xs text-muted-foreground">Toucher pour accepter une course</p>
+          </div>
+          <Hand className="h-5 w-5 text-primary" />
+        </button>
+      )}
       <Card className="overflow-hidden">
         <div className="relative h-64 w-full">
           <Suspense fallback={<div className="flex h-full items-center justify-center text-sm text-muted-foreground">Carte…</div>}>
