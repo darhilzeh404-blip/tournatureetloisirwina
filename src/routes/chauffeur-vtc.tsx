@@ -60,6 +60,55 @@ function ChauffeurVtcPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [isOnline, setIsOnline] = useState(false);
+  const [togglingOnline, setTogglingOnline] = useState(false);
+
+  // Load current online status
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("driver_availability")
+      .select("is_online")
+      .eq("driver_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setIsOnline(Boolean(data?.is_online)));
+  }, [user]);
+
+  const setOnline = useCallback(async (next: boolean) => {
+    if (!user) return;
+    setTogglingOnline(true);
+    const { error } = await supabase.from("driver_availability").upsert({
+      driver_id: user.id,
+      is_online: next,
+      last_seen_at: new Date().toISOString(),
+    });
+    setTogglingOnline(false);
+    if (error) { toast.error("Impossible de changer le statut"); return; }
+    setIsOnline(next);
+    toast.success(next ? "Vous êtes en ligne" : "Vous êtes hors ligne");
+  }, [user]);
+
+  // Heartbeat: refresh last_seen_at every 30s while online; mark offline on tab close
+  useEffect(() => {
+    if (!user || !isOnline) return;
+    const ping = () => {
+      supabase.from("driver_availability").update({
+        last_seen_at: new Date().toISOString(),
+      }).eq("driver_id", user.id).then(() => {});
+    };
+    ping();
+    const id = window.setInterval(ping, 30_000);
+    const handleHide = () => {
+      if (document.visibilityState === "hidden") {
+        navigator.sendBeacon?.("");
+      }
+    };
+    document.addEventListener("visibilitychange", handleHide);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", handleHide);
+    };
+  }, [user, isOnline]);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || (role !== "chauffeur" && role !== "admin"))) {
@@ -71,15 +120,20 @@ function ChauffeurVtcPage() {
     if (!user) return;
     setLoading(true);
 
-    // Pool: pending VTC trips, unassigned (visible to all online VTC drivers)
-    const { data: poolData, error: e0 } = await supabase
-      .from("trips")
-      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
-      .is("driver_id", null)
-      .eq("status", "pending")
-      .eq("reservations.service_type", "VTC")
-      .is("archived_at", null)
-      .order("created_at", { ascending: false });
+    // Pool: pending VTC trips, unassigned (only fetched when online)
+    let poolData: unknown[] = [];
+    if (isOnline) {
+      const { data, error: e0 } = await supabase
+        .from("trips")
+        .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+        .is("driver_id", null)
+        .eq("status", "pending")
+        .eq("reservations.service_type", "VTC")
+        .is("archived_at", null)
+        .order("created_at", { ascending: false });
+      if (e0) console.error("[vtc] pool", e0);
+      poolData = data ?? [];
+    }
 
     // Active VTC trips assigned to me
     const { data: act, error: e1 } = await supabase
@@ -101,14 +155,13 @@ function ChauffeurVtcPage() {
       .order("completed_at", { ascending: false, nullsFirst: false })
       .limit(100);
 
-    if (e0) console.error("[vtc] pool", e0);
     if (e1) console.error("[vtc] active", e1);
     if (e2) console.error("[vtc] history", e2);
     setPool((poolData as unknown as VtcTrip[]) ?? []);
     setActive((act as unknown as VtcTrip[]) ?? []);
     setCompleted((done as unknown as VtcTrip[]) ?? []);
     setLoading(false);
-  }, [user]);
+  }, [user, isOnline]);
 
   useEffect(() => {
     if (!user) return;
@@ -209,12 +262,32 @@ function ChauffeurVtcPage() {
           <Button size="icon" variant="ghost" onClick={() => load()} aria-label="Rafraîchir"><RefreshCw className="h-4 w-4" /></Button>
           <Button size="icon" variant="ghost" onClick={() => { signOut(); navigate({ to: "/" }); }} aria-label="Déconnexion"><LogOut className="h-4 w-4" /></Button>
         </div>
+        <div className="mx-auto flex max-w-md items-center justify-between gap-3 border-t px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <span className={`relative flex h-2.5 w-2.5 ${isOnline ? "" : "opacity-40"}`}>
+              {isOnline && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />}
+              <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${isOnline ? "bg-green-500" : "bg-muted-foreground"}`} />
+            </span>
+            <p className="text-sm font-semibold">{isOnline ? "En ligne" : "Hors ligne"}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {isOnline ? "vous recevez les demandes" : "vous ne recevez aucune course"}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant={isOnline ? "outline" : "default"}
+            disabled={togglingOnline}
+            onClick={() => setOnline(!isOnline)}
+          >
+            {togglingOnline ? <Loader2 className="h-4 w-4 animate-spin" /> : (isOnline ? "Passer hors ligne" : "Passer en ligne")}
+          </Button>
+        </div>
       </header>
 
       <div className="mx-auto max-w-md px-4 pt-4">
-        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={pool.length} onGoPool={() => setTab("pool")} />}
+        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={pool.length} onGoPool={() => setTab("pool")} isOnline={isOnline} />}
         {tab === "pool" && (
-          <PoolTab trips={pool} loading={loading} busyId={busyId} onAccept={acceptTrip} />
+          <PoolTab trips={pool} loading={loading} busyId={busyId} onAccept={acceptTrip} isOnline={isOnline} onGoOnline={() => setOnline(true)} />
         )}
         {tab === "courses" && (
           <CoursesTab
@@ -255,12 +328,13 @@ function TabBtn({ active, onClick, icon, label, badge }: { active: boolean; onCl
   );
 }
 
-function DashboardTab({ stats, active, driverPos, poolCount, onGoPool }: {
+function DashboardTab({ stats, active, driverPos, poolCount, onGoPool, isOnline }: {
   stats: { day: { count: number; gross: number }; week: { count: number; gross: number }; month: { count: number; gross: number } };
   active: VtcTrip[];
   driverPos: { lat: number; lng: number } | null;
   poolCount: number;
   onGoPool: () => void;
+  isOnline: boolean;
 }) {
   const [followMe, setFollowMe] = useState(true);
   const currentTrip = active[0] ?? null;
@@ -293,7 +367,13 @@ function DashboardTab({ stats, active, driverPos, poolCount, onGoPool }: {
 
   return (
     <div className="space-y-4">
-      {poolCount > 0 && (
+      {!isOnline && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+          <p className="font-bold text-amber-700 dark:text-amber-400">Vous êtes hors ligne</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Activez "En ligne" en haut pour recevoir des demandes VTC.</p>
+        </div>
+      )}
+      {isOnline && poolCount > 0 && (
         <button
           onClick={onGoPool}
           className="flex w-full items-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-4 text-left shadow-sm transition hover:shadow-md"
@@ -510,10 +590,22 @@ function HistoryTab({ trips, loading }: { trips: VtcTrip[]; loading: boolean }) 
   );
 }
 
-function PoolTab({ trips, loading, busyId, onAccept }: {
+function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline }: {
   trips: VtcTrip[]; loading: boolean; busyId: string | null;
   onAccept: (t: VtcTrip) => void;
+  isOnline: boolean;
+  onGoOnline: () => void;
 }) {
+  if (!isOnline) {
+    return (
+      <div className="flex min-h-80 flex-col items-center justify-center rounded-3xl border border-amber-500/30 bg-amber-500/5 p-8 text-center">
+        <Zap className="h-12 w-12 text-amber-500" />
+        <h2 className="mt-4 text-lg font-bold">Vous êtes hors ligne</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Passez en ligne pour voir les demandes VTC en temps réel.</p>
+        <Button onClick={onGoOnline} className="mt-4">Passer en ligne</Button>
+      </div>
+    );
+  }
   if (loading) {
     return <div className="flex min-h-64 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
