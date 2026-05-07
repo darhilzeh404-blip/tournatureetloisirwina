@@ -155,14 +155,13 @@ function ChauffeurVtcPage() {
       .order("completed_at", { ascending: false, nullsFirst: false })
       .limit(100);
 
-    if (e0) console.error("[vtc] pool", e0);
     if (e1) console.error("[vtc] active", e1);
     if (e2) console.error("[vtc] history", e2);
     setPool((poolData as unknown as VtcTrip[]) ?? []);
     setActive((act as unknown as VtcTrip[]) ?? []);
     setCompleted((done as unknown as VtcTrip[]) ?? []);
     setLoading(false);
-  }, [user]);
+  }, [user, isOnline]);
 
   useEffect(() => {
     if (!user) return;
