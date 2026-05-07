@@ -60,6 +60,55 @@ function ChauffeurVtcPage() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [isOnline, setIsOnline] = useState(false);
+  const [togglingOnline, setTogglingOnline] = useState(false);
+
+  // Load current online status
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("driver_availability")
+      .select("is_online")
+      .eq("driver_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setIsOnline(Boolean(data?.is_online)));
+  }, [user]);
+
+  const setOnline = useCallback(async (next: boolean) => {
+    if (!user) return;
+    setTogglingOnline(true);
+    const { error } = await supabase.from("driver_availability").upsert({
+      driver_id: user.id,
+      is_online: next,
+      last_seen_at: new Date().toISOString(),
+    });
+    setTogglingOnline(false);
+    if (error) { toast.error("Impossible de changer le statut"); return; }
+    setIsOnline(next);
+    toast.success(next ? "Vous êtes en ligne" : "Vous êtes hors ligne");
+  }, [user]);
+
+  // Heartbeat: refresh last_seen_at every 30s while online; mark offline on tab close
+  useEffect(() => {
+    if (!user || !isOnline) return;
+    const ping = () => {
+      supabase.from("driver_availability").update({
+        last_seen_at: new Date().toISOString(),
+      }).eq("driver_id", user.id).then(() => {});
+    };
+    ping();
+    const id = window.setInterval(ping, 30_000);
+    const handleHide = () => {
+      if (document.visibilityState === "hidden") {
+        navigator.sendBeacon?.("");
+      }
+    };
+    document.addEventListener("visibilitychange", handleHide);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", handleHide);
+    };
+  }, [user, isOnline]);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || (role !== "chauffeur" && role !== "admin"))) {
