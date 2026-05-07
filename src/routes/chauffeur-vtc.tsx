@@ -590,10 +590,22 @@ function HistoryTab({ trips, loading }: { trips: VtcTrip[]; loading: boolean }) 
   );
 }
 
-function PoolTab({ trips, loading, busyId, onAccept }: {
+function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline }: {
   trips: VtcTrip[]; loading: boolean; busyId: string | null;
   onAccept: (t: VtcTrip) => void;
+  isOnline: boolean;
+  onGoOnline: () => void;
 }) {
+  if (!isOnline) {
+    return (
+      <div className="flex min-h-80 flex-col items-center justify-center rounded-3xl border border-amber-500/30 bg-amber-500/5 p-8 text-center">
+        <Zap className="h-12 w-12 text-amber-500" />
+        <h2 className="mt-4 text-lg font-bold">Vous êtes hors ligne</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Passez en ligne pour voir les demandes VTC en temps réel.</p>
+        <Button onClick={onGoOnline} className="mt-4">Passer en ligne</Button>
+      </div>
+    );
+  }
   if (loading) {
     return <div className="flex min-h-64 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
