@@ -340,19 +340,38 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
       <Card className="bg-zinc-900 border-zinc-800 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         <CardContent className="p-4 space-y-3">
           <div className="flex justify-between items-center">
-            <h2 className="font-bold text-lg">Modifier</h2>
+            <h2 className="font-bold text-lg">Modifier le chauffeur</h2>
             <Button size="icon" variant="ghost" onClick={onClose}><X className="h-4 w-4" /></Button>
           </div>
-          <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800" />
-          <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
-            {VEHICLE_TYPES.map((v) => <option key={v}>{v}</option>)}
-          </select>
-          <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: e.target.value.toUpperCase() })} className="bg-zinc-950 border-zinc-800 font-mono" />
-          <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bg-zinc-950 border-zinc-800" />
-          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
-            <option value="actif">Actif</option><option value="inactif">Inactif</option>
-          </select>
-          <Button onClick={save} disabled={busy} className="w-full">{busy ? "…" : "Enregistrer"}</Button>
+          <p className="text-xs text-zinc-500 -mt-1">{driver.email}</p>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Nom complet</label>
+            <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Type de véhicule</label>
+            <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
+              {VEHICLE_TYPES.map((v) => <option key={v}>{v}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Immatriculation</label>
+            <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: e.target.value.toUpperCase() })} className="bg-zinc-950 border-zinc-800 font-mono" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Téléphone</label>
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bg-zinc-950 border-zinc-800" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Statut</label>
+            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
+              <option value="actif">Actif</option><option value="inactif">Inactif</option>
+            </select>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button variant="outline" onClick={onClose} className="flex-1 border-zinc-700 bg-zinc-950">Annuler</Button>
+            <Button onClick={save} disabled={busy || !form.full_name || !form.license_plate} className="flex-1">{busy ? "…" : "Enregistrer"}</Button>
+          </div>
         </CardContent>
       </Card>
     </div>
