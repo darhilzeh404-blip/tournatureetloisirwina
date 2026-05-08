@@ -46,6 +46,7 @@ import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
+import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
 
 const VtcRoute = VtcRouteImport.update({
   id: '/vtc',
@@ -232,6 +233,11 @@ const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
   path: '/api/admin/create-user',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminCreateDriverRoute = ApiAdminCreateDriverRouteImport.update({
+  id: '/api/admin/create-driver',
+  path: '/api/admin/create-driver',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -268,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
@@ -306,6 +313,7 @@ export interface FileRoutesByTo {
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin': typeof AdminIndexRoute
+  '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
@@ -346,6 +354,7 @@ export interface FileRoutesById {
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
@@ -387,6 +396,7 @@ export interface FileRouteTypes {
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/admin/'
+    | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/circuits/suivi/$slug'
     | '/vtc/suivi/$reservationId'
@@ -425,6 +435,7 @@ export interface FileRouteTypes {
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/admin'
+    | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/circuits/suivi/$slug'
     | '/vtc/suivi/$reservationId'
@@ -464,6 +475,7 @@ export interface FileRouteTypes {
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/admin/'
+    | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/circuits/suivi/$slug'
     | '/vtc/suivi/$reservationId'
@@ -491,6 +503,7 @@ export interface RootRouteChildren {
   VtcRoute: typeof VtcRouteWithChildren
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
+  ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
 }
 
@@ -755,6 +768,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminCreateUserRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/create-driver': {
+      id: '/api/admin/create-driver'
+      path: '/api/admin/create-driver'
+      fullPath: '/api/admin/create-driver'
+      preLoaderRoute: typeof ApiAdminCreateDriverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -846,6 +866,7 @@ const rootRouteChildren: RootRouteChildren = {
   VtcRoute: VtcRouteWithChildren,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
+  ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
 }
 export const routeTree = rootRouteImport
