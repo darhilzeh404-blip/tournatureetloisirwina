@@ -32,6 +32,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
+import { Route as AdminVtcChauffeursRouteImport } from './routes/admin/vtc-chauffeurs'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
 import { Route as AdminTripsRouteImport } from './routes/admin/trips'
 import { Route as AdminTransportRouteImport } from './routes/admin/transport'
@@ -163,6 +164,11 @@ const ChauffeurTripsRoute = ChauffeurTripsRouteImport.update({
   path: '/trips',
   getParentRoute: () => ChauffeurRoute,
 } as any)
+const AdminVtcChauffeursRoute = AdminVtcChauffeursRouteImport.update({
+  id: '/vtc-chauffeurs',
+  path: '/vtc-chauffeurs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminUtilisateursRoute = AdminUtilisateursRouteImport.update({
   id: '/utilisateurs',
   path: '/utilisateurs',
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
+  '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByTo {
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
+  '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -350,6 +358,7 @@ export interface FileRoutesById {
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
+  '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -392,6 +401,7 @@ export interface FileRouteTypes {
     | '/admin/transport'
     | '/admin/trips'
     | '/admin/utilisateurs'
+    | '/admin/vtc-chauffeurs'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -431,6 +441,7 @@ export interface FileRouteTypes {
     | '/admin/transport'
     | '/admin/trips'
     | '/admin/utilisateurs'
+    | '/admin/vtc-chauffeurs'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -471,6 +482,7 @@ export interface FileRouteTypes {
     | '/admin/transport'
     | '/admin/trips'
     | '/admin/utilisateurs'
+    | '/admin/vtc-chauffeurs'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -670,6 +682,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChauffeurTripsRouteImport
       parentRoute: typeof ChauffeurRoute
     }
+    '/admin/vtc-chauffeurs': {
+      id: '/admin/vtc-chauffeurs'
+      path: '/vtc-chauffeurs'
+      fullPath: '/admin/vtc-chauffeurs'
+      preLoaderRoute: typeof AdminVtcChauffeursRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/utilisateurs': {
       id: '/admin/utilisateurs'
       path: '/utilisateurs'
@@ -790,6 +809,7 @@ interface AdminRouteChildren {
   AdminTransportRoute: typeof AdminTransportRoute
   AdminTripsRoute: typeof AdminTripsRoute
   AdminUtilisateursRoute: typeof AdminUtilisateursRoute
+  AdminVtcChauffeursRoute: typeof AdminVtcChauffeursRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -805,6 +825,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminTransportRoute: AdminTransportRoute,
   AdminTripsRoute: AdminTripsRoute,
   AdminUtilisateursRoute: AdminUtilisateursRoute,
+  AdminVtcChauffeursRoute: AdminVtcChauffeursRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
