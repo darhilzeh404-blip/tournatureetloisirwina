@@ -245,6 +245,45 @@ export type Database = {
           },
         ]
       }
+      drivers: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          license_plate: string
+          phone: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          vehicle_type: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          license_plate?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          vehicle_type?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          license_plate?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
       offers: {
         Row: {
           created_at: string
