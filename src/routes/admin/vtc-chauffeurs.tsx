@@ -382,11 +382,13 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Immatriculation</label>
-            <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: e.target.value.toUpperCase() })} className="bg-zinc-950 border-zinc-800 font-mono" />
+            <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: normalizePlate(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
+            {plateErr && <p className="text-xs text-red-400">{plateErr}</p>}
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Téléphone</label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bg-zinc-950 border-zinc-800" />
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: normalizePhone(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
+            {phoneErr && <p className="text-xs text-red-400">{phoneErr}</p>}
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Statut</label>
