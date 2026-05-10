@@ -31,8 +31,8 @@ export const Route = createFileRoute("/api/admin/create-driver")({
 
         const full_name = String(body?.full_name ?? "").trim();
         const vehicle_type = String(body?.vehicle_type ?? "Sedan").trim();
-        const license_plate = String(body?.license_plate ?? "").trim().toUpperCase();
-        const phone = String(body?.phone ?? "").trim();
+        const license_plate = normalizePlate(String(body?.license_plate ?? ""));
+        const phone = normalizePhone(String(body?.phone ?? ""));
         const email = String(body?.email ?? "").trim().toLowerCase();
         const password = String(body?.password ?? "");
 
