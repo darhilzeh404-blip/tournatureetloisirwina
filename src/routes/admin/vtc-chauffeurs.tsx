@@ -337,7 +337,7 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
               <Button size="icon" variant="outline" className="border-zinc-700 bg-zinc-950" onClick={() => setPassword(genPassword())}><RefreshCw className="h-4 w-4" /></Button>
             </div>
           </div>
-          <Button onClick={submit} disabled={busy || !email} className="w-full">{busy ? "Création…" : "Créer le chauffeur"}</Button>
+          <Button onClick={submit} disabled={busy || !email || !!plateErr || !!phoneErr || !form.phone} className="w-full">{busy ? "Création…" : "Créer le chauffeur"}</Button>
         </CardContent>
       </Card>
     </div>
