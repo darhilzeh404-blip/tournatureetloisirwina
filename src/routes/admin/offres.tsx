@@ -113,7 +113,7 @@ function OfferFormDialog({
           </div>
           <div className="space-y-1">
             <Label>Prix (FCFA)</Label>
-            <Input type="text" inputMode="numeric" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} min={0} />
+            <Input type="text" inputMode="numeric" value={form.price || ""} onChange={(e) => setForm({ ...form, price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} min={0} />
           </div>
           <div className="space-y-1">
             <Label>URL de l'image</Label>

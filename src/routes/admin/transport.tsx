@@ -76,7 +76,7 @@ function RoutesTab({ data }: { data: ReturnType<typeof useTransportData> }) {
         <input placeholder="Nom" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-1" />
         <input placeholder="Origine" value={form.origin} onChange={e => setForm({ ...form, origin: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
         <input placeholder="Destination" value={form.destination} onChange={e => setForm({ ...form, destination: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
-        <input type="text" inputMode="numeric" placeholder="km" value={form.distance_km} onChange={e => setForm({ ...form, distance_km: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="numeric" placeholder="km" value={form.distance_km || ""} onChange={e => setForm({ ...form, distance_km: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
         <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Ajouter</button>
       </div>
       <div className="overflow-x-auto rounded-xl border bg-card">
@@ -120,8 +120,8 @@ function VehiclesTab({ data }: { data: ReturnType<typeof useTransportData> }) {
     <div className="space-y-4">
       <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-5">
         <input placeholder="Nom" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-2" />
-        <input type="text" inputMode="numeric" placeholder="Places" value={form.capacity} onChange={e => setForm({ ...form, capacity: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
-        <input type="text" inputMode="numeric" placeholder="Prix base" value={form.base_price} onChange={e => setForm({ ...form, base_price: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="numeric" placeholder="Places" value={form.capacity || ""} onChange={e => setForm({ ...form, capacity: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="numeric" placeholder="Prix base" value={form.base_price || ""} onChange={e => setForm({ ...form, base_price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
         <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Ajouter</button>
       </div>
       <div className="overflow-x-auto rounded-xl border bg-card">
@@ -192,7 +192,7 @@ function PricingTab({ data }: { data: ReturnType<typeof useTransportData> }) {
                         return (
                           <td key={k} className="p-2">
                             <div className="flex items-center gap-1">
-                              <input type="text" inputMode="numeric" value={value} onChange={e => setEdits({ ...edits, [k]: Number(e.target.value) })}
+                              <input type="text" inputMode="numeric" value={value || ""} onChange={e => setEdits({ ...edits, [k]: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })}
                                 className="w-24 rounded border bg-background px-2 py-1" />
                               {edits[k] !== undefined && (
                                 <button onClick={() => save(r.id, v.id, st, tt)} className="text-primary"><Save className="h-3.5 w-3.5" /></button>
@@ -230,8 +230,8 @@ function ActivitiesTab({ data }: { data: ReturnType<typeof useTransportData> }) 
     <div className="space-y-4">
       <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-5">
         <input placeholder="Nom" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-2" />
-        <input type="text" inputMode="decimal" placeholder="Durée (h)" value={form.duration_hours} onChange={e => setForm({ ...form, duration_hours: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
-        <input type="text" inputMode="numeric" placeholder="Prix" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="decimal" placeholder="Durée (h)" value={form.duration_hours || ""} onChange={e => setForm({ ...form, duration_hours: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="numeric" placeholder="Prix" value={form.price || ""} onChange={e => setForm({ ...form, price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
         <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Ajouter</button>
       </div>
       <div className="overflow-x-auto rounded-xl border bg-card">
@@ -280,7 +280,7 @@ function PackagesTab({ data }: { data: ReturnType<typeof useTransportData> }) {
           <option value="">Activité</option>
           {data.activities.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
-        <input type="text" inputMode="numeric" placeholder="Prix" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="numeric" placeholder="Prix" value={form.price || ""} onChange={e => setForm({ ...form, price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
         <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Ajouter</button>
       </div>
       <div className="overflow-x-auto rounded-xl border bg-card">
