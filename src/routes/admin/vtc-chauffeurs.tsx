@@ -366,7 +366,12 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
     if (phoneErr) { toast.error(`Téléphone: ${phoneErr}`); return; }
     if (!form.phone) { toast.error("Téléphone requis"); return; }
     setBusy(true);
-    const { error } = await supabase.from("drivers" as any).update(form).eq("id", driver.id);
+    const payload = {
+      ...form,
+      license_plate: normalizePlate(form.license_plate),
+      phone: normalizePhone(form.phone),
+    };
+    const { error } = await supabase.from("drivers" as any).update(payload).eq("id", driver.id);
     if (error) toast.error(error.message); else { toast.success("Modifié"); onSaved(); }
     setBusy(false);
   };
