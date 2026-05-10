@@ -323,16 +323,16 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
             <h2 className="font-bold text-lg">Nouveau chauffeur VTC</h2>
             <Button size="icon" variant="ghost" onClick={onClose}><X className="h-4 w-4" /></Button>
           </div>
-          <Input placeholder="Nom complet" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800" />
+          <Input placeholder="Nom complet" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800 text-zinc-100" />
           <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
             {VEHICLE_TYPES.map((v) => <option key={v}>{v}</option>)}
           </select>
           <div>
-            <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono text-zinc-100 ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
             {plateErr && <p className="text-xs text-red-400 mt-1">{plateErr}</p>}
           </div>
           <div>
-            <Input placeholder="Téléphone (+241XXXXXXXX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input placeholder="Téléphone (+241XXXXXXXX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 text-zinc-100 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
             {phoneErr && <p className="text-xs text-red-400 mt-1">{phoneErr}</p>}
           </div>
           <div>
@@ -342,7 +342,7 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
           <div>
             <p className="text-xs text-zinc-400 mb-1">Mot de passe</p>
             <div className="flex gap-1">
-              <Input type={showPwd ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="bg-zinc-950 border-zinc-800 font-mono" />
+              <Input type={showPwd ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="bg-zinc-950 border-zinc-800 text-zinc-100 font-mono" />
               <Button size="icon" variant="outline" className="border-zinc-700 bg-zinc-950" onClick={() => setShowPwd(!showPwd)}>{showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</Button>
               <Button size="icon" variant="outline" className="border-zinc-700 bg-zinc-950" onClick={() => setPassword(genPassword())}><RefreshCw className="h-4 w-4" /></Button>
             </div>
@@ -387,7 +387,7 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           <p className="text-xs text-zinc-500 -mt-1">{driver.email}</p>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Nom complet</label>
-            <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800" />
+            <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800 text-zinc-100" />
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Type de véhicule</label>
@@ -397,12 +397,12 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Immatriculation</label>
-            <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono text-zinc-100 ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
             {plateErr && <p className="text-xs text-red-400">{plateErr}</p>}
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Téléphone</label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 text-zinc-100 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
             {phoneErr && <p className="text-xs text-red-400">{phoneErr}</p>}
           </div>
           <div className="space-y-1">
