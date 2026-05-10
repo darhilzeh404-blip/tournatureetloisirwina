@@ -328,11 +328,11 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
             {VEHICLE_TYPES.map((v) => <option key={v}>{v}</option>)}
           </select>
           <div>
-            <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: normalizePlate(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
             {plateErr && <p className="text-xs text-red-400 mt-1">{plateErr}</p>}
           </div>
           <div>
-            <Input placeholder="Téléphone (+241XXXXXXXX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: normalizePhone(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input placeholder="Téléphone (+241XXXXXXXX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
             {phoneErr && <p className="text-xs text-red-400 mt-1">{phoneErr}</p>}
           </div>
           <div>
@@ -392,12 +392,12 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Immatriculation</label>
-            <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: normalizePlate(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
             {plateErr && <p className="text-xs text-red-400">{plateErr}</p>}
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Téléphone</label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: normalizePhone(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
             {phoneErr && <p className="text-xs text-red-400">{phoneErr}</p>}
           </div>
           <div className="space-y-1">
