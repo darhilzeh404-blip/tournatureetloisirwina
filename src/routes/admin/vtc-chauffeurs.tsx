@@ -398,7 +398,7 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           </div>
           <div className="flex gap-2 pt-1">
             <Button variant="outline" onClick={onClose} className="flex-1 border-zinc-700 bg-zinc-950">Annuler</Button>
-            <Button onClick={save} disabled={busy || !form.full_name || !form.license_plate} className="flex-1">{busy ? "…" : "Enregistrer"}</Button>
+            <Button onClick={save} disabled={busy || !form.full_name || !form.license_plate || !!plateErr || !!phoneErr || !form.phone} className="flex-1">{busy ? "…" : "Enregistrer"}</Button>
           </div>
         </CardContent>
       </Card>
