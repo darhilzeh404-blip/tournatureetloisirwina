@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  normalizePhone,
+  normalizePlate,
+  sanitizePhoneInput,
+  sanitizePlateInput,
+  validatePhone,
+  validatePlate,
+} from "@/lib/format";
 
 export const Route = createFileRoute("/admin/vtc-chauffeurs")({
   head: () => ({ meta: [{ title: "VTC Chauffeurs — Admin" }] }),
