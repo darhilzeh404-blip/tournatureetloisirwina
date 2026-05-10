@@ -222,7 +222,7 @@ function PaiementPage() {
             <Label htmlFor="amount" className="text-xs">Montant de ce versement (FCFA)</Label>
             <Input
               id="amount"
-              type="number"
+              type="text" inputMode="numeric"
               min={1}
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
