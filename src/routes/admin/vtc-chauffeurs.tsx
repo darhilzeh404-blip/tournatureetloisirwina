@@ -258,14 +258,15 @@ function AdminVtcChauffeurs() {
   );
 }
 
-/* ===== Validation helpers ===== */
-// Gabon phone: +241 followed by 8 or 9 digits, or local 0X XXXXXXXX (9 digits total starting with 0)
-const PHONE_RE = /^(?:\+241\s?\d{8,9}|0\d{8})$/;
-const PLATE_RE = /^[A-Z0-9]{2,4}[\s-]?\d{2,4}[\s-]?[A-Z0-9]{1,3}$/;
-function normalizePhone(v: string) { return v.replace(/[^\d+]/g, ""); }
-function normalizePlate(v: string) { return v.toUpperCase().replace(/[^A-Z0-9\s-]/g, ""); }
-function validatePhone(v: string) { return v === "" || PHONE_RE.test(v.replace(/\s/g, "")) ? "" : "Format: +241XXXXXXXX ou 0XXXXXXXX"; }
-function validatePlate(v: string) { return PLATE_RE.test(v.trim()) ? "" : "Format invalide (ex: AB 123 GA)"; }
+/* ===== Validation helpers (centralisés) ===== */
+import {
+  normalizePhone,
+  normalizePlate,
+  sanitizePhoneInput,
+  sanitizePlateInput,
+  validatePhone,
+  validatePlate,
+} from "@/lib/format";
 
 /* ===== Create Modal ===== */
 function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => void; onCreated: () => void; existing: Driver[] }) {
