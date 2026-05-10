@@ -279,8 +279,14 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
     return n && p ? `${n}.${p}@vtc.app` : "";
   }, [form.full_name, form.license_plate]);
 
+  const plateErr = form.license_plate ? validatePlate(form.license_plate) : "";
+  const phoneErr = validatePhone(form.phone);
+
   const submit = async () => {
     if (!form.full_name || !form.license_plate) { toast.error("Nom et immatriculation requis"); return; }
+    if (plateErr) { toast.error(`Immatriculation: ${plateErr}`); return; }
+    if (phoneErr) { toast.error(`Téléphone: ${phoneErr}`); return; }
+    if (!form.phone) { toast.error("Téléphone requis"); return; }
     if (existing.some((d) => d.license_plate.toUpperCase() === form.license_plate.toUpperCase())) { toast.error("Immatriculation déjà utilisée"); return; }
     setBusy(true);
     try {
