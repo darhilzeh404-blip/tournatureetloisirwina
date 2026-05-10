@@ -266,15 +266,7 @@ function AdminVtcChauffeurs() {
   );
 }
 
-/* ===== Validation helpers (centralisés) ===== */
-import {
-  normalizePhone,
-  normalizePlate,
-  sanitizePhoneInput,
-  sanitizePlateInput,
-  validatePhone,
-  validatePlate,
-} from "@/lib/format";
+/* ===== Validation helpers (centralisés dans @/lib/format) ===== */
 
 /* ===== Create Modal ===== */
 function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => void; onCreated: () => void; existing: Driver[] }) {
