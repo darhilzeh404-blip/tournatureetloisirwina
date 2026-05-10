@@ -317,8 +317,14 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
           <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
             {VEHICLE_TYPES.map((v) => <option key={v}>{v}</option>)}
           </select>
-          <Input placeholder="Immatriculation" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: e.target.value.toUpperCase() })} className="bg-zinc-950 border-zinc-800 font-mono" />
-          <Input placeholder="Téléphone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bg-zinc-950 border-zinc-800" />
+          <div>
+            <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: normalizePlate(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
+            {plateErr && <p className="text-xs text-red-400 mt-1">{plateErr}</p>}
+          </div>
+          <div>
+            <Input placeholder="Téléphone (+241XXXXXXXX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: normalizePhone(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
+            {phoneErr && <p className="text-xs text-red-400 mt-1">{phoneErr}</p>}
+          </div>
           <div>
             <p className="text-xs text-zinc-400 mb-1">Email généré</p>
             <Input readOnly value={email || "—"} className="bg-zinc-950 border-zinc-800 text-primary" />
