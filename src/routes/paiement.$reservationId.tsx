@@ -223,10 +223,9 @@ function PaiementPage() {
             <Input
               id="amount"
               type="text" inputMode="numeric"
-              min={1}
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
-              className="mt-1 text-lg font-bold"
+              value={amount || ""}
+              onChange={(e) => setAmount(Number(e.target.value.replace(/[^\d]/g, "")) || 0)}
+              className="mt-1 text-lg font-bold text-foreground"
             />
             <p className="text-xs text-muted-foreground mt-1">Acompte minimum : 50% du total</p>
           </div>
