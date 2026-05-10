@@ -390,7 +390,7 @@ function CourseFlow() {
         {mode === "hour" && (
           <div className="mt-3">
             <Field label="Nombre d'heures" icon={<Clock className="h-4 w-4 text-primary" />}>
-              <input type="number" min={1} value={hours} onChange={(e) => setHours(Math.max(1, Number(e.target.value) || 1))} className="input-base" />
+              <input type="text" inputMode="numeric" min={1} value={hours || ""} onChange={(e) => setHours(Math.max(1, (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) || 1))} className="input-base" />
             </Field>
           </div>
         )}
@@ -421,7 +421,7 @@ function CourseFlow() {
         )}
         <div className="mt-3">
           <Field label="Passagers" icon={<Users className="h-4 w-4 text-primary" />}>
-            <input type="number" min={1} max={7} value={passengers} onChange={(e) => setPassengers(Math.max(1, Number(e.target.value) || 1))} className="input-base" />
+            <input type="text" inputMode="numeric" min={1} max={7} value={passengers || ""} onChange={(e) => setPassengers(Math.max(1, (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) || 1))} className="input-base" />
           </Field>
         </div>
       </CollapsibleSection>

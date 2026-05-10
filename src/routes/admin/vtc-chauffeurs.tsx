@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  normalizePhone,
+  normalizePlate,
+  sanitizePhoneInput,
+  sanitizePlateInput,
+  validatePhone,
+  validatePlate,
+} from "@/lib/format";
 
 export const Route = createFileRoute("/admin/vtc-chauffeurs")({
   head: () => ({ meta: [{ title: "VTC Chauffeurs — Admin" }] }),
@@ -258,14 +266,7 @@ function AdminVtcChauffeurs() {
   );
 }
 
-/* ===== Validation helpers ===== */
-// Gabon phone: +241 followed by 8 or 9 digits, or local 0X XXXXXXXX (9 digits total starting with 0)
-const PHONE_RE = /^(?:\+241\s?\d{8,9}|0\d{8})$/;
-const PLATE_RE = /^[A-Z0-9]{2,4}[\s-]?\d{2,4}[\s-]?[A-Z0-9]{1,3}$/;
-function normalizePhone(v: string) { return v.replace(/[^\d+]/g, ""); }
-function normalizePlate(v: string) { return v.toUpperCase().replace(/[^A-Z0-9\s-]/g, ""); }
-function validatePhone(v: string) { return v === "" || PHONE_RE.test(v.replace(/\s/g, "")) ? "" : "Format: +241XXXXXXXX ou 0XXXXXXXX"; }
-function validatePlate(v: string) { return PLATE_RE.test(v.trim()) ? "" : "Format invalide (ex: AB 123 GA)"; }
+/* ===== Validation helpers (centralisés dans @/lib/format) ===== */
 
 /* ===== Create Modal ===== */
 function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => void; onCreated: () => void; existing: Driver[] }) {
@@ -287,7 +288,10 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
     if (plateErr) { toast.error(`Immatriculation: ${plateErr}`); return; }
     if (phoneErr) { toast.error(`Téléphone: ${phoneErr}`); return; }
     if (!form.phone) { toast.error("Téléphone requis"); return; }
-    if (existing.some((d) => d.license_plate.toUpperCase() === form.license_plate.toUpperCase())) { toast.error("Immatriculation déjà utilisée"); return; }
+    const canonicalPlate = normalizePlate(form.license_plate);
+    const canonicalPhone = normalizePhone(form.phone);
+    if (existing.some((d) => normalizePlate(d.license_plate) === canonicalPlate)) { toast.error("Immatriculation déjà utilisée"); return; }
+    if (existing.some((d) => d.phone && normalizePhone(d.phone) === canonicalPhone)) { toast.error("Téléphone déjà utilisé"); return; }
     setBusy(true);
     try {
       const { data: sess } = await supabase.auth.getSession();
@@ -296,7 +300,13 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
       const res = await fetch("/api/admin/create-driver", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...form, email, password }),
+        body: JSON.stringify({
+          ...form,
+          license_plate: canonicalPlate,
+          phone: canonicalPhone,
+          email,
+          password,
+        }),
       });
       const j = await res.json();
       if (!res.ok || !j.success) throw new Error(j.error || "Erreur");
@@ -313,16 +323,16 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
             <h2 className="font-bold text-lg">Nouveau chauffeur VTC</h2>
             <Button size="icon" variant="ghost" onClick={onClose}><X className="h-4 w-4" /></Button>
           </div>
-          <Input placeholder="Nom complet" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800" />
+          <Input placeholder="Nom complet" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800 text-zinc-100" />
           <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
             {VEHICLE_TYPES.map((v) => <option key={v}>{v}</option>)}
           </select>
           <div>
-            <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: normalizePlate(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono text-zinc-100 ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
             {plateErr && <p className="text-xs text-red-400 mt-1">{plateErr}</p>}
           </div>
           <div>
-            <Input placeholder="Téléphone (+241XXXXXXXX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: normalizePhone(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input placeholder="Téléphone (+241XXXXXXXX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 text-zinc-100 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
             {phoneErr && <p className="text-xs text-red-400 mt-1">{phoneErr}</p>}
           </div>
           <div>
@@ -332,7 +342,7 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
           <div>
             <p className="text-xs text-zinc-400 mb-1">Mot de passe</p>
             <div className="flex gap-1">
-              <Input type={showPwd ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="bg-zinc-950 border-zinc-800 font-mono" />
+              <Input type={showPwd ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="bg-zinc-950 border-zinc-800 text-zinc-100 font-mono" />
               <Button size="icon" variant="outline" className="border-zinc-700 bg-zinc-950" onClick={() => setShowPwd(!showPwd)}>{showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</Button>
               <Button size="icon" variant="outline" className="border-zinc-700 bg-zinc-950" onClick={() => setPassword(genPassword())}><RefreshCw className="h-4 w-4" /></Button>
             </div>
@@ -356,7 +366,12 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
     if (phoneErr) { toast.error(`Téléphone: ${phoneErr}`); return; }
     if (!form.phone) { toast.error("Téléphone requis"); return; }
     setBusy(true);
-    const { error } = await supabase.from("drivers" as any).update(form).eq("id", driver.id);
+    const payload = {
+      ...form,
+      license_plate: normalizePlate(form.license_plate),
+      phone: normalizePhone(form.phone),
+    };
+    const { error } = await supabase.from("drivers" as any).update(payload).eq("id", driver.id);
     if (error) toast.error(error.message); else { toast.success("Modifié"); onSaved(); }
     setBusy(false);
   };
@@ -372,7 +387,7 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           <p className="text-xs text-zinc-500 -mt-1">{driver.email}</p>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Nom complet</label>
-            <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800" />
+            <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800 text-zinc-100" />
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Type de véhicule</label>
@@ -382,12 +397,12 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Immatriculation</label>
-            <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: normalizePlate(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono text-zinc-100 ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
             {plateErr && <p className="text-xs text-red-400">{plateErr}</p>}
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Téléphone</label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: normalizePhone(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 text-zinc-100 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
             {phoneErr && <p className="text-xs text-red-400">{phoneErr}</p>}
           </div>
           <div className="space-y-1">
