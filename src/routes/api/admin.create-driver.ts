@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { normalizePhone, normalizePlate } from "@/lib/format";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
