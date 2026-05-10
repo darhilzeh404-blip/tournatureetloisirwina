@@ -348,8 +348,13 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
 function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose: () => void; onSaved: () => void }) {
   const [form, setForm] = useState({ full_name: driver.full_name, vehicle_type: driver.vehicle_type, license_plate: driver.license_plate, phone: driver.phone ?? "", status: driver.status });
   const [busy, setBusy] = useState(false);
+  const plateErr = validatePlate(form.license_plate);
+  const phoneErr = validatePhone(form.phone);
 
   const save = async () => {
+    if (plateErr) { toast.error(`Immatriculation: ${plateErr}`); return; }
+    if (phoneErr) { toast.error(`Téléphone: ${phoneErr}`); return; }
+    if (!form.phone) { toast.error("Téléphone requis"); return; }
     setBusy(true);
     const { error } = await supabase.from("drivers" as any).update(form).eq("id", driver.id);
     if (error) toast.error(error.message); else { toast.success("Modifié"); onSaved(); }
