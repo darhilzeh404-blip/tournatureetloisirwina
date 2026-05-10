@@ -288,7 +288,10 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
     if (plateErr) { toast.error(`Immatriculation: ${plateErr}`); return; }
     if (phoneErr) { toast.error(`Téléphone: ${phoneErr}`); return; }
     if (!form.phone) { toast.error("Téléphone requis"); return; }
-    if (existing.some((d) => d.license_plate.toUpperCase() === form.license_plate.toUpperCase())) { toast.error("Immatriculation déjà utilisée"); return; }
+    const canonicalPlate = normalizePlate(form.license_plate);
+    const canonicalPhone = normalizePhone(form.phone);
+    if (existing.some((d) => normalizePlate(d.license_plate) === canonicalPlate)) { toast.error("Immatriculation déjà utilisée"); return; }
+    if (existing.some((d) => d.phone && normalizePhone(d.phone) === canonicalPhone)) { toast.error("Téléphone déjà utilisé"); return; }
     setBusy(true);
     try {
       const { data: sess } = await supabase.auth.getSession();
@@ -297,7 +300,13 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
       const res = await fetch("/api/admin/create-driver", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...form, email, password }),
+        body: JSON.stringify({
+          ...form,
+          license_plate: canonicalPlate,
+          phone: canonicalPhone,
+          email,
+          password,
+        }),
       });
       const j = await res.json();
       if (!res.ok || !j.success) throw new Error(j.error || "Erreur");
