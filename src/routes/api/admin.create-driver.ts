@@ -70,7 +70,14 @@ export const Route = createFileRoute("/api/admin/create-driver")({
         const { error: dErr } = await admin.from("drivers").insert({
           user_id: uid, full_name, vehicle_type, license_plate, phone, email, status: "actif",
         });
-        if (dErr) return json({ error: `Driver créé partiellement: ${dErr.message}` }, 500);
+        if (dErr) {
+          const msg = dErr.message || "";
+          if (dErr.code === "23505" || /duplicate key|unique/i.test(msg)) {
+            const which = /phone/i.test(msg) ? "téléphone" : "immatriculation";
+            return json({ error: `Doublon: ${which} déjà utilisé(e)` }, 409);
+          }
+          return json({ error: `Driver créé partiellement: ${msg}` }, 500);
+        }
 
         return json({ success: true, user_id: uid, email });
       },
