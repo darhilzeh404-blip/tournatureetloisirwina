@@ -41,6 +41,16 @@ export const Route = createFileRoute("/api/admin/create-driver")({
         }
         if (password.length < 8) return json({ error: "Mot de passe min 8 caractères" }, 400);
 
+        // Pre-check duplicates (race-safe fallback still handled by unique indexes)
+        const { data: dupPlate } = await admin
+          .from("drivers").select("id").eq("license_plate", license_plate).maybeSingle();
+        if (dupPlate) return json({ error: "Cette immatriculation existe déjà" }, 409);
+        if (phone) {
+          const { data: dupPhone } = await admin
+            .from("drivers").select("id").eq("phone", phone).maybeSingle();
+          if (dupPhone) return json({ error: "Ce numéro de téléphone existe déjà" }, 409);
+        }
+
         const { data: created, error: cErr } = await admin.auth.admin.createUser({
           email, password, email_confirm: true,
           user_metadata: { full_name },
@@ -60,7 +70,14 @@ export const Route = createFileRoute("/api/admin/create-driver")({
         const { error: dErr } = await admin.from("drivers").insert({
           user_id: uid, full_name, vehicle_type, license_plate, phone, email, status: "actif",
         });
-        if (dErr) return json({ error: `Driver créé partiellement: ${dErr.message}` }, 500);
+        if (dErr) {
+          const msg = dErr.message || "";
+          if (dErr.code === "23505" || /duplicate key|unique/i.test(msg)) {
+            const which = /phone/i.test(msg) ? "téléphone" : "immatriculation";
+            return json({ error: `Doublon: ${which} déjà utilisé(e)` }, 409);
+          }
+          return json({ error: `Driver créé partiellement: ${msg}` }, 500);
+        }
 
         return json({ success: true, user_id: uid, email });
       },
