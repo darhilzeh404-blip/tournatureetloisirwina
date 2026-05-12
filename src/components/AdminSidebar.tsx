@@ -16,6 +16,7 @@ const adminLinks = [
   { to: "/admin/transport", label: "Module Transport", icon: RouteIcon, exact: false },
   { to: "/admin/trips", label: "Courses GPS", icon: Truck, exact: false },
   { to: "/admin/vtc-chauffeurs", label: "VTC Chauffeurs", icon: Car, exact: false },
+  { to: "/admin/annonces", label: "Annonces", icon: Megaphone, exact: false },
   { to: "/admin/suivi", label: "Suivi temps réel", icon: Radio, exact: false },
 ] as const;
 
