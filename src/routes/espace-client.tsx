@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Bus, Palmtree, ArrowRight, MapPin, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { ClientNav } from "@/components/ClientNav";
 import { DESTINATIONS, formatFCFA } from "@/lib/destinations";
@@ -16,6 +17,31 @@ const DESTINATION_SLUG: Record<string, string> = {
   "ndzessi": "ndossi-village",
   "raponda-walker": "raponda-walker",
 };
+
+// Coordonnées GPS des sites touristiques
+const DESTINATION_COORDS: Record<string, { lat: number; lng: number }> = {
+  "pongara": { lat: 0.2647, lng: 9.3274 },
+  "cap-caravane": { lat: 0.3208, lng: 9.2541 },
+  "mondah": { lat: 0.5812, lng: 9.3636 },
+  "ndzessi": { lat: 0.4528, lng: 9.5189 },
+  "raponda-walker": { lat: 0.5097, lng: 9.3994 },
+};
+
+function openGoogleMaps(destId: string, destName: string) {
+  console.log("bouton cliqué", destId);
+  const coords = DESTINATION_COORDS[destId];
+  if (!coords) {
+    toast.error("Position GPS indisponible pour ce site touristique.");
+    return;
+  }
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}&travelmode=driving`;
+  const opened = window.open(url, "_blank", "noopener,noreferrer");
+  if (!opened) {
+    // fallback si popup bloquée
+    window.location.href = url;
+  }
+  toast.success(`Itinéraire vers ${destName} ouvert dans Google Maps.`);
+}
 
 export const Route = createFileRoute("/espace-client")({
   head: () => ({
@@ -180,15 +206,18 @@ function EspaceClient() {
                 >
                   Réserver
                 </button>
-                <Link
-                  to="/circuits/suivi/$slug"
-                  params={{ slug: DESTINATION_SLUG[dest.id] ?? gpsSlug(dest.name) }}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openGoogleMaps(dest.id, dest.name);
+                  }}
                   aria-label={`Naviguer vers le circuit ${dest.name}`}
                   className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border bg-card px-3 py-3 text-xs font-bold leading-tight text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Navigation className="h-4 w-4 shrink-0 text-primary" />
                   <span>Naviguer</span>
-                </Link>
+                </button>
               </div>
             </motion.article>
           ))}
