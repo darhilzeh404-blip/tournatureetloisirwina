@@ -76,6 +76,7 @@ function EspaceClient() {
 
   return (
     <div className="pb-20">
+      <AnnouncementBanner />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
