@@ -41,6 +41,16 @@ export const Route = createFileRoute("/api/admin/create-driver")({
         }
         if (password.length < 8) return json({ error: "Mot de passe min 8 caractères" }, 400);
 
+        // Pre-check duplicates (race-safe fallback still handled by unique indexes)
+        const { data: dupPlate } = await admin
+          .from("drivers").select("id").eq("license_plate", license_plate).maybeSingle();
+        if (dupPlate) return json({ error: "Cette immatriculation existe déjà" }, 409);
+        if (phone) {
+          const { data: dupPhone } = await admin
+            .from("drivers").select("id").eq("phone", phone).maybeSingle();
+          if (dupPhone) return json({ error: "Ce numéro de téléphone existe déjà" }, 409);
+        }
+
         const { data: created, error: cErr } = await admin.auth.admin.createUser({
           email, password, email_confirm: true,
           user_metadata: { full_name },
