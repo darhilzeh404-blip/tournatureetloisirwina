@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          created_at: string
+          description: string
+          details_url: string | null
+          ends_at: string
+          id: string
+          is_active: boolean
+          starts_at: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          details_url?: string | null
+          ends_at: string
+          id?: string
+          is_active?: boolean
+          starts_at?: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          details_url?: string | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean
+          starts_at?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       buses: {
         Row: {
           chauffeur: string | null
