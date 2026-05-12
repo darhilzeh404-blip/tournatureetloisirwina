@@ -206,15 +206,18 @@ function EspaceClient() {
                 >
                   Réserver
                 </button>
-                <Link
-                  to="/circuits/suivi/$slug"
-                  params={{ slug: DESTINATION_SLUG[dest.id] ?? gpsSlug(dest.name) }}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openGoogleMaps(dest.id, dest.name);
+                  }}
                   aria-label={`Naviguer vers le circuit ${dest.name}`}
                   className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border bg-card px-3 py-3 text-xs font-bold leading-tight text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <Navigation className="h-4 w-4 shrink-0 text-primary" />
                   <span>Naviguer</span>
-                </Link>
+                </button>
               </div>
             </motion.article>
           ))}
