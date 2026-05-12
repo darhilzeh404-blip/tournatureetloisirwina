@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { ClientNav } from "@/components/ClientNav";
+import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { DESTINATIONS, formatFCFA } from "@/lib/destinations";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
 import heroImg from "@/assets/client-hero.jpg";
@@ -75,6 +76,7 @@ function EspaceClient() {
 
   return (
     <div className="pb-20">
+      <AnnouncementBanner />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
