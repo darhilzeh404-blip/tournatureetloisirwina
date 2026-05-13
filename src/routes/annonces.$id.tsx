@@ -64,7 +64,6 @@ function AnnouncementDetail() {
 
   const goBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
-      navigate({ to: ".." as any });
       window.history.back();
     } else {
       navigate({ to: "/espace-client" });
