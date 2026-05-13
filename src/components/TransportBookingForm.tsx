@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Loader2, MapPin, Bus as BusIcon, Sparkles, Repeat, Calendar, Users } from "lucide-react";
+import { Loader2, MapPin, Bus as BusIcon, Sparkles, Repeat, Calendar, Users, Snowflake } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,9 +13,12 @@ type Props = {
   showChildren?: boolean;
   showActivities?: boolean;
   showPackages?: boolean;
+  showAcOption?: boolean;
 };
 
-export function TransportBookingForm({ categorySlug, serviceType, showChildren, showActivities, showPackages }: Props) {
+const AC_MULTIPLIER = 1.8;
+
+export function TransportBookingForm({ categorySlug, serviceType, showChildren, showActivities, showPackages, showAcOption }: Props) {
   const data = useTransportData();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -24,6 +27,7 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
   const [vehicleId, setVehicleId] = useState("");
   const [svc, setSvc] = useState<"standard" | "vip">("standard");
   const [trip, setTrip] = useState<"aller_simple" | "aller_retour">("aller_simple");
+  const [acType, setAcType] = useState<"classique" | "climatisee">("classique");
   const [children, setChildren] = useState(0);
   const [date, setDate] = useState("");
   const [activityIds, setActivityIds] = useState<string[]>([]);
@@ -43,10 +47,21 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
     childrenCount: showChildren ? children : 0,
     activityIds: showActivities ? activityIds : [],
   };
-  const quote = computeQuote(input, data);
+  const baseQuote = computeQuote(input, data);
+
+  const isAc = showAcOption && acType === "climatisee";
+  const mult = isAc ? AC_MULTIPLIER : 1;
+
+  const quote = useMemo(() => ({
+    lines: baseQuote.lines.map(l => ({ ...l, amount: Math.round(l.amount * mult) })),
+    total: Math.round(baseQuote.total * mult),
+  }), [baseQuote, mult]);
 
   const selectedPackage = packages.find(p => p.id === packageId);
-  const finalTotal = selectedPackage ? selectedPackage.price : quote.total;
+  const packagePrice = selectedPackage ? Math.round(selectedPackage.price * mult) : 0;
+  const finalTotal = selectedPackage ? packagePrice : quote.total;
+
+  const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,8 +97,9 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
           children_count: children,
           activity_ids: activityIds,
           package_id: packageId || undefined,
+          ...(showAcOption ? { bus_type: acType, ac_multiplier: mult } : {}),
           quote: selectedPackage
-            ? [{ label: selectedPackage.name, amount: selectedPackage.price }]
+            ? [{ label: selectedPackage.name + (isAc ? " (Climatisée)" : ""), amount: packagePrice }]
             : quote.lines,
         },
       });
@@ -103,6 +119,30 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {showAcOption && (
+        <div>
+          <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+            <Snowflake className="h-4 w-4 text-primary" /> Type de bus
+            <span className="ml-auto text-xs font-normal text-muted-foreground">Climatisée : +80% premium</span>
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {(["classique", "climatisee"] as const).map(t => (
+              <button
+                key={t} type="button" onClick={() => setAcType(t)}
+                className={`rounded-xl border px-3 py-3 text-xs font-semibold transition-colors ${
+                  acType === t ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
+                }`}
+              >
+                {t === "climatisee" ? "❄️ Climatisée" : "Classique"}
+                <div className="mt-0.5 text-[10px] font-normal opacity-75">
+                  {t === "climatisee" ? "×1.8" : "tarif standard"}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {showPackages && packages.length > 0 && (
         <div>
           <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
@@ -115,7 +155,9 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
           >
             <option value="">-- Construire à la carte --</option>
             {packages.map(p => (
-              <option key={p.id} value={p.id}>{p.name} — {new Intl.NumberFormat("fr-FR").format(p.price)} FCFA</option>
+              <option key={p.id} value={p.id}>
+                {p.name} — {fmt(p.price)} FCFA{showAcOption ? ` | Clim. ${fmt(Math.round(p.price * AC_MULTIPLIER))} FCFA` : ""}
+              </option>
             ))}
           </select>
         </div>
@@ -221,7 +263,7 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
                         }} />
                         <span>{a.name} <span className="text-xs text-muted-foreground">({a.duration_hours}h)</span></span>
                       </div>
-                      <span className="font-semibold">{new Intl.NumberFormat("fr-FR").format(a.price)} FCFA</span>
+                      <span className="font-semibold">{fmt(a.price)} FCFA</span>
                     </label>
                   );
                 })}
@@ -243,12 +285,27 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
 
       {selectedPackage ? (
         <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-5">
-          <h3 className="font-bold text-primary">Forfait : {selectedPackage.name}</h3>
+          <h3 className="font-bold text-primary">
+            Forfait : {selectedPackage.name}{isAc && " — Climatisée"}
+          </h3>
           <p className="mt-1 text-sm text-muted-foreground">{selectedPackage.description}</p>
-          <p className="mt-3 text-2xl font-extrabold text-primary">{new Intl.NumberFormat("fr-FR").format(selectedPackage.price)} FCFA</p>
+          <p className="mt-3 text-2xl font-extrabold text-primary">{fmt(packagePrice)} FCFA</p>
+          {showAcOption && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Classique : {fmt(selectedPackage.price)} FCFA · Climatisée : {fmt(Math.round(selectedPackage.price * AC_MULTIPLIER))} FCFA
+            </p>
+          )}
         </div>
       ) : (
-        <TransportQuote quote={quote} />
+        <>
+          <TransportQuote quote={quote} />
+          {showAcOption && baseQuote.total > 0 && (
+            <div className="rounded-xl border bg-muted/30 p-3 text-xs">
+              <div className="flex justify-between"><span className="text-muted-foreground">Classique</span><span className="font-semibold">{fmt(baseQuote.total)} FCFA</span></div>
+              <div className="mt-1 flex justify-between"><span className="text-muted-foreground">Climatisée (+80%)</span><span className="font-semibold text-primary">{fmt(Math.round(baseQuote.total * AC_MULTIPLIER))} FCFA</span></div>
+            </div>
+          )}
+        </>
       )}
 
       <button
