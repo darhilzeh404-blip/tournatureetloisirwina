@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Megaphone, AlertTriangle, Tag } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 type Announcement = {
