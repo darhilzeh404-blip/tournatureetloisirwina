@@ -52,10 +52,10 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
   const isAc = showAcOption && acType === "climatisee";
   const mult = isAc ? AC_MULTIPLIER : 1;
 
-  const quote = useMemo(() => ({
-    lines: baseQuote.lines.map(l => ({ ...l, amount: Math.round(l.amount * mult) })),
-    total: Math.round(baseQuote.total * mult),
-  }), [baseQuote, mult]);
+  const quote = useMemo(() => {
+    const lines = baseQuote.lines.map(l => ({ ...l, amount: Math.round(l.amount * mult) }));
+    return { lines, total: lines.reduce((s, l) => s + l.amount, 0) };
+  }, [baseQuote, mult]);
 
   const selectedPackage = packages.find(p => p.id === packageId);
   const packagePrice = selectedPackage ? Math.round(selectedPackage.price * mult) : 0;
