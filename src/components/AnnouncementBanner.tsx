@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Megaphone, AlertTriangle, Tag } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 type Announcement = {
@@ -90,14 +91,13 @@ export function AnnouncementBanner() {
                 {a.description && (
                   <p className="mt-1 text-xs leading-snug opacity-95 line-clamp-2">{a.description}</p>
                 )}
-                {a.details_url && (
-                  <a
-                    href={a.details_url}
-                    className="mt-2 inline-flex items-center gap-1 rounded-lg bg-white/90 px-3 py-1.5 text-[11px] font-bold text-foreground hover:bg-white"
-                  >
-                    Voir détails
-                  </a>
-                )}
+                <Link
+                  to="/annonces/$id"
+                  params={{ id: a.id }}
+                  className="mt-2 inline-flex items-center gap-1 rounded-lg bg-white/90 px-3 py-1.5 text-[11px] font-bold text-foreground hover:bg-white"
+                >
+                  Voir détails
+                </Link>
               </div>
               <button
                 type="button"
