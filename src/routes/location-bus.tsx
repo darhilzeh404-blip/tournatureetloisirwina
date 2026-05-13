@@ -36,6 +36,8 @@ function LocationBusPage() {
         <TransportBookingForm
           categorySlug="evenementiel"
           serviceType="LOCATION_BUS"
+          showAcOption
+          showPackages
         />
       </div>
 
