@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 import { VtcZoneMap, type AvailableDriver } from "@/components/VtcZoneMap";
 import { VtcDestinationSearch } from "@/components/VtcDestinationSearch";
+import { NumberInput } from "@/components/ui/number-input";
 import {
   computeFare, detectZone, formatXAF, zoneLabel, ZONES,
   type RideMode, type VehicleCategory, type ZoneId,
@@ -747,7 +748,7 @@ function CourseFlow() {
         {mode === "hour" && (
           <div className="mt-3">
             <Field label="Nombre d'heures" icon={<Clock className="h-4 w-4 text-primary" />}>
-              <input type="text" inputMode="numeric" value={hours || ""} onChange={(e) => setHours(Math.max(1, (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) || 1))} className="input-base" />
+              <NumberInput value={hours} onChange={setHours} min={1} max={24} placeholder="1" className="input-base" />
             </Field>
           </div>
         )}
@@ -773,7 +774,7 @@ function CourseFlow() {
         )}
         <div className="mt-3">
           <Field label="Passagers" icon={<Users className="h-4 w-4 text-primary" />}>
-            <input type="text" inputMode="numeric" value={passengers || ""} onChange={(e) => setPassengers(Math.max(1, (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) || 1))} className="input-base" />
+            <NumberInput value={passengers} onChange={setPassengers} min={1} max={8} placeholder="1" className="input-base" />
           </Field>
         </div>
       </AccordionCard>

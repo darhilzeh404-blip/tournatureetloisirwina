@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
@@ -220,12 +221,13 @@ function PaiementPage() {
           </div>
           <div>
             <Label htmlFor="amount" className="text-xs">Montant de ce versement (FCFA)</Label>
-            <Input
+            <NumberInput
               id="amount"
-              type="text" inputMode="numeric"
-              value={amount || ""}
-              onChange={(e) => setAmount(Number(e.target.value.replace(/[^\d]/g, "")) || 0)}
-              className="mt-1 text-lg font-bold text-foreground"
+              value={amount}
+              onChange={setAmount}
+              min={0}
+              placeholder="0"
+              className="mt-1 flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-lg font-bold text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
             <p className="text-xs text-muted-foreground mt-1">Acompte minimum : 50% du total</p>
           </div>
