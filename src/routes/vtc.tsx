@@ -488,9 +488,11 @@ function CourseFlow() {
       </AccordionCard>
 
       <AccordionCard id="when" wizard={wizard}
+        canConfirm={(rideTiming === "now" || !!scheduledAt) && passengers >= 1}
         title="Date & passagers"
         summary={`${rideTiming === "now" ? "Maintenant" : scheduledAt || "Planifier"} · ${passengers} pax`}
         icon={<Calendar className="h-4 w-4" />}
+        confirmLabel="Valider"
       >
         <SegmentedTwo
           value={rideTiming}
