@@ -80,11 +80,22 @@ function FitBounds({ pickup, destination }: { pickup: Point; destination: Point 
   return null;
 }
 
-export function VtcZoneMap({ pickup, destination, selecting, onPick, height = "320px" }: Props) {
+export function VtcZoneMap({
+  pickup,
+  destination,
+  selecting,
+  onPick,
+  height = "320px",
+  availableDrivers = [],
+  highlightDriverId = null,
+}: Props) {
   const center: [number, number] = [0.45, 9.45];
 
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-border" style={{ height }}>
+    <div
+      className="overflow-hidden rounded-2xl border-2 border-border"
+      style={{ height }}
+    >
       <MapContainer
         center={center}
         zoom={11}
@@ -92,7 +103,7 @@ export function VtcZoneMap({ pickup, destination, selecting, onPick, height = "3
         scrollWheelZoom={false}
       >
         <TileLayer
-          attribution='&copy; OpenStreetMap'
+          attribution="&copy; OpenStreetMap"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {ZONES.map((z) => (
@@ -108,11 +119,25 @@ export function VtcZoneMap({ pickup, destination, selecting, onPick, height = "3
             onPick({ lat, lng }, detectZone(lat, lng));
           }}
         />
+        {availableDrivers.map((d) => (
+          <Marker
+            key={d.id}
+            position={[d.lat, d.lng]}
+            icon={carIcon(d.heading ?? null, d.id === highlightDriverId)}
+            interactive={false}
+          />
+        ))}
         {pickup && (
-          <Marker position={[pickup.lat, pickup.lng]} icon={pinIcon("#16a34a", "Départ")} />
+          <Marker
+            position={[pickup.lat, pickup.lng]}
+            icon={pinIcon("#16a34a", "Départ")}
+          />
         )}
         {destination && (
-          <Marker position={[destination.lat, destination.lng]} icon={pinIcon("#dc2626", "Arrivée")} />
+          <Marker
+            position={[destination.lat, destination.lng]}
+            icon={pinIcon("#dc2626", "Arrivée")}
+          />
         )}
         <FitBounds pickup={pickup} destination={destination} />
       </MapContainer>
