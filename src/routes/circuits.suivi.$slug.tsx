@@ -188,7 +188,24 @@ function CircuitGpsPage() {
         )}
 
         <div className="absolute bottom-4 left-4 right-4 rounded-2xl border bg-card/95 p-4 shadow-lg backdrop-blur">
-          <div className="grid grid-cols-3 gap-3 text-center text-sm">
+          <div className="grid grid-cols-4 gap-1.5">
+            {TRANSPORT_MODES.map((m) => {
+              const Icon = m.icon;
+              const active = m.id === modeId;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setModeId(m.id)}
+                  className={`flex flex-col items-center gap-1 rounded-xl border px-1 py-2 text-[11px] font-semibold transition-all ${active ? "border-primary bg-primary text-primary-foreground shadow-md scale-[1.02]" : "border-border bg-background text-muted-foreground hover:text-foreground"}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-3 text-center text-sm">
             <div>
               <MapPin className="mx-auto h-4 w-4 text-primary" />
               <p className="mt-1 text-xs text-muted-foreground">Distance</p>
@@ -205,13 +222,31 @@ function CircuitGpsPage() {
               <p className="font-bold">{position ? "OK" : "Attente"}</p>
             </div>
           </div>
+          {modeId === "vtc" ? (
+            <Link
+              to="/vtc"
+              search={{ destination: destination.name } as never}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-premium)] hover:brightness-110"
+            >
+              <Play className="h-4 w-4 fill-current" /> Démarrer la course VTC
+            </Link>
+          ) : (
+            <a
+              href={navigationHttpsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-premium)] hover:brightness-110"
+            >
+              <Play className="h-4 w-4 fill-current" /> Démarrer l'itinéraire
+            </a>
+          )}
           <a
             href={navigationHttpsUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-primary-foreground"
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background py-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
           >
-            <ExternalLink className="h-4 w-4" /> Ouvrir la navigation HTTPS
+            <ExternalLink className="h-3.5 w-3.5" /> Ouvrir dans Google Maps
           </a>
           {guidance && route?.steps.length ? (
             <div className="mt-3 max-h-36 overflow-y-auto rounded-xl border bg-background p-2">
