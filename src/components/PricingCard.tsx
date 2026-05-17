@@ -11,7 +11,7 @@ interface PricingCardProps {
 
 export function PricingCard({ title, price, unit, features, highlighted, onSelect }: PricingCardProps) {
   return (
-    <div className={`card-hover rounded-2xl border p-6 ${highlighted ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "bg-card"}`}>
+    <div className={`card-hover rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-card)] ${highlighted ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "bg-card"}`}>
       {highlighted && (
         <span className="mb-3 inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
           Recommandé
