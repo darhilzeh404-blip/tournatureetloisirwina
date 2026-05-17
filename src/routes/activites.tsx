@@ -37,6 +37,12 @@ function formatHours(h: number) {
 
 const FALLBACK_IMG = circuitsHero;
 
+function mapsUrl(place: string) {
+  const q = encodeURIComponent(`${place || "Gabon"}, Gabon`);
+  const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+  return isIOS ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`;
+}
+
 function ActivitesPage() {
   const navigate = useNavigate();
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -297,14 +303,15 @@ function ImmersiveCircuitCard({
         >
           Explorer <ArrowRight className="h-4 w-4" />
         </button>
-        <Link
-          to="/circuits/suivi/$slug"
-          params={{ slug: navigateSlug }}
-          aria-label={`Naviguer vers ${circuit.nom}`}
+        <a
+          href={mapsUrl(circuit.location || circuit.nom)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Itinéraire vers ${circuit.location || circuit.nom}`}
           className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/60 bg-card text-primary transition-colors hover:bg-primary/5 active:scale-[0.96]"
         >
           <Navigation className="h-4 w-4" />
-        </Link>
+        </a>
       </div>
     </motion.article>
   );
@@ -336,13 +343,24 @@ function ActivityTile({ activity, index, onBook }: { activity: Activity; index: 
           <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {activity.location || "Gabon"}</span>
           <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> {Number(activity.rating ?? 4.7).toFixed(1)}</span>
         </div>
-        <button
-          type="button"
-          onClick={onBook}
-          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl bg-accent py-2 text-[12.5px] font-bold text-accent-foreground active:scale-[0.98]"
-        >
-          Explorer <ArrowRight className="h-3.5 w-3.5" />
-        </button>
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onBook}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-accent py-2 text-[12.5px] font-bold text-accent-foreground active:scale-[0.98]"
+          >
+            Explorer <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+          <a
+            href={mapsUrl(activity.location || activity.name)}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Itinéraire vers ${activity.location || activity.name}`}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card text-primary hover:bg-primary/5 active:scale-[0.96]"
+          >
+            <Navigation className="h-3.5 w-3.5" />
+          </a>
+        </div>
       </div>
     </motion.article>
   );
