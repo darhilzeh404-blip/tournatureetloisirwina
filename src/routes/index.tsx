@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Compass, Bus, ArrowRight, Sparkles } from "lucide-react";
+import { Compass, Bus, ArrowRight, Sparkles, CarFront, Palmtree, Ticket, Tag, Headphones } from "lucide-react";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
@@ -91,7 +91,7 @@ function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl font-extrabold leading-tight text-primary-foreground lg:text-6xl"
+            className="text-3xl font-extrabold leading-tight text-primary-foreground lg:text-5xl"
           >
             Voyagez. Explorez.
             <br />
@@ -101,7 +101,7 @@ function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-5 max-w-md text-base text-primary-foreground/85 lg:text-lg"
+            className="mt-3 max-w-md text-sm text-primary-foreground/85 lg:text-base"
           >
             Réservez bus & circuits touristiques en 1 clic. Inscription gratuite.
           </motion.p>
@@ -109,25 +109,56 @@ function HomePage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-10 grid w-full max-w-md gap-3 sm:grid-cols-2"
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="mt-6 grid w-full max-w-md gap-2.5 sm:grid-cols-2"
           >
             <Link
               to="/circuits"
-              className="group flex flex-col items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-6 text-accent-foreground shadow-xl transition-transform hover:scale-105"
+              className="group flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-accent px-4 py-4 text-accent-foreground shadow-xl transition-transform hover:scale-105"
             >
-              <Compass className="h-8 w-8" />
-              <span className="text-base font-bold">Circuits Touristiques</span>
-              <span className="text-xs opacity-80">Découvrir le Gabon</span>
+              <Compass className="h-6 w-6" />
+              <span className="text-sm font-bold">Circuits Touristiques</span>
+              <span className="text-[11px] opacity-80">Découvrir le Gabon</span>
             </Link>
             <Link
               to="/transport-public"
-              className="group flex flex-col items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-6 text-primary-foreground shadow-xl transition-transform hover:scale-105"
+              className="group flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-primary px-4 py-4 text-primary-foreground shadow-xl transition-transform hover:scale-105"
             >
-              <Bus className="h-8 w-8" />
-              <span className="text-base font-bold">Transport</span>
-              <span className="text-xs opacity-80">Bus & trajets</span>
+              <Bus className="h-6 w-6" />
+              <span className="text-sm font-bold">Transport</span>
+              <span className="text-[11px] opacity-80">Bus & trajets</span>
             </Link>
+          </motion.div>
+
+          {/* Services rapides */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="mt-5 w-full max-w-md"
+          >
+            <p className="mb-2 text-left text-[11px] font-semibold uppercase tracking-wider text-primary-foreground/70">
+              Nos services
+            </p>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+              {[
+                { to: "/transport-public", label: "Transport", Icon: Bus },
+                { to: "/activites", label: "Activités", Icon: Palmtree },
+                { to: "/vtc", label: "VTC", Icon: CarFront },
+                { to: "/billets", label: "Billets", Icon: Ticket },
+                { to: "/promos", label: "Promos", Icon: Tag },
+                { to: "/support", label: "Support", Icon: Headphones },
+              ].map(({ to, label, Icon }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className="flex flex-col items-center gap-1.5 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 px-2 py-3 text-primary-foreground backdrop-blur-md transition-all hover:scale-105 hover:bg-primary-foreground/20"
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="text-[11px] font-semibold leading-tight">{label}</span>
+                </Link>
+              ))}
+            </div>
           </motion.div>
         </section>
 
