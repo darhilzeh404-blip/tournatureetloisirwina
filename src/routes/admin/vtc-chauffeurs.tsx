@@ -23,7 +23,22 @@ export const Route = createFileRoute("/admin/vtc-chauffeurs")({
 
 const COMMISSION = 0.2;
 const FCFA = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
-const VEHICLE_TYPES = ["Sedan", "SUV", "Berline", "Van", "Pickup"];
+
+function useVehicleTypes() {
+  const [types, setTypes] = useState<string[]>([]);
+  useEffect(() => {
+    supabase
+      .from("vehicle_types" as any)
+      .select("name")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true })
+      .then(({ data }) => {
+        setTypes(((data as any) ?? []).map((v: any) => v.name));
+      });
+  }, []);
+  return types;
+}
 
 type Driver = {
   id: string;
@@ -270,7 +285,11 @@ function AdminVtcChauffeurs() {
 
 /* ===== Create Modal ===== */
 function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => void; onCreated: () => void; existing: Driver[] }) {
-  const [form, setForm] = useState({ full_name: "", vehicle_type: "Sedan", license_plate: "", phone: "" });
+  const vehicleTypes = useVehicleTypes();
+  const [form, setForm] = useState({ full_name: "", vehicle_type: "", license_plate: "", phone: "" });
+  useEffect(() => {
+    if (!form.vehicle_type && vehicleTypes.length) setForm((f) => ({ ...f, vehicle_type: vehicleTypes[0] }));
+  }, [vehicleTypes, form.vehicle_type]);
   const [password, setPassword] = useState(genPassword());
   const [showPwd, setShowPwd] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -356,6 +375,7 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
 
 /* ===== Edit Modal ===== */
 function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose: () => void; onSaved: () => void }) {
+  const vehicleTypes = useVehicleTypes();
   const [form, setForm] = useState({ full_name: driver.full_name, vehicle_type: driver.vehicle_type, license_plate: driver.license_plate, phone: driver.phone ?? "", status: driver.status });
   const [busy, setBusy] = useState(false);
   const plateErr = validatePlate(form.license_plate);
@@ -392,7 +412,8 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Type de véhicule</label>
             <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
-              {VEHICLE_TYPES.map((v) => <option key={v}>{v}</option>)}
+              {!vehicleTypes.includes(form.vehicle_type) && form.vehicle_type && <option value={form.vehicle_type}>{form.vehicle_type}</option>}
+              {vehicleTypes.map((v) => <option key={v}>{v}</option>)}
             </select>
           </div>
           <div className="space-y-1">
