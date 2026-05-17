@@ -1233,3 +1233,304 @@ function RangeCard({
     </article>
   );
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// COURSE DE GROUPE — tarif officiel basé sur le nombre de communes
+// ════════════════════════════════════════════════════════════════════════════
+
+const GROUP_PICKUP_FEE = 1500;
+const GROUP_PER_PAX: Record<1 | 2 | 3, number> = { 1: 1500, 2: 2000, 3: 2500 };
+
+type GroupStop = { lat: number; lng: number; label: string; zone: ZoneId | null };
+
+function computeGroupFare(pickup: GroupStop | null, stops: GroupStop[], passengers: number) {
+  const points = [pickup, ...stops].filter((p): p is GroupStop => !!p);
+  const zones = Array.from(new Set(points.map((p) => p.zone).filter((z): z is ZoneId => !!z)));
+  const communesCount = zones.length;
+  const allInZone = points.length > 0 && points.every((p) => p.zone !== null);
+  const tier = (Math.min(Math.max(communesCount, 1), 3) as 1 | 2 | 3);
+  const perPax = GROUP_PER_PAX[tier];
+  const pax = Math.max(1, passengers);
+  const total = GROUP_PICKUP_FEE + perPax * pax;
+  return { communesCount, zones, allInZone, perPax, tier, total };
+}
+
+function GroupeFlow() {
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const wizard = useWizard(["route", "pax", "when"]);
+
+  const [pickup, setPickup] = useState<GroupStop | null>(null);
+  const [stops, setStops] = useState<GroupStop[]>([]);
+  const [passengers, setPassengers] = useState(2);
+  const [rideTiming, setRideTiming] = useState<"now" | "scheduled">("scheduled");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const fare = useMemo(
+    () => computeGroupFare(pickup, stops, passengers),
+    [pickup, stops, passengers],
+  );
+
+  const routeReady = !!pickup && stops.length >= 1 && fare.allInZone;
+
+  const addStop = () => {
+    if (stops.length >= 3) {
+      toast.info("3 destinations maximum");
+      return;
+    }
+    setStops((s) => [...s, { lat: 0, lng: 0, label: "", zone: null }]);
+  };
+
+  const removeStop = (i: number) => setStops((s) => s.filter((_, idx) => idx !== i));
+
+  const useCurrentLocationPickup = () => {
+    if (!navigator.geolocation) { toast.error("Géolocalisation indisponible"); return; }
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        const lat = p.coords.latitude, lng = p.coords.longitude;
+        const z = detectZone(lat, lng);
+        setPickup({ lat, lng, label: `Ma position (${zoneLabel(z)})`, zone: z });
+        if (!z) toast.warning("Vous semblez hors des zones desservies.");
+      },
+      () => toast.error("Impossible d'obtenir votre position"),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
+  const submit = async () => {
+    if (!isAuthenticated || !user) { toast.error("Connectez-vous pour réserver"); navigate({ to: "/connexion" }); return; }
+    if (!routeReady) { toast.error("Sélectionnez le départ et au moins une destination valides."); return; }
+    if (rideTiming === "scheduled" && !scheduledAt) { toast.error("Choisissez une date et heure"); return; }
+    if (passengers < 1) { toast.error("Indiquez au moins 1 passager"); return; }
+    setLoading(true);
+    try {
+      const effectiveScheduledAt = rideTiming === "now" ? new Date().toISOString() : scheduledAt;
+      const { data, error } = await supabase.from("reservations").insert({
+        user_id: user.id,
+        service_type: "VTC" as const,
+        reservation_date: effectiveScheduledAt.slice(0, 10),
+        total_amount: fare.total,
+        paid_amount: 0,
+        details: {
+          flow: "vtc_group",
+          flow_label: "Course de groupe",
+          passengers,
+          pickup,
+          destinations: stops,
+          communes: fare.zones,
+          communes_count: fare.communesCount,
+          pickup_fee: GROUP_PICKUP_FEE,
+          per_passenger: fare.perPax,
+          estimated_total: fare.total,
+          scheduled_at: effectiveScheduledAt,
+          ride_timing: rideTiming,
+        },
+      }).select("id").single();
+      if (error) throw error;
+      toast.success("Réservation enregistrée — procédez au paiement");
+      navigate({ to: "/paiement/$reservationId", params: { reservationId: data.id } });
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors de la réservation");
+    } finally { setLoading(false); }
+  };
+
+  const tierLabel = fare.communesCount <= 1 ? "Même commune"
+    : fare.communesCount === 2 ? "Entre 2 communes"
+    : "Entre 3 communes";
+
+  return (
+    <>
+      <AccordionCard
+        id="route"
+        wizard={wizard}
+        canConfirm={routeReady}
+        title="Trajet du groupe"
+        summary={pickup && stops.length ? `${fare.communesCount} commune${fare.communesCount > 1 ? "s" : ""} · ${stops.length} arrêt${stops.length > 1 ? "s" : ""}` : "Départ + destinations"}
+        icon={<MapPin className="h-4 w-4" />}
+      >
+        <div className="space-y-3">
+          {/* Pickup */}
+          <div>
+            <label className="mb-1.5 flex items-center gap-2 text-[12px] font-bold text-foreground">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">A</span>
+              Point de départ
+              {pickup?.zone && (
+                <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{zoneLabel(pickup.zone)}</span>
+              )}
+            </label>
+            <VtcDestinationSearch
+              placeholder="Adresse de départ…"
+              value={pickup?.label ?? ""}
+              icon={<Navigation className="h-4 w-4 text-primary" />}
+              onSelect={({ lat, lng, label }) => {
+                const z = detectZone(lat, lng);
+                setPickup({ lat, lng, label, zone: z });
+                if (!z) toast.warning("Ce point est hors des zones desservies.");
+              }}
+              onClear={() => setPickup(null)}
+            />
+            <button
+              type="button"
+              onClick={useCurrentLocationPickup}
+              className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1 text-[11px] font-bold hover:bg-primary/5"
+            >
+              <Navigation className="h-3 w-3 text-primary" /> Utiliser ma position
+            </button>
+          </div>
+
+          {/* Destinations */}
+          <div className="space-y-2">
+            {stops.length === 0 && (
+              <p className="rounded-xl border border-dashed border-border bg-muted/30 p-3 text-center text-[12px] text-muted-foreground">
+                Ajoutez au moins une destination
+              </p>
+            )}
+            {stops.map((s, i) => (
+              <div key={i}>
+                <label className="mb-1.5 flex items-center gap-2 text-[12px] font-bold text-foreground">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent/80 text-[10px] text-accent-foreground">{String.fromCharCode(66 + i)}</span>
+                  Destination {i + 1}
+                  {s.zone && (
+                    <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{zoneLabel(s.zone)}</span>
+                  )}
+                  <button type="button" onClick={() => removeStop(i)} className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-destructive" aria-label="Supprimer">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </label>
+                <VtcDestinationSearch
+                  placeholder={`Adresse destination ${i + 1}…`}
+                  value={s.label}
+                  icon={<MapPin className="h-4 w-4 text-primary" />}
+                  onSelect={({ lat, lng, label }) => {
+                    const z = detectZone(lat, lng);
+                    setStops((prev) => prev.map((it, idx) => idx === i ? { lat, lng, label, zone: z } : it));
+                    if (!z) toast.warning("Ce point est hors des zones desservies.");
+                  }}
+                  onClear={() => removeStop(i)}
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addStop}
+              disabled={stops.length >= 3}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 py-2.5 text-[12.5px] font-bold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+            >
+              <Plus className="h-4 w-4" /> Ajouter une destination ({stops.length}/3)
+            </button>
+          </div>
+
+          {/* Détection des communes */}
+          {pickup && stops.length > 0 && (
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3">
+              <p className="text-[10.5px] font-bold uppercase tracking-widest text-primary">Communes détectées</p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                {fare.zones.length === 0 && (
+                  <span className="text-[12px] text-amber-700">Aucune commune valide détectée</span>
+                )}
+                {fare.zones.map((z) => (
+                  <span key={z} className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[11px] font-bold text-foreground ring-1 ring-border">
+                    <MapPin className="h-3 w-3 text-primary" /> {zoneLabel(z)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </AccordionCard>
+
+      <AccordionCard
+        id="pax"
+        wizard={wizard}
+        canConfirm={passengers >= 1}
+        title="Nombre de passagers"
+        summary={`${passengers} passager${passengers > 1 ? "s" : ""}`}
+        icon={<Users className="h-4 w-4" />}
+      >
+        <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-3">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setPassengers((n) => Math.max(1, n - 1))}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-lg font-extrabold text-primary active:scale-95"
+              aria-label="Moins"
+            >−</button>
+            <NumberInput
+              value={passengers}
+              onChange={setPassengers}
+              min={1}
+              max={50}
+              className="w-16 rounded-lg border border-border bg-background py-2 text-center text-base font-extrabold text-foreground"
+              aria-label="Nombre de passagers"
+            />
+            <button
+              type="button"
+              onClick={() => setPassengers((n) => Math.min(50, n + 1))}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-lg font-extrabold text-primary active:scale-95"
+              aria-label="Plus"
+            >+</button>
+          </div>
+          <span className="text-[11.5px] font-semibold text-muted-foreground">max 50</span>
+        </div>
+      </AccordionCard>
+
+      <AccordionCard
+        id="when"
+        wizard={wizard}
+        canConfirm={rideTiming === "now" || !!scheduledAt}
+        title="Quand ?"
+        summary={rideTiming === "now" ? "Immédiat" : scheduledAt ? new Date(scheduledAt).toLocaleString("fr-FR") : "Choisir une date"}
+        icon={<Calendar className="h-4 w-4" />}
+      >
+        <SegmentedTwo
+          value={rideTiming}
+          onChange={(v) => setRideTiming(v as "now" | "scheduled")}
+          options={[
+            { v: "now",       l: "Immédiat",  i: Zap },
+            { v: "scheduled", l: "Planifier", i: Calendar },
+          ]}
+        />
+        {rideTiming === "scheduled" && (
+          <div className="mt-3">
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              min={new Date(Date.now() + 48 * 3600 * 1000).toISOString().slice(0, 16)}
+              className="input-base"
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">Réservation à effectuer au moins 48h à l'avance.</p>
+          </div>
+        )}
+      </AccordionCard>
+
+      {/* Récapitulatif tarif */}
+      <motion.div layout className="overflow-hidden rounded-3xl border border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card p-4 shadow-[0_10px_30px_-15px_hsl(var(--primary)/0.4)]">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Total à payer</p>
+            <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">{tierLabel} · {passengers} passager{passengers > 1 ? "s" : ""}</p>
+          </div>
+          <p className="text-2xl font-extrabold text-primary">{formatXAF(fare.total)}</p>
+        </div>
+        <div className="mt-3 space-y-1 rounded-xl bg-card/70 p-2.5 text-[12px]">
+          <PriceRow label="Frais de ramassage" value={formatXAF(GROUP_PICKUP_FEE)} />
+          <PriceRow label={`${formatXAF(fare.perPax)} × ${passengers} passager${passengers > 1 ? "s" : ""}`} value={formatXAF(fare.perPax * passengers)} />
+          <PriceRow label="Total" value={formatXAF(fare.total)} />
+        </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Tarif officiel · 1 commune : 1500 + 1500/pax · 2 communes : 1500 + 2000/pax · 3 communes : 1500 + 2500/pax.
+        </p>
+      </motion.div>
+
+      <StickyContinue
+        loading={loading}
+        disabled={!wizard.allConfirmed}
+        label={wizard.allConfirmed ? `Payer ${formatXAF(fare.total)}` : "Complétez les étapes"}
+        onClick={submit}
+        icon={<Wallet className="h-4 w-4" />}
+      />
+    </>
+  );
+}
