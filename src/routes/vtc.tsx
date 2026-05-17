@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar, CarFront, Check, CheckCircle2, ChevronDown, Clock, Gem, Heart,
-  Loader2, MapPin, Navigation, Sparkles, Users, Zap, Crown, ArrowRight, Star, Coins,
+  Loader2, MapPin, Navigation, Sparkles, Users, Zap, Crown, ArrowRight, Star,
   Search, AlertCircle, Timer, Radar,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -131,7 +131,7 @@ function VtcPage() {
           </motion.div>
         </AnimatePresence>
 
-        <PremiumRangesSection onBook={() => setTab("course")} />
+        <PremiumRangesSection onCourse={() => setTab("course")} />
       </main>
 
       <ClientNav />
@@ -842,7 +842,7 @@ function MariageFlow() {
         },
       }).select("id").single();
       if (error) throw error;
-      toast.success("Réservation mariage créée — procédez au paiement (50 %)");
+      toast.success("Réservation mariage créée — procédez au paiement total");
       navigate({ to: "/paiement/$reservationId", params: { reservationId: data.id } });
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de la réservation");
@@ -910,7 +910,7 @@ function MariageFlow() {
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Total mariage</p>
             <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
-              {WEDDING_FARES[vehicle].label} · {duration === "h12" ? "12h" : "24h"} · acompte 50 %
+              {WEDDING_FARES[vehicle].label} · {duration === "h12" ? "12h" : "24h"} · paiement total
             </p>
           </div>
           <p className="text-2xl font-extrabold text-primary">{formatXAF(total)}</p>
@@ -920,7 +920,7 @@ function MariageFlow() {
       <StickyContinue
         loading={loading}
         disabled={!wizard.allConfirmed}
-        label={wizard.allConfirmed ? "Continuer · Payer 50 %" : "Confirmez toutes les étapes"}
+        label={wizard.allConfirmed ? "Continuer · Payer le total" : "Confirmez toutes les étapes"}
         onClick={submit}
         icon={<Heart className="h-4 w-4" />}
       />
@@ -1009,16 +1009,50 @@ function StickyContinue({
 }
 
 // ─── Nos Gammes VTC (pills tabs premium) ───────────────────────────────────
-type RangeKey = "berline" | "vip" | "groupe" | "tarif";
+type RangeKey = "berline" | "vip" | "groupe";
 
-function PremiumRangesSection({ onBook }: { onBook: () => void }) {
+function PremiumRangesSection({ onCourse }: { onCourse: () => void }) {
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [active, setActive] = useState<RangeKey>("berline");
+  const [subscribing, setSubscribing] = useState<RangeKey | null>(null);
   const tabs: { id: RangeKey; label: string; icon: typeof CarFront }[] = [
     { id: "berline", label: "Berline Simple", icon: CarFront },
     { id: "vip",     label: "Berline VIP",    icon: Crown },
     { id: "groupe",  label: "Course de Groupe", icon: Users },
-    { id: "tarif",   label: "Tarification",   icon: Coins },
   ];
+
+  const subscribe = async (plan: "berline_simple" | "berline_vip", amount: number, label: string) => {
+    if (!isAuthenticated || !user) {
+      toast.error("Connectez-vous pour souscrire");
+      navigate({ to: "/connexion" });
+      return;
+    }
+    setSubscribing(plan === "berline_simple" ? "berline" : "vip");
+    try {
+      const { data, error } = await supabase.from("reservations").insert({
+        user_id: user.id,
+        service_type: "VTC" as const,
+        reservation_date: new Date().toISOString().slice(0, 10),
+        total_amount: amount,
+        paid_amount: 0,
+        details: {
+          flow: "vtc_subscription",
+          plan,
+          plan_label: label,
+          duration_label: "1 mois",
+          requires_admin_validation: true,
+        },
+      }).select("id").single();
+      if (error) throw error;
+      toast.success(`${label} créé — procédez au paiement total`);
+      navigate({ to: "/paiement/$reservationId", params: { reservationId: data.id } });
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors de la souscription");
+    } finally {
+      setSubscribing(null);
+    }
+  };
 
   return (
     <motion.section
@@ -1096,12 +1130,13 @@ function PremiumRangesSection({ onBook }: { onBook: () => void }) {
                 badgeTone="primary"
                 icon={CarFront}
                 title="Abonnement Berline Simple"
-                price="À partir de 150.000 XAF"
+                price="150.000 XAF"
                 priceSuffix="/mois"
-                subtitle="Négociable"
+                subtitle="Paiement total à la souscription"
                 description="Service mensuel avec chauffeur dédié pour vos déplacements quotidiens en berline confortable."
-                ctaLabel="Réserver"
-                onCta={onBook}
+                ctaLabel={subscribing === "berline" ? "Création…" : "Souscrire et payer"}
+                ctaDisabled={subscribing !== null}
+                onCta={() => subscribe("berline_simple", 150_000, "Abonnement Berline Simple")}
               />
             )}
             {active === "vip" && (
@@ -1110,12 +1145,13 @@ function PremiumRangesSection({ onBook }: { onBook: () => void }) {
                 badgeTone="accent"
                 icon={Crown}
                 title="Abonnement Berline VIP"
-                price="À partir de 250.000 XAF"
+                price="250.000 XAF"
                 priceSuffix="/mois"
-                subtitle="Négociable"
+                subtitle="Paiement total à la souscription"
                 description="Berlines haut de gamme, chauffeur dédié en costume, expérience premium pour clientèle exigeante."
-                ctaLabel="Réserver un service VIP"
-                onCta={onBook}
+                ctaLabel={subscribing === "vip" ? "Création…" : "Souscrire et payer"}
+                ctaDisabled={subscribing !== null}
+                onCta={() => subscribe("berline_vip", 250_000, "Abonnement Berline VIP")}
               />
             )}
             {active === "groupe" && (
@@ -1126,22 +1162,9 @@ function PremiumRangesSection({ onBook }: { onBook: () => void }) {
                 title="Course de Groupe"
                 price="Sur devis"
                 subtitle="Tarif fixé selon le trajet"
-                description="Service disponible uniquement sur réservation avec tarification fixée selon le trajet et le nombre de passagers."
+                description="Service disponible uniquement sur réservation avec tarif fixé selon le trajet et le nombre de passagers."
                 ctaLabel="Faire une réservation"
-                onCta={onBook}
-              />
-            )}
-            {active === "tarif" && (
-              <RangeCard
-                badge="Transparence"
-                badgeTone="accent"
-                icon={Coins}
-                title="Tarification"
-                price="Prix fixes par zone"
-                subtitle="Sans surprise"
-                description="Standard, Confort ou VIP — consultez les tarifs détaillés par zone dans l'onglet « Course VTC » ci-dessus."
-                ctaLabel="Voir les tarifs"
-                onCta={onBook}
+                onCta={onCourse}
               />
             )}
           </motion.div>
@@ -1152,7 +1175,7 @@ function PremiumRangesSection({ onBook }: { onBook: () => void }) {
 }
 
 function RangeCard({
-  badge, badgeTone, icon: Icon, title, price, priceSuffix, subtitle, description, ctaLabel, onCta,
+  badge, badgeTone, icon: Icon, title, price, priceSuffix, subtitle, description, ctaLabel, ctaDisabled, onCta,
 }: {
   badge: string;
   badgeTone: "primary" | "accent";
@@ -1163,7 +1186,8 @@ function RangeCard({
   subtitle: string;
   description: string;
   ctaLabel: string;
-  onCta: () => void;
+  ctaDisabled?: boolean;
+  onCta: () => void | Promise<void>;
 }) {
   const toneClasses =
     badgeTone === "accent"
@@ -1200,7 +1224,8 @@ function RangeCard({
       <button
         type="button"
         onClick={onCta}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[13.5px] font-bold text-primary-foreground shadow-[0_10px_24px_-12px_hsl(var(--primary)/0.65)] transition-all active:scale-[0.98]"
+        disabled={ctaDisabled}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[13.5px] font-bold text-primary-foreground shadow-[0_10px_24px_-12px_hsl(var(--primary)/0.65)] transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {ctaLabel} <ArrowRight className="h-4 w-4" />
       </button>

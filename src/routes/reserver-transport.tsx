@@ -256,7 +256,7 @@ function ReserverTransport() {
         },
       }).select("id").single();
       if (error) throw error;
-      toast.success("Réservation créée 🎉 Versez 50% d'acompte pour la soumettre à validation.");
+      toast.success("Réservation créée 🎉 Réglez le montant total pour la soumettre à validation.");
       navigate({ to: "/paiement/$reservationId", params: { reservationId: inserted!.id } });
     } catch (err: any) {
       toast.error(err.message || "Erreur");

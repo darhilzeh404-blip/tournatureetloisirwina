@@ -361,7 +361,7 @@ export function BookingDialog({
                 <span className="text-xl font-extrabold text-primary">{formatFCFA(breakdown.total)}</span>
               </div>
               <p className="mt-1 text-[10px] text-muted-foreground">
-                Acompte de 50% requis à la réservation. 48h minimum d'avance.
+                Paiement total requis à la réservation. 48h minimum d'avance.
               </p>
             </div>
 

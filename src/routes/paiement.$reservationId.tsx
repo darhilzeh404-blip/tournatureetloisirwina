@@ -86,8 +86,8 @@ function PaiementPage() {
         return;
       }
       setReservation(data);
-      const minDeposit = Math.ceil(data.total_amount * 0.5);
-      setAmount(Math.max(minDeposit - data.paid_amount, 0) || data.total_amount);
+      const remainingDue = Math.max(data.total_amount - data.paid_amount, 0);
+      setAmount(remainingDue || data.total_amount);
       const wnum = (settings ?? []).find((s) => s.key === "whatsapp_admin_number");
       const wen = (settings ?? []).find((s) => s.key === "whatsapp_fallback_enabled");
       setWhatsappNumber((wnum?.text_value as string | null) ?? "");
@@ -147,10 +147,9 @@ function PaiementPage() {
       toast.error("Montant invalide");
       return;
     }
-    const minDeposit = Math.ceil(reservation.total_amount * 0.5);
-    const remaining = Math.max(minDeposit - reservation.paid_amount, 0);
+    const remaining = Math.max(reservation.total_amount - reservation.paid_amount, 0);
     if (remaining > 0 && amount < remaining) {
-      toast.error(`Acompte minimum requis : ${formatXAF(remaining)} (50% du total)`);
+      toast.error(`Montant total requis : ${formatXAF(remaining)}`);
       return;
     }
     setSubmitting(true);
@@ -229,7 +228,7 @@ function PaiementPage() {
               placeholder="0"
               className="mt-1 flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-lg font-bold text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
-            <p className="text-xs text-muted-foreground mt-1">Acompte minimum : 50% du total</p>
+            <p className="text-xs text-muted-foreground mt-1">Montant total requis pour confirmer la réservation</p>
           </div>
         </CardContent>
       </Card>

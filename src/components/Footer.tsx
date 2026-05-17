@@ -41,7 +41,7 @@ export function Footer() {
             <h4 className="mb-3 text-sm font-semibold">Informations</h4>
             <div className="flex flex-col gap-2 text-sm text-muted-foreground">
               <span>Réservation min. 48h avant</span>
-              <span>Paiement 50% à la réservation</span>
+              <span>Paiement total à la réservation</span>
               <span>Confirmation par l'admin</span>
             </div>
           </div>
