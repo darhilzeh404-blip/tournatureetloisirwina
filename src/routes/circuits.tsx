@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Globe, ArrowRight, CarFront, Navigation, MapPin } from "lucide-react";
 import { fetchOffersByType, type Offer } from "@/server/fetch-offers";
 import { supabase } from "@/integrations/supabase/client";
