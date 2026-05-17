@@ -488,7 +488,7 @@ function AdminReservations() {
                       const driver = trip?.driver_id ? drivers.find((d) => d.user_id === trip.driver_id) : null;
                       const gerant = trip?.gerant_id ? gerants.find((g) => g.user_id === trip.gerant_id) : null;
                       const payment = payments.get(r.id);
-                      const canAssign = r.paiement_valide && r.status === "CONFIRMED";
+                      const canAssign = r.paiement_valide && r.status === "CONFIRMED" && canAssignTrip(r.service_type);
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
                           <td className="p-4 font-medium text-xs">{r.id.slice(0, 8)}…</td>
