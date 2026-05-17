@@ -302,22 +302,37 @@ function CourseFlow() {
   const [model, setModel] = useState(CATEGORIES[0].models[0]);
   const [loading, setLoading] = useState(false);
   const [availableDrivers, setAvailableDrivers] = useState<AvailableDriver[]>([]);
+  type DriverInfo = { full_name: string | null; vehicle_type: string | null; license_plate: string | null };
+  const [driverInfos, setDriverInfos] = useState<Record<string, DriverInfo>>({});
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
 
   // Charger les chauffeurs VTC disponibles autour du client dès qu'un départ est défini
   useEffect(() => {
-    if (!pickup) { setAvailableDrivers([]); return; }
+    if (!pickup) { setAvailableDrivers([]); setDriverInfos({}); return; }
     let cancelled = false;
     const load = async () => {
       try {
-        const { data: drs } = await supabase.from("drivers").select("user_id");
-        const ids = (drs ?? []).map((d) => d.user_id).filter(Boolean);
-        if (ids.length === 0) { if (!cancelled) setAvailableDrivers([]); return; }
+        const { data: drs } = await supabase
+          .from("drivers")
+          .select("user_id, full_name, vehicle_type, license_plate");
+        const rows = drs ?? [];
+        const ids = rows.map((d) => d.user_id).filter(Boolean) as string[];
+        if (ids.length === 0) { if (!cancelled) { setAvailableDrivers([]); setDriverInfos({}); } return; }
+        const infos: Record<string, DriverInfo> = {};
+        rows.forEach((d) => {
+          infos[d.user_id as string] = {
+            full_name: d.full_name ?? null,
+            vehicle_type: d.vehicle_type ?? null,
+            license_plate: d.license_plate ?? null,
+          };
+        });
         const { data: pos } = await supabase
           .from("driver_positions")
           .select("driver_id, latitude, longitude, heading")
           .in("driver_id", ids)
           .is("archived_at", null);
         if (cancelled) return;
+        setDriverInfos(infos);
         setAvailableDrivers(
           (pos ?? []).map((p) => ({
             id: p.driver_id as string,
@@ -333,38 +348,27 @@ function CourseFlow() {
     return () => { cancelled = true; window.clearInterval(t); };
   }, [pickup]);
 
-  // Chauffeur le plus proche + ETA estimé
-  const nearest = useMemo(() => {
-    if (!pickup || availableDrivers.length === 0) return null;
+  // Distance haversine pour chaque chauffeur, triés du plus proche au plus loin
+  const driversWithDistance = useMemo(() => {
+    if (!pickup) return [] as Array<AvailableDriver & { km: number; etaMin: number }>;
     const R = 6371;
     const toRad = (x: number) => (x * Math.PI) / 180;
-    let best: { id: string; km: number } | null = null;
-    for (const d of availableDrivers) {
-      const dLat = toRad(d.lat - pickup.lat);
-      const dLng = toRad(d.lng - pickup.lng);
-      const a = Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(pickup.lat)) * Math.cos(toRad(d.lat)) * Math.sin(dLng / 2) ** 2;
-      const km = 2 * R * Math.asin(Math.sqrt(a));
-      if (!best || km < best.km) best = { id: d.id, km };
-    }
-    return best ? { ...best, etaMin: Math.max(1, Math.round((best.km / 30) * 60)) } : null;
+    return availableDrivers
+      .map((d) => {
+        const dLat = toRad(d.lat - pickup.lat);
+        const dLng = toRad(d.lng - pickup.lng);
+        const a = Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(pickup.lat)) * Math.cos(toRad(d.lat)) * Math.sin(dLng / 2) ** 2;
+        const km = 2 * R * Math.asin(Math.sqrt(a));
+        return { ...d, km, etaMin: Math.max(1, Math.round((km / 30) * 60)) };
+      })
+      .sort((a, b) => a.km - b.km);
   }, [pickup, availableDrivers]);
-  // Charger les infos du chauffeur le plus proche (type véhicule, plaque, nom)
-  type NearestDriverInfo = { full_name: string | null; vehicle_type: string | null; license_plate: string | null };
-  const [nearestDriver, setNearestDriver] = useState<NearestDriverInfo | null>(null);
-  useEffect(() => {
-    if (!nearest?.id) { setNearestDriver(null); return; }
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("drivers")
-        .select("full_name, vehicle_type, license_plate")
-        .eq("user_id", nearest.id)
-        .maybeSingle();
-      if (!cancelled) setNearestDriver((data as NearestDriverInfo) ?? null);
-    })();
-    return () => { cancelled = true; };
-  }, [nearest?.id]);
+
+  const nearest = driversWithDistance[0] ?? null;
+  const focusedId = selectedDriverId ?? nearest?.id ?? null;
+  const focusedDriver = focusedId ? driversWithDistance.find((d) => d.id === focusedId) ?? null : null;
+  const nearestDriver = focusedId ? driverInfos[focusedId] ?? null : null;
 
   useEffect(() => {
     const list = CATEGORIES.find((c) => c.id === category)!.models;
@@ -564,31 +568,33 @@ function CourseFlow() {
           onPick={onPick}
           height="240px"
           availableDrivers={availableDrivers}
-          highlightDriverId={nearest?.id ?? null}
+          highlightDriverId={focusedId}
         />
 
         {/* Carte ETA premium */}
         <AnimatePresence>
           {pickup && (
             <motion.div
-              key={nearest ? nearest.id : "searching"}
+              key={focusedDriver ? focusedDriver.id : "searching"}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               className="mt-3 overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card backdrop-blur-md shadow-[0_8px_24px_-15px_hsl(var(--primary)/0.4)]"
             >
               <div className="flex items-center gap-3 p-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary ${!nearest ? "animate-pulse" : ""}`}>
-                  {nearest ? <Timer className="h-5 w-5" /> : <Radar className="h-5 w-5" />}
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary ${!focusedDriver ? "animate-pulse" : ""}`}>
+                  {focusedDriver ? <Timer className="h-5 w-5" /> : <Radar className="h-5 w-5" />}
                 </div>
                 <div className="min-w-0 flex-1">
-                  {nearest ? (
+                  {focusedDriver ? (
                     <>
                       <p className="text-[13px] font-bold text-foreground">
-                        Votre chauffeur peut arriver dans ~{nearest.etaMin} min
+                        {selectedDriverId && selectedDriverId !== nearest?.id
+                          ? `Chauffeur sélectionné · ~${focusedDriver.etaMin} min`
+                          : `Votre chauffeur peut arriver dans ~${focusedDriver.etaMin} min`}
                       </p>
                       <p className="text-[11.5px] text-muted-foreground">
-                        Chauffeur le plus proche à {nearest.km < 1 ? `${Math.round(nearest.km * 1000)} m` : `${nearest.km.toFixed(1)} km`} · {availableDrivers.length} véhicule{availableDrivers.length > 1 ? "s" : ""} disponible{availableDrivers.length > 1 ? "s" : ""}
+                        À {focusedDriver.km < 1 ? `${Math.round(focusedDriver.km * 1000)} m` : `${focusedDriver.km.toFixed(1)} km`} · {driversWithDistance.length} véhicule{driversWithDistance.length > 1 ? "s" : ""} disponible{driversWithDistance.length > 1 ? "s" : ""}
                       </p>
                     </>
                   ) : (
@@ -598,11 +604,20 @@ function CourseFlow() {
                     </>
                   )}
                 </div>
+                {selectedDriverId && selectedDriverId !== nearest?.id && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDriverId(null)}
+                    className="shrink-0 rounded-full border border-border bg-card px-2 py-1 text-[10px] font-bold text-muted-foreground hover:bg-muted"
+                  >
+                    Plus proche
+                  </button>
+                )}
               </div>
 
-              {/* Aperçu chauffeur + véhicule */}
+              {/* Aperçu chauffeur + véhicule focus */}
               <AnimatePresence>
-                {nearest && nearestDriver && (
+                {focusedDriver && nearestDriver && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -637,7 +652,7 @@ function CourseFlow() {
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ETA</p>
-                        <p className="text-base font-extrabold leading-none text-primary">~{nearest.etaMin}<span className="text-[10px] font-bold"> min</span></p>
+                        <p className="text-base font-extrabold leading-none text-primary">~{focusedDriver.etaMin}<span className="text-[10px] font-bold"> min</span></p>
                       </div>
                     </div>
                   </motion.div>
@@ -646,6 +661,62 @@ function CourseFlow() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Liste défilante des chauffeurs disponibles */}
+        {pickup && driversWithDistance.length > 0 && (
+          <div className="mt-3">
+            <div className="mb-1.5 flex items-center justify-between px-0.5">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                Voitures autour de vous
+              </p>
+              <span className="text-[11px] font-semibold text-muted-foreground">{driversWithDistance.length}</span>
+            </div>
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {driversWithDistance.slice(0, 12).map((d) => {
+                const info = driverInfos[d.id];
+                const active = d.id === focusedId;
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setSelectedDriverId(d.id)}
+                    className={`flex w-[180px] shrink-0 flex-col gap-1.5 rounded-2xl border-2 p-2.5 text-left transition-all active:scale-[0.98] ${
+                      active
+                        ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
+                        : "border-border/70 bg-card hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${active ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
+                          <CarFront className="h-3.5 w-3.5" />
+                        </div>
+                        <p className="truncate text-[12px] font-bold text-foreground">
+                          {info?.full_name?.trim() || "Chauffeur Wina"}
+                        </p>
+                      </div>
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1 py-0.5 text-[9.5px] font-bold text-amber-600">
+                        <Star className="h-2.5 w-2.5 fill-current" /> 4.9
+                      </span>
+                    </div>
+                    <p className="truncate text-[10.5px] text-muted-foreground">
+                      {info?.vehicle_type || "Véhicule VTC"}
+                      {info?.license_plate ? ` · ${info.license_plate}` : ""}
+                    </p>
+                    <div className="mt-0.5 flex items-center justify-between text-[10.5px]">
+                      <span className="inline-flex items-center gap-1 font-bold text-primary">
+                        <Timer className="h-3 w-3" /> ~{d.etaMin} min
+                      </span>
+                      <span className="font-semibold text-muted-foreground">
+                        {d.km < 1 ? `${Math.round(d.km * 1000)} m` : `${d.km.toFixed(1)} km`}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="mt-3 flex flex-wrap gap-2">
           <button type="button" onClick={useCurrentLocation} className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-xs font-bold hover:bg-primary/5">
