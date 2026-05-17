@@ -283,7 +283,7 @@ function CourseFlow() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 
-  const [openId, setOpenId] = useState<string | null>("cat");
+  const wizard = useWizard(["cat", "route", "mode", "when"]);
   const [category, setCategory] = useState<VehicleCategory>("standard");
   const [mode, setMode] = useState<RideMode>("express");
   const [pickupLabel, setPickupLabel] = useState("");
