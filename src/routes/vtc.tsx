@@ -11,7 +11,8 @@ import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
-import { VtcZoneMap } from "@/components/VtcZoneMap";
+import { VtcZoneMap, type AvailableDriver } from "@/components/VtcZoneMap";
+import { VtcDestinationSearch } from "@/components/VtcDestinationSearch";
 import {
   computeFare, detectZone, formatXAF, zoneLabel, ZONES,
   type RideMode, type VehicleCategory, type ZoneId,
