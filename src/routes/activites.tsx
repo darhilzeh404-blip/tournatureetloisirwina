@@ -56,10 +56,10 @@ function ActivitesPage() {
     (async () => {
       const [{ data: acts }, { data: circs }] = await Promise.all([
         supabase.from("transport_activities")
-          .select("id, name, description, price, duration_hours")
+          .select("id, name, description, price, duration_hours, location, rating")
           .eq("is_active", true).order("created_at", { ascending: false }),
         supabase.from("circuits")
-          .select("id, slug, nom, description, base_price, image_url")
+          .select("id, slug, nom, description, base_price, image_url, duration_days, location, rating")
           .eq("is_active", true).order("sort_order"),
       ]);
       if (!mounted) return;
