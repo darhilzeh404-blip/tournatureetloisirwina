@@ -60,6 +60,15 @@ function AdminTrackingPage() {
     };
     load();
 
+    // Charge la liste des chauffeurs VTC (table public.drivers) pour différencier l'icône
+    supabase
+      .from("drivers")
+      .select("user_id")
+      .then(({ data }) => {
+        if (!mounted || !data) return;
+        setVtcDriverIds(new Set(data.map((d: { user_id: string }) => d.user_id)));
+      });
+
     const channel = supabase
       .channel("admin-trips")
       .on(
