@@ -59,6 +59,10 @@ export interface MapMarker {
   lng: number;
   type: "driver" | "client" | "destination";
   label?: string;
+  /** For driver markers: which service category to render (defaults to bus). */
+  service?: "vtc" | "bus";
+  /** Bearing in degrees (0=N, 90=E). Rotates the vehicle icon along travel direction. */
+  heading?: number | null;
 }
 
 interface LiveMapProps {
