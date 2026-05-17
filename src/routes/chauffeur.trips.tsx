@@ -67,9 +67,10 @@ function DriverTripsPage() {
     if (!user) return;
     const { data } = await supabase
       .from("trips")
-      .select("*")
+      .select("*, reservations!inner(service_type)")
       .eq("driver_id", user.id)
       .in("status", ["pending", "assigned", "active"])
+      .in("reservations.service_type", ["VTC", "TRANSPORT_SCOLAIRE", "LOCATION_BUS"])
       .order("created_at", { ascending: false });
     const list = (data as Trip[]) || [];
     setTrips(list);
