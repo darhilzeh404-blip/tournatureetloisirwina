@@ -1175,7 +1175,7 @@ function PremiumRangesSection({ onCourse }: { onCourse: () => void }) {
 }
 
 function RangeCard({
-  badge, badgeTone, icon: Icon, title, price, priceSuffix, subtitle, description, ctaLabel, onCta,
+  badge, badgeTone, icon: Icon, title, price, priceSuffix, subtitle, description, ctaLabel, ctaDisabled, onCta,
 }: {
   badge: string;
   badgeTone: "primary" | "accent";
@@ -1186,7 +1186,8 @@ function RangeCard({
   subtitle: string;
   description: string;
   ctaLabel: string;
-  onCta: () => void;
+  ctaDisabled?: boolean;
+  onCta: () => void | Promise<void>;
 }) {
   const toneClasses =
     badgeTone === "accent"
@@ -1223,7 +1224,8 @@ function RangeCard({
       <button
         type="button"
         onClick={onCta}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[13.5px] font-bold text-primary-foreground shadow-[0_10px_24px_-12px_hsl(var(--primary)/0.65)] transition-all active:scale-[0.98]"
+        disabled={ctaDisabled}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[13.5px] font-bold text-primary-foreground shadow-[0_10px_24px_-12px_hsl(var(--primary)/0.65)] transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {ctaLabel} <ArrowRight className="h-4 w-4" />
       </button>
