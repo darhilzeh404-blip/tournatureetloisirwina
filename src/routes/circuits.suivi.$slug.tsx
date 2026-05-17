@@ -1,11 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, CheckCircle2, Clock, ExternalLink, LocateFixed, MapPin, Navigation, Route as RouteIcon, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, Bike, Car, CarFront, CheckCircle2, Clock, ExternalLink, Footprints, LocateFixed, MapPin, Navigation, Play, Route as RouteIcon, Volume2, VolumeX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
 import { distanceKm, estimateEtaMinutes, useGeolocation } from "@/hooks/use-geolocation";
-import { useOsrmRoute } from "@/hooks/use-osrm-route";
+import { useOsrmRoute, type OsrmProfile } from "@/hooks/use-osrm-route";
+
+type TransportMode = {
+  id: "car" | "moto" | "foot" | "vtc";
+  label: string;
+  icon: typeof Car;
+  profile: OsrmProfile;
+  gmaps: "driving" | "walking" | "bicycling" | "two-wheeler";
+};
+
+const TRANSPORT_MODES: TransportMode[] = [
+  { id: "car", label: "Voiture", icon: Car, profile: "driving", gmaps: "driving" },
+  { id: "moto", label: "Moto", icon: Bike, profile: "driving", gmaps: "two-wheeler" },
+  { id: "foot", label: "Marche", icon: Footprints, profile: "foot", gmaps: "walking" },
+  { id: "vtc", label: "VTC", icon: CarFront, profile: "driving", gmaps: "driving" },
+];
 
 export const Route = createFileRoute("/circuits/suivi/$slug")({
   head: () => ({
