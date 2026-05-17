@@ -295,11 +295,23 @@ function AdminPaiements() {
                     {/* Info */}
                     <div className="flex-1 space-y-3 p-4">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
+                        <div className="min-w-0">
                           <p className="font-semibold">{p.client_name}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(p.created_at).toLocaleString("fr-FR")}
                           </p>
+                          {p.service_type && (
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                              <Badge variant="secondary" className="text-[10px]">
+                                {SERVICE_LABEL[p.service_type] || p.service_type}
+                              </Badge>
+                              {p.service_summary && (
+                                <span className="truncate text-[11px] text-muted-foreground">
+                                  · {p.service_summary}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <Badge variant={st.variant}>{st.label}</Badge>
                       </div>
