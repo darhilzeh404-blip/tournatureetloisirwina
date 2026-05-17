@@ -46,4 +46,4 @@ export function canAssignTrip(serviceType: string): boolean {
   return requiresDriver(serviceType) || requiresGerant(serviceType);
 }
 
-export const DRIVER_SERVICE_LIST = Array.from(DRIVER_SERVICES);
+export const DRIVER_SERVICE_LIST = ["VTC", "TRANSPORT_SCOLAIRE", "LOCATION_BUS"] as const;
