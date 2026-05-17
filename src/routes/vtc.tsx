@@ -1012,7 +1012,7 @@ function StickyContinue({
 // ─── Nos Gammes VTC (pills tabs premium) ───────────────────────────────────
 type RangeKey = "berline" | "vip" | "groupe";
 
-function PremiumRangesSection({ onCourse }: { onCourse: () => void }) {
+function PremiumRangesSection({ onCourse, onGroup }: { onCourse: () => void; onGroup: () => void }) {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [active, setActive] = useState<RangeKey>("berline");
