@@ -620,8 +620,10 @@ function MariageFlow() {
       </AccordionCard>
 
       <AccordionCard id="info" wizard={wizard}
+        canConfirm={!!eventDate && name.trim().length >= 2 && /^[0-9+\s]{8,15}$/.test(phone)}
         title="Vos informations" summary={name && phone ? `${name} · ${phone}` : "Date & contact"}
         icon={<Calendar className="h-4 w-4" />}
+        confirmLabel="Valider"
       >
         <Field label="Date & heure de l'événement">
           <input type="datetime-local" min={minDate} value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="input-base" />
