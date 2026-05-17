@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Ticket, Bus, PartyPopper, ArrowLeft, ArrowRight, MapPin, Calendar } from "lucide-react";
-import { TICKETS, type TicketKind } from "@/lib/tickets-catalog";
-import { useState } from "react";
+import { Ticket, ArrowLeft, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/billets")({
   head: () => ({
     meta: [
       { title: "Billets — Agence Wina" },
-      { name: "description", content: "Achetez vos tickets de transport et d'événements au Gabon." },
+      { name: "description", content: "Achetez vos billets personnalisés (transport, événements, activités) au Gabon." },
     ],
   }),
   component: BilletsPage,
@@ -15,9 +15,30 @@ export const Route = createFileRoute("/billets")({
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
 
+type DbTicket = {
+  id: string;
+  title: string;
+  price: number;
+  description: string;
+  images: string[];
+};
+
 function BilletsPage() {
-  const [tab, setTab] = useState<TicketKind | "all">("all");
-  const list = TICKETS.filter(t => tab === "all" || t.kind === tab);
+  const [list, setList] = useState<DbTicket[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from("tickets" as any)
+      .select("id, title, price, description, images")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setList(((data as any) ?? []) as DbTicket[]);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <main className="min-h-screen bg-background">
@@ -31,64 +52,44 @@ function BilletsPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Billets</h1>
-            <p className="text-sm text-muted-foreground">Tickets transport & événements</p>
+            <p className="text-sm text-muted-foreground">Tickets personnalisés disponibles</p>
           </div>
         </header>
 
-        <div className="mt-6 inline-flex rounded-2xl border bg-card p-1">
-          {([
-            { k: "all", label: "Tous" },
-            { k: "transport", label: "Transport" },
-            { k: "event", label: "Événements" },
-          ] as const).map(o => (
-            <button
-              key={o.k}
-              onClick={() => setTab(o.k)}
-              className={`rounded-xl px-4 py-1.5 text-xs font-semibold transition-colors ${
-                tab === o.k ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          {list.map(t => {
-            const Icon = t.kind === "transport" ? Bus : PartyPopper;
-            return (
+        {loading ? (
+          <p className="mt-10 text-center text-sm text-muted-foreground">Chargement…</p>
+        ) : list.length === 0 ? (
+          <div className="mt-10 rounded-2xl border bg-card p-10 text-center text-sm text-muted-foreground">
+            Aucun billet disponible pour le moment.
+          </div>
+        ) : (
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {list.map((t) => (
               <Link
                 key={t.id}
                 to="/billets/$id"
                 params={{ id: t.id }}
-                className="group flex flex-col rounded-2xl border bg-card p-4 shadow-sm transition-all hover:shadow-md"
+                className="group overflow-hidden rounded-2xl border bg-card shadow-sm transition-all hover:shadow-md"
               >
-                <div className="flex items-center gap-2">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                    t.kind === "transport" ? "bg-primary/10 text-primary" : "bg-accent/15 text-accent-foreground"
-                  }`}>
-                    <Icon className="h-5 w-5" />
+                {t.images?.[0] && (
+                  <div className="h-36 w-full overflow-hidden bg-muted">
+                    <img src={t.images[0]} alt={t.title} className="h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
                   </div>
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t.kind === "transport" ? "Transport" : "Événement"}
-                  </span>
-                </div>
-                <h2 className="mt-3 text-base font-bold">{t.title}</h2>
-                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.description}</p>
-                <div className="mt-3 space-y-1 text-[11px] text-muted-foreground">
-                  {t.date && <div className="flex items-center gap-1.5"><Calendar className="h-3 w-3" />{t.date}</div>}
-                  {t.location && <div className="flex items-center gap-1.5"><MapPin className="h-3 w-3" />{t.location}</div>}
-                </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="text-sm font-extrabold text-primary">{fmt(t.price)}</span>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary group-hover:gap-2 transition-all">
-                    Acheter <ArrowRight className="h-3 w-3" />
-                  </span>
+                )}
+                <div className="p-4">
+                  <h2 className="text-base font-bold">{t.title}</h2>
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.description}</p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-sm font-extrabold text-primary">{fmt(t.price)}</span>
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary group-hover:gap-2 transition-all">
+                      Acheter <ArrowRight className="h-3 w-3" />
+                    </span>
+                  </div>
                 </div>
               </Link>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
