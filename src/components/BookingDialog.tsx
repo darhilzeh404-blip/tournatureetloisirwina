@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
+import { NumberInput } from "@/components/ui/number-input";
 
 export type BookingTarget = {
   /** Source du circuit / activité */
