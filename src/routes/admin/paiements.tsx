@@ -138,11 +138,15 @@ function AdminPaiements() {
 
   const filtered = payments.filter((p) => {
     const q = search.toLowerCase();
+    if (statusFilter !== "ALL" && p.status !== statusFilter) return false;
+    if (serviceFilter === "BILLET" && p.service_type !== "BILLET") return false;
+    if (serviceFilter === "OTHER" && p.service_type === "BILLET") return false;
     return (
       (p.client_name || "").toLowerCase().includes(q) ||
       p.id.toLowerCase().includes(q) ||
       p.reservation_id.toLowerCase().includes(q) ||
-      (p.transaction_ref || "").toLowerCase().includes(q)
+      (p.transaction_ref || "").toLowerCase().includes(q) ||
+      (p.service_summary || "").toLowerCase().includes(q)
     );
   });
 
