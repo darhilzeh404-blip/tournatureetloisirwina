@@ -37,7 +37,7 @@ function buildDriverIcon(service: "vtc" | "bus" = "bus", heading: number | null 
   });
 }
 
-const fallbackDriverIcon = buildDriverIcon("bus", null, false);
+
 
 const clientIcon = L.divIcon({
   className: "client-marker",
