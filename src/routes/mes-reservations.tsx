@@ -61,7 +61,15 @@ function summarize(details: Record<string, unknown> | null, type: ServiceType): 
   if (!details) return SERVICE_LABEL[type];
   const d = details as Record<string, string | number | boolean>;
   if (type === "VTC") {
-    return `${d.pickup ?? "Départ"} → ${d.destination ?? "Arrivée"}${d.vehicle_type ? ` — ${d.vehicle_type}` : ""}`;
+    if (d.flow === "vtc_subscription") {
+      return `${d.plan_label ?? "Abonnement Berline"} — ${d.duration_label ?? "1 mois"}`;
+    }
+    if (d.flow === "vtc_mariage") {
+      return `Mariage — ${d.vehicle_label ?? "Berline"} · ${d.duration_hours ?? ""}h`;
+    }
+    const pickup = (d.pickup as any)?.label ?? d.pickup ?? "Départ";
+    const dest = (d.destination as any)?.label ?? d.destination ?? "Arrivée";
+    return `${pickup} → ${dest}${d.category_label ? ` — ${d.category_label}` : ""}`;
   }
   if (type === "CIRCUIT_TOURISTIQUE") {
     const dest = d.destination || d.circuit;
