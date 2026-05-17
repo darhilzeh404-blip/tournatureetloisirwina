@@ -58,7 +58,7 @@ const WEDDING_FARES = {
 type WeddingVehicle = keyof typeof WEDDING_FARES;
 type WeddingDuration = "h12" | "h24";
 
-type MainTab = "course" | "mariage";
+type MainTab = "course" | "groupe" | "mariage";
 
 function VtcPage() {
   const [tab, setTab] = useState<MainTab>("course");
