@@ -112,8 +112,11 @@ function MapAutoFit({
   return null;
 }
 
-const iconFor = (type: MapMarker["type"]) =>
-  type === "driver" ? driverIcon : type === "client" ? clientIcon : destIcon;
+const iconFor = (m: MapMarker, active = false) => {
+  if (m.type === "driver") return buildDriverIcon(m.service ?? "bus", m.heading ?? null, active);
+  if (m.type === "client") return clientIcon;
+  return destIcon;
+};
 
 export function LiveMap({
   markers,
