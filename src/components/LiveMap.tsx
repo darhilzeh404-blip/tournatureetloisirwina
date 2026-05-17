@@ -147,7 +147,7 @@ export function LiveMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {markers.map((m) => (
-          <Marker key={m.id} position={[m.lat, m.lng]} icon={iconFor(m.type)}>
+          <Marker key={m.id} position={[m.lat, m.lng]} icon={iconFor(m, followMarkerId === m.id)}>
             {m.label && <Popup>{m.label}</Popup>}
           </Marker>
         ))}
