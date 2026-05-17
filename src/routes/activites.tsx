@@ -21,8 +21,19 @@ export const Route = createFileRoute("/activites")({
   component: ActivitesPage,
 });
 
-type Activity = { id: string; name: string; description: string; price: number; duration_hours: number };
-type Circuit = { id: string; slug: string; nom: string; description: string; base_price: number; image_url: string | null };
+type Activity = { id: string; name: string; description: string; price: number; duration_hours: number; location: string; rating: number };
+type Circuit = { id: string; slug: string; nom: string; description: string; base_price: number; image_url: string | null; duration_days: number; location: string; rating: number };
+
+function formatDuration(days: number) {
+  if (!days || days <= 0) return "Journée";
+  if (days === 1) return "1 jour";
+  return `${days} jours`;
+}
+function formatHours(h: number) {
+  if (!h || h <= 0) return null;
+  if (h < 1) return `${Math.round(h * 60)} min`;
+  return Number.isInteger(h) ? `${h}h` : `${h.toFixed(1)}h`;
+}
 
 const FALLBACK_IMG = circuitsHero;
 
