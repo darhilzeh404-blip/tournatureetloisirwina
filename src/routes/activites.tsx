@@ -329,11 +329,13 @@ function ActivityTile({ activity, index, onBook }: { activity: Activity; index: 
       </div>
       <div className="p-3">
         <h3 className="line-clamp-1 text-[13.5px] font-bold">{activity.name}</h3>
-        {activity.duration_hours > 0 && (
-          <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-            <Clock className="h-3 w-3" /> {activity.duration_hours}h
-          </p>
-        )}
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+          {formatHours(activity.duration_hours) && (
+            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {formatHours(activity.duration_hours)}</span>
+          )}
+          <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {activity.location || "Gabon"}</span>
+          <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> {Number(activity.rating ?? 4.7).toFixed(1)}</span>
+        </div>
         <button
           type="button"
           onClick={onBook}
