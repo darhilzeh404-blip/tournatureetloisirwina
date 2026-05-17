@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar, CarFront, Check, CheckCircle2, ChevronDown, Clock, Gem, Heart,
-  Loader2, MapPin, Navigation, Sparkles, Users, Zap, Crown,
+  Loader2, MapPin, Navigation, Sparkles, Users, Zap, Crown, ArrowRight, Star, Coins,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
@@ -127,6 +127,8 @@ function VtcPage() {
             {tab === "course" ? <CourseFlow /> : <MariageFlow />}
           </motion.div>
         </AnimatePresence>
+
+        <PremiumRangesSection onBook={() => setTab("course")} />
       </main>
 
       <ClientNav />
@@ -739,4 +741,204 @@ function StickyContinue({
     </div>
   );
   // Desktop: also render an inline button below (optional)
+}
+
+// ─── Nos Gammes VTC (pills tabs premium) ───────────────────────────────────
+type RangeKey = "berline" | "vip" | "groupe" | "tarif";
+
+function PremiumRangesSection({ onBook }: { onBook: () => void }) {
+  const [active, setActive] = useState<RangeKey>("berline");
+  const tabs: { id: RangeKey; label: string; icon: typeof CarFront }[] = [
+    { id: "berline", label: "Berline Simple", icon: CarFront },
+    { id: "vip",     label: "Berline VIP",    icon: Crown },
+    { id: "groupe",  label: "Course de Groupe", icon: Users },
+    { id: "tarif",   label: "Tarification",   icon: Coins },
+  ];
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className="mt-8"
+      aria-labelledby="vtc-ranges-title"
+    >
+      <div className="mb-3 flex items-end justify-between px-1">
+        <div>
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-primary">Premium</p>
+          <h2 id="vtc-ranges-title" className="text-[17px] font-extrabold text-foreground">
+            Nos Gammes VTC
+          </h2>
+        </div>
+        <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[10.5px] font-bold text-accent">
+          <Star className="h-3 w-3 fill-current" /> Exclusif
+        </span>
+      </div>
+
+      {/* Pills tabs — scroll horizontal sur mobile */}
+      <div
+        role="tablist"
+        aria-label="Gammes VTC"
+        className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const isActive = active === t.id;
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              type="button"
+              aria-selected={isActive}
+              onClick={() => setActive(t.id)}
+              className="relative shrink-0 snap-start"
+            >
+              <span
+                className={`relative z-10 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors ${
+                  isActive ? "text-primary-foreground" : "text-foreground/70 hover:text-foreground"
+                }`}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="vtc-range-pill"
+                    className="absolute inset-0 -z-10 rounded-full bg-primary shadow-[0_8px_22px_-10px_hsl(var(--primary)/0.7)]"
+                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                  />
+                )}
+                {!isActive && <span className="absolute inset-0 -z-10 rounded-full border border-border/60 bg-card" />}
+                <Icon className="h-3.5 w-3.5" />
+                {t.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Carte active */}
+      <div className="mt-3">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={active}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+          >
+            {active === "berline" && (
+              <RangeCard
+                badge="Abonnement"
+                badgeTone="primary"
+                icon={CarFront}
+                title="Abonnement Berline Simple"
+                price="À partir de 150.000 XAF"
+                priceSuffix="/mois"
+                subtitle="Négociable"
+                description="Service mensuel avec chauffeur dédié pour vos déplacements quotidiens en berline confortable."
+                ctaLabel="Réserver"
+                onCta={onBook}
+              />
+            )}
+            {active === "vip" && (
+              <RangeCard
+                badge="Prestige"
+                badgeTone="accent"
+                icon={Crown}
+                title="Abonnement Berline VIP"
+                price="À partir de 250.000 XAF"
+                priceSuffix="/mois"
+                subtitle="Négociable"
+                description="Berlines haut de gamme, chauffeur dédié en costume, expérience premium pour clientèle exigeante."
+                ctaLabel="Réserver un service VIP"
+                onCta={onBook}
+              />
+            )}
+            {active === "groupe" && (
+              <RangeCard
+                badge="Sur mesure"
+                badgeTone="primary"
+                icon={Users}
+                title="Course de Groupe"
+                price="Sur devis"
+                subtitle="Tarif fixé selon le trajet"
+                description="Service disponible uniquement sur réservation avec tarification fixée selon le trajet et le nombre de passagers."
+                ctaLabel="Faire une réservation"
+                onCta={onBook}
+              />
+            )}
+            {active === "tarif" && (
+              <RangeCard
+                badge="Transparence"
+                badgeTone="accent"
+                icon={Coins}
+                title="Tarification"
+                price="Prix fixes par zone"
+                subtitle="Sans surprise"
+                description="Standard, Confort ou VIP — consultez les tarifs détaillés par zone dans l'onglet « Course VTC » ci-dessus."
+                ctaLabel="Voir les tarifs"
+                onCta={onBook}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </motion.section>
+  );
+}
+
+function RangeCard({
+  badge, badgeTone, icon: Icon, title, price, priceSuffix, subtitle, description, ctaLabel, onCta,
+}: {
+  badge: string;
+  badgeTone: "primary" | "accent";
+  icon: typeof CarFront;
+  title: string;
+  price: string;
+  priceSuffix?: string;
+  subtitle: string;
+  description: string;
+  ctaLabel: string;
+  onCta: () => void;
+}) {
+  const toneClasses =
+    badgeTone === "accent"
+      ? "bg-accent/15 text-accent ring-accent/25"
+      : "bg-primary/10 text-primary ring-primary/20";
+  return (
+    <article className="relative overflow-hidden rounded-3xl border border-border/50 bg-card p-5 shadow-md shadow-foreground/5">
+      <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br from-primary/15 to-accent/10 blur-2xl" aria-hidden />
+      <div className="relative flex items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${toneClasses}`}>
+            <Sparkles className="h-2.5 w-2.5" /> {badge}
+          </span>
+          <h3 className="mt-1.5 text-[16px] font-extrabold leading-tight text-foreground">{title}</h3>
+          <p className="mt-2 text-[13px] leading-snug text-muted-foreground">{description}</p>
+        </div>
+      </div>
+
+      <div className="relative mt-4 flex items-end justify-between rounded-2xl bg-secondary/50 p-3.5">
+        <div>
+          <p className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">Tarif</p>
+          <p className="mt-0.5 text-[16px] font-extrabold leading-tight text-foreground">
+            {price}
+            {priceSuffix && <span className="text-[12px] font-semibold text-muted-foreground">{priceSuffix}</span>}
+          </p>
+          <p className="mt-0.5 text-[11.5px] font-medium text-primary">{subtitle}</p>
+        </div>
+        <MapPin className="h-5 w-5 text-primary/60" />
+      </div>
+
+      <button
+        type="button"
+        onClick={onCta}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[13.5px] font-bold text-primary-foreground shadow-[0_10px_24px_-12px_hsl(var(--primary)/0.65)] transition-all active:scale-[0.98]"
+      >
+        {ctaLabel} <ArrowRight className="h-4 w-4" />
+      </button>
+    </article>
+  );
 }
