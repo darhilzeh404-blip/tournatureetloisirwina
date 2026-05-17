@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Globe, ArrowRight, CarFront, Navigation } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Globe, ArrowRight, CarFront, Navigation, MapPin } from "lucide-react";
 import { fetchOffersByType, type Offer } from "@/server/fetch-offers";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
@@ -15,6 +15,39 @@ type Circuit = {
   base_price: number;
   image_url: string | null;
 };
+
+/** Curated per-destination images (Unsplash, free) for unique visuals per circuit. */
+const FALLBACK_IMAGES: Record<string, string> = {
+  akanda: "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=900&q=70&auto=format&fit=crop",
+  pongara: "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=900&q=70&auto=format&fit=crop",
+  wonga: "https://images.unsplash.com/photo-1549366021-9f761d450615?w=900&q=70&auto=format&fit=crop",
+  meyang: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=900&q=70&auto=format&fit=crop",
+  chute: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=900&q=70&auto=format&fit=crop",
+  cocobeach: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&q=70&auto=format&fit=crop",
+  mondah: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=900&q=70&auto=format&fit=crop",
+  arboretum: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=900&q=70&auto=format&fit=crop",
+  raponda: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=900&q=70&auto=format&fit=crop",
+  loango: "https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=900&q=70&auto=format&fit=crop",
+  ivindo: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=900&q=70&auto=format&fit=crop",
+  lope: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=900&q=70&auto=format&fit=crop",
+  plage: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&q=70&auto=format&fit=crop",
+  parc: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=900&q=70&auto=format&fit=crop",
+  reserve: "https://images.unsplash.com/photo-1549366021-9f761d450615?w=900&q=70&auto=format&fit=crop",
+};
+const DEFAULT_FALLBACK = "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=900&q=70&auto=format&fit=crop";
+
+function imageForCircuit(name: string, explicit?: string | null) {
+  if (explicit) return explicit;
+  const norm = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  for (const key of Object.keys(FALLBACK_IMAGES)) {
+    if (norm.includes(key)) return FALLBACK_IMAGES[key];
+  }
+  // Deterministic pick to avoid all-same fallback
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  const keys = Object.keys(FALLBACK_IMAGES);
+  return FALLBACK_IMAGES[keys[hash % keys.length]] ?? DEFAULT_FALLBACK;
+}
 
 export const Route = createFileRoute("/circuits")({
   head: () => ({
