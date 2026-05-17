@@ -842,7 +842,7 @@ function MariageFlow() {
         },
       }).select("id").single();
       if (error) throw error;
-      toast.success("Réservation mariage créée — procédez au paiement (50 %)");
+      toast.success("Réservation mariage créée — procédez au paiement total");
       navigate({ to: "/paiement/$reservationId", params: { reservationId: data.id } });
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de la réservation");
