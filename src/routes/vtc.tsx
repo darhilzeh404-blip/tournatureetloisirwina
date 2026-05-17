@@ -350,7 +350,7 @@ function CourseFlow() {
     return best ? { ...best, etaMin: Math.max(1, Math.round((best.km / 30) * 60)) } : null;
   }, [pickup, availableDrivers]);
 
-  const destOutOfZone = !!destination && fare.zoneTo === null;
+  
 
   useEffect(() => {
     const list = CATEGORIES.find((c) => c.id === category)!.models;
