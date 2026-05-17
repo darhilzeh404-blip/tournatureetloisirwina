@@ -3,9 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Loader2, ArrowRight, Palmtree, Compass, Navigation, MapPin, Clock,
-  Sparkles, Flame, Star, LocateFixed,
+  Sparkles, Flame, Star, LocateFixed, Car, Footprints, Bus,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ClientNav } from "@/components/ClientNav";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFCFA } from "@/lib/destinations";
