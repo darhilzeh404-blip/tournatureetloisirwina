@@ -97,13 +97,14 @@ function AdminPaiements() {
 
     const rows = (data || []) as PaymentRow[];
     const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("user_id, full_name")
-      .in("user_id", userIds);
+    const reservationIds = Array.from(new Set(rows.map((r) => r.reservation_id)));
+    const [{ data: profiles }, { data: reservations }] = await Promise.all([
+      supabase.from("profiles").select("user_id, full_name").in("user_id", userIds),
+      supabase.from("reservations").select("id, service_type, details").in("id", reservationIds),
+    ]);
     const nameMap = new Map((profiles || []).map((p) => [p.user_id, p.full_name]));
+    const resMap = new Map((reservations || []).map((r) => [r.id, r] as const));
 
-    // Generate signed URLs for receipts
     const enriched = await Promise.all(
       rows.map(async (r) => {
         let signed: string | null = null;
@@ -113,7 +114,21 @@ function AdminPaiements() {
             .createSignedUrl(r.receipt_url, 3600);
           signed = s?.signedUrl ?? null;
         }
-        return { ...r, client_name: nameMap.get(r.user_id) || "—", signed_receipt_url: signed };
+        const res = resMap.get(r.reservation_id);
+        const d = (res?.details as Record<string, unknown> | null) || null;
+        const summary = d
+          ? (d.title as string) ||
+            (d.route as string) ||
+            (d.circuit as string) ||
+            (d.package_id ? "Forfait" : "")
+          : "";
+        return {
+          ...r,
+          client_name: nameMap.get(r.user_id) || "—",
+          signed_receipt_url: signed,
+          service_type: res?.service_type ?? null,
+          service_summary: summary,
+        };
       })
     );
 
