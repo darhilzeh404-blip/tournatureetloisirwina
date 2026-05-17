@@ -423,6 +423,7 @@ function CourseFlow() {
       </AccordionCard>
 
       <AccordionCard id="route" wizard={wizard}
+        canConfirm={!!(pickup && destination && fare.ok)}
         title="Itinéraire & zones"
         summary={pickup && destination ? `${zoneLabel(fare.zoneFrom)} → ${zoneLabel(fare.zoneTo)}` : "Sélectionner départ & arrivée"}
         icon={<MapPin className="h-4 w-4" />}
