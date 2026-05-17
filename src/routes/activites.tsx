@@ -303,14 +303,15 @@ function ImmersiveCircuitCard({
         >
           Explorer <ArrowRight className="h-4 w-4" />
         </button>
-        <Link
-          to="/circuits/suivi/$slug"
-          params={{ slug: navigateSlug }}
-          aria-label={`Naviguer vers ${circuit.nom}`}
+        <a
+          href={mapsUrl(circuit.location || circuit.nom)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Itinéraire vers ${circuit.location || circuit.nom}`}
           className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/60 bg-card text-primary transition-colors hover:bg-primary/5 active:scale-[0.96]"
         >
           <Navigation className="h-4 w-4" />
-        </Link>
+        </a>
       </div>
     </motion.article>
   );
