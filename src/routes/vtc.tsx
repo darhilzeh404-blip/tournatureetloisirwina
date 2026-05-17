@@ -527,8 +527,8 @@ function CourseFlow() {
 
       <StickyContinue
         loading={loading}
-        disabled={!fare.ok}
-        label="Continuer · Réserver ma course"
+        disabled={!fare.ok || !wizard.allConfirmed}
+        label={wizard.allConfirmed ? "Continuer · Réserver ma course" : "Confirmez toutes les étapes"}
         onClick={submit}
         icon={<CarFront className="h-4 w-4" />}
       />
