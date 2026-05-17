@@ -127,6 +127,8 @@ function VtcPage() {
             {tab === "course" ? <CourseFlow /> : <MariageFlow />}
           </motion.div>
         </AnimatePresence>
+
+        <PremiumRangesSection onBook={() => setTab("course")} />
       </main>
 
       <ClientNav />
