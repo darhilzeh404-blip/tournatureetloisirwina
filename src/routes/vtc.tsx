@@ -349,8 +349,22 @@ function CourseFlow() {
     }
     return best ? { ...best, etaMin: Math.max(1, Math.round((best.km / 30) * 60)) } : null;
   }, [pickup, availableDrivers]);
-
-  
+  // Charger les infos du chauffeur le plus proche (type véhicule, plaque, nom)
+  type NearestDriverInfo = { full_name: string | null; vehicle_type: string | null; license_plate: string | null };
+  const [nearestDriver, setNearestDriver] = useState<NearestDriverInfo | null>(null);
+  useEffect(() => {
+    if (!nearest?.id) { setNearestDriver(null); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("drivers")
+        .select("full_name, vehicle_type, license_plate")
+        .eq("user_id", nearest.id)
+        .maybeSingle();
+      if (!cancelled) setNearestDriver((data as NearestDriverInfo) ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [nearest?.id]);
 
   useEffect(() => {
     const list = CATEGORIES.find((c) => c.id === category)!.models;
