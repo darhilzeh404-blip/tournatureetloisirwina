@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Globe, ArrowRight, CarFront, Navigation } from "lucide-react";
+import { Globe, ArrowRight, CarFront, Navigation, MapPin } from "lucide-react";
 import { fetchOffersByType, type Offer } from "@/server/fetch-offers";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
@@ -15,6 +15,39 @@ type Circuit = {
   base_price: number;
   image_url: string | null;
 };
+
+/** Curated per-destination images (Unsplash, free) for unique visuals per circuit. */
+const FALLBACK_IMAGES: Record<string, string> = {
+  akanda: "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=900&q=70&auto=format&fit=crop",
+  pongara: "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=900&q=70&auto=format&fit=crop",
+  wonga: "https://images.unsplash.com/photo-1549366021-9f761d450615?w=900&q=70&auto=format&fit=crop",
+  meyang: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=900&q=70&auto=format&fit=crop",
+  chute: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=900&q=70&auto=format&fit=crop",
+  cocobeach: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&q=70&auto=format&fit=crop",
+  mondah: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=900&q=70&auto=format&fit=crop",
+  arboretum: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=900&q=70&auto=format&fit=crop",
+  raponda: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=900&q=70&auto=format&fit=crop",
+  loango: "https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=900&q=70&auto=format&fit=crop",
+  ivindo: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=900&q=70&auto=format&fit=crop",
+  lope: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=900&q=70&auto=format&fit=crop",
+  plage: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&q=70&auto=format&fit=crop",
+  parc: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=900&q=70&auto=format&fit=crop",
+  reserve: "https://images.unsplash.com/photo-1549366021-9f761d450615?w=900&q=70&auto=format&fit=crop",
+};
+const DEFAULT_FALLBACK = "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=900&q=70&auto=format&fit=crop";
+
+function imageForCircuit(name: string, explicit?: string | null) {
+  if (explicit) return explicit;
+  const norm = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  for (const key of Object.keys(FALLBACK_IMAGES)) {
+    if (norm.includes(key)) return FALLBACK_IMAGES[key];
+  }
+  // Deterministic pick to avoid all-same fallback
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  const keys = Object.keys(FALLBACK_IMAGES);
+  return FALLBACK_IMAGES[keys[hash % keys.length]] ?? DEFAULT_FALLBACK;
+}
 
 export const Route = createFileRoute("/circuits")({
   head: () => ({
@@ -85,68 +118,23 @@ function CircuitsPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8 space-y-10">
+      <section className="mx-auto max-w-7xl px-4 py-6 lg:px-8 space-y-8 lg:py-10">
         {offers.length > 0 && (
           <div>
-            <h2 className="mb-4 text-lg font-bold">Nos offres</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <h2 className="mb-3 text-base font-bold lg:text-lg">Nos offres</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
               {offers.map((offer: Offer) => (
-                <article
+                <CircuitCard
                   key={offer.id}
-                  role="link"
-                  tabIndex={0}
-                  aria-label={`Naviguer vers le circuit ${offer.title}`}
-                  onClick={(event) => {
-                    if (isInteractiveTarget(event.target)) return;
-                    openCircuitNavigation(gpsSlug(offer.title));
-                  }}
-                  onKeyDown={(event) => {
-                    if (isInteractiveTarget(event.target)) return;
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      openCircuitNavigation(gpsSlug(offer.title));
-                    }
-                  }}
-                  className="card-hover cursor-pointer overflow-hidden rounded-2xl border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  {offer.image_url && <img src={offer.image_url} alt={offer.title} className="h-40 w-full object-cover" />}
-                  <div className="flex items-center gap-3 border-b p-5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <Globe className="h-5 w-5" />
-                    </div>
-                    <h3 className="font-bold text-card-foreground">{offer.title}</h3>
-                  </div>
-                  <div className="p-5">
-                    <p className="text-sm text-muted-foreground line-clamp-2">{offer.description}</p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <div>
-                        <span className="text-xs text-muted-foreground">À partir de</span>
-                        <p className="text-lg font-bold text-foreground">{formatFCFA(offer.price)}</p>
-                      </div>
-                      <button
-                        onClick={() => setTarget({ kind: "circuit", id: null, name: offer.title, basePrice: offer.price })}
-                        className="flex items-center gap-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-                      >
-                        Réserver <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <a
-                      href={vtcHref(offer.title, "circuit")}
-                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
-                    >
-                      <CarFront className="h-4 w-4" /> Ajouter un transfert VTC depuis mon hôtel
-                    </a>
-                    <Link
-                      to="/circuits/suivi/$slug"
-                      params={{ slug: gpsSlug(offer.title) }}
-                      aria-label={`Naviguer vers le circuit ${offer.title}`}
-                      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border bg-card px-4 py-3 text-sm font-bold leading-tight text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    >
-                      <Navigation className="h-4 w-4 shrink-0 text-primary" />
-                      <span>Naviguer vers le circuit</span>
-                    </Link>
-                  </div>
-                </article>
+                  title={offer.title}
+                  description={offer.description}
+                  price={offer.price}
+                  image={imageForCircuit(offer.title, offer.image_url)}
+                  slug={gpsSlug(offer.title)}
+                  vtcHref={vtcHref(offer.title, "circuit")}
+                  onReserve={() => setTarget({ kind: "circuit", id: null, name: offer.title, basePrice: offer.price })}
+                  onOpen={() => openCircuitNavigation(gpsSlug(offer.title))}
+                />
               ))}
             </div>
           </div>
@@ -154,69 +142,20 @@ function CircuitsPage() {
 
         {circuits.length > 0 && (
           <div>
-            <h2 className="mb-4 text-lg font-bold">Tous les circuits</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <h2 className="mb-3 text-base font-bold lg:text-lg">Tous les circuits</h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
               {circuits.map((c) => (
-                <article
+                <CircuitCard
                   key={c.id}
-                  role="link"
-                  tabIndex={0}
-                  aria-label={`Naviguer vers le circuit ${c.nom}`}
-                  onClick={(event) => {
-                    if (isInteractiveTarget(event.target)) return;
-                    openCircuitNavigation(gpsSlug(c.slug || c.nom));
-                  }}
-                  onKeyDown={(event) => {
-                    if (isInteractiveTarget(event.target)) return;
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      openCircuitNavigation(gpsSlug(c.slug || c.nom));
-                    }
-                  }}
-                  className="card-hover cursor-pointer overflow-hidden rounded-2xl border bg-card transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  {c.image_url ? (
-                    <img src={c.image_url} alt={c.nom} className="h-44 w-full object-cover" loading="lazy" />
-                  ) : (
-                    <div className="flex h-44 w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                      <Globe className="h-12 w-12 text-primary/40" />
-                    </div>
-                  )}
-                  <div className="p-5">
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-primary" />
-                      <h3 className="font-bold">{c.nom}</h3>
-                    </div>
-                    {c.description && <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{c.description}</p>}
-                    <div className="mt-3 flex items-end justify-between">
-                      <div>
-                        <span className="text-[11px] text-muted-foreground">À partir de</span>
-                        <p className="text-base font-extrabold text-primary">{formatFCFA(c.base_price)}</p>
-                      </div>
-                      <button
-                        onClick={() => setTarget({ kind: "circuit", id: c.id, slug: c.slug, name: c.nom, basePrice: c.base_price })}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                      >
-                        Réserver <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <a
-                      href={vtcHref(c.nom, "circuit")}
-                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
-                    >
-                      <CarFront className="h-4 w-4" /> Ajouter un transfert VTC depuis mon hôtel
-                    </a>
-                    <Link
-                      to="/circuits/suivi/$slug"
-                      params={{ slug: gpsSlug(c.slug || c.nom) }}
-                      aria-label={`Naviguer vers le circuit ${c.nom}`}
-                      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border bg-card px-4 py-3 text-sm font-bold leading-tight text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    >
-                      <Navigation className="h-4 w-4 shrink-0 text-primary" />
-                      <span>Naviguer vers le circuit</span>
-                    </Link>
-                  </div>
-                </article>
+                  title={c.nom}
+                  description={c.description}
+                  price={c.base_price}
+                  image={imageForCircuit(c.nom, c.image_url)}
+                  slug={gpsSlug(c.slug || c.nom)}
+                  vtcHref={vtcHref(c.nom, "circuit")}
+                  onReserve={() => setTarget({ kind: "circuit", id: c.id, slug: c.slug, name: c.nom, basePrice: c.base_price })}
+                  onOpen={() => openCircuitNavigation(gpsSlug(c.slug || c.nom))}
+                />
               ))}
             </div>
           </div>
@@ -245,4 +184,89 @@ function nextMorningAtEight() {
 
 function isInteractiveTarget(target: EventTarget | null) {
   return target instanceof HTMLElement && Boolean(target.closest("a, button, input, select, textarea"));
+}
+
+function CircuitCard({
+  title,
+  description,
+  price,
+  image,
+  slug,
+  vtcHref,
+  onReserve,
+  onOpen,
+}: {
+  title: string;
+  description?: string;
+  price: number;
+  image: string;
+  slug: string;
+  vtcHref: string;
+  onReserve: () => void;
+  onOpen: () => void;
+}) {
+  return (
+    <article
+      role="link"
+      tabIndex={0}
+      aria-label={`Naviguer vers le circuit ${title}`}
+      onClick={(event) => {
+        if (isInteractiveTarget(event.target)) return;
+        onOpen();
+      }}
+      onKeyDown={(event) => {
+        if (isInteractiveTarget(event.target)) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen();
+        }
+      }}
+      className="group card-hover cursor-pointer overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-fade-in"
+    >
+      <div className="relative h-32 w-full overflow-hidden sm:h-36 lg:h-44">
+        <img
+          src={image}
+          alt={title}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+        <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between gap-2 text-white">
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-bold leading-tight drop-shadow-md sm:text-base">{title}</h3>
+            <p className="text-[10px] font-medium opacity-90">À partir de {formatFCFA(price)}</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white/95 p-1.5 text-primary shadow-md backdrop-blur">
+            <Navigation className="h-3.5 w-3.5" />
+          </span>
+        </div>
+      </div>
+      <div className="p-3 sm:p-4">
+        {description && <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{description}</p>}
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onReserve}
+            className="inline-flex items-center justify-center gap-1 rounded-[var(--radius-control)] bg-primary px-3 py-2 text-xs font-bold text-primary-foreground shadow-[var(--shadow-card)] hover:brightness-110"
+          >
+            Réserver <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+          <a
+            href={vtcHref}
+            className="inline-flex items-center justify-center gap-1 rounded-[var(--radius-control)] border border-primary/30 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10"
+          >
+            <CarFront className="h-3.5 w-3.5" /> VTC
+          </a>
+        </div>
+        <Link
+          to="/circuits/suivi/$slug"
+          params={{ slug }}
+          aria-label={`Naviguer vers le circuit ${title}`}
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-control)] border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary"
+        >
+          <MapPin className="h-3.5 w-3.5 text-primary" /> Itinéraire sur la carte
+        </Link>
+      </div>
+    </article>
+  );
 }

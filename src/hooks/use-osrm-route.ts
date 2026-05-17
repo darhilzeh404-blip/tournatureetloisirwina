@@ -60,11 +60,14 @@ function instructionFor(type: string, modifier?: string) {
  * Fetches a real road route from OSRM (public demo server, free, no API key).
  * Returns null while loading or on error.
  */
+export type OsrmProfile = "driving" | "foot" | "cycling";
+
 export function useOsrmRoute(
   from: Point | null,
   to: Point | null,
   enabled = true,
-  refreshKey: string | number = 0
+  refreshKey: string | number = 0,
+  profile: OsrmProfile = "driving"
 ): { route: OsrmRoute | null; loading: boolean; error: string | null } {
   const [route, setRoute] = useState<OsrmRoute | null>(null);
   const [loading, setLoading] = useState(false);
@@ -84,7 +87,7 @@ export function useOsrmRoute(
       setError(null);
       try {
         const url =
-          `https://router.project-osrm.org/route/v1/driving/` +
+          `https://router.project-osrm.org/route/v1/${profile}/` +
           `${from.lng},${from.lat};${to.lng},${to.lat}` +
           `?overview=full&geometries=geojson&steps=true`;
 
@@ -125,7 +128,7 @@ export function useOsrmRoute(
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [from?.lat, from?.lng, to?.lat, to?.lng, enabled, refreshKey]);
+  }, [from?.lat, from?.lng, to?.lat, to?.lng, enabled, refreshKey, profile]);
 
   return { route, loading, error };
 }
