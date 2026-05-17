@@ -482,6 +482,45 @@ function CourseFlow() {
         summary={pickup && destination ? `${zoneLabel(fare.zoneFrom)} → ${zoneLabel(fare.zoneTo)}` : "Sélectionner départ & arrivée"}
         icon={<MapPin className="h-4 w-4" />}
       >
+        {/* Barre de recherche destination intelligente (sticky) */}
+        <div className="mb-3 space-y-2">
+          <VtcDestinationSearch
+            sticky
+            placeholder="Adresse, quartier, lieu connu…"
+            value={destLabel}
+            icon={<Search className="h-4 w-4 text-primary" />}
+            onSelect={({ lat, lng, label, inZone }) => {
+              setDestination({ lat, lng });
+              setDestLabel(label);
+              setSelecting(null);
+              if (!inZone) {
+                toast.warning("Cette zone n'est pas encore desservie.");
+              }
+            }}
+            onClear={() => { setDestination(null); setDestLabel(""); }}
+          />
+
+          {/* Bannière zone non desservie */}
+          <AnimatePresence>
+            {destination && fare.zoneTo === null && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="flex items-start gap-2.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-[12px] backdrop-blur-md"
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                <div className="min-w-0">
+                  <p className="font-bold text-amber-700">Zone non desservie</p>
+                  <p className="mt-0.5 text-amber-700/85">
+                    Cette zone n'est pas encore couverte par nos chauffeurs. Choisissez une destination dans Libreville, Akanda ou Owendo.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         <div className="mb-2 grid grid-cols-3 gap-2">
           {ZONES.map((z) => (
             <div key={z.id} className="flex items-center gap-1.5 rounded-lg border bg-card px-2 py-1 text-[10.5px]">
@@ -500,13 +539,55 @@ function CourseFlow() {
           <button type="button" onClick={() => setSelecting("destination")}
             className={`rounded-xl border-2 p-2 text-left text-xs transition-colors ${selecting === "destination" ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
             <p className="font-bold text-foreground">🏁 Arrivée</p>
-            <p className="mt-0.5 truncate text-muted-foreground">{destLabel || "Toucher la carte"}</p>
+            <p className="mt-0.5 truncate text-muted-foreground">{destLabel || "Toucher la carte ou rechercher"}</p>
           </button>
         </div>
 
-        <VtcZoneMap pickup={pickup} destination={destination} selecting={selecting} onPick={onPick} height="240px" />
+        <VtcZoneMap
+          pickup={pickup}
+          destination={destination}
+          selecting={selecting}
+          onPick={onPick}
+          height="240px"
+          availableDrivers={availableDrivers}
+          highlightDriverId={nearest?.id ?? null}
+        />
 
-        <div className="mt-2 flex flex-wrap gap-2">
+        {/* Carte ETA premium */}
+        <AnimatePresence>
+          {pickup && (
+            <motion.div
+              key={nearest ? nearest.id : "searching"}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              className="mt-3 flex items-center gap-3 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card p-3 backdrop-blur-md shadow-[0_8px_24px_-15px_hsl(var(--primary)/0.4)]"
+            >
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary ${!nearest ? "animate-pulse" : ""}`}>
+                {nearest ? <Timer className="h-5 w-5" /> : <Radar className="h-5 w-5" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                {nearest ? (
+                  <>
+                    <p className="text-[13px] font-bold text-foreground">
+                      Votre chauffeur peut arriver dans ~{nearest.etaMin} min
+                    </p>
+                    <p className="text-[11.5px] text-muted-foreground">
+                      Chauffeur le plus proche à {nearest.km < 1 ? `${Math.round(nearest.km * 1000)} m` : `${nearest.km.toFixed(1)} km`} · {availableDrivers.length} véhicule{availableDrivers.length > 1 ? "s" : ""} disponible{availableDrivers.length > 1 ? "s" : ""}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[13px] font-bold text-foreground">Recherche d'un chauffeur…</p>
+                    <p className="text-[11.5px] text-muted-foreground">Nous scannons les véhicules autour de vous.</p>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="mt-3 flex flex-wrap gap-2">
           <button type="button" onClick={useCurrentLocation} className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-xs font-bold hover:bg-primary/5">
             <Navigation className="h-3.5 w-3.5 text-primary" /> Ma position
           </button>
