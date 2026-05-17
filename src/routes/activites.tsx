@@ -274,9 +274,9 @@ function ImmersiveCircuitCard({
             {circuit.nom}
           </h3>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-background/90">
-            <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> Gabon</span>
-            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> Journée</span>
-            <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> 4.8</span>
+            <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {circuit.location || "Gabon"}</span>
+            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {formatDuration(circuit.duration_days)}</span>
+            <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> {Number(circuit.rating ?? 4.8).toFixed(1)}</span>
           </div>
         </div>
       </div>
