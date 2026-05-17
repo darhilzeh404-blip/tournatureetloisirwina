@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Loader2, ArrowRight, Palmtree, Compass, Navigation, MapPin, Clock,
-  Sparkles, Flame, Star,
+  Sparkles, Flame, Star, LocateFixed,
 } from "lucide-react";
+import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFCFA } from "@/lib/destinations";
@@ -37,10 +38,44 @@ function formatHours(h: number) {
 
 const FALLBACK_IMG = circuitsHero;
 
+function isIOS() {
+  return typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
 function mapsUrl(place: string) {
   const q = encodeURIComponent(`${place || "Gabon"}, Gabon`);
-  const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
-  return isIOS ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`;
+  return isIOS() ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`;
+}
+function directionsUrl(place: string, from?: { lat: number; lng: number }) {
+  const dest = encodeURIComponent(`${place || "Gabon"}, Gabon`);
+  if (isIOS()) {
+    const saddr = from ? `&saddr=${from.lat},${from.lng}` : "";
+    return `https://maps.apple.com/?daddr=${dest}${saddr}&dirflg=d`;
+  }
+  const origin = from ? `&origin=${from.lat},${from.lng}` : "";
+  return `https://www.google.com/maps/dir/?api=1&destination=${dest}${origin}&travelmode=driving`;
+}
+function openDirectionsFromMe(place: string) {
+  if (typeof navigator === "undefined" || !navigator.geolocation) {
+    window.open(directionsUrl(place), "_blank", "noopener");
+    return;
+  }
+  const loading = toast.loading("Localisation en cours…");
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      toast.dismiss(loading);
+      window.open(
+        directionsUrl(place, { lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        "_blank",
+        "noopener"
+      );
+    },
+    () => {
+      toast.dismiss(loading);
+      toast.error("Position indisponible — itinéraire ouvert sans point de départ.");
+      window.open(directionsUrl(place), "_blank", "noopener");
+    },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
 }
 
 function ActivitesPage() {
