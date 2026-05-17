@@ -541,7 +541,7 @@ function MariageFlow() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 
-  const [openId, setOpenId] = useState<string | null>("vehicle");
+  const wizard = useWizard(["vehicle", "duration", "info"]);
   const [vehicle, setVehicle] = useState<WeddingVehicle>("berline");
   const [duration, setDuration] = useState<WeddingDuration>("h12");
   const [eventDate, setEventDate] = useState("");
