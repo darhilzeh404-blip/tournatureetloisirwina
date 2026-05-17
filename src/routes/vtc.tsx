@@ -568,7 +568,7 @@ function CourseFlow() {
           onPick={onPick}
           height="240px"
           availableDrivers={availableDrivers}
-          highlightDriverId={nearest?.id ?? null}
+          highlightDriverId={focusedId}
         />
 
         {/* Carte ETA premium */}
