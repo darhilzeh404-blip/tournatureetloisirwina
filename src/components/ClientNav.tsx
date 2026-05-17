@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Bus, Palmtree, CalendarCheck, User, CarFront } from "lucide-react";
+import { useEffect } from "react";
 
 const NAV_ITEMS = [
   { to: "/espace-client", label: "Accueil", icon: Home },
@@ -12,6 +13,13 @@ const NAV_ITEMS = [
 
 export function ClientNav() {
   const location = useLocation();
+
+  // Reserve space at the bottom of the page so the fixed nav never
+  // covers footer content (Footer, sticky CTAs, etc.).
+  useEffect(() => {
+    document.body.classList.add("has-client-nav");
+    return () => document.body.classList.remove("has-client-nav");
+  }, []);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-lg safe-area-bottom">
