@@ -42,9 +42,9 @@ function PromosPage() {
             <article key={o.id} className="rounded-2xl border bg-card p-5 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <h2 className="text-base font-bold">{o.title}</h2>
-                {o.discount_percentage != null && (
+                {o.price != null && (
                   <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs font-semibold text-accent-foreground">
-                    -{o.discount_percentage}%
+                    {o.price.toLocaleString("fr-FR")} FCFA
                   </span>
                 )}
               </div>

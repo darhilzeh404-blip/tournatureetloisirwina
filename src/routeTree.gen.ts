@@ -14,7 +14,9 @@ import { Route as TransportScolaireRouteImport } from './routes/transport-scolai
 import { Route as TransportPublicRouteImport } from './routes/transport-public'
 import { Route as TransportExtraScolaireRouteImport } from './routes/transport-extra-scolaire'
 import { Route as TarifsRouteImport } from './routes/tarifs'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as ReserverTransportRouteImport } from './routes/reserver-transport'
+import { Route as PromosRouteImport } from './routes/promos'
 import { Route as MonCompteRouteImport } from './routes/mon-compte'
 import { Route as MesReservationsRouteImport } from './routes/mes-reservations'
 import { Route as LocationBusRouteImport } from './routes/location-bus'
@@ -25,6 +27,7 @@ import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
 import { Route as ChauffeurRouteImport } from './routes/chauffeur'
+import { Route as BilletsRouteImport } from './routes/billets'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as IndexRouteImport } from './routes/index'
@@ -76,9 +79,19 @@ const TarifsRoute = TarifsRouteImport.update({
   path: '/tarifs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReserverTransportRoute = ReserverTransportRouteImport.update({
   id: '/reserver-transport',
   path: '/reserver-transport',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromosRoute = PromosRouteImport.update({
+  id: '/promos',
+  path: '/promos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MonCompteRoute = MonCompteRouteImport.update({
@@ -129,6 +142,11 @@ const ChauffeurVtcRoute = ChauffeurVtcRouteImport.update({
 const ChauffeurRoute = ChauffeurRouteImport.update({
   id: '/chauffeur',
   path: '/chauffeur',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BilletsRoute = BilletsRouteImport.update({
+  id: '/billets',
+  path: '/billets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -261,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
+  '/billets': typeof BilletsRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
@@ -271,7 +290,9 @@ export interface FileRoutesByFullPath {
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
+  '/promos': typeof PromosRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
@@ -303,6 +324,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
+  '/billets': typeof BilletsRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
@@ -313,7 +335,9 @@ export interface FileRoutesByTo {
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
+  '/promos': typeof PromosRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
@@ -347,6 +371,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
+  '/billets': typeof BilletsRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
@@ -357,7 +382,9 @@ export interface FileRoutesById {
   '/location-bus': typeof LocationBusRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
+  '/promos': typeof PromosRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
@@ -392,6 +419,7 @@ export interface FileRouteTypes {
     | '/'
     | '/activites'
     | '/admin'
+    | '/billets'
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
@@ -402,7 +430,9 @@ export interface FileRouteTypes {
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
+    | '/promos'
     | '/reserver-transport'
+    | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
     | '/transport-public'
@@ -434,6 +464,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activites'
+    | '/billets'
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
@@ -444,7 +475,9 @@ export interface FileRouteTypes {
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
+    | '/promos'
     | '/reserver-transport'
+    | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
     | '/transport-public'
@@ -477,6 +510,7 @@ export interface FileRouteTypes {
     | '/'
     | '/activites'
     | '/admin'
+    | '/billets'
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
@@ -487,7 +521,9 @@ export interface FileRouteTypes {
     | '/location-bus'
     | '/mes-reservations'
     | '/mon-compte'
+    | '/promos'
     | '/reserver-transport'
+    | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
     | '/transport-public'
@@ -521,6 +557,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivitesRoute: typeof ActivitesRoute
   AdminRoute: typeof AdminRouteWithChildren
+  BilletsRoute: typeof BilletsRoute
   ChauffeurRoute: typeof ChauffeurRouteWithChildren
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
@@ -531,7 +568,9 @@ export interface RootRouteChildren {
   LocationBusRoute: typeof LocationBusRoute
   MesReservationsRoute: typeof MesReservationsRoute
   MonCompteRoute: typeof MonCompteRoute
+  PromosRoute: typeof PromosRoute
   ReserverTransportRoute: typeof ReserverTransportRoute
+  SupportRoute: typeof SupportRoute
   TarifsRoute: typeof TarifsRoute
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
   TransportPublicRoute: typeof TransportPublicRoute
@@ -581,11 +620,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TarifsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reserver-transport': {
       id: '/reserver-transport'
       path: '/reserver-transport'
       fullPath: '/reserver-transport'
       preLoaderRoute: typeof ReserverTransportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/promos': {
+      id: '/promos'
+      path: '/promos'
+      fullPath: '/promos'
+      preLoaderRoute: typeof PromosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mon-compte': {
@@ -656,6 +709,13 @@ declare module '@tanstack/react-router' {
       path: '/chauffeur'
       fullPath: '/chauffeur'
       preLoaderRoute: typeof ChauffeurRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billets': {
+      id: '/billets'
+      path: '/billets'
+      fullPath: '/billets'
+      preLoaderRoute: typeof BilletsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -910,6 +970,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivitesRoute: ActivitesRoute,
   AdminRoute: AdminRouteWithChildren,
+  BilletsRoute: BilletsRoute,
   ChauffeurRoute: ChauffeurRouteWithChildren,
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
@@ -920,7 +981,9 @@ const rootRouteChildren: RootRouteChildren = {
   LocationBusRoute: LocationBusRoute,
   MesReservationsRoute: MesReservationsRoute,
   MonCompteRoute: MonCompteRoute,
+  PromosRoute: PromosRoute,
   ReserverTransportRoute: ReserverTransportRoute,
+  SupportRoute: SupportRoute,
   TarifsRoute: TarifsRoute,
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
   TransportPublicRoute: TransportPublicRoute,
