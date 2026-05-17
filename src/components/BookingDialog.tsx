@@ -249,7 +249,14 @@ export function BookingDialog({
                   >
                     −
                   </button>
-                  <span className="min-w-[2rem] text-center text-base font-bold">{persons}</span>
+                  <NumberInput
+                    value={persons}
+                    onChange={setPersons}
+                    min={1}
+                    max={50}
+                    emptyAsZero={false}
+                    className="h-9 w-14 rounded-lg border bg-card text-center text-base font-bold focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
                   <button
                     type="button"
                     onClick={() => setPersons(persons + 1)}
