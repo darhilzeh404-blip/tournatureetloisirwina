@@ -13,7 +13,7 @@ interface ServiceCardProps {
 
 export function ServiceCard({ title, description, icon, image, to, badge }: ServiceCardProps) {
   return (
-    <Link to={to} className="group card-hover block overflow-hidden rounded-2xl border bg-card">
+    <Link to={to} className="group card-hover block overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-[var(--shadow-card)]">
       <div className="relative h-48 overflow-hidden">
         <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
