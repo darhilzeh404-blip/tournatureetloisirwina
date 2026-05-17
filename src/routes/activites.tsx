@@ -1,40 +1,30 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Loader2, ArrowRight, Palmtree, Compass, Navigation } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Loader2, ArrowRight, Palmtree, Compass, Navigation, MapPin, Clock,
+  Sparkles, Flame, Star,
+} from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFCFA } from "@/lib/destinations";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
+import circuitsHero from "@/assets/circuits-hero.jpg";
 
 export const Route = createFileRoute("/activites")({
   head: () => ({
     meta: [
       { title: "Activités & Circuits — Agence Wina" },
-      {
-        name: "description",
-        content: "Activités et circuits touristiques au Gabon proposés par notre équipe.",
-      },
+      { name: "description", content: "Découvrez les plus belles expériences au Gabon : circuits touristiques, excursions et activités premium." },
     ],
   }),
   component: ActivitesPage,
 });
 
-type Activity = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  duration_hours: number;
-};
+type Activity = { id: string; name: string; description: string; price: number; duration_hours: number };
+type Circuit = { id: string; slug: string; nom: string; description: string; base_price: number; image_url: string | null };
 
-type Circuit = {
-  id: string;
-  slug: string;
-  nom: string;
-  description: string;
-  base_price: number;
-  image_url: string | null;
-};
+const FALLBACK_IMG = circuitsHero;
 
 function ActivitesPage() {
   const navigate = useNavigate();
@@ -42,162 +32,141 @@ function ActivitesPage() {
   const [circuits, setCircuits] = useState<Circuit[]>([]);
   const [loading, setLoading] = useState(true);
   const [target, setTarget] = useState<BookingTarget | null>(null);
+  const [scrollY, setScrollY] = useState(0);
 
-  const openCircuitNavigation = (slug: string) => {
-    navigate({ to: "/circuits/suivi/$slug", params: { slug } });
-  };
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       const [{ data: acts }, { data: circs }] = await Promise.all([
-        supabase
-          .from("transport_activities")
+        supabase.from("transport_activities")
           .select("id, name, description, price, duration_hours")
-          .eq("is_active", true)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("circuits")
+          .eq("is_active", true).order("created_at", { ascending: false }),
+        supabase.from("circuits")
           .select("id, slug, nom, description, base_price, image_url")
-          .eq("is_active", true)
-          .order("sort_order"),
+          .eq("is_active", true).order("sort_order"),
       ]);
       if (!mounted) return;
       setActivities((acts as Activity[]) ?? []);
       setCircuits((circs as Circuit[]) ?? []);
       setLoading(false);
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
+  const popular = circuits.slice(0, 6);
+
   return (
-    <div className="pb-24">
-      <div className="warm-gradient px-5 pb-6 pt-8">
-        <h1 className="text-xl font-bold text-accent-foreground">🌴 Activités & Circuits</h1>
-        <p className="mt-1 text-sm text-accent-foreground/70">Découvrez nos expériences au Gabon</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-secondary/30 via-background to-background pb-28">
+      {/* ── Header immersif ─────────────────────────────────────────── */}
+      <header className="relative h-[260px] overflow-hidden rounded-b-[32px] shadow-xl shadow-foreground/10">
+        <motion.img
+          src={circuitsHero}
+          alt="Paysages du Gabon"
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ y: scrollY * 0.3, scale: 1 + Math.min(scrollY, 200) / 2000 }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-foreground/30 via-foreground/50 to-foreground/85" />
+        <div className="relative z-10 flex h-full flex-col justify-end px-5 pb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-background/15 px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-widest text-background backdrop-blur-md ring-1 ring-background/20">
+              <Sparkles className="h-3 w-3" /> Explore Gabon
+            </span>
+            <h1 className="mt-2 text-[26px] font-extrabold leading-tight text-background">
+              Activités & Circuits
+            </h1>
+            <p className="mt-1 max-w-md text-[13px] leading-snug text-background/85">
+              Découvrez les plus belles expériences au Gabon.
+            </p>
+          </motion.div>
+        </div>
+      </header>
 
       {loading ? (
-        <div className="flex items-center justify-center py-16">
+        <div className="flex items-center justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="space-y-8 px-5 pt-6">
-          {circuits.length > 0 && (
+        <main className="-mt-4 space-y-7">
+          {/* ── Expériences populaires (carousel horizontal) ────────── */}
+          {popular.length > 0 && (
             <section>
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
-                <Compass className="h-4 w-4 text-primary" /> Circuits touristiques
-              </h2>
-              <div className="space-y-3">
-                {circuits.map((c) => (
-                  <article
+              <div className="flex items-end justify-between px-5">
+                <div>
+                  <p className="text-[10.5px] font-bold uppercase tracking-widest text-primary">Tendance</p>
+                  <h2 className="text-[17px] font-extrabold text-foreground">Expériences populaires</h2>
+                </div>
+                <Link to="/circuits" className="text-[12px] font-semibold text-primary">
+                  Voir tout
+                </Link>
+              </div>
+
+              <HorizontalScroller>
+                {popular.map((c, i) => (
+                  <PopularCard key={c.id} circuit={c} index={i} onOpen={() => navigate({ to: "/circuits/suivi/$slug", params: { slug: c.slug || gpsSlug(c.nom) } })} />
+                ))}
+              </HorizontalScroller>
+            </section>
+          )}
+
+          {/* ── Circuits immersifs (stacked premium) ────────────────── */}
+          {circuits.length > 0 && (
+            <section className="px-4">
+              <div className="mb-3 flex items-center justify-between px-1">
+                <h2 className="flex items-center gap-1.5 text-[15px] font-extrabold text-foreground">
+                  <Compass className="h-4 w-4 text-primary" /> Tous les circuits
+                </h2>
+                <span className="text-[11px] text-muted-foreground">{circuits.length} expériences</span>
+              </div>
+              <div className="space-y-3.5">
+                {circuits.map((c, i) => (
+                  <ImmersiveCircuitCard
                     key={c.id}
-                    role="link"
-                    tabIndex={0}
-                    aria-label={`Naviguer vers le circuit ${c.nom}`}
-                    onClick={(event) => {
-                      if (isInteractiveTarget(event.target)) return;
-                      openCircuitNavigation(c.slug || gpsSlug(c.nom));
-                    }}
-                    onKeyDown={(event) => {
-                      if (isInteractiveTarget(event.target)) return;
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        openCircuitNavigation(c.slug || gpsSlug(c.nom));
-                      }
-                    }}
-                    className="cursor-pointer rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <h3 className="text-base font-bold">{c.nom}</h3>
-                        {c.description && <p className="mt-1 text-sm text-muted-foreground">{c.description}</p>}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-sm font-extrabold text-primary">{formatFCFA(c.base_price)}</p>
-                        <p className="text-[10px] text-muted-foreground">/personne</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setTarget({
-                            kind: "circuit",
-                            id: c.id,
-                            slug: c.slug,
-                            name: c.nom,
-                            basePrice: c.base_price,
-                          })
-                        }
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90"
-                      >
-                        Réserver ce circuit <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
-                      <Link
-                        to="/circuits/suivi/$slug"
-                        params={{ slug: c.slug || gpsSlug(c.nom) }}
-                        aria-label={`Naviguer vers le circuit ${c.nom}`}
-                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border bg-card px-4 py-3 text-sm font-bold leading-tight text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      >
-                        <Navigation className="h-4 w-4 shrink-0 text-primary" />
-                        <span>Naviguer vers le circuit</span>
-                      </Link>
-                    </div>
-                  </article>
+                    circuit={c}
+                    index={i}
+                    onExplore={() => setTarget({ kind: "circuit", id: c.id, slug: c.slug, name: c.nom, basePrice: c.base_price })}
+                    navigateSlug={c.slug || gpsSlug(c.nom)}
+                  />
                 ))}
               </div>
             </section>
           )}
 
+          {/* ── Activités ──────────────────────────────────────────── */}
           {activities.length > 0 && (
-            <section>
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+            <section className="px-4">
+              <h2 className="mb-3 flex items-center gap-1.5 px-1 text-[15px] font-extrabold text-foreground">
                 <Palmtree className="h-4 w-4 text-accent" /> Activités
               </h2>
-              <div className="space-y-3">
-                {activities.map((a) => (
-                  <article key={a.id} className="rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-base font-bold">{a.name}</h3>
-                        {a.description && <p className="mt-1 text-sm text-muted-foreground">{a.description}</p>}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-sm font-extrabold text-primary">{formatFCFA(a.price)}</p>
-                        <p className="text-[10px] text-muted-foreground">/personne</p>
-                      </div>
-                    </div>
-                    {a.duration_hours > 0 && <p className="mt-2 text-[11px] text-muted-foreground">⏱ {a.duration_hours}h</p>}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTarget({
-                          kind: "activity",
-                          id: a.id,
-                          name: a.name,
-                          basePrice: a.price,
-                        })
-                      }
-                      className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-xs font-bold text-accent-foreground hover:bg-accent/90"
-                    >
-                      Réserver l'activité <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
-                  </article>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {activities.map((a, i) => (
+                  <ActivityTile
+                    key={a.id}
+                    activity={a}
+                    index={i}
+                    onBook={() => setTarget({ kind: "activity", id: a.id, name: a.name, basePrice: a.price })}
+                  />
                 ))}
               </div>
             </section>
           )}
 
           {circuits.length === 0 && activities.length === 0 && (
-            <div className="rounded-2xl border border-dashed bg-muted/40 p-8 text-center">
+            <div className="mx-5 rounded-3xl border border-dashed bg-muted/40 p-8 text-center">
               <Palmtree className="mx-auto h-8 w-8 text-muted-foreground" />
               <p className="mt-3 text-sm font-medium text-muted-foreground">Aucune activité ni circuit disponible.</p>
             </div>
           )}
-        </div>
+        </main>
       )}
 
       {target && <BookingDialog target={target} onClose={() => setTarget(null)} />}
@@ -206,15 +175,168 @@ function ActivitesPage() {
   );
 }
 
+// ─── Composants ─────────────────────────────────────────────────────────────
+
+function HorizontalScroller({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  return (
+    <div
+      ref={ref}
+      className="mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      style={{ scrollPaddingInline: 20 }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function PopularCard({ circuit, index, onOpen }: { circuit: Circuit; index: number; onOpen: () => void }) {
+  const badge = index === 0 ? "Populaire" : index === 1 ? "Nouveau" : null;
+  return (
+    <motion.button
+      type="button"
+      onClick={onOpen}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      whileTap={{ scale: 0.97 }}
+      className="group relative h-44 w-[72%] shrink-0 snap-start overflow-hidden rounded-3xl shadow-md ring-1 ring-border/40 sm:w-[300px]"
+    >
+      <img
+        src={circuit.image_url || FALLBACK_IMG}
+        alt={circuit.nom}
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 group-active:scale-105"
+        loading="lazy"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/30 to-transparent" />
+      {badge && (
+        <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-md ${
+          badge === "Populaire" ? "bg-accent/90 text-accent-foreground" : "bg-primary/90 text-primary-foreground"
+        }`}>
+          {badge === "Populaire" ? <Flame className="h-2.5 w-2.5" /> : <Sparkles className="h-2.5 w-2.5" />}
+          {badge}
+        </span>
+      )}
+      <span className="absolute right-3 top-3 rounded-full bg-background/95 px-2 py-0.5 text-[11px] font-extrabold text-primary shadow-sm">
+        {formatFCFA(circuit.base_price)}
+      </span>
+      <div className="absolute inset-x-3 bottom-3 text-left">
+        <p className="line-clamp-1 text-[14px] font-extrabold text-background drop-shadow">{circuit.nom}</p>
+        <p className="mt-0.5 flex items-center gap-1 text-[11px] text-background/85">
+          <MapPin className="h-3 w-3" /> Gabon
+        </p>
+      </div>
+    </motion.button>
+  );
+}
+
+function ImmersiveCircuitCard({
+  circuit, index, onExplore, navigateSlug,
+}: { circuit: Circuit; index: number; onExplore: () => void; navigateSlug: string }) {
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.45, delay: Math.min(index * 0.04, 0.25), ease: "easeOut" }}
+      whileHover={{ y: -3 }}
+      className="group relative overflow-hidden rounded-[28px] border border-border/40 bg-card shadow-md shadow-foreground/5"
+    >
+      <div className="relative h-52 w-full overflow-hidden">
+        <img
+          src={circuit.image_url || FALLBACK_IMG}
+          alt={circuit.nom}
+          className="h-full w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-110 group-active:scale-105"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/15 to-transparent" />
+        <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/15 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wider text-background backdrop-blur-md ring-1 ring-background/30">
+          <Compass className="h-2.5 w-2.5" /> Circuit
+        </span>
+        <span className="absolute right-3 top-3 rounded-full bg-background px-2.5 py-1 text-[12px] font-extrabold text-primary shadow-md">
+          {formatFCFA(circuit.base_price)}
+          <span className="ml-1 text-[9px] font-semibold text-muted-foreground">/pers</span>
+        </span>
+        <div className="absolute inset-x-4 bottom-3">
+          <h3 className="line-clamp-1 text-[18px] font-extrabold leading-tight text-background drop-shadow-md">
+            {circuit.nom}
+          </h3>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-background/90">
+            <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> Gabon</span>
+            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> Journée</span>
+            <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> 4.8</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 p-3">
+        {circuit.description && (
+          <p className="line-clamp-2 flex-1 text-[12.5px] leading-snug text-muted-foreground">
+            {circuit.description}
+          </p>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 px-3 pb-3">
+        <button
+          type="button"
+          onClick={onExplore}
+          className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-primary text-[13.5px] font-bold text-primary-foreground shadow-md shadow-primary/25 transition-all active:scale-[0.98]"
+        >
+          Explorer <ArrowRight className="h-4 w-4" />
+        </button>
+        <Link
+          to="/circuits/suivi/$slug"
+          params={{ slug: navigateSlug }}
+          aria-label={`Naviguer vers ${circuit.nom}`}
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/60 bg-card text-primary transition-colors hover:bg-primary/5 active:scale-[0.96]"
+        >
+          <Navigation className="h-4 w-4" />
+        </Link>
+      </div>
+    </motion.article>
+  );
+}
+
+function ActivityTile({ activity, index, onBook }: { activity: Activity; index: number; onBook: () => void }) {
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.2) }}
+      className="group relative overflow-hidden rounded-3xl border border-border/40 bg-card shadow-sm"
+    >
+      <div className="relative h-32 overflow-hidden">
+        <img src={FALLBACK_IMG} alt={activity.name} loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 to-transparent" />
+        <span className="absolute right-2 top-2 rounded-full bg-background px-2 py-0.5 text-[11px] font-extrabold text-accent shadow">
+          {formatFCFA(activity.price)}
+        </span>
+      </div>
+      <div className="p-3">
+        <h3 className="line-clamp-1 text-[13.5px] font-bold">{activity.name}</h3>
+        {activity.duration_hours > 0 && (
+          <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+            <Clock className="h-3 w-3" /> {activity.duration_hours}h
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={onBook}
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl bg-accent py-2 text-[12.5px] font-bold text-accent-foreground active:scale-[0.98]"
+        >
+          Explorer <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </motion.article>
+  );
+}
+
 function gpsSlug(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
+  return value.toLowerCase().normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
-}
-
-function isInteractiveTarget(target: EventTarget | null) {
-  return target instanceof HTMLElement && Boolean(target.closest("a, button, input, select, textarea"));
 }
