@@ -83,6 +83,13 @@ function TripTrackingPage() {
           .eq("user_id", data.driver_id)
           .maybeSingle();
         if (mounted && profile) setDriverName(profile.full_name);
+        // Detecte la catégorie : présence dans la table VTC `drivers` → VTC, sinon bus
+        const { data: vtcRow } = await supabase
+          .from("drivers")
+          .select("user_id")
+          .eq("user_id", data.driver_id)
+          .maybeSingle();
+        if (mounted) setDriverService(vtcRow ? "vtc" : "bus");
       }
       setLoading(false);
     };
