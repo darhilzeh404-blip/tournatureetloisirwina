@@ -11,7 +11,7 @@ interface PricingCardProps {
 
 export function PricingCard({ title, price, unit, features, highlighted, onSelect }: PricingCardProps) {
   return (
-    <div className={`card-hover rounded-2xl border p-6 ${highlighted ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "bg-card"}`}>
+    <div className={`card-hover rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-card)] ${highlighted ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "bg-card"}`}>
       {highlighted && (
         <span className="mb-3 inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
           Recommandé
@@ -32,7 +32,7 @@ export function PricingCard({ title, price, unit, features, highlighted, onSelec
       </ul>
       <button
         onClick={onSelect}
-        className={`mt-6 w-full rounded-xl py-2.5 text-sm font-semibold transition-colors ${highlighted ? "bg-primary text-primary-foreground hover:bg-primary/90" : "border bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
+        className={`mt-6 w-full rounded-[var(--radius-control)] py-2.5 text-sm font-semibold transition-all active:scale-[0.98] ${highlighted ? "bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-premium)] hover:brightness-110" : "border bg-secondary text-secondary-foreground hover:bg-secondary/80"}`}
       >
         Sélectionner
       </button>

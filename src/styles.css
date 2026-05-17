@@ -101,6 +101,26 @@
   --sidebar-ring: oklch(0.55 0.17 250);
   --warm-orange: oklch(0.65 0.18 55);
   --warm-green: oklch(0.55 0.17 155);
+
+  /* Harmonized radius scale — use these semantic tokens instead of raw rounded-* */
+  --radius-control: 0.625rem;  /* inputs, buttons, chips, small badges */
+  --radius-card: 1rem;         /* cards, list rows, dialogs */
+  --radius-surface: 1.5rem;    /* hero panels, large surfaces, sheets */
+
+  /* Harmonized shadow scale */
+  --shadow-card: 0 1px 2px 0 oklch(0.16 0.03 250 / 0.04), 0 1px 3px 0 oklch(0.16 0.03 250 / 0.06);
+  --shadow-elevated: 0 8px 24px -12px oklch(0.16 0.03 250 / 0.12), 0 2px 6px -2px oklch(0.16 0.03 250 / 0.06);
+  --shadow-premium: 0 20px 48px -16px oklch(0.55 0.17 250 / 0.28), 0 8px 16px -8px oklch(0.55 0.17 250 / 0.14);
+
+  /* Premium CTA gradient */
+  --gradient-primary: linear-gradient(135deg, oklch(0.55 0.17 250), oklch(0.45 0.18 260));
+  --gradient-warm: linear-gradient(135deg, oklch(0.65 0.18 55), oklch(0.6 0.2 40));
+}
+
+@theme inline {
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-premium: var(--shadow-premium);
 }
 
 @layer base {
