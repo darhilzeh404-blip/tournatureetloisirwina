@@ -135,10 +135,9 @@
     word-break: break-word;
   }
 
-  /* Responsive media defaults */
+  /* Responsive media defaults — keep images inside their container */
   img, video, svg, canvas, picture {
     max-width: 100%;
-    height: auto;
   }
 
   /* Smoother default transitions for interactive elements */
