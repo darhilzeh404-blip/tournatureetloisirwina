@@ -11,12 +11,33 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const driverIcon = L.divIcon({
-  className: "driver-marker",
-  html: `<div style="background:hsl(var(--primary));width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);font-size:14px;">🚐</div>`,
-  iconSize: [28, 28],
-  iconAnchor: [14, 14],
-});
+// Modern minimalist SVG icons (inline so they always load — no network fallback risk)
+const BUS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M8 6v6"/><path d="M16 6v6"/><path d="M2 12h19.6"/><path d="M18 18h2a1 1 0 0 0 1-1v-6.5a1 1 0 0 0-.293-.707l-3.914-3.914A1 1 0 0 0 16.086 6H4a2 2 0 0 0-2 2v9a1 1 0 0 0 1 1h2"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>`;
+const CAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>`;
+
+function buildDriverIcon(service: "vtc" | "bus" = "bus", heading: number | null = null, active = false) {
+  const svg = service === "vtc" ? CAR_SVG : BUS_SVG;
+  const color = service === "vtc" ? "#0ea5e9" : "#16a34a";
+  const rotation = typeof heading === "number" && !Number.isNaN(heading) ? heading : 0;
+  const glow = active
+    ? `box-shadow:0 0 0 6px ${color}33, 0 0 18px 4px ${color}66, 0 4px 14px rgba(0,0,0,.35);`
+    : `box-shadow:0 4px 10px rgba(0,0,0,.25);`;
+  return L.divIcon({
+    className: `driver-marker driver-marker--${service}${active ? " driver-marker--active" : ""}`,
+    html: `
+      <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+        ${active ? `<span style="position:absolute;inset:-4px;border-radius:9999px;background:${color};opacity:.18;animation:winaPulse 1.8s ease-out infinite;"></span>` : ""}
+        <div style="width:36px;height:36px;border-radius:9999px;background:white;border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;${glow}transition:transform .6s ease;transform:rotate(${rotation}deg);">
+          ${svg}
+        </div>
+      </div>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+  });
+}
+
+const fallbackDriverIcon = buildDriverIcon("bus", null, false);
 
 const clientIcon = L.divIcon({
   className: "client-marker",
