@@ -66,13 +66,17 @@ const stagger = {
 
 function EspaceClient() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
   const [target, setTarget] = useState<BookingTarget | null>(null);
 
   const openCircuitNavigation = (slug: string) => {
     navigate({ to: "/circuits/suivi/$slug", params: { slug } });
   };
+
+  if (isLoading || !isAuthenticated) {
+    return <EspaceClientSkeleton />;
+  }
 
   return (
     <div className="pb-20">
@@ -318,4 +322,49 @@ function gpsSlug(value: string) {
 
 function isInteractiveTarget(target: EventTarget | null) {
   return target instanceof HTMLElement && Boolean(target.closest("a, button, input, select, textarea"));
+}
+
+function EspaceClientSkeleton() {
+  return (
+    <div className="pb-20 animate-pulse">
+      <div className="relative h-56 overflow-hidden bg-muted">
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/30 to-transparent" />
+        <div className="relative px-5 pt-12">
+          <div className="h-3 w-20 rounded bg-background/40" />
+          <div className="mt-2 h-6 w-56 rounded bg-background/50" />
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="h-16 rounded-2xl bg-background/40" />
+            <div className="h-16 rounded-2xl bg-background/40" />
+          </div>
+        </div>
+      </div>
+
+      <div className="px-5 pt-8">
+        <div className="h-4 w-32 rounded bg-muted" />
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-24 rounded-2xl border border-border/60 bg-muted" />
+          ))}
+        </div>
+      </div>
+
+      <div className="px-5 pt-8">
+        <div className="h-4 w-40 rounded bg-muted" />
+        <div className="mt-4 flex gap-3 overflow-hidden">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-52 w-40 shrink-0 rounded-2xl bg-muted" />
+          ))}
+        </div>
+      </div>
+
+      <div className="px-5 pt-8">
+        <div className="h-4 w-48 rounded bg-muted" />
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-16 rounded-xl bg-muted" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
