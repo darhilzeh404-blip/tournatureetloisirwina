@@ -395,15 +395,7 @@ function ImmersiveCircuitCard({
         >
           <Navigation className="h-4 w-4" />
         </a>
-        <button
-          type="button"
-          onClick={() => openDirectionsFromMe(circuit.location || circuit.nom)}
-          aria-label={`Itinéraire depuis ma position vers ${circuit.location || circuit.nom}`}
-          title="Itinéraire depuis ma position"
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary transition-colors hover:bg-primary/15 active:scale-[0.96]"
-        >
-          <LocateFixed className="h-4 w-4" />
-        </button>
+        <DirectionsMenu place={circuit.location || circuit.nom} size="md" />
       </div>
     </motion.article>
   );
