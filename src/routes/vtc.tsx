@@ -380,7 +380,7 @@ function CourseFlow() {
 
   return (
     <>
-      <AccordionCard id="cat" openId={openId} setOpenId={setOpenId} defaultOpen
+      <AccordionCard id="cat" wizard={wizard}
         title="Catégorie de véhicule" summary={`${activeCat.title} · ${model}`}
         icon={<CarFront className="h-4 w-4" />}
       >
@@ -422,7 +422,7 @@ function CourseFlow() {
         </details>
       </AccordionCard>
 
-      <AccordionCard id="route" openId={openId} setOpenId={setOpenId}
+      <AccordionCard id="route" wizard={wizard}
         title="Itinéraire & zones"
         summary={pickup && destination ? `${zoneLabel(fare.zoneFrom)} → ${zoneLabel(fare.zoneTo)}` : "Sélectionner départ & arrivée"}
         icon={<MapPin className="h-4 w-4" />}
@@ -464,7 +464,7 @@ function CourseFlow() {
         </div>
       </AccordionCard>
 
-      <AccordionCard id="mode" openId={openId} setOpenId={setOpenId}
+      <AccordionCard id="mode" wizard={wizard}
         title="Formule de course"
         summary={mode === "express" ? "Course express" : `Course 1h × ${hours}`}
         icon={<Zap className="h-4 w-4" />}
@@ -486,7 +486,7 @@ function CourseFlow() {
         )}
       </AccordionCard>
 
-      <AccordionCard id="when" openId={openId} setOpenId={setOpenId}
+      <AccordionCard id="when" wizard={wizard}
         title="Date & passagers"
         summary={`${rideTiming === "now" ? "Maintenant" : scheduledAt || "Planifier"} · ${passengers} pax`}
         icon={<Calendar className="h-4 w-4" />}
@@ -581,7 +581,7 @@ function MariageFlow() {
 
   return (
     <>
-      <AccordionCard id="vehicle" openId={openId} setOpenId={setOpenId} defaultOpen
+      <AccordionCard id="vehicle" wizard={wizard}
         title="Véhicule mariage" summary={WEDDING_FARES[vehicle].label}
         icon={<Crown className="h-4 w-4" />}
       >
@@ -602,7 +602,7 @@ function MariageFlow() {
         </div>
       </AccordionCard>
 
-      <AccordionCard id="duration" openId={openId} setOpenId={setOpenId}
+      <AccordionCard id="duration" wizard={wizard}
         title="Durée" summary={duration === "h12" ? "12 heures" : "24 heures"}
         icon={<Clock className="h-4 w-4" />}
       >
@@ -616,7 +616,7 @@ function MariageFlow() {
         />
       </AccordionCard>
 
-      <AccordionCard id="info" openId={openId} setOpenId={setOpenId}
+      <AccordionCard id="info" wizard={wizard}
         title="Vos informations" summary={name && phone ? `${name} · ${phone}` : "Date & contact"}
         icon={<Calendar className="h-4 w-4" />}
       >
