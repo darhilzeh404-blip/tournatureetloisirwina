@@ -143,7 +143,7 @@ function VtcTrackingPage() {
     const next: MapMarker[] = [];
     if (pickupPoint) next.push({ id: "pickup", type: "client", lat: pickupPoint.lat, lng: pickupPoint.lng, label: String(details.pickup ?? trip?.origin_address ?? "Départ") });
     if (destinationPoint) next.push({ id: "destination", type: "destination", lat: destinationPoint.lat, lng: destinationPoint.lng, label: String(details.destination ?? trip?.destination_address ?? "Arrivée") });
-    if (driverPos) next.push({ id: "driver", type: "driver", lat: Number(driverPos.latitude), lng: Number(driverPos.longitude), label: driverName || "Chauffeur" });
+    if (driverPos) next.push({ id: "driver", type: "driver", lat: Number(driverPos.latitude), lng: Number(driverPos.longitude), label: driverName || "Chauffeur", service: "vtc", heading: driverPos.heading });
     return next;
   }, [driverName, driverPos, reservation?.details, trip]);
 
