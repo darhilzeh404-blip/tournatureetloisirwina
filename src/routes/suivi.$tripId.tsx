@@ -37,6 +37,7 @@ function TripTrackingPage() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [driverName, setDriverName] = useState<string>("");
+  const [driverService, setDriverService] = useState<"vtc" | "bus">("bus");
 
   const driverPos = useDriverPosition(trip?.driver_id ?? null);
   const fromPoint =
