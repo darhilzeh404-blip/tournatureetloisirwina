@@ -95,6 +95,8 @@ function AdminTrackingPage() {
     lng: Number(p.longitude),
     type: "driver",
     label: profiles[p.driver_id] ?? "Chauffeur",
+    service: vtcDriverIds.has(p.driver_id) ? "vtc" : "bus",
+    heading: p.heading,
   }));
 
   const activeTrips = trips.filter((t) => t.status === "active");
