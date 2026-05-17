@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { NumberInput } from "@/components/ui/number-input";
 
 export const Route = createFileRoute("/reserver-transport")({
   head: () => ({
@@ -866,21 +867,30 @@ function Field({ label, icon, children }: { label: string; icon?: React.ReactNod
   );
 }
 
-function NumberStepper({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+function NumberStepper({ value, onChange, min = 1, max }: { value: number; onChange: (n: number) => void; min?: number; max?: number }) {
   return (
     <div className="flex items-center gap-2">
       <button
         type="button"
-        onClick={() => onChange(Math.max(1, value - 1))}
-        className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card text-lg font-bold"
+        onClick={() => onChange(Math.max(min, value - 1))}
+        className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card text-lg font-bold active:scale-95 transition-transform"
+        aria-label="Diminuer"
       >
         −
       </button>
-      <span className="min-w-[2.5rem] text-center text-base font-bold">{value}</span>
+      <NumberInput
+        value={value}
+        onChange={onChange}
+        min={min}
+        max={max}
+        emptyAsZero={false}
+        className="h-10 w-16 rounded-lg border bg-card text-center text-base font-bold focus:outline-none focus:ring-2 focus:ring-primary"
+      />
       <button
         type="button"
-        onClick={() => onChange(value + 1)}
-        className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card text-lg font-bold"
+        onClick={() => onChange(max !== undefined ? Math.min(max, value + 1) : value + 1)}
+        className="flex h-10 w-10 items-center justify-center rounded-lg border bg-card text-lg font-bold active:scale-95 transition-transform"
+        aria-label="Augmenter"
       >
         +
       </button>
