@@ -1164,8 +1164,8 @@ function PremiumRangesSection({ onCourse, onGroup }: { onCourse: () => void; onG
                 price="Sur devis"
                 subtitle="Tarif fixé selon le trajet"
                 description="Service disponible uniquement sur réservation avec tarif fixé selon le trajet et le nombre de passagers."
-                ctaLabel="Faire une réservation"
-                onCta={onCourse}
+                ctaLabel="Réserver une course de groupe"
+                onCta={onGroup}
               />
             )}
           </motion.div>
