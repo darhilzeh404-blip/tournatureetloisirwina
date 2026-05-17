@@ -444,15 +444,7 @@ function ActivityTile({ activity, index, onBook }: { activity: Activity; index: 
           >
             <Navigation className="h-3.5 w-3.5" />
           </a>
-          <button
-            type="button"
-            onClick={() => openDirectionsFromMe(activity.location || activity.name)}
-            aria-label={`Itinéraire depuis ma position vers ${activity.location || activity.name}`}
-            title="Itinéraire depuis ma position"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 active:scale-[0.96]"
-          >
-            <LocateFixed className="h-3.5 w-3.5" />
-          </button>
+          <DirectionsMenu place={activity.location || activity.name} size="sm" />
         </div>
       </div>
     </motion.article>
