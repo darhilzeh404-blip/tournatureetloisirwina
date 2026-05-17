@@ -575,28 +575,74 @@ function CourseFlow() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              className="mt-3 flex items-center gap-3 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card p-3 backdrop-blur-md shadow-[0_8px_24px_-15px_hsl(var(--primary)/0.4)]"
+              className="mt-3 overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card backdrop-blur-md shadow-[0_8px_24px_-15px_hsl(var(--primary)/0.4)]"
             >
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary ${!nearest ? "animate-pulse" : ""}`}>
-                {nearest ? <Timer className="h-5 w-5" /> : <Radar className="h-5 w-5" />}
+              <div className="flex items-center gap-3 p-3">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary ${!nearest ? "animate-pulse" : ""}`}>
+                  {nearest ? <Timer className="h-5 w-5" /> : <Radar className="h-5 w-5" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  {nearest ? (
+                    <>
+                      <p className="text-[13px] font-bold text-foreground">
+                        Votre chauffeur peut arriver dans ~{nearest.etaMin} min
+                      </p>
+                      <p className="text-[11.5px] text-muted-foreground">
+                        Chauffeur le plus proche à {nearest.km < 1 ? `${Math.round(nearest.km * 1000)} m` : `${nearest.km.toFixed(1)} km`} · {availableDrivers.length} véhicule{availableDrivers.length > 1 ? "s" : ""} disponible{availableDrivers.length > 1 ? "s" : ""}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-[13px] font-bold text-foreground">Recherche d'un chauffeur…</p>
+                      <p className="text-[11.5px] text-muted-foreground">Nous scannons les véhicules autour de vous.</p>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                {nearest ? (
-                  <>
-                    <p className="text-[13px] font-bold text-foreground">
-                      Votre chauffeur peut arriver dans ~{nearest.etaMin} min
-                    </p>
-                    <p className="text-[11.5px] text-muted-foreground">
-                      Chauffeur le plus proche à {nearest.km < 1 ? `${Math.round(nearest.km * 1000)} m` : `${nearest.km.toFixed(1)} km`} · {availableDrivers.length} véhicule{availableDrivers.length > 1 ? "s" : ""} disponible{availableDrivers.length > 1 ? "s" : ""}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-[13px] font-bold text-foreground">Recherche d'un chauffeur…</p>
-                    <p className="text-[11.5px] text-muted-foreground">Nous scannons les véhicules autour de vous.</p>
-                  </>
+
+              {/* Aperçu chauffeur + véhicule */}
+              <AnimatePresence>
+                {nearest && nearestDriver && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="border-t border-primary/15 bg-card/60"
+                  >
+                    <div className="flex items-center gap-3 p-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-sm font-extrabold text-primary-foreground shadow-md">
+                        {(nearestDriver.full_name?.trim()?.[0] ?? "C").toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-[13px] font-bold text-foreground">
+                            {nearestDriver.full_name?.trim() || "Chauffeur Wina"}
+                          </p>
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-600">
+                            <Star className="h-2.5 w-2.5 fill-current" /> 4.9
+                          </span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10.5px]">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 font-bold text-primary">
+                            <CarFront className="h-3 w-3" />
+                            {nearestDriver.vehicle_type || "Véhicule VTC"}
+                          </span>
+                          {nearestDriver.license_plate && (
+                            <span className="rounded-md border border-foreground/15 bg-background px-1.5 py-0.5 font-mono font-bold tracking-wider text-foreground">
+                              {nearestDriver.license_plate}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ETA</p>
+                        <p className="text-base font-extrabold leading-none text-primary">~{nearest.etaMin}<span className="text-[10px] font-bold"> min</span></p>
+                      </div>
+                    </div>
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
