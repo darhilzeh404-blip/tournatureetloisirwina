@@ -233,9 +233,10 @@ function PopularCard({ circuit, index, onOpen }: { circuit: Circuit; index: numb
       </span>
       <div className="absolute inset-x-3 bottom-3 text-left">
         <p className="line-clamp-1 text-[14px] font-extrabold text-background drop-shadow">{circuit.nom}</p>
-        <p className="mt-0.5 flex items-center gap-1 text-[11px] text-background/85">
-          <MapPin className="h-3 w-3" /> Gabon
-        </p>
+        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-background/85">
+          <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {circuit.location || "Gabon"}</span>
+          <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> {Number(circuit.rating ?? 4.8).toFixed(1)}</span>
+        </div>
       </div>
     </motion.button>
   );
