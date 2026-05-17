@@ -67,6 +67,12 @@ function summarize(details: Record<string, unknown> | null, type: ServiceType): 
     if (d.flow === "vtc_mariage") {
       return `Mariage — ${d.vehicle_label ?? "Berline"} · ${d.duration_hours ?? ""}h`;
     }
+    if (d.flow === "vtc_group") {
+      const pickupLbl = (d.pickup as any)?.label ?? "Départ";
+      const dests = ((d.destinations as unknown) as any[] | undefined)?.map((s) => s?.label).filter(Boolean) ?? [];
+      const pax = d.passengers ? ` · ${d.passengers} pers.` : "";
+      return `Course de groupe — ${pickupLbl} → ${dests.join(" → ") || "Destination"}${pax}`;
+    }
     const pickup = (d.pickup as any)?.label ?? d.pickup ?? "Départ";
     const dest = (d.destination as any)?.label ?? d.destination ?? "Arrivée";
     return `${pickup} → ${dest}${d.category_label ? ` — ${d.category_label}` : ""}`;
