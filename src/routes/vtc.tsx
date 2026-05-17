@@ -135,44 +135,107 @@ function VtcPage() {
   );
 }
 
-// ─── Accordion premium (une seule carte ouverte) ─────────────────────────────
+// ─── Wizard state (locks selections & enforces order) ───────────────────────
+function useWizard(steps: string[]) {
+  const [openId, setOpenIdState] = useState<string | null>(steps[0] ?? null);
+  const [confirmedIds, setConfirmedIds] = useState<Set<string>>(new Set());
+
+  const indexOf = (id: string) => steps.indexOf(id);
+  const isConfirmed = (id: string) => confirmedIds.has(id);
+  const canOpen = (id: string) => {
+    const i = indexOf(id);
+    if (i <= 0) return true;
+    return confirmedIds.has(steps[i - 1]);
+  };
+
+  const invalidateFrom = (id: string) => {
+    const i = indexOf(id);
+    if (i < 0) return;
+    setConfirmedIds((prev) => {
+      const next = new Set(prev);
+      steps.slice(i).forEach((s) => next.delete(s));
+      return next;
+    });
+  };
+
+  const setOpenId = (id: string | null) => {
+    if (id === null) { setOpenIdState(null); return; }
+    if (!canOpen(id)) {
+      toast.info("Confirmez l'étape précédente d'abord");
+      return;
+    }
+    // Re-opening a confirmed step invalidates it + downstream to keep coherence
+    if (confirmedIds.has(id)) invalidateFrom(id);
+    setOpenIdState(id);
+  };
+
+  const confirm = (id: string) => {
+    setConfirmedIds((prev) => new Set(prev).add(id));
+    const i = indexOf(id);
+    const next = steps[i + 1] ?? null;
+    setOpenIdState(next);
+  };
+
+  const allConfirmed = steps.every((s) => confirmedIds.has(s));
+
+  return { openId, setOpenId, isConfirmed, canOpen, confirm, allConfirmed, invalidateFrom };
+}
+
+type WizardCtx = ReturnType<typeof useWizard>;
+
+// ─── Accordion premium (une seule carte ouverte, avec confirmation) ─────────
 function AccordionCard({
-  id, openId, setOpenId, title, summary, icon, children, defaultOpen = false,
+  id, wizard, title, summary, icon, children, canConfirm = true, confirmLabel = "Choisir",
 }: {
   id: string;
-  openId: string | null;
-  setOpenId: (v: string | null) => void;
+  wizard: WizardCtx;
   title: string;
   summary?: string;
   icon: React.ReactNode;
   children: React.ReactNode;
-  defaultOpen?: boolean;
+  canConfirm?: boolean;
+  confirmLabel?: string;
 }) {
-  useEffect(() => {
-    if (defaultOpen && openId === null) setOpenId(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const open = openId === id;
+  const open = wizard.openId === id;
+  const confirmed = wizard.isConfirmed(id);
+  const locked = !wizard.canOpen(id) && !open;
+
   return (
     <motion.section
       layout
       transition={{ layout: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }}
-      className={`overflow-hidden rounded-3xl border bg-card/90 backdrop-blur-sm transition-shadow ${open ? "border-primary/30 shadow-[0_8px_28px_-12px_hsl(var(--primary)/0.35)]" : "border-border/60 shadow-sm"}`}
+      className={`overflow-hidden rounded-3xl border bg-card/90 backdrop-blur-sm transition-shadow ${
+        open ? "border-primary/30 shadow-[0_8px_28px_-12px_hsl(var(--primary)/0.35)]"
+             : confirmed ? "border-primary/20 shadow-sm"
+             : "border-border/60 shadow-sm"
+      } ${locked ? "opacity-60" : ""}`}
     >
       <button
         type="button"
-        onClick={() => setOpenId(open ? null : id)}
+        onClick={() => wizard.setOpenId(open ? null : id)}
         className="flex w-full items-center gap-3 px-4 py-3 text-left active:scale-[0.995] transition-transform"
         aria-expanded={open}
+        aria-disabled={locked}
       >
         <motion.div
-          animate={{ scale: open ? 1.05 : 1, rotate: open ? 0 : 0 }}
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${open ? "bg-primary text-primary-foreground shadow-md shadow-primary/30" : "bg-primary/10 text-primary"}`}
+          animate={{ scale: open ? 1.05 : 1 }}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
+            open ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                 : confirmed ? "bg-primary/15 text-primary"
+                 : "bg-primary/10 text-primary"
+          }`}
         >
-          {icon}
+          {confirmed && !open ? <CheckCircle2 className="h-4 w-4" /> : icon}
         </motion.div>
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-[14px] font-bold text-foreground">{title}</h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="truncate text-[14px] font-bold text-foreground">{title}</h2>
+            {confirmed && !open && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                <Check className="h-2.5 w-2.5" /> OK
+              </span>
+            )}
+          </div>
           {summary && <p className="truncate text-[12px] text-muted-foreground">{summary}</p>}
         </div>
         <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.25 }}>
@@ -189,7 +252,20 @@ function AccordionCard({
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-1">{children}</div>
+            <div className="px-4 pb-4 pt-1">
+              {children}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!canConfirm) { toast.error("Complétez cette étape avant de continuer"); return; }
+                  wizard.confirm(id);
+                }}
+                disabled={!canConfirm}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[13.5px] font-bold text-primary-foreground shadow-md shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50"
+              >
+                <Check className="h-4 w-4" /> {confirmLabel}
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
