@@ -214,16 +214,48 @@ function AdminPaiements() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Rechercher (client, ref, ID)…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="h-9 w-full rounded-lg border bg-card pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-        />
+      {/* Search + Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-sm flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Rechercher (client, ref, ID, billet)…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 w-full rounded-lg border bg-card pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <div className="inline-flex rounded-lg border bg-card p-1">
+          {(["ALL", "PENDING", "VALIDATED", "REJECTED"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                statusFilter === s ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {s === "ALL" ? "Tous" : STATUS_MAP[s].label}
+            </button>
+          ))}
+        </div>
+        <div className="inline-flex rounded-lg border bg-card p-1">
+          {([
+            { k: "ALL", label: "Tous services" },
+            { k: "BILLET", label: "Billets" },
+            { k: "OTHER", label: "Autres" },
+          ] as const).map((o) => (
+            <button
+              key={o.k}
+              onClick={() => setServiceFilter(o.k)}
+              className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                serviceFilter === o.k ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Cards list (better for photos than a table) */}
