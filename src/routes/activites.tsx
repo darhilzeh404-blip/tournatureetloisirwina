@@ -65,28 +65,73 @@ function directionsUrl(place: string, mode: TravelMode = "driving", from?: { lat
   const origin = from ? `&origin=${from.lat},${from.lng}` : "";
   return `https://www.google.com/maps/dir/?api=1&destination=${dest}${origin}&travelmode=${mode}`;
 }
-function openDirectionsFromMe(place: string, mode: TravelMode = "driving") {
+// Cache la dernière position connue pour éviter de re-déclencher la
+// permission native à chaque clic.
+let cachedPosition: { lat: number; lng: number; at: number } | null = null;
+const POSITION_TTL_MS = 2 * 60 * 1000;
+
+function requestPosition(): Promise<{ lat: number; lng: number } | null> {
+  if (typeof navigator === "undefined" || !navigator.geolocation) return Promise.resolve(null);
+  if (cachedPosition && Date.now() - cachedPosition.at < POSITION_TTL_MS) {
+    return Promise.resolve({ lat: cachedPosition.lat, lng: cachedPosition.lng });
+  }
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        cachedPosition = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          at: Date.now(),
+        };
+        resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  });
+}
+
+async function openDirectionsFromMe(place: string, mode: TravelMode = "driving") {
   if (typeof navigator === "undefined" || !navigator.geolocation) {
     window.open(directionsUrl(place, mode), "_blank", "noopener");
     return;
   }
+
+  // Vérifie l'état de la permission AVANT de déclencher la popup native.
+  let state: PermissionState | "unsupported" = "unsupported";
+  try {
+    if (navigator.permissions?.query) {
+      const res = await navigator.permissions.query({ name: "geolocation" as PermissionName });
+      state = res.state;
+    }
+  } catch { /* ignore */ }
+
+  if (state === "denied") {
+    toast.error("Géolocalisation refusée", {
+      description: "Active la localisation dans les réglages du navigateur pour calculer l'itinéraire depuis ta position.",
+    });
+    window.open(directionsUrl(place, mode), "_blank", "noopener");
+    return;
+  }
+
+  // Premier accès : prévient l'utilisateur avant la popup native du navigateur.
+  if (state === "prompt") {
+    toast.info("Autorise la localisation", {
+      description: "Nous l'utilisons uniquement pour calculer ton itinéraire — aucune donnée stockée.",
+      duration: 3500,
+    });
+  }
+
   const loading = toast.loading("Localisation en cours…");
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      toast.dismiss(loading);
-      window.open(
-        directionsUrl(place, mode, { lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        "_blank",
-        "noopener"
-      );
-    },
-    () => {
-      toast.dismiss(loading);
-      toast.error("Position indisponible — itinéraire ouvert sans point de départ.");
-      window.open(directionsUrl(place, mode), "_blank", "noopener");
-    },
-    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
-  );
+  const pos = await requestPosition();
+  toast.dismiss(loading);
+
+  if (!pos) {
+    toast.error("Position indisponible — itinéraire ouvert sans point de départ.");
+    window.open(directionsUrl(place, mode), "_blank", "noopener");
+    return;
+  }
+  window.open(directionsUrl(place, mode, pos), "_blank", "noopener");
 }
 
 function DirectionsMenu({
