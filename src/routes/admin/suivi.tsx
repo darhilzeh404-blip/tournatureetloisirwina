@@ -26,6 +26,7 @@ function AdminTrackingPage() {
   const positions = useAllDriverPositions();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [vtcDriverIds, setVtcDriverIds] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState("");
   const [selectedDriver, setSelectedDriver] = useState<string | null>(null);
 
@@ -59,6 +60,15 @@ function AdminTrackingPage() {
     };
     load();
 
+    // Charge la liste des chauffeurs VTC (table public.drivers) pour différencier l'icône
+    supabase
+      .from("drivers")
+      .select("user_id")
+      .then(({ data }) => {
+        if (!mounted || !data) return;
+        setVtcDriverIds(new Set(data.map((d: { user_id: string }) => d.user_id)));
+      });
+
     const channel = supabase
       .channel("admin-trips")
       .on(
@@ -85,6 +95,8 @@ function AdminTrackingPage() {
     lng: Number(p.longitude),
     type: "driver",
     label: profiles[p.driver_id] ?? "Chauffeur",
+    service: vtcDriverIds.has(p.driver_id) ? "vtc" : "bus",
+    heading: p.heading,
   }));
 
   const activeTrips = trips.filter((t) => t.status === "active");

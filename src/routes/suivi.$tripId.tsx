@@ -37,6 +37,7 @@ function TripTrackingPage() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [driverName, setDriverName] = useState<string>("");
+  const [driverService, setDriverService] = useState<"vtc" | "bus">("bus");
 
   const driverPos = useDriverPosition(trip?.driver_id ?? null);
   const fromPoint =
@@ -82,6 +83,13 @@ function TripTrackingPage() {
           .eq("user_id", data.driver_id)
           .maybeSingle();
         if (mounted && profile) setDriverName(profile.full_name);
+        // Detecte la catégorie : présence dans la table VTC `drivers` → VTC, sinon bus
+        const { data: vtcRow } = await supabase
+          .from("drivers")
+          .select("user_id")
+          .eq("user_id", data.driver_id)
+          .maybeSingle();
+        if (mounted) setDriverService(vtcRow ? "vtc" : "bus");
       }
       setLoading(false);
     };
@@ -144,6 +152,8 @@ function TripTrackingPage() {
       lng: Number(driverPos.longitude),
       type: "driver",
       label: driverName || "Chauffeur",
+      service: driverService,
+      heading: driverPos.heading,
     });
   }
 
