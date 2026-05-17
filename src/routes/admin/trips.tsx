@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { UserCheck, MapPin, Loader2, Truck } from "lucide-react";
+import { DRIVER_SERVICE_LIST, requiresDriver } from "@/lib/service-routing";
 
 export const Route = createFileRoute("/admin/trips")({
   head: () => ({ meta: [{ title: "Courses GPS — Admin" }] }),
@@ -74,12 +75,23 @@ function AdminTripsPage() {
   const load = async () => {
     setLoading(true);
     const [{ data: resData }, { data: tripData }, { data: driverRoles }] = await Promise.all([
-      supabase.from("reservations").select("*").eq("status", "CONFIRMED").is("archived_at", null).order("reservation_date"),
-      supabase.from("trips").select("*").is("archived_at", null).order("created_at", { ascending: false }),
+      supabase
+        .from("reservations")
+        .select("*")
+        .eq("status", "CONFIRMED")
+        .in("service_type", DRIVER_SERVICE_LIST)
+        .is("archived_at", null)
+        .order("reservation_date"),
+      supabase
+        .from("trips")
+        .select("*, reservations!inner(service_type)")
+        .in("reservations.service_type", DRIVER_SERVICE_LIST)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "chauffeur"),
     ]);
 
-    const reservationsList = (resData as Reservation[]) || [];
+    const reservationsList = ((resData as Reservation[]) || []).filter((r) => requiresDriver(r.service_type));
     setReservations(reservationsList);
     setTrips((tripData as Trip[]) || []);
 

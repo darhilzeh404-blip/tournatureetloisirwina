@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { canAssignTrip, requiresDriver, requiresGerant } from "@/lib/service-routing";
 
 export const Route = createFileRoute("/admin/reservations")({
   component: AdminReservations,
@@ -74,6 +75,8 @@ const SERVICE_LABELS: Record<string, string> = {
   LOCATION_BUS: "Location Bus",
   CIRCUIT_TOURISTIQUE: "Circuit",
   VTC: "VTC / Transfert",
+  BILLET: "Billet",
+  ACTIVITE: "Activité",
 };
 
 function formatXAF(n: number) {
@@ -485,7 +488,7 @@ function AdminReservations() {
                       const driver = trip?.driver_id ? drivers.find((d) => d.user_id === trip.driver_id) : null;
                       const gerant = trip?.gerant_id ? gerants.find((g) => g.user_id === trip.gerant_id) : null;
                       const payment = payments.get(r.id);
-                      const canAssign = r.paiement_valide && r.status === "CONFIRMED";
+                      const canAssign = r.paiement_valide && r.status === "CONFIRMED" && canAssignTrip(r.service_type);
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
                           <td className="p-4 font-medium text-xs">{r.id.slice(0, 8)}…</td>
@@ -842,23 +845,33 @@ function AssignDialog({
   onClose: () => void;
   onAssigned: () => void;
 }) {
+  const showDriver = requiresDriver(reservation.service_type);
+  const showGerant = requiresGerant(reservation.service_type);
   const [driverId, setDriverId] = useState(existingTrip?.driver_id ?? "");
   const [gerantId, setGerantId] = useState(existingTrip?.gerant_id ?? "");
   const [saving, setSaving] = useState(false);
 
   const handleAssign = async () => {
-    if (!driverId && !gerantId) {
-      toast.error("Sélectionnez au moins un chauffeur ou un gérant.");
+    if (showDriver && !driverId) {
+      toast.error("Sélectionnez un chauffeur.");
+      return;
+    }
+    if (showGerant && !gerantId) {
+      toast.error("Sélectionnez un gérant.");
       return;
     }
     setSaving(true);
     try {
+      // Strict routing: only set the field that belongs to this service type.
+      const driverValue = showDriver ? driverId || null : null;
+      const gerantValue = showGerant ? gerantId || null : null;
+
       if (existingTrip) {
         const { error } = await supabase
           .from("trips")
           .update({
-            driver_id: driverId || null,
-            gerant_id: gerantId || null,
+            driver_id: driverValue,
+            gerant_id: gerantValue,
             status: "assigned",
           })
           .eq("id", existingTrip.id);
@@ -870,16 +883,16 @@ function AssignDialog({
         const { error } = await supabase.from("trips").insert({
           reservation_id: reservation.id,
           client_id: reservation.user_id,
-          driver_id: driverId || null,
-          gerant_id: gerantId || null,
+          driver_id: driverValue,
+          gerant_id: gerantValue,
           status: "assigned",
           origin_address: origin,
           destination_address: destination,
         });
         if (error) throw error;
       }
-      console.log(`[ADMIN ASSIGN] Assigné à ${driverId || "—"} (chauffeur) / ${gerantId || "—"} (gérant) pour résa ${reservation.id}`);
-      toast.success("Assignation enregistrée. Notification temps réel envoyée.");
+      console.log(`[ADMIN ASSIGN] ${reservation.service_type} → driver=${driverValue ?? "—"} / gerant=${gerantValue ?? "—"} pour résa ${reservation.id}`);
+      toast.success("Assignation enregistrée.");
       onAssigned();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erreur d'assignation.";
@@ -896,7 +909,7 @@ function AssignDialog({
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold flex items-center gap-2">
             <MapPin className="h-5 w-5 text-primary" />
-            Assigner la course
+            {showDriver ? "Assigner la course" : "Assigner le gérant"}
           </h2>
           <button onClick={onClose} className="rounded-md p-1 hover:bg-secondary"><X className="h-4 w-4" /></button>
         </div>
@@ -909,40 +922,52 @@ function AssignDialog({
         </div>
 
         <div className="mt-4 space-y-3">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Chauffeur</label>
-            <select
-              value={driverId}
-              onChange={(e) => setDriverId(e.target.value)}
-              className="w-full rounded-lg border bg-card px-3 py-2 text-sm"
-            >
-              <option value="">— Aucun —</option>
-              {drivers.map((d) => (
-                <option key={d.user_id} value={d.user_id}>{d.full_name}</option>
-              ))}
-            </select>
-          </div>
+          {showDriver && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Chauffeur</label>
+              <select
+                value={driverId}
+                onChange={(e) => setDriverId(e.target.value)}
+                className="w-full rounded-lg border bg-card px-3 py-2 text-sm"
+              >
+                <option value="">— Choisir —</option>
+                {drivers.map((d) => (
+                  <option key={d.user_id} value={d.user_id}>{d.full_name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
-          <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Gérant</label>
-            <select
-              value={gerantId}
-              onChange={(e) => setGerantId(e.target.value)}
-              className="w-full rounded-lg border bg-card px-3 py-2 text-sm"
-            >
-              <option value="">— Aucun —</option>
-              {gerants.map((g) => (
-                <option key={g.user_id} value={g.user_id}>{g.full_name}</option>
-              ))}
-            </select>
-          </div>
+          {showGerant && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Gérant</label>
+              <select
+                value={gerantId}
+                onChange={(e) => setGerantId(e.target.value)}
+                className="w-full rounded-lg border bg-card px-3 py-2 text-sm"
+              >
+                <option value="">— Choisir —</option>
+                {gerants.map((g) => (
+                  <option key={g.user_id} value={g.user_id}>{g.full_name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {!showDriver && !showGerant && (
+            <p className="text-sm text-muted-foreground italic">
+              Ce service ne requiert pas d'assignation. La réservation reste dans son module d'origine après validation du paiement.
+            </p>
+          )}
         </div>
 
         <div className="mt-5 flex gap-2 justify-end">
           <Button variant="outline" onClick={onClose} disabled={saving}>Annuler</Button>
-          <Button onClick={handleAssign} disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmer l'assignation"}
-          </Button>
+          {(showDriver || showGerant) && (
+            <Button onClick={handleAssign} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmer l'assignation"}
+            </Button>
+          )}
         </div>
       </div>
     </div>
