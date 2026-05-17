@@ -69,7 +69,7 @@ function summarize(details: Record<string, unknown> | null, type: ServiceType): 
     }
     if (d.flow === "vtc_group") {
       const pickupLbl = (d.pickup as any)?.label ?? "Départ";
-      const dests = (d.destinations as any[] | undefined)?.map((s) => s?.label).filter(Boolean) ?? [];
+      const dests = ((d.destinations as unknown) as any[] | undefined)?.map((s) => s?.label).filter(Boolean) ?? [];
       const pax = d.passengers ? ` · ${d.passengers} pers.` : "";
       return `Course de groupe — ${pickupLbl} → ${dests.join(" → ") || "Destination"}${pax}`;
     }
