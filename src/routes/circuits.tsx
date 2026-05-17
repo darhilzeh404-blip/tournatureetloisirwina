@@ -185,3 +185,88 @@ function nextMorningAtEight() {
 function isInteractiveTarget(target: EventTarget | null) {
   return target instanceof HTMLElement && Boolean(target.closest("a, button, input, select, textarea"));
 }
+
+function CircuitCard({
+  title,
+  description,
+  price,
+  image,
+  slug,
+  vtcHref,
+  onReserve,
+  onOpen,
+}: {
+  title: string;
+  description?: string;
+  price: number;
+  image: string;
+  slug: string;
+  vtcHref: string;
+  onReserve: () => void;
+  onOpen: () => void;
+}) {
+  return (
+    <article
+      role="link"
+      tabIndex={0}
+      aria-label={`Naviguer vers le circuit ${title}`}
+      onClick={(event) => {
+        if (isInteractiveTarget(event.target)) return;
+        onOpen();
+      }}
+      onKeyDown={(event) => {
+        if (isInteractiveTarget(event.target)) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen();
+        }
+      }}
+      className="group card-hover cursor-pointer overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-fade-in"
+    >
+      <div className="relative h-32 w-full overflow-hidden sm:h-36 lg:h-44">
+        <img
+          src={image}
+          alt={title}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+        <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between gap-2 text-white">
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-bold leading-tight drop-shadow-md sm:text-base">{title}</h3>
+            <p className="text-[10px] font-medium opacity-90">À partir de {formatFCFA(price)}</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white/95 p-1.5 text-primary shadow-md backdrop-blur">
+            <Navigation className="h-3.5 w-3.5" />
+          </span>
+        </div>
+      </div>
+      <div className="p-3 sm:p-4">
+        {description && <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{description}</p>}
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onReserve}
+            className="inline-flex items-center justify-center gap-1 rounded-[var(--radius-control)] bg-primary px-3 py-2 text-xs font-bold text-primary-foreground shadow-[var(--shadow-card)] hover:brightness-110"
+          >
+            Réserver <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+          <a
+            href={vtcHref}
+            className="inline-flex items-center justify-center gap-1 rounded-[var(--radius-control)] border border-primary/30 bg-primary/5 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/10"
+          >
+            <CarFront className="h-3.5 w-3.5" /> VTC
+          </a>
+        </div>
+        <Link
+          to="/circuits/suivi/$slug"
+          params={{ slug }}
+          aria-label={`Naviguer vers le circuit ${title}`}
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-control)] border bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-secondary"
+        >
+          <MapPin className="h-3.5 w-3.5 text-primary" /> Itinéraire sur la carte
+        </Link>
+      </div>
+    </article>
+  );
+}
