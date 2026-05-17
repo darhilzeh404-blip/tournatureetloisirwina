@@ -301,6 +301,56 @@ function CourseFlow() {
   const [passengers, setPassengers] = useState(1);
   const [model, setModel] = useState(CATEGORIES[0].models[0]);
   const [loading, setLoading] = useState(false);
+  const [availableDrivers, setAvailableDrivers] = useState<AvailableDriver[]>([]);
+
+  // Charger les chauffeurs VTC disponibles autour du client dès qu'un départ est défini
+  useEffect(() => {
+    if (!pickup) { setAvailableDrivers([]); return; }
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const { data: drs } = await supabase.from("drivers").select("user_id");
+        const ids = (drs ?? []).map((d) => d.user_id).filter(Boolean);
+        if (ids.length === 0) { if (!cancelled) setAvailableDrivers([]); return; }
+        const { data: pos } = await supabase
+          .from("driver_positions")
+          .select("driver_id, latitude, longitude, heading")
+          .in("driver_id", ids)
+          .is("archived_at", null);
+        if (cancelled) return;
+        setAvailableDrivers(
+          (pos ?? []).map((p) => ({
+            id: p.driver_id as string,
+            lat: Number(p.latitude),
+            lng: Number(p.longitude),
+            heading: p.heading != null ? Number(p.heading) : null,
+          })),
+        );
+      } catch { /* silencieux */ }
+    };
+    load();
+    const t = window.setInterval(load, 15000);
+    return () => { cancelled = true; window.clearInterval(t); };
+  }, [pickup]);
+
+  // Chauffeur le plus proche + ETA estimé
+  const nearest = useMemo(() => {
+    if (!pickup || availableDrivers.length === 0) return null;
+    const R = 6371;
+    const toRad = (x: number) => (x * Math.PI) / 180;
+    let best: { id: string; km: number } | null = null;
+    for (const d of availableDrivers) {
+      const dLat = toRad(d.lat - pickup.lat);
+      const dLng = toRad(d.lng - pickup.lng);
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(pickup.lat)) * Math.cos(toRad(d.lat)) * Math.sin(dLng / 2) ** 2;
+      const km = 2 * R * Math.asin(Math.sqrt(a));
+      if (!best || km < best.km) best = { id: d.id, km };
+    }
+    return best ? { ...best, etaMin: Math.max(1, Math.round((best.km / 30) * 60)) } : null;
+  }, [pickup, availableDrivers]);
+
+  const destOutOfZone = !!destination && fare.zoneTo === null;
 
   useEffect(() => {
     const list = CATEGORIES.find((c) => c.id === category)!.models;
