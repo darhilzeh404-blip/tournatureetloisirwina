@@ -223,13 +223,12 @@ function CircuitGpsPage() {
             </div>
           </div>
           {modeId === "vtc" ? (
-            <Link
-              to="/vtc"
-              search={{ destination: destination.name } as never}
+            <a
+              href={`/vtc?destination=${encodeURIComponent(destination.name)}`}
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-premium)] hover:brightness-110"
             >
               <Play className="h-4 w-4 fill-current" /> Démarrer la course VTC
-            </Link>
+            </a>
           ) : (
             <a
               href={navigationHttpsUrl}
