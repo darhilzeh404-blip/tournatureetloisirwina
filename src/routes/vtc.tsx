@@ -302,22 +302,37 @@ function CourseFlow() {
   const [model, setModel] = useState(CATEGORIES[0].models[0]);
   const [loading, setLoading] = useState(false);
   const [availableDrivers, setAvailableDrivers] = useState<AvailableDriver[]>([]);
+  type DriverInfo = { full_name: string | null; vehicle_type: string | null; license_plate: string | null };
+  const [driverInfos, setDriverInfos] = useState<Record<string, DriverInfo>>({});
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
 
   // Charger les chauffeurs VTC disponibles autour du client dès qu'un départ est défini
   useEffect(() => {
-    if (!pickup) { setAvailableDrivers([]); return; }
+    if (!pickup) { setAvailableDrivers([]); setDriverInfos({}); return; }
     let cancelled = false;
     const load = async () => {
       try {
-        const { data: drs } = await supabase.from("drivers").select("user_id");
-        const ids = (drs ?? []).map((d) => d.user_id).filter(Boolean);
-        if (ids.length === 0) { if (!cancelled) setAvailableDrivers([]); return; }
+        const { data: drs } = await supabase
+          .from("drivers")
+          .select("user_id, full_name, vehicle_type, license_plate");
+        const rows = drs ?? [];
+        const ids = rows.map((d) => d.user_id).filter(Boolean) as string[];
+        if (ids.length === 0) { if (!cancelled) { setAvailableDrivers([]); setDriverInfos({}); } return; }
+        const infos: Record<string, DriverInfo> = {};
+        rows.forEach((d) => {
+          infos[d.user_id as string] = {
+            full_name: d.full_name ?? null,
+            vehicle_type: d.vehicle_type ?? null,
+            license_plate: d.license_plate ?? null,
+          };
+        });
         const { data: pos } = await supabase
           .from("driver_positions")
           .select("driver_id, latitude, longitude, heading")
           .in("driver_id", ids)
           .is("archived_at", null);
         if (cancelled) return;
+        setDriverInfos(infos);
         setAvailableDrivers(
           (pos ?? []).map((p) => ({
             id: p.driver_id as string,
@@ -333,38 +348,27 @@ function CourseFlow() {
     return () => { cancelled = true; window.clearInterval(t); };
   }, [pickup]);
 
-  // Chauffeur le plus proche + ETA estimé
-  const nearest = useMemo(() => {
-    if (!pickup || availableDrivers.length === 0) return null;
+  // Distance haversine pour chaque chauffeur, triés du plus proche au plus loin
+  const driversWithDistance = useMemo(() => {
+    if (!pickup) return [] as Array<AvailableDriver & { km: number; etaMin: number }>;
     const R = 6371;
     const toRad = (x: number) => (x * Math.PI) / 180;
-    let best: { id: string; km: number } | null = null;
-    for (const d of availableDrivers) {
-      const dLat = toRad(d.lat - pickup.lat);
-      const dLng = toRad(d.lng - pickup.lng);
-      const a = Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(pickup.lat)) * Math.cos(toRad(d.lat)) * Math.sin(dLng / 2) ** 2;
-      const km = 2 * R * Math.asin(Math.sqrt(a));
-      if (!best || km < best.km) best = { id: d.id, km };
-    }
-    return best ? { ...best, etaMin: Math.max(1, Math.round((best.km / 30) * 60)) } : null;
+    return availableDrivers
+      .map((d) => {
+        const dLat = toRad(d.lat - pickup.lat);
+        const dLng = toRad(d.lng - pickup.lng);
+        const a = Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(pickup.lat)) * Math.cos(toRad(d.lat)) * Math.sin(dLng / 2) ** 2;
+        const km = 2 * R * Math.asin(Math.sqrt(a));
+        return { ...d, km, etaMin: Math.max(1, Math.round((km / 30) * 60)) };
+      })
+      .sort((a, b) => a.km - b.km);
   }, [pickup, availableDrivers]);
-  // Charger les infos du chauffeur le plus proche (type véhicule, plaque, nom)
-  type NearestDriverInfo = { full_name: string | null; vehicle_type: string | null; license_plate: string | null };
-  const [nearestDriver, setNearestDriver] = useState<NearestDriverInfo | null>(null);
-  useEffect(() => {
-    if (!nearest?.id) { setNearestDriver(null); return; }
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("drivers")
-        .select("full_name, vehicle_type, license_plate")
-        .eq("user_id", nearest.id)
-        .maybeSingle();
-      if (!cancelled) setNearestDriver((data as NearestDriverInfo) ?? null);
-    })();
-    return () => { cancelled = true; };
-  }, [nearest?.id]);
+
+  const nearest = driversWithDistance[0] ?? null;
+  const focusedId = selectedDriverId ?? nearest?.id ?? null;
+  const focusedDriver = focusedId ? driversWithDistance.find((d) => d.id === focusedId) ?? null : null;
+  const nearestDriver = focusedId ? driverInfos[focusedId] ?? null : null;
 
   useEffect(() => {
     const list = CATEGORIES.find((c) => c.id === category)!.models;
