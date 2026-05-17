@@ -910,7 +910,7 @@ function MariageFlow() {
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Total mariage</p>
             <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
-              {WEDDING_FARES[vehicle].label} · {duration === "h12" ? "12h" : "24h"} · acompte 50 %
+              {WEDDING_FARES[vehicle].label} · {duration === "h12" ? "12h" : "24h"} · paiement total
             </p>
           </div>
           <p className="text-2xl font-extrabold text-primary">{formatXAF(total)}</p>
@@ -920,7 +920,7 @@ function MariageFlow() {
       <StickyContinue
         loading={loading}
         disabled={!wizard.allConfirmed}
-        label={wizard.allConfirmed ? "Continuer · Payer 50 %" : "Confirmez toutes les étapes"}
+        label={wizard.allConfirmed ? "Continuer · Payer le total" : "Confirmez toutes les étapes"}
         onClick={submit}
         icon={<Heart className="h-4 w-4" />}
       />
