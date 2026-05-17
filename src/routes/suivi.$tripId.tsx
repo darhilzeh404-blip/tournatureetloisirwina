@@ -152,6 +152,8 @@ function TripTrackingPage() {
       lng: Number(driverPos.longitude),
       type: "driver",
       label: driverName || "Chauffeur",
+      service: driverService,
+      heading: driverPos.heading,
     });
   }
 
