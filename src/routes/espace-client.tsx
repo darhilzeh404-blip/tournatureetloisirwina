@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bus, Palmtree, ArrowRight, MapPin, Navigation } from "lucide-react";
+import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Tag, Headphones } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -133,6 +133,45 @@ function EspaceClient() {
           </motion.div>
         </motion.div>
       </section>
+
+      {/* Dashboard Nos Services */}
+      <motion.section
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={stagger}
+        className="px-5 pt-8"
+      >
+        <motion.div variants={fadeUp} className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">Nos services</h2>
+          <span className="text-[11px] font-medium text-muted-foreground">Accès rapide</span>
+        </motion.div>
+        <motion.div variants={stagger} className="mt-4 grid grid-cols-3 gap-3">
+          {[
+            { to: "/reserver-transport", label: "Transport", desc: "Bus & trajets", Icon: Bus, tint: "from-primary/20 to-primary/5", iconColor: "text-primary" },
+            { to: "/activites", label: "Activités", desc: "Explorer", Icon: Palmtree, tint: "from-accent/25 to-accent/5", iconColor: "text-accent-foreground" },
+            { to: "/vtc", label: "VTC", desc: "Course privée", Icon: CarFront, tint: "from-primary/15 to-accent/10", iconColor: "text-primary" },
+            { to: "/billets", label: "Billets", desc: "Événements", Icon: Ticket, tint: "from-accent/20 to-primary/10", iconColor: "text-accent-foreground" },
+            { to: "/promos", label: "Promos", desc: "Offres", Icon: Tag, tint: "from-primary/15 to-primary/5", iconColor: "text-primary" },
+            { to: "/support", label: "Support", desc: "24/7", Icon: Headphones, tint: "from-accent/15 to-accent/5", iconColor: "text-accent-foreground" },
+          ].map((srv) => (
+            <motion.div key={srv.to} variants={fadeUp} whileHover={{ y: -4, scale: 1.03 }} whileTap={{ scale: 0.96 }}>
+              <Link
+                to={srv.to}
+                className={`relative flex h-full flex-col items-start gap-2 overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${srv.tint} p-3 shadow-sm backdrop-blur-md transition-shadow hover:shadow-lg`}
+              >
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-background/70 ${srv.iconColor} shadow-sm`}>
+                  <srv.Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold leading-tight">{srv.label}</div>
+                  <div className="text-[10px] text-muted-foreground">{srv.desc}</div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.section>
 
       {/* Popular destinations */}
       <motion.section

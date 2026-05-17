@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Compass, Bus, ArrowRight, Sparkles, CarFront, Palmtree, Ticket, Tag, Headphones } from "lucide-react";
+import { Compass, Bus, ArrowRight, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
@@ -130,35 +130,26 @@ function HomePage() {
             </Link>
           </motion.div>
 
-          {/* Services rapides */}
+          {/* Avantages plateforme */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="mt-5 w-full max-w-md"
+            className="mt-8 grid w-full max-w-md grid-cols-3 gap-2"
           >
-            <p className="mb-2 text-left text-[11px] font-semibold uppercase tracking-wider text-primary-foreground/70">
-              Nos services
-            </p>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-              {[
-                { to: "/transport-public", label: "Transport", Icon: Bus },
-                { to: "/activites", label: "Activités", Icon: Palmtree },
-                { to: "/vtc", label: "VTC", Icon: CarFront },
-                { to: "/billets", label: "Billets", Icon: Ticket },
-                { to: "/promos", label: "Promos", Icon: Tag },
-                { to: "/support", label: "Support", Icon: Headphones },
-              ].map(({ to, label, Icon }) => (
-                <Link
-                  key={to}
-                  to={to}
-                  className="flex flex-col items-center gap-1.5 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 px-2 py-3 text-primary-foreground backdrop-blur-md transition-all hover:scale-105 hover:bg-primary-foreground/20"
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-[11px] font-semibold leading-tight">{label}</span>
-                </Link>
-              ))}
-            </div>
+            {[
+              { label: "Réservation rapide", desc: "En 1 clic" },
+              { label: "Paiement sécurisé", desc: "Mobile money" },
+              { label: "Support 24/7", desc: "À votre écoute" },
+            ].map((adv) => (
+              <div
+                key={adv.label}
+                className="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 px-2 py-3 text-center text-primary-foreground backdrop-blur-md"
+              >
+                <div className="text-[11px] font-bold leading-tight">{adv.label}</div>
+                <div className="mt-1 text-[10px] opacity-75">{adv.desc}</div>
+              </div>
+            ))}
           </motion.div>
         </section>
 
