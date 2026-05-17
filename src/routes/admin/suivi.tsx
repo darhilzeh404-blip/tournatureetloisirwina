@@ -26,6 +26,7 @@ function AdminTrackingPage() {
   const positions = useAllDriverPositions();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [vtcDriverIds, setVtcDriverIds] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState("");
   const [selectedDriver, setSelectedDriver] = useState<string | null>(null);
 
