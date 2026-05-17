@@ -66,13 +66,17 @@ const stagger = {
 
 function EspaceClient() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
   const [target, setTarget] = useState<BookingTarget | null>(null);
 
   const openCircuitNavigation = (slug: string) => {
     navigate({ to: "/circuits/suivi/$slug", params: { slug } });
   };
+
+  if (isLoading || !isAuthenticated) {
+    return <EspaceClientSkeleton />;
+  }
 
   return (
     <div className="pb-20">
