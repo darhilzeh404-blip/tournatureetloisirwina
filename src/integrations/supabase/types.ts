@@ -544,6 +544,45 @@ export type Database = {
         }
         Relationships: []
       }
+      tickets: {
+        Row: {
+          conditions: string
+          created_at: string
+          description: string
+          id: string
+          images: string[]
+          is_active: boolean
+          price: number
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          conditions?: string
+          created_at?: string
+          description?: string
+          id?: string
+          images?: string[]
+          is_active?: boolean
+          price?: number
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          conditions?: string
+          created_at?: string
+          description?: string
+          id?: string
+          images?: string[]
+          is_active?: boolean
+          price?: number
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transport_activities: {
         Row: {
           created_at: string
@@ -940,6 +979,33 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_types: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }

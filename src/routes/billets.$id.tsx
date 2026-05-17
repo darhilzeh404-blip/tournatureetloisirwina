@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Calendar, MapPin, Minus, Plus, Loader2, ShieldCheck } from "lucide-react";
-import { useMemo, useState } from "react";
-import { getTicket } from "@/lib/tickets-catalog";
+import { ArrowLeft, Minus, Plus, Loader2, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,21 +17,49 @@ export const Route = createFileRoute("/billets/$id")({
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
 
+type DbTicket = {
+  id: string;
+  title: string;
+  price: number;
+  description: string;
+  conditions: string;
+  images: string[];
+  is_active: boolean;
+};
+
 function BilletDetailPage() {
   const { id } = Route.useParams();
-  const ticket = getTicket(id);
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [ticket, setTicket] = useState<DbTicket | null>(null);
+  const [loadingTicket, setLoadingTicket] = useState(true);
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
+
+  useEffect(() => {
+    supabase
+      .from("tickets" as any)
+      .select("*")
+      .eq("id", id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setTicket((data as any) ?? null);
+        setLoadingTicket(false);
+      });
+  }, [id]);
 
   const total = useMemo(() => (ticket?.price ?? 0) * qty, [ticket, qty]);
 
-  if (!ticket) {
+  if (loadingTicket) {
+    return <main className="min-h-screen bg-background"><p className="p-10 text-center text-sm text-muted-foreground">Chargement…</p></main>;
+  }
+
+  if (!ticket || !ticket.is_active) {
     return (
       <main className="min-h-screen bg-background">
         <div className="mx-auto max-w-2xl px-5 py-12 text-center">
-          <p className="text-sm text-muted-foreground">Billet introuvable.</p>
+          <p className="text-sm text-muted-foreground">Billet introuvable ou indisponible.</p>
           <Link to="/billets" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
             <ArrowLeft className="h-4 w-4" /> Retour aux billets
           </Link>
@@ -57,11 +84,8 @@ function BilletDetailPage() {
         paid_amount: 0,
         details: {
           ticket_id: ticket.id,
-          ticket_kind: ticket.kind,
           title: ticket.title,
           description: ticket.description,
-          date: ticket.date,
-          location: ticket.location,
           unit_price: ticket.price,
           quantity: qty,
           quote: [{ label: `${ticket.title} × ${qty}`, amount: total }],
@@ -77,6 +101,8 @@ function BilletDetailPage() {
     }
   };
 
+  const images = ticket.images ?? [];
+
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl px-5 py-8">
@@ -84,21 +110,43 @@ function BilletDetailPage() {
           <ArrowLeft className="h-4 w-4" /> Tous les billets
         </Link>
 
-        <div className="mt-6 rounded-3xl border bg-card p-5 shadow-sm">
-          <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {ticket.kind === "transport" ? "Transport" : "Événement"}
-          </span>
-          <h1 className="mt-2 text-xl font-bold">{ticket.title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{ticket.description}</p>
-          <div className="mt-4 space-y-1.5 text-xs text-muted-foreground">
-            {ticket.date && <div className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{ticket.date}</div>}
-            {ticket.location && <div className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{ticket.location}</div>}
+        {images.length > 0 && (
+          <div className="mt-6 overflow-hidden rounded-3xl border bg-muted">
+            <img src={images[activeImage]} alt={ticket.title} className="h-64 w-full object-cover sm:h-80" />
+            {images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto p-3">
+                {images.map((url, i) => (
+                  <button
+                    key={url}
+                    type="button"
+                    onClick={() => setActiveImage(i)}
+                    className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 ${i === activeImage ? "border-primary" : "border-transparent"}`}
+                  >
+                    <img src={url} alt="" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+        )}
+
+        <div className="mt-5 rounded-3xl border bg-card p-5 shadow-sm">
+          <h1 className="text-xl font-bold">{ticket.title}</h1>
+          {ticket.description && (
+            <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{ticket.description}</p>
+          )}
           <div className="mt-4 flex items-baseline justify-between border-t pt-4">
             <span className="text-xs text-muted-foreground">Prix unitaire</span>
             <span className="text-lg font-extrabold text-primary">{fmt(ticket.price)}</span>
           </div>
         </div>
+
+        {ticket.conditions && (
+          <div className="mt-5 rounded-3xl border bg-card p-5 shadow-sm">
+            <h2 className="text-sm font-bold">Conditions</h2>
+            <p className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">{ticket.conditions}</p>
+          </div>
+        )}
 
         <div className="mt-5 rounded-3xl border bg-card p-5 shadow-sm">
           <h2 className="text-sm font-bold">Quantité</h2>

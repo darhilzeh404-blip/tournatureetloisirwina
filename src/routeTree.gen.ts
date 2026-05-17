@@ -38,6 +38,7 @@ import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
 import { Route as BilletsIdRouteImport } from './routes/billets.$id'
 import { Route as AnnoncesIdRouteImport } from './routes/annonces.$id'
 import { Route as AdminVtcChauffeursRouteImport } from './routes/admin/vtc-chauffeurs'
+import { Route as AdminVehiculeTypesRouteImport } from './routes/admin/vehicule-types'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
 import { Route as AdminTripsRouteImport } from './routes/admin/trips'
 import { Route as AdminTransportRouteImport } from './routes/admin/transport'
@@ -49,6 +50,7 @@ import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-reservations'
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
+import { Route as AdminBilletsRouteImport } from './routes/admin/billets'
 import { Route as AdminAnnoncesRouteImport } from './routes/admin/annonces'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
@@ -200,6 +202,11 @@ const AdminVtcChauffeursRoute = AdminVtcChauffeursRouteImport.update({
   path: '/vtc-chauffeurs',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminVehiculeTypesRoute = AdminVehiculeTypesRouteImport.update({
+  id: '/vehicule-types',
+  path: '/vehicule-types',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminUtilisateursRoute = AdminUtilisateursRouteImport.update({
   id: '/utilisateurs',
   path: '/utilisateurs',
@@ -255,6 +262,11 @@ const AdminBusRoute = AdminBusRouteImport.update({
   path: '/bus',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBilletsRoute = AdminBilletsRouteImport.update({
+  id: '/billets',
+  path: '/billets',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAnnoncesRoute = AdminAnnoncesRouteImport.update({
   id: '/annonces',
   path: '/annonces',
@@ -305,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
   '/admin/annonces': typeof AdminAnnoncesRoute
+  '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -316,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
+  '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
@@ -351,6 +365,7 @@ export interface FileRoutesByTo {
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
   '/admin/annonces': typeof AdminAnnoncesRoute
+  '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -362,6 +377,7 @@ export interface FileRoutesByTo {
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
+  '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
@@ -399,6 +415,7 @@ export interface FileRoutesById {
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
   '/admin/annonces': typeof AdminAnnoncesRoute
+  '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
@@ -410,6 +427,7 @@ export interface FileRoutesById {
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
+  '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
@@ -448,6 +466,7 @@ export interface FileRouteTypes {
     | '/transport-scolaire'
     | '/vtc'
     | '/admin/annonces'
+    | '/admin/billets'
     | '/admin/bus'
     | '/admin/bus-reservations'
     | '/admin/circuits'
@@ -459,6 +478,7 @@ export interface FileRouteTypes {
     | '/admin/transport'
     | '/admin/trips'
     | '/admin/utilisateurs'
+    | '/admin/vehicule-types'
     | '/admin/vtc-chauffeurs'
     | '/annonces/$id'
     | '/billets/$id'
@@ -494,6 +514,7 @@ export interface FileRouteTypes {
     | '/transport-scolaire'
     | '/vtc'
     | '/admin/annonces'
+    | '/admin/billets'
     | '/admin/bus'
     | '/admin/bus-reservations'
     | '/admin/circuits'
@@ -505,6 +526,7 @@ export interface FileRouteTypes {
     | '/admin/transport'
     | '/admin/trips'
     | '/admin/utilisateurs'
+    | '/admin/vehicule-types'
     | '/admin/vtc-chauffeurs'
     | '/annonces/$id'
     | '/billets/$id'
@@ -541,6 +563,7 @@ export interface FileRouteTypes {
     | '/transport-scolaire'
     | '/vtc'
     | '/admin/annonces'
+    | '/admin/billets'
     | '/admin/bus'
     | '/admin/bus-reservations'
     | '/admin/circuits'
@@ -552,6 +575,7 @@ export interface FileRouteTypes {
     | '/admin/transport'
     | '/admin/trips'
     | '/admin/utilisateurs'
+    | '/admin/vehicule-types'
     | '/admin/vtc-chauffeurs'
     | '/annonces/$id'
     | '/billets/$id'
@@ -800,6 +824,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVtcChauffeursRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/vehicule-types': {
+      id: '/admin/vehicule-types'
+      path: '/vehicule-types'
+      fullPath: '/admin/vehicule-types'
+      preLoaderRoute: typeof AdminVehiculeTypesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/utilisateurs': {
       id: '/admin/utilisateurs'
       path: '/utilisateurs'
@@ -877,6 +908,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBusRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/billets': {
+      id: '/admin/billets'
+      path: '/billets'
+      fullPath: '/admin/billets'
+      preLoaderRoute: typeof AdminBilletsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/annonces': {
       id: '/admin/annonces'
       path: '/annonces'
@@ -917,6 +955,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAnnoncesRoute: typeof AdminAnnoncesRoute
+  AdminBilletsRoute: typeof AdminBilletsRoute
   AdminBusRoute: typeof AdminBusRoute
   AdminBusReservationsRoute: typeof AdminBusReservationsRoute
   AdminCircuitsRoute: typeof AdminCircuitsRoute
@@ -928,12 +967,14 @@ interface AdminRouteChildren {
   AdminTransportRoute: typeof AdminTransportRoute
   AdminTripsRoute: typeof AdminTripsRoute
   AdminUtilisateursRoute: typeof AdminUtilisateursRoute
+  AdminVehiculeTypesRoute: typeof AdminVehiculeTypesRoute
   AdminVtcChauffeursRoute: typeof AdminVtcChauffeursRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnnoncesRoute: AdminAnnoncesRoute,
+  AdminBilletsRoute: AdminBilletsRoute,
   AdminBusRoute: AdminBusRoute,
   AdminBusReservationsRoute: AdminBusReservationsRoute,
   AdminCircuitsRoute: AdminCircuitsRoute,
@@ -945,6 +986,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminTransportRoute: AdminTransportRoute,
   AdminTripsRoute: AdminTripsRoute,
   AdminUtilisateursRoute: AdminUtilisateursRoute,
+  AdminVehiculeTypesRoute: AdminVehiculeTypesRoute,
   AdminVtcChauffeursRoute: AdminVtcChauffeursRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
