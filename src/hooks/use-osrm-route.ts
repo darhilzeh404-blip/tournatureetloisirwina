@@ -87,7 +87,7 @@ export function useOsrmRoute(
       setError(null);
       try {
         const url =
-          `https://router.project-osrm.org/route/v1/driving/` +
+          `https://router.project-osrm.org/route/v1/${profile}/` +
           `${from.lng},${from.lat};${to.lng},${to.lat}` +
           `?overview=full&geometries=geojson&steps=true`;
 
