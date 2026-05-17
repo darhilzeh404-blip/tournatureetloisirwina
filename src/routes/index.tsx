@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Compass, Bus, ArrowRight, Sparkles, CarFront, Palmtree, Ticket, Tag, Headphones } from "lucide-react";
+import { Compass, Bus, ArrowRight, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
