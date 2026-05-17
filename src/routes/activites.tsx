@@ -49,18 +49,25 @@ function mapsUrl(place: string) {
   const q = encodeURIComponent(`${place || "Gabon"}, Gabon`);
   return isIOS() ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`;
 }
-function directionsUrl(place: string, from?: { lat: number; lng: number }) {
+type TravelMode = "driving" | "walking" | "transit";
+const TRAVEL_MODES: { value: TravelMode; label: string; icon: typeof Car }[] = [
+  { value: "driving", label: "Voiture", icon: Car },
+  { value: "walking", label: "Marche", icon: Footprints },
+  { value: "transit", label: "Transports", icon: Bus },
+];
+function directionsUrl(place: string, mode: TravelMode = "driving", from?: { lat: number; lng: number }) {
   const dest = encodeURIComponent(`${place || "Gabon"}, Gabon`);
   if (isIOS()) {
+    const dirflg = mode === "walking" ? "w" : mode === "transit" ? "r" : "d";
     const saddr = from ? `&saddr=${from.lat},${from.lng}` : "";
-    return `https://maps.apple.com/?daddr=${dest}${saddr}&dirflg=d`;
+    return `https://maps.apple.com/?daddr=${dest}${saddr}&dirflg=${dirflg}`;
   }
   const origin = from ? `&origin=${from.lat},${from.lng}` : "";
-  return `https://www.google.com/maps/dir/?api=1&destination=${dest}${origin}&travelmode=driving`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${dest}${origin}&travelmode=${mode}`;
 }
-function openDirectionsFromMe(place: string) {
+function openDirectionsFromMe(place: string, mode: TravelMode = "driving") {
   if (typeof navigator === "undefined" || !navigator.geolocation) {
-    window.open(directionsUrl(place), "_blank", "noopener");
+    window.open(directionsUrl(place, mode), "_blank", "noopener");
     return;
   }
   const loading = toast.loading("Localisation en cours…");
@@ -68,7 +75,7 @@ function openDirectionsFromMe(place: string) {
     (pos) => {
       toast.dismiss(loading);
       window.open(
-        directionsUrl(place, { lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        directionsUrl(place, mode, { lat: pos.coords.latitude, lng: pos.coords.longitude }),
         "_blank",
         "noopener"
       );
@@ -76,9 +83,46 @@ function openDirectionsFromMe(place: string) {
     () => {
       toast.dismiss(loading);
       toast.error("Position indisponible — itinéraire ouvert sans point de départ.");
-      window.open(directionsUrl(place), "_blank", "noopener");
+      window.open(directionsUrl(place, mode), "_blank", "noopener");
     },
     { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
+}
+
+function DirectionsMenu({
+  place, size = "md",
+}: { place: string; size?: "sm" | "md" }) {
+  const dim = size === "sm" ? "h-9 w-9" : "h-11 w-11";
+  const iconSize = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
+  const radius = size === "sm" ? "rounded-xl" : "rounded-2xl";
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label={`Itinéraire depuis ma position vers ${place}`}
+          title="Itinéraire depuis ma position"
+          className={`flex ${dim} items-center justify-center ${radius} border border-primary/30 bg-primary/10 text-primary transition-colors hover:bg-primary/15 active:scale-[0.96]`}
+        >
+          <LocateFixed className={iconSize} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          Mode de transport
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {TRAVEL_MODES.map(({ value, label, icon: Icon }) => (
+          <DropdownMenuItem
+            key={value}
+            onSelect={() => openDirectionsFromMe(place, value)}
+            className="gap-2 text-[13px] font-medium"
+          >
+            <Icon className="h-4 w-4 text-primary" /> {label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
