@@ -22,13 +22,37 @@ const pinIcon = (color: string, label: string) =>
 
 type Point = { lat: number; lng: number } | null;
 
+export type AvailableDriver = {
+  id: string;
+  lat: number;
+  lng: number;
+  heading?: number | null;
+};
+
 interface Props {
   pickup: Point;
   destination: Point;
   selecting: "pickup" | "destination" | null;
   onPick: (point: { lat: number; lng: number }, zone: ZoneId | null) => void;
   height?: string;
+  availableDrivers?: AvailableDriver[];
+  highlightDriverId?: string | null;
 }
+
+const carIcon = (heading: number | null, highlight: boolean) => {
+  const rotate = heading ?? 0;
+  const color = highlight ? "#0ea5e9" : "#1e293b";
+  return L.divIcon({
+    className: "vtc-car-marker",
+    html: `<div style="transform:rotate(${rotate}deg);transition:transform .6s ease;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35));${highlight ? "animation:winaPulse 1.6s ease-in-out infinite;" : ""}">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11h.5a1.5 1.5 0 0 1 1.5 1.5V17a1 1 0 0 1-1 1h-1.2a2 2 0 0 1-3.6 0H8.8a2 2 0 0 1-3.6 0H4a1 1 0 0 1-1-1v-4.5A1.5 1.5 0 0 1 4.5 11H5zm2.1 0h9.8l-1-3H8.1l-1 3z"/>
+      </svg>
+    </div>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
+  });
+};
 
 function ClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
   useMapEvents({
