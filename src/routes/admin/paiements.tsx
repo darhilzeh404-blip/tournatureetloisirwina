@@ -53,6 +53,8 @@ function AdminPaiements() {
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | PaymentStatus>("ALL");
+  const [serviceFilter, setServiceFilter] = useState<"ALL" | "BILLET" | "OTHER">("ALL");
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectComment, setRejectComment] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
