@@ -120,6 +120,27 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* Prevent horizontal overflow on all pages (mobile-safe) */
+    overflow-x: hidden;
+  }
+
+  /* Bottom safe-area when fixed ClientNav is mounted (mobile only) */
+  body.has-client-nav {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 768px) {
+    body.has-client-nav { padding-bottom: 0; }
+  }
+
+  /* Prevent long unbreakable strings (URLs, IDs) from causing horizontal scroll */
+  p, span, h1, h2, h3, h4, h5, h6, li, td, a, label {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Responsive media defaults — keep images inside their container */
+  img, video, svg, canvas, picture {
+    max-width: 100%;
   }
 
   /* Smoother default transitions for interactive elements */
