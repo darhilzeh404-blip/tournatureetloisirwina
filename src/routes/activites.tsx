@@ -37,6 +37,12 @@ function formatHours(h: number) {
 
 const FALLBACK_IMG = circuitsHero;
 
+function mapsUrl(place: string) {
+  const q = encodeURIComponent(`${place || "Gabon"}, Gabon`);
+  const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+  return isIOS ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`;
+}
+
 function ActivitesPage() {
   const navigate = useNavigate();
   const [activities, setActivities] = useState<Activity[]>([]);
