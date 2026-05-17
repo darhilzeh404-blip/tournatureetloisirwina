@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { canAssignTrip, requiresDriver, requiresGerant } from "@/lib/service-routing";
 
 export const Route = createFileRoute("/admin/reservations")({
   component: AdminReservations,
