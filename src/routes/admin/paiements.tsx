@@ -27,12 +27,22 @@ interface PaymentRow {
   created_at: string;
   client_name?: string;
   signed_receipt_url?: string | null;
+  service_type?: string | null;
+  service_summary?: string;
 }
 
 const STATUS_MAP: Record<PaymentStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   PENDING: { label: "En attente", variant: "outline" },
   VALIDATED: { label: "Validé", variant: "default" },
   REJECTED: { label: "Rejeté", variant: "destructive" },
+};
+
+const SERVICE_LABEL: Record<string, string> = {
+  TRANSPORT_SCOLAIRE: "Transport Scolaire",
+  LOCATION_BUS: "Location de Bus",
+  CIRCUIT_TOURISTIQUE: "Circuit Touristique",
+  VTC: "VTC",
+  BILLET: "Billet",
 };
 
 function formatXAF(n: number) {
