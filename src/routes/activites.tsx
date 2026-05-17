@@ -21,8 +21,19 @@ export const Route = createFileRoute("/activites")({
   component: ActivitesPage,
 });
 
-type Activity = { id: string; name: string; description: string; price: number; duration_hours: number };
-type Circuit = { id: string; slug: string; nom: string; description: string; base_price: number; image_url: string | null };
+type Activity = { id: string; name: string; description: string; price: number; duration_hours: number; location: string; rating: number };
+type Circuit = { id: string; slug: string; nom: string; description: string; base_price: number; image_url: string | null; duration_days: number; location: string; rating: number };
+
+function formatDuration(days: number) {
+  if (!days || days <= 0) return "Journée";
+  if (days === 1) return "1 jour";
+  return `${days} jours`;
+}
+function formatHours(h: number) {
+  if (!h || h <= 0) return null;
+  if (h < 1) return `${Math.round(h * 60)} min`;
+  return Number.isInteger(h) ? `${h}h` : `${h.toFixed(1)}h`;
+}
 
 const FALLBACK_IMG = circuitsHero;
 
@@ -45,10 +56,10 @@ function ActivitesPage() {
     (async () => {
       const [{ data: acts }, { data: circs }] = await Promise.all([
         supabase.from("transport_activities")
-          .select("id, name, description, price, duration_hours")
+          .select("id, name, description, price, duration_hours, location, rating")
           .eq("is_active", true).order("created_at", { ascending: false }),
         supabase.from("circuits")
-          .select("id, slug, nom, description, base_price, image_url")
+          .select("id, slug, nom, description, base_price, image_url, duration_days, location, rating")
           .eq("is_active", true).order("sort_order"),
       ]);
       if (!mounted) return;
@@ -222,9 +233,10 @@ function PopularCard({ circuit, index, onOpen }: { circuit: Circuit; index: numb
       </span>
       <div className="absolute inset-x-3 bottom-3 text-left">
         <p className="line-clamp-1 text-[14px] font-extrabold text-background drop-shadow">{circuit.nom}</p>
-        <p className="mt-0.5 flex items-center gap-1 text-[11px] text-background/85">
-          <MapPin className="h-3 w-3" /> Gabon
-        </p>
+        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-background/85">
+          <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {circuit.location || "Gabon"}</span>
+          <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> {Number(circuit.rating ?? 4.8).toFixed(1)}</span>
+        </div>
       </div>
     </motion.button>
   );
@@ -262,9 +274,9 @@ function ImmersiveCircuitCard({
             {circuit.nom}
           </h3>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-background/90">
-            <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> Gabon</span>
-            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> Journée</span>
-            <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> 4.8</span>
+            <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {circuit.location || "Gabon"}</span>
+            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {formatDuration(circuit.duration_days)}</span>
+            <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> {Number(circuit.rating ?? 4.8).toFixed(1)}</span>
           </div>
         </div>
       </div>
@@ -317,11 +329,13 @@ function ActivityTile({ activity, index, onBook }: { activity: Activity; index: 
       </div>
       <div className="p-3">
         <h3 className="line-clamp-1 text-[13.5px] font-bold">{activity.name}</h3>
-        {activity.duration_hours > 0 && (
-          <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-            <Clock className="h-3 w-3" /> {activity.duration_hours}h
-          </p>
-        )}
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+          {formatHours(activity.duration_hours) && (
+            <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {formatHours(activity.duration_hours)}</span>
+          )}
+          <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {activity.location || "Gabon"}</span>
+          <span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-current text-accent" /> {Number(activity.rating ?? 4.7).toFixed(1)}</span>
+        </div>
         <button
           type="button"
           onClick={onBook}

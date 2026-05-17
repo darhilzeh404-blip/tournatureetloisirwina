@@ -133,8 +133,10 @@ export type Database = {
           includes_guide: boolean
           includes_lodging: boolean
           is_active: boolean
+          location: string
           lodging_price: number
           nom: string
+          rating: number
           slug: string
           sort_order: number
           updated_at: string
@@ -150,8 +152,10 @@ export type Database = {
           includes_guide?: boolean
           includes_lodging?: boolean
           is_active?: boolean
+          location?: string
           lodging_price?: number
           nom: string
+          rating?: number
           slug: string
           sort_order?: number
           updated_at?: string
@@ -167,8 +171,10 @@ export type Database = {
           includes_guide?: boolean
           includes_lodging?: boolean
           is_active?: boolean
+          location?: string
           lodging_price?: number
           nom?: string
+          rating?: number
           slug?: string
           sort_order?: number
           updated_at?: string
@@ -545,8 +551,10 @@ export type Database = {
           duration_hours: number
           id: string
           is_active: boolean
+          location: string
           name: string
           price: number
+          rating: number
           updated_at: string
         }
         Insert: {
@@ -555,8 +563,10 @@ export type Database = {
           duration_hours?: number
           id?: string
           is_active?: boolean
+          location?: string
           name: string
           price?: number
+          rating?: number
           updated_at?: string
         }
         Update: {
@@ -565,8 +575,10 @@ export type Database = {
           duration_hours?: number
           id?: string
           is_active?: boolean
+          location?: string
           name?: string
           price?: number
+          rating?: number
           updated_at?: string
         }
         Relationships: []
