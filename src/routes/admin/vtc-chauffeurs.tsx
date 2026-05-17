@@ -344,7 +344,8 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
           </div>
           <Input placeholder="Nom complet" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800 text-zinc-100" />
           <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
-            {VEHICLE_TYPES.map((v) => <option key={v}>{v}</option>)}
+            {vehicleTypes.length === 0 && <option value="">Aucun type — ajoutez-en via "Types de véhicules"</option>}
+            {vehicleTypes.map((v) => <option key={v}>{v}</option>)}
           </select>
           <div>
             <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono text-zinc-100 ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
