@@ -227,7 +227,7 @@ function CircuitsPage() {
         )}
 
         <p className="mt-8 text-center text-sm text-muted-foreground">
-          Paiement de 50% requis à la réservation. Réservation min. 48h à l'avance.
+          Paiement total requis à la réservation. Réservation min. 48h à l'avance.
         </p>
       </section>
 

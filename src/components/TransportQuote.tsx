@@ -21,7 +21,7 @@ export function TransportQuote({ quote }: { quote: Quote }) {
         <span className="text-sm font-medium">Total estimé</span>
         <span className="text-2xl font-extrabold text-primary">{formatXAF(quote.total)}</span>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">Acompte de 50% requis à la réservation.</p>
+      <p className="mt-2 text-xs text-muted-foreground">Paiement total requis à la réservation.</p>
     </div>
   );
 }
