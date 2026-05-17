@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Ticket, Bus, PartyPopper, ArrowLeft } from "lucide-react";
+import { Ticket, Bus, PartyPopper, ArrowLeft, ArrowRight, MapPin, Calendar } from "lucide-react";
+import { TICKETS, type TicketKind } from "@/lib/tickets-catalog";
+import { useState } from "react";
 
 export const Route = createFileRoute("/billets")({
   head: () => ({
@@ -11,7 +13,12 @@ export const Route = createFileRoute("/billets")({
   component: BilletsPage,
 });
 
+const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
+
 function BilletsPage() {
+  const [tab, setTab] = useState<TicketKind | "all">("all");
+  const list = TICKETS.filter(t => tab === "all" || t.kind === tab);
+
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 py-8">
@@ -28,27 +35,59 @@ function BilletsPage() {
           </div>
         </header>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          <Link
-            to="/transport-public"
-            className="group rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Bus className="h-5 w-5" />
-            </div>
-            <h2 className="mt-3 text-base font-bold">Tickets de transport</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Bus & trajets planifiés au Gabon.</p>
-          </Link>
-          <Link
-            to="/activites"
-            className="group rounded-2xl border bg-card p-5 shadow-sm transition-all hover:shadow-md"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent-foreground">
-              <PartyPopper className="h-5 w-5" />
-            </div>
-            <h2 className="mt-3 text-base font-bold">Tickets d'événements</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Concerts, festivals, activités touristiques.</p>
-          </Link>
+        <div className="mt-6 inline-flex rounded-2xl border bg-card p-1">
+          {([
+            { k: "all", label: "Tous" },
+            { k: "transport", label: "Transport" },
+            { k: "event", label: "Événements" },
+          ] as const).map(o => (
+            <button
+              key={o.k}
+              onClick={() => setTab(o.k)}
+              className={`rounded-xl px-4 py-1.5 text-xs font-semibold transition-colors ${
+                tab === o.k ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {list.map(t => {
+            const Icon = t.kind === "transport" ? Bus : PartyPopper;
+            return (
+              <Link
+                key={t.id}
+                to="/billets/$id"
+                params={{ id: t.id }}
+                className="group flex flex-col rounded-2xl border bg-card p-4 shadow-sm transition-all hover:shadow-md"
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                    t.kind === "transport" ? "bg-primary/10 text-primary" : "bg-accent/15 text-accent-foreground"
+                  }`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {t.kind === "transport" ? "Transport" : "Événement"}
+                  </span>
+                </div>
+                <h2 className="mt-3 text-base font-bold">{t.title}</h2>
+                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.description}</p>
+                <div className="mt-3 space-y-1 text-[11px] text-muted-foreground">
+                  {t.date && <div className="flex items-center gap-1.5"><Calendar className="h-3 w-3" />{t.date}</div>}
+                  {t.location && <div className="flex items-center gap-1.5"><MapPin className="h-3 w-3" />{t.location}</div>}
+                </div>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-sm font-extrabold text-primary">{fmt(t.price)}</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary group-hover:gap-2 transition-all">
+                    Acheter <ArrowRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </main>

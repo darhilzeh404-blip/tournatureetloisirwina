@@ -35,6 +35,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
+import { Route as BilletsIdRouteImport } from './routes/billets.$id'
 import { Route as AnnoncesIdRouteImport } from './routes/annonces.$id'
 import { Route as AdminVtcChauffeursRouteImport } from './routes/admin/vtc-chauffeurs'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
@@ -184,6 +185,11 @@ const ChauffeurTripsRoute = ChauffeurTripsRouteImport.update({
   path: '/trips',
   getParentRoute: () => ChauffeurRoute,
 } as any)
+const BilletsIdRoute = BilletsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => BilletsRoute,
+} as any)
 const AnnoncesIdRoute = AnnoncesIdRouteImport.update({
   id: '/annonces/$id',
   path: '/annonces/$id',
@@ -279,7 +285,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
-  '/billets': typeof BilletsRoute
+  '/billets': typeof BilletsRouteWithChildren
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
@@ -312,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/annonces/$id': typeof AnnoncesIdRoute
+  '/billets/$id': typeof BilletsIdRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -324,7 +331,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
-  '/billets': typeof BilletsRoute
+  '/billets': typeof BilletsRouteWithChildren
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
@@ -357,6 +364,7 @@ export interface FileRoutesByTo {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/annonces/$id': typeof AnnoncesIdRoute
+  '/billets/$id': typeof BilletsIdRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -371,7 +379,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
-  '/billets': typeof BilletsRoute
+  '/billets': typeof BilletsRouteWithChildren
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
@@ -404,6 +412,7 @@ export interface FileRoutesById {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/annonces/$id': typeof AnnoncesIdRoute
+  '/billets/$id': typeof BilletsIdRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -452,6 +461,7 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vtc-chauffeurs'
     | '/annonces/$id'
+    | '/billets/$id'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -497,6 +507,7 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vtc-chauffeurs'
     | '/annonces/$id'
+    | '/billets/$id'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -543,6 +554,7 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vtc-chauffeurs'
     | '/annonces/$id'
+    | '/billets/$id'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -557,7 +569,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivitesRoute: typeof ActivitesRoute
   AdminRoute: typeof AdminRouteWithChildren
-  BilletsRoute: typeof BilletsRoute
+  BilletsRoute: typeof BilletsRouteWithChildren
   ChauffeurRoute: typeof ChauffeurRouteWithChildren
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
@@ -767,6 +779,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChauffeurTripsRouteImport
       parentRoute: typeof ChauffeurRoute
     }
+    '/billets/$id': {
+      id: '/billets/$id'
+      path: '/$id'
+      fullPath: '/billets/$id'
+      preLoaderRoute: typeof BilletsIdRouteImport
+      parentRoute: typeof BilletsRoute
+    }
     '/annonces/$id': {
       id: '/annonces/$id'
       path: '/annonces/$id'
@@ -932,6 +951,17 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface BilletsRouteChildren {
+  BilletsIdRoute: typeof BilletsIdRoute
+}
+
+const BilletsRouteChildren: BilletsRouteChildren = {
+  BilletsIdRoute: BilletsIdRoute,
+}
+
+const BilletsRouteWithChildren =
+  BilletsRoute._addFileChildren(BilletsRouteChildren)
+
 interface ChauffeurRouteChildren {
   ChauffeurTripsRoute: typeof ChauffeurTripsRoute
 }
@@ -970,7 +1000,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivitesRoute: ActivitesRoute,
   AdminRoute: AdminRouteWithChildren,
-  BilletsRoute: BilletsRoute,
+  BilletsRoute: BilletsRouteWithChildren,
   ChauffeurRoute: ChauffeurRouteWithChildren,
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
