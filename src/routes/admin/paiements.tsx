@@ -27,12 +27,22 @@ interface PaymentRow {
   created_at: string;
   client_name?: string;
   signed_receipt_url?: string | null;
+  service_type?: string | null;
+  service_summary?: string;
 }
 
 const STATUS_MAP: Record<PaymentStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   PENDING: { label: "En attente", variant: "outline" },
   VALIDATED: { label: "Validé", variant: "default" },
   REJECTED: { label: "Rejeté", variant: "destructive" },
+};
+
+const SERVICE_LABEL: Record<string, string> = {
+  TRANSPORT_SCOLAIRE: "Transport Scolaire",
+  LOCATION_BUS: "Location de Bus",
+  CIRCUIT_TOURISTIQUE: "Circuit Touristique",
+  VTC: "VTC",
+  BILLET: "Billet",
 };
 
 function formatXAF(n: number) {
@@ -43,6 +53,8 @@ function AdminPaiements() {
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | PaymentStatus>("ALL");
+  const [serviceFilter, setServiceFilter] = useState<"ALL" | "BILLET" | "OTHER">("ALL");
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectComment, setRejectComment] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -85,13 +97,14 @@ function AdminPaiements() {
 
     const rows = (data || []) as PaymentRow[];
     const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("user_id, full_name")
-      .in("user_id", userIds);
+    const reservationIds = Array.from(new Set(rows.map((r) => r.reservation_id)));
+    const [{ data: profiles }, { data: reservations }] = await Promise.all([
+      supabase.from("profiles").select("user_id, full_name").in("user_id", userIds),
+      supabase.from("reservations").select("id, service_type, details").in("id", reservationIds),
+    ]);
     const nameMap = new Map((profiles || []).map((p) => [p.user_id, p.full_name]));
+    const resMap = new Map((reservations || []).map((r) => [r.id, r] as const));
 
-    // Generate signed URLs for receipts
     const enriched = await Promise.all(
       rows.map(async (r) => {
         let signed: string | null = null;
@@ -101,7 +114,21 @@ function AdminPaiements() {
             .createSignedUrl(r.receipt_url, 3600);
           signed = s?.signedUrl ?? null;
         }
-        return { ...r, client_name: nameMap.get(r.user_id) || "—", signed_receipt_url: signed };
+        const res = resMap.get(r.reservation_id);
+        const d = (res?.details as Record<string, unknown> | null) || null;
+        const summary = d
+          ? (d.title as string) ||
+            (d.route as string) ||
+            (d.circuit as string) ||
+            (d.package_id ? "Forfait" : "")
+          : "";
+        return {
+          ...r,
+          client_name: nameMap.get(r.user_id) || "—",
+          signed_receipt_url: signed,
+          service_type: res?.service_type ?? null,
+          service_summary: summary,
+        };
       })
     );
 
@@ -111,11 +138,15 @@ function AdminPaiements() {
 
   const filtered = payments.filter((p) => {
     const q = search.toLowerCase();
+    if (statusFilter !== "ALL" && p.status !== statusFilter) return false;
+    if (serviceFilter === "BILLET" && p.service_type !== "BILLET") return false;
+    if (serviceFilter === "OTHER" && p.service_type === "BILLET") return false;
     return (
       (p.client_name || "").toLowerCase().includes(q) ||
       p.id.toLowerCase().includes(q) ||
       p.reservation_id.toLowerCase().includes(q) ||
-      (p.transaction_ref || "").toLowerCase().includes(q)
+      (p.transaction_ref || "").toLowerCase().includes(q) ||
+      (p.service_summary || "").toLowerCase().includes(q)
     );
   });
 
@@ -183,16 +214,48 @@ function AdminPaiements() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Rechercher (client, ref, ID)…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="h-9 w-full rounded-lg border bg-card pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-        />
+      {/* Search + Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-sm flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Rechercher (client, ref, ID, billet)…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 w-full rounded-lg border bg-card pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <div className="inline-flex rounded-lg border bg-card p-1">
+          {(["ALL", "PENDING", "VALIDATED", "REJECTED"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                statusFilter === s ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {s === "ALL" ? "Tous" : STATUS_MAP[s].label}
+            </button>
+          ))}
+        </div>
+        <div className="inline-flex rounded-lg border bg-card p-1">
+          {([
+            { k: "ALL", label: "Tous services" },
+            { k: "BILLET", label: "Billets" },
+            { k: "OTHER", label: "Autres" },
+          ] as const).map((o) => (
+            <button
+              key={o.k}
+              onClick={() => setServiceFilter(o.k)}
+              className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                serviceFilter === o.k ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Cards list (better for photos than a table) */}
@@ -232,11 +295,23 @@ function AdminPaiements() {
                     {/* Info */}
                     <div className="flex-1 space-y-3 p-4">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
+                        <div className="min-w-0">
                           <p className="font-semibold">{p.client_name}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(p.created_at).toLocaleString("fr-FR")}
                           </p>
+                          {p.service_type && (
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                              <Badge variant="secondary" className="text-[10px]">
+                                {SERVICE_LABEL[p.service_type] || p.service_type}
+                              </Badge>
+                              {p.service_summary && (
+                                <span className="truncate text-[11px] text-muted-foreground">
+                                  · {p.service_summary}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <Badge variant={st.variant}>{st.label}</Badge>
                       </div>
