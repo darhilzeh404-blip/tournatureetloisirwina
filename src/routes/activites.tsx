@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Loader2, ArrowRight, Palmtree, Compass, Navigation, MapPin, Clock,
-  Sparkles, Flame, Star,
+  Sparkles, Flame, Star, LocateFixed,
 } from "lucide-react";
+import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { supabase } from "@/integrations/supabase/client";
 import { formatFCFA } from "@/lib/destinations";
@@ -37,10 +38,44 @@ function formatHours(h: number) {
 
 const FALLBACK_IMG = circuitsHero;
 
+function isIOS() {
+  return typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
 function mapsUrl(place: string) {
   const q = encodeURIComponent(`${place || "Gabon"}, Gabon`);
-  const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
-  return isIOS ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`;
+  return isIOS() ? `https://maps.apple.com/?q=${q}` : `https://www.google.com/maps/search/?api=1&query=${q}`;
+}
+function directionsUrl(place: string, from?: { lat: number; lng: number }) {
+  const dest = encodeURIComponent(`${place || "Gabon"}, Gabon`);
+  if (isIOS()) {
+    const saddr = from ? `&saddr=${from.lat},${from.lng}` : "";
+    return `https://maps.apple.com/?daddr=${dest}${saddr}&dirflg=d`;
+  }
+  const origin = from ? `&origin=${from.lat},${from.lng}` : "";
+  return `https://www.google.com/maps/dir/?api=1&destination=${dest}${origin}&travelmode=driving`;
+}
+function openDirectionsFromMe(place: string) {
+  if (typeof navigator === "undefined" || !navigator.geolocation) {
+    window.open(directionsUrl(place), "_blank", "noopener");
+    return;
+  }
+  const loading = toast.loading("Localisation en cours…");
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      toast.dismiss(loading);
+      window.open(
+        directionsUrl(place, { lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        "_blank",
+        "noopener"
+      );
+    },
+    () => {
+      toast.dismiss(loading);
+      toast.error("Position indisponible — itinéraire ouvert sans point de départ.");
+      window.open(directionsUrl(place), "_blank", "noopener");
+    },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
 }
 
 function ActivitesPage() {
@@ -307,11 +342,20 @@ function ImmersiveCircuitCard({
           href={mapsUrl(circuit.location || circuit.nom)}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`Itinéraire vers ${circuit.location || circuit.nom}`}
+          aria-label={`Voir ${circuit.location || circuit.nom} sur la carte`}
           className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/60 bg-card text-primary transition-colors hover:bg-primary/5 active:scale-[0.96]"
         >
           <Navigation className="h-4 w-4" />
         </a>
+        <button
+          type="button"
+          onClick={() => openDirectionsFromMe(circuit.location || circuit.nom)}
+          aria-label={`Itinéraire depuis ma position vers ${circuit.location || circuit.nom}`}
+          title="Itinéraire depuis ma position"
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary transition-colors hover:bg-primary/15 active:scale-[0.96]"
+        >
+          <LocateFixed className="h-4 w-4" />
+        </button>
       </div>
     </motion.article>
   );
@@ -355,11 +399,20 @@ function ActivityTile({ activity, index, onBook }: { activity: Activity; index: 
             href={mapsUrl(activity.location || activity.name)}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Itinéraire vers ${activity.location || activity.name}`}
+            aria-label={`Voir ${activity.location || activity.name} sur la carte`}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card text-primary hover:bg-primary/5 active:scale-[0.96]"
           >
             <Navigation className="h-3.5 w-3.5" />
           </a>
+          <button
+            type="button"
+            onClick={() => openDirectionsFromMe(activity.location || activity.name)}
+            aria-label={`Itinéraire depuis ma position vers ${activity.location || activity.name}`}
+            title="Itinéraire depuis ma position"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 active:scale-[0.96]"
+          >
+            <LocateFixed className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
     </motion.article>
