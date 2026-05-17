@@ -652,8 +652,8 @@ function MariageFlow() {
 
       <StickyContinue
         loading={loading}
-        disabled={false}
-        label="Continuer · Payer 50 %"
+        disabled={!wizard.allConfirmed}
+        label={wizard.allConfirmed ? "Continuer · Payer 50 %" : "Confirmez toutes les étapes"}
         onClick={submit}
         icon={<Heart className="h-4 w-4" />}
       />
