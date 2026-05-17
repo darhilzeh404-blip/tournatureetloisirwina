@@ -128,7 +128,7 @@ export function useOsrmRoute(
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [from?.lat, from?.lng, to?.lat, to?.lng, enabled, refreshKey]);
+  }, [from?.lat, from?.lng, to?.lat, to?.lng, enabled, refreshKey, profile]);
 
   return { route, loading, error };
 }
