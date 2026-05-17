@@ -86,10 +86,11 @@ function VtcPage() {
           </p>
 
           {/* Pills tabs iOS (sliding) */}
-          <div className="relative mt-4 grid grid-cols-2 gap-1 rounded-full bg-primary-foreground/15 p-1 backdrop-blur-md ring-1 ring-primary-foreground/20">
+          <div className="relative mt-4 grid grid-cols-3 gap-1 rounded-full bg-primary-foreground/15 p-1 backdrop-blur-md ring-1 ring-primary-foreground/20">
             {([
-              { v: "course",  l: "Course VTC", i: CarFront },
-              { v: "mariage", l: "Mariage",    i: Heart },
+              { v: "course",  l: "Course",  i: CarFront },
+              { v: "groupe",  l: "Groupe",  i: Users },
+              { v: "mariage", l: "Mariage", i: Heart },
             ] as const).map((t) => {
               const I = t.i;
               const active = tab === t.v;
@@ -98,7 +99,7 @@ function VtcPage() {
                   key={t.v}
                   type="button"
                   onClick={() => setTab(t.v)}
-                  className="relative z-10 flex h-9 items-center justify-center gap-1.5 rounded-full px-3 text-[13px] font-semibold transition-colors"
+                  className="relative z-10 flex h-9 items-center justify-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold transition-colors"
                   aria-pressed={active}
                 >
                   {active && (
@@ -127,11 +128,11 @@ function VtcPage() {
             transition={{ duration: 0.22, ease: "easeOut" }}
             className="space-y-2.5"
           >
-            {tab === "course" ? <CourseFlow /> : <MariageFlow />}
+            {tab === "course" ? <CourseFlow /> : tab === "groupe" ? <GroupeFlow /> : <MariageFlow />}
           </motion.div>
         </AnimatePresence>
 
-        <PremiumRangesSection onCourse={() => setTab("course")} />
+        <PremiumRangesSection onCourse={() => setTab("course")} onGroup={() => setTab("groupe")} />
       </main>
 
       <ClientNav />
