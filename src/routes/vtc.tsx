@@ -2,8 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Calendar, CarFront, ChevronDown, Clock, Gem, Heart, Loader2, MapPin,
-  Navigation, Sparkles, Users, Zap, Crown,
+  Calendar, CarFront, Check, CheckCircle2, ChevronDown, Clock, Gem, Heart,
+  Loader2, MapPin, Navigation, Sparkles, Users, Zap, Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
