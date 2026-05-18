@@ -97,7 +97,7 @@ function RootComponent() {
     registerServiceWorker();
   }, []);
 
-  const handleSplashComplete = useCallback((session: { user: { id: string }; role: string | null } | null) => {
+  const handleSplashComplete = useCallback((session: { user: { id: string } | null; role: string | null } | null) => {
     setSplashAuth(session);
     setSplashDone(true);
   }, []);
