@@ -1,12 +1,13 @@
-import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts, useLocation } from "@tanstack/react-router";
+import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts, useLocation, useNavigate } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { IosInstallBanner } from "@/components/IosInstallBanner";
 import { AppNotifications } from "@/components/AppNotifications";
+import { SplashScreen } from "@/components/SplashScreen";
 import { registerServiceWorker } from "@/lib/pwa";
 
 import appCss from "../styles.css?url";
@@ -81,6 +82,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [splashDone, setSplashDone] = useState(false);
+  const [splashAuth, setSplashAuth] = useState<{ user: { id: string }; role: string | null } | null>(null);
+
   const isFullScreenRoute = location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/chauffeur") ||
     location.pathname.startsWith("/gerant") ||
@@ -92,8 +97,45 @@ function RootComponent() {
     registerServiceWorker();
   }, []);
 
+  const handleSplashComplete = useCallback((session: { user: { id: string }; role: string | null } | null) => {
+    setSplashAuth(session);
+    setSplashDone(true);
+  }, []);
+
+  // After splash, handle client-side redirect for authenticated users landing on home
+  useEffect(() => {
+    if (!splashDone || !splashAuth) return;
+
+    // If user is authenticated and on the home page, redirect to their space
+    if (location.pathname === "/") {
+      const role = splashAuth.role;
+      if (role === "client") {
+        navigate({ to: "/espace-client", replace: true });
+      } else if (role === "admin") {
+        navigate({ to: "/admin", replace: true });
+      } else if (role === "gerant") {
+        navigate({ to: "/gerant", replace: true });
+      } else if (role === "chauffeur") {
+        navigate({ to: "/chauffeur", replace: true });
+      }
+    }
+  }, [splashDone, splashAuth, location.pathname, navigate]);
+
+  // Prevent scroll while splash is visible
+  useEffect(() => {
+    if (!splashDone) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [splashDone]);
+
   return (
     <QueryClientProvider client={queryClient}>
+      {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
       {isFullScreenRoute ? (
         <Outlet />
       ) : (
