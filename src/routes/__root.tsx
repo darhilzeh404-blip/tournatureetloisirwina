@@ -84,7 +84,7 @@ function RootComponent() {
   const location = useLocation();
   const navigate = useNavigate();
   const [splashDone, setSplashDone] = useState(false);
-  const [splashAuth, setSplashAuth] = useState<{ user: { id: string }; role: string | null } | null>(null);
+  const [splashAuth, setSplashAuth] = useState<{ user: { id: string } | null; role: string | null } | null>(null);
 
   const isFullScreenRoute = location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/chauffeur") ||
