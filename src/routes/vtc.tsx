@@ -1009,9 +1009,9 @@ function StickyContinue({
 }
 
 // ─── Nos Gammes VTC (pills tabs premium) ───────────────────────────────────
-type RangeKey = "berline" | "vip" | "groupe";
+type RangeKey = "berline" | "vip";
 
-function PremiumRangesSection({ onCourse, onGroup }: { onCourse: () => void; onGroup: () => void }) {
+function PremiumRangesSection({ onCourse: _onCourse }: { onCourse: () => void }) {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [active, setActive] = useState<RangeKey>("berline");
@@ -1019,7 +1019,6 @@ function PremiumRangesSection({ onCourse, onGroup }: { onCourse: () => void; onG
   const tabs: { id: RangeKey; label: string; icon: typeof CarFront }[] = [
     { id: "berline", label: "Berline Simple", icon: CarFront },
     { id: "vip",     label: "Berline VIP",    icon: Crown },
-    { id: "groupe",  label: "Course de Groupe", icon: Users },
   ];
 
   const subscribe = async (plan: "berline_simple" | "berline_vip", amount: number, label: string) => {
