@@ -88,6 +88,26 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Google Fonts (CSS + woff2 files): stale-while-revalidate
+  if (FONT_HOSTS.has(url.hostname)) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(FONTS_CACHE);
+        const cached = await cache.match(req);
+        const fetchPromise = fetch(req)
+          .then((res) => {
+            if (res && (res.status === 200 || res.type === "opaque")) {
+              cache.put(req, res.clone());
+            }
+            return res;
+          })
+          .catch(() => cached);
+        return cached || fetchPromise;
+      })()
+    );
+    return;
+  }
+
   // Same-origin assets: stale-while-revalidate
   if (url.origin === self.location.origin && isAssetRequest(url)) {
     event.respondWith(
