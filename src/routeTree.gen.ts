@@ -54,6 +54,7 @@ import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as AdminBilletsRouteImport } from './routes/admin/billets'
 import { Route as AdminAnnoncesRouteImport } from './routes/admin/annonces'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
+import { Route as DeplacementGroupeSalonRideIdRouteImport } from './routes/deplacement-groupe.salon.$rideId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
@@ -283,6 +284,12 @@ const VtcSuiviReservationIdRoute = VtcSuiviReservationIdRouteImport.update({
   path: '/suivi/$reservationId',
   getParentRoute: () => VtcRoute,
 } as any)
+const DeplacementGroupeSalonRideIdRoute =
+  DeplacementGroupeSalonRideIdRouteImport.update({
+    id: '/salon/$rideId',
+    path: '/salon/$rideId',
+    getParentRoute: () => DeplacementGroupeRoute,
+  } as any)
 const CircuitsSuiviSlugRoute = CircuitsSuiviSlugRouteImport.update({
   id: '/suivi/$slug',
   path: '/suivi/$slug',
@@ -308,7 +315,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
-  '/deplacement-groupe': typeof DeplacementGroupeRoute
+  '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -347,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
+  '/deplacement-groupe/salon/$rideId': typeof DeplacementGroupeSalonRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
 }
 export interface FileRoutesByTo {
@@ -357,7 +365,7 @@ export interface FileRoutesByTo {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
-  '/deplacement-groupe': typeof DeplacementGroupeRoute
+  '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -396,6 +404,7 @@ export interface FileRoutesByTo {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
+  '/deplacement-groupe/salon/$rideId': typeof DeplacementGroupeSalonRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
 }
 export interface FileRoutesById {
@@ -408,7 +417,7 @@ export interface FileRoutesById {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
-  '/deplacement-groupe': typeof DeplacementGroupeRoute
+  '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -447,6 +456,7 @@ export interface FileRoutesById {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
+  '/deplacement-groupe/salon/$rideId': typeof DeplacementGroupeSalonRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
 }
 export interface FileRouteTypes {
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/circuits/suivi/$slug'
+    | '/deplacement-groupe/salon/$rideId'
     | '/vtc/suivi/$reservationId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/circuits/suivi/$slug'
+    | '/deplacement-groupe/salon/$rideId'
     | '/vtc/suivi/$reservationId'
   id:
     | '__root__'
@@ -598,6 +610,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/circuits/suivi/$slug'
+    | '/deplacement-groupe/salon/$rideId'
     | '/vtc/suivi/$reservationId'
   fileRoutesById: FileRoutesById
 }
@@ -610,7 +623,7 @@ export interface RootRouteChildren {
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
-  DeplacementGroupeRoute: typeof DeplacementGroupeRoute
+  DeplacementGroupeRoute: typeof DeplacementGroupeRouteWithChildren
   EspaceClientRoute: typeof EspaceClientRoute
   GerantRoute: typeof GerantRoute
   InscriptionRoute: typeof InscriptionRoute
@@ -949,6 +962,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VtcSuiviReservationIdRouteImport
       parentRoute: typeof VtcRoute
     }
+    '/deplacement-groupe/salon/$rideId': {
+      id: '/deplacement-groupe/salon/$rideId'
+      path: '/salon/$rideId'
+      fullPath: '/deplacement-groupe/salon/$rideId'
+      preLoaderRoute: typeof DeplacementGroupeSalonRideIdRouteImport
+      parentRoute: typeof DeplacementGroupeRoute
+    }
     '/circuits/suivi/$slug': {
       id: '/circuits/suivi/$slug'
       path: '/suivi/$slug'
@@ -1048,6 +1068,17 @@ const CircuitsRouteWithChildren = CircuitsRoute._addFileChildren(
   CircuitsRouteChildren,
 )
 
+interface DeplacementGroupeRouteChildren {
+  DeplacementGroupeSalonRideIdRoute: typeof DeplacementGroupeSalonRideIdRoute
+}
+
+const DeplacementGroupeRouteChildren: DeplacementGroupeRouteChildren = {
+  DeplacementGroupeSalonRideIdRoute: DeplacementGroupeSalonRideIdRoute,
+}
+
+const DeplacementGroupeRouteWithChildren =
+  DeplacementGroupeRoute._addFileChildren(DeplacementGroupeRouteChildren)
+
 interface VtcRouteChildren {
   VtcSuiviReservationIdRoute: typeof VtcSuiviReservationIdRoute
 }
@@ -1067,7 +1098,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
-  DeplacementGroupeRoute: DeplacementGroupeRoute,
+  DeplacementGroupeRoute: DeplacementGroupeRouteWithChildren,
   EspaceClientRoute: EspaceClientRoute,
   GerantRoute: GerantRoute,
   InscriptionRoute: InscriptionRoute,
