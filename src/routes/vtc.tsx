@@ -86,10 +86,9 @@ function VtcPage() {
           </p>
 
           {/* Pills tabs iOS (sliding) */}
-          <div className="relative mt-4 grid grid-cols-3 gap-1 rounded-full bg-primary-foreground/15 p-1 backdrop-blur-md ring-1 ring-primary-foreground/20">
+          <div className="relative mt-4 grid grid-cols-2 gap-1 rounded-full bg-primary-foreground/15 p-1 backdrop-blur-md ring-1 ring-primary-foreground/20">
             {([
               { v: "course",  l: "Course",  i: CarFront },
-              { v: "groupe",  l: "Groupe",  i: Users },
               { v: "mariage", l: "Mariage", i: Heart },
             ] as const).map((t) => {
               const I = t.i;
@@ -128,11 +127,11 @@ function VtcPage() {
             transition={{ duration: 0.22, ease: "easeOut" }}
             className="space-y-2.5"
           >
-            {tab === "course" ? <CourseFlow /> : tab === "groupe" ? <GroupeFlow /> : <MariageFlow />}
+            {tab === "course" ? <CourseFlow /> : <MariageFlow />}
           </motion.div>
         </AnimatePresence>
 
-        <PremiumRangesSection onCourse={() => setTab("course")} onGroup={() => setTab("groupe")} />
+        <PremiumRangesSection onCourse={() => setTab("course")} />
       </main>
 
       <ClientNav />
