@@ -1153,19 +1153,6 @@ function PremiumRangesSection({ onCourse: _onCourse }: { onCourse: () => void })
                 onCta={() => subscribe("berline_vip", 250_000, "Abonnement Berline VIP")}
               />
             )}
-            {active === "groupe" && (
-              <RangeCard
-                badge="Sur mesure"
-                badgeTone="primary"
-                icon={Users}
-                title="Course de Groupe"
-                price="Sur devis"
-                subtitle="Tarif fixé selon le trajet"
-                description="Service disponible uniquement sur réservation avec tarif fixé selon le trajet et le nombre de passagers."
-                ctaLabel="Réserver une course de groupe"
-                onCta={onGroup}
-              />
-            )}
           </motion.div>
         </AnimatePresence>
       </div>
