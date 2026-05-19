@@ -2,12 +2,15 @@
 // Stratégie:
 //   - Navigations (HTML): network-first, fallback offline.html
 //   - Assets statiques (JS/CSS/images/fonts): stale-while-revalidate
+//   - Google Fonts (CSS + woff2): stale-while-revalidate (cross-origin whitelist)
 //   - Skip pour POST, requêtes Supabase, et URLs cross-origin non whitelist
-const VERSION = "v1.0.0";
+const VERSION = "v1.1.0";
 const STATIC_CACHE = `tw-static-${VERSION}`;
 const RUNTIME_CACHE = `tw-runtime-${VERSION}`;
+const FONTS_CACHE = `tw-fonts-${VERSION}`;
 const OFFLINE_URL = "/offline.html";
 
+// Splash + chrome critical assets — precached for instant first paint
 const PRECACHE_URLS = [
   OFFLINE_URL,
   "/manifest.json",
@@ -15,6 +18,8 @@ const PRECACHE_URLS = [
   "/icon-512.png",
   "/icon-maskable-512.png",
 ];
+
+const FONT_HOSTS = new Set(["fonts.googleapis.com", "fonts.gstatic.com"]);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
