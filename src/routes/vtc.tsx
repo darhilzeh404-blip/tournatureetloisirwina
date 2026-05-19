@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar, CarFront, Check, CheckCircle2, ChevronDown, Clock, Gem, Heart,
   Loader2, MapPin, Navigation, Sparkles, Users, Zap, Crown, ArrowRight, Star,
-  Search, AlertCircle, Timer, Radar, Plus, Trash2, Wallet,
+  Search, AlertCircle, Timer, Radar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
