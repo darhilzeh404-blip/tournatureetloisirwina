@@ -329,6 +329,252 @@ export type Database = {
         }
         Relationships: []
       }
+      group_ride_passengers: {
+        Row: {
+          commune_destination: string
+          commune_pickup: string
+          destination_address: string
+          destination_lat: number
+          destination_lng: number
+          id: string
+          joined_at: string
+          pickup_address: string
+          pickup_lat: number
+          pickup_lng: number
+          ride_id: string
+          seat_index: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          commune_destination: string
+          commune_pickup: string
+          destination_address: string
+          destination_lat: number
+          destination_lng: number
+          id?: string
+          joined_at?: string
+          pickup_address: string
+          pickup_lat: number
+          pickup_lng: number
+          ride_id: string
+          seat_index: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          commune_destination?: string
+          commune_pickup?: string
+          destination_address?: string
+          destination_lat?: number
+          destination_lng?: number
+          id?: string
+          joined_at?: string
+          pickup_address?: string
+          pickup_lat?: number
+          pickup_lng?: number
+          ride_id?: string
+          seat_index?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_ride_passengers_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "group_rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_ride_payments: {
+        Row: {
+          admin_comment: string | null
+          amount: number
+          created_at: string
+          id: string
+          method: string
+          passenger_id: string
+          receipt_url: string | null
+          ride_id: string
+          status: string
+          transaction_ref: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_comment?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          method?: string
+          passenger_id: string
+          receipt_url?: string | null
+          ride_id: string
+          status?: string
+          transaction_ref?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_comment?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string
+          passenger_id?: string
+          receipt_url?: string | null
+          ride_id?: string
+          status?: string
+          transaction_ref?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_ride_payments_passenger_id_fkey"
+            columns: ["passenger_id"]
+            isOneToOne: false
+            referencedRelation: "group_ride_passengers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_ride_payments_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "group_rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_ride_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: string
+          old_status: string | null
+          ride_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          old_status?: string | null
+          ride_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          old_status?: string | null
+          ride_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_ride_status_history_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "group_rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_rides: {
+        Row: {
+          archived_at: string | null
+          communes_count: number
+          completed_at: string | null
+          created_at: string
+          departure_deadline: string
+          driver_id: string | null
+          id: string
+          max_seats: number
+          price_per_seat: number
+          route_id: string | null
+          seats_taken: number
+          signature: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          communes_count?: number
+          completed_at?: string | null
+          created_at?: string
+          departure_deadline?: string
+          driver_id?: string | null
+          id?: string
+          max_seats?: number
+          price_per_seat?: number
+          route_id?: string | null
+          seats_taken?: number
+          signature?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          communes_count?: number
+          completed_at?: string | null
+          created_at?: string
+          departure_deadline?: string
+          driver_id?: string | null
+          id?: string
+          max_seats?: number
+          price_per_seat?: number
+          route_id?: string | null
+          seats_taken?: number
+          signature?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_rides_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "group_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_routes: {
+        Row: {
+          created_at: string
+          destination_commune: string
+          id: string
+          is_active: boolean
+          name: string
+          origin_commune: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          destination_commune: string
+          id?: string
+          is_active?: boolean
+          name: string
+          origin_commune: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          destination_commune?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          origin_commune?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       offers: {
         Row: {
           created_at: string
