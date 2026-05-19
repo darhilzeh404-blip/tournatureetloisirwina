@@ -5,7 +5,8 @@ import { ArrowRight, Loader2, MapPin, Navigation, Sparkles, Users, Wallet } from
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as supabaseTyped } from "@/integrations/supabase/client";
+const supabase = supabaseTyped as any;
 import { VtcDestinationSearch } from "@/components/VtcDestinationSearch";
 import { formatXAF } from "@/lib/vtc-zones";
 import {

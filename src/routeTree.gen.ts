@@ -23,6 +23,7 @@ import { Route as LocationBusRouteImport } from './routes/location-bus'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as GerantRouteImport } from './routes/gerant'
 import { Route as EspaceClientRouteImport } from './routes/espace-client'
+import { Route as DeplacementGroupeRouteImport } from './routes/deplacement-groupe'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
@@ -125,6 +126,11 @@ const GerantRoute = GerantRouteImport.update({
 const EspaceClientRoute = EspaceClientRouteImport.update({
   id: '/espace-client',
   path: '/espace-client',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeplacementGroupeRoute = DeplacementGroupeRouteImport.update({
+  id: '/deplacement-groupe',
+  path: '/deplacement-groupe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnexionRoute = ConnexionRouteImport.update({
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/deplacement-groupe': typeof DeplacementGroupeRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -350,6 +357,7 @@ export interface FileRoutesByTo {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/deplacement-groupe': typeof DeplacementGroupeRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -400,6 +408,7 @@ export interface FileRoutesById {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/deplacement-groupe': typeof DeplacementGroupeRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -451,6 +460,7 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
+    | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
+    | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
+    | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -598,6 +610,7 @@ export interface RootRouteChildren {
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
+  DeplacementGroupeRoute: typeof DeplacementGroupeRoute
   EspaceClientRoute: typeof EspaceClientRoute
   GerantRoute: typeof GerantRoute
   InscriptionRoute: typeof InscriptionRoute
@@ -717,6 +730,13 @@ declare module '@tanstack/react-router' {
       path: '/espace-client'
       fullPath: '/espace-client'
       preLoaderRoute: typeof EspaceClientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deplacement-groupe': {
+      id: '/deplacement-groupe'
+      path: '/deplacement-groupe'
+      fullPath: '/deplacement-groupe'
+      preLoaderRoute: typeof DeplacementGroupeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connexion': {
@@ -1047,6 +1067,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
+  DeplacementGroupeRoute: DeplacementGroupeRoute,
   EspaceClientRoute: EspaceClientRoute,
   GerantRoute: GerantRoute,
   InscriptionRoute: InscriptionRoute,
