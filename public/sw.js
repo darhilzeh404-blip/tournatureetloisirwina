@@ -2,12 +2,15 @@
 // Stratégie:
 //   - Navigations (HTML): network-first, fallback offline.html
 //   - Assets statiques (JS/CSS/images/fonts): stale-while-revalidate
+//   - Google Fonts (CSS + woff2): stale-while-revalidate (cross-origin whitelist)
 //   - Skip pour POST, requêtes Supabase, et URLs cross-origin non whitelist
-const VERSION = "v1.0.0";
+const VERSION = "v1.1.0";
 const STATIC_CACHE = `tw-static-${VERSION}`;
 const RUNTIME_CACHE = `tw-runtime-${VERSION}`;
+const FONTS_CACHE = `tw-fonts-${VERSION}`;
 const OFFLINE_URL = "/offline.html";
 
+// Splash + chrome critical assets — precached for instant first paint
 const PRECACHE_URLS = [
   OFFLINE_URL,
   "/manifest.json",
@@ -15,6 +18,8 @@ const PRECACHE_URLS = [
   "/icon-512.png",
   "/icon-maskable-512.png",
 ];
+
+const FONT_HOSTS = new Set(["fonts.googleapis.com", "fonts.gstatic.com"]);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -27,7 +32,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((k) => k !== STATIC_CACHE && k !== RUNTIME_CACHE)
+          .filter((k) => k !== STATIC_CACHE && k !== RUNTIME_CACHE && k !== FONTS_CACHE)
           .map((k) => caches.delete(k))
       )
     ).then(() => self.clients.claim())
@@ -78,6 +83,26 @@ self.addEventListener("fetch", (event) => {
           const cached = await caches.match(req);
           return cached || (await caches.match(OFFLINE_URL));
         }
+      })()
+    );
+    return;
+  }
+
+  // Google Fonts (CSS + woff2 files): stale-while-revalidate
+  if (FONT_HOSTS.has(url.hostname)) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(FONTS_CACHE);
+        const cached = await cache.match(req);
+        const fetchPromise = fetch(req)
+          .then((res) => {
+            if (res && (res.status === 200 || res.type === "opaque")) {
+              cache.put(req, res.clone());
+            }
+            return res;
+          })
+          .catch(() => cached);
+        return cached || fetchPromise;
       })()
     );
     return;
