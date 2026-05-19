@@ -32,7 +32,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((k) => k !== STATIC_CACHE && k !== RUNTIME_CACHE)
+          .filter((k) => k !== STATIC_CACHE && k !== RUNTIME_CACHE && k !== FONTS_CACHE)
           .map((k) => caches.delete(k))
       )
     ).then(() => self.clients.claim())
