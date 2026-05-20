@@ -46,6 +46,17 @@ function GroupRidePage() {
     return { count, perSeat: pricePerSeat(count), signature: rideSignature(pickup, destination) };
   }, [pickup, destination]);
 
+  const estimate = useMemo(() => {
+    if (!pickup || !destination) return null;
+    return estimateTrip(pickup, destination);
+  }, [pickup, destination]);
+
+  const pickStop = (s: PopularStop, target: "pickup" | "destination") => {
+    const stop = stopFromCoords(s.lat, s.lng, s.label);
+    if (target === "pickup") setPickup(stop);
+    else setDestination(stop);
+  };
+
   const ready = !!(pickup?.commune && destination?.commune);
 
   const useCurrentLocation = () => {
