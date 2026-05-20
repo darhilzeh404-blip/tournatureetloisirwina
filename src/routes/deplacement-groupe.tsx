@@ -236,8 +236,36 @@ function GroupRidePage() {
               }}
               onClear={() => setDestination(null)}
             />
+            <StopChips target="destination" onPick={pickStop} />
           </div>
         </motion.div>
+
+        {estimate && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-2 gap-2 rounded-3xl border bg-card p-3 shadow-sm"
+          >
+            <div className="flex items-center gap-2 rounded-2xl bg-secondary/40 p-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <RouteIcon className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Distance</p>
+                <p className="text-base font-extrabold text-foreground">~ {estimate.distanceKm} km</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 rounded-2xl bg-secondary/40 p-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/30 text-accent-foreground">
+                <Clock className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Durée estimée</p>
+                <p className="text-base font-extrabold text-foreground">~ {estimate.durationMin} min</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {fare && (
           <motion.div
