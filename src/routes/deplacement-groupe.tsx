@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Loader2, MapPin, Navigation, Sparkles, Users, Wallet } from "lucide-react";
+import { ArrowRight, Clock, Loader2, MapPin, Navigation, Route as RouteIcon, Sparkles, Users, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,12 +12,15 @@ import { formatXAF } from "@/lib/vtc-zones";
 import {
   GROUP_MAX_SEATS,
   GROUP_WAIT_MINUTES,
+  POPULAR_STOPS,
   communeLabel,
   communesCount,
+  estimateTrip,
   pricePerSeat,
   rideSignature,
   stopFromCoords,
   type GroupStop,
+  type PopularStop,
 } from "@/lib/group-ride";
 
 export const Route = createFileRoute("/deplacement-groupe")({
@@ -42,6 +45,17 @@ function GroupRidePage() {
     const count = communesCount(pickup, destination);
     return { count, perSeat: pricePerSeat(count), signature: rideSignature(pickup, destination) };
   }, [pickup, destination]);
+
+  const estimate = useMemo(() => {
+    if (!pickup || !destination) return null;
+    return estimateTrip(pickup, destination);
+  }, [pickup, destination]);
+
+  const pickStop = (s: PopularStop, target: "pickup" | "destination") => {
+    const stop = stopFromCoords(s.lat, s.lng, s.label);
+    if (target === "pickup") setPickup(stop);
+    else setDestination(stop);
+  };
 
   const ready = !!(pickup?.commune && destination?.commune);
 
@@ -193,13 +207,16 @@ function GroupRidePage() {
               }}
               onClear={() => setPickup(null)}
             />
-            <button
-              type="button"
-              onClick={useCurrentLocation}
-              className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1 text-[11px] font-bold hover:bg-primary/5"
-            >
-              <Navigation className="h-3 w-3 text-primary" /> Utiliser ma position
-            </button>
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={useCurrentLocation}
+                className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1 text-[11px] font-bold hover:bg-primary/5"
+              >
+                <Navigation className="h-3 w-3 text-primary" /> Ma position
+              </button>
+            </div>
+            <StopChips target="pickup" onPick={pickStop} />
           </div>
 
           <div>
@@ -219,8 +236,36 @@ function GroupRidePage() {
               }}
               onClear={() => setDestination(null)}
             />
+            <StopChips target="destination" onPick={pickStop} />
           </div>
         </motion.div>
+
+        {estimate && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-2 gap-2 rounded-3xl border bg-card p-3 shadow-sm"
+          >
+            <div className="flex items-center gap-2 rounded-2xl bg-secondary/40 p-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <RouteIcon className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Distance</p>
+                <p className="text-base font-extrabold text-foreground">~ {estimate.distanceKm} km</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 rounded-2xl bg-secondary/40 p-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/30 text-accent-foreground">
+                <Clock className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Durée estimée</p>
+                <p className="text-base font-extrabold text-foreground">~ {estimate.durationMin} min</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {fare && (
           <motion.div
@@ -264,6 +309,35 @@ function GroupRidePage() {
       </main>
 
       <ClientNav />
+    </div>
+  );
+}
+
+function StopChips({
+  target,
+  onPick,
+}: {
+  target: "pickup" | "destination";
+  onPick: (s: PopularStop, target: "pickup" | "destination") => void;
+}) {
+  return (
+    <div className="mt-2">
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        Arrêts populaires
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {POPULAR_STOPS.map((s) => (
+          <button
+            key={`${target}-${s.label}`}
+            type="button"
+            onClick={() => onPick(s, target)}
+            className="inline-flex items-center gap-1 rounded-full border bg-secondary/40 px-2.5 py-1 text-[10.5px] font-semibold text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+          >
+            <MapPin className="h-3 w-3 text-primary" />
+            {s.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
