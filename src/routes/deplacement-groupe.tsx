@@ -207,13 +207,16 @@ function GroupRidePage() {
               }}
               onClear={() => setPickup(null)}
             />
-            <button
-              type="button"
-              onClick={useCurrentLocation}
-              className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1 text-[11px] font-bold hover:bg-primary/5"
-            >
-              <Navigation className="h-3 w-3 text-primary" /> Utiliser ma position
-            </button>
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={useCurrentLocation}
+                className="inline-flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1 text-[11px] font-bold hover:bg-primary/5"
+              >
+                <Navigation className="h-3 w-3 text-primary" /> Ma position
+              </button>
+            </div>
+            <StopChips target="pickup" onPick={pickStop} />
           </div>
 
           <div>
