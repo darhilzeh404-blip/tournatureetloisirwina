@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Tag, Headphones } from "lucide-react";
+import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Tag, Headphones, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -155,6 +155,7 @@ function EspaceClient() {
             { to: "/reserver-transport", label: "Transport", desc: "Bus & trajets", Icon: Bus, tint: "from-primary/20 to-primary/5", iconColor: "text-primary" },
             { to: "/activites", label: "Activités", desc: "Explorer", Icon: Palmtree, tint: "from-accent/25 to-accent/5", iconColor: "text-accent-foreground" },
             { to: "/vtc", label: "VTC", desc: "Course privée", Icon: CarFront, tint: "from-primary/15 to-accent/10", iconColor: "text-primary" },
+            { to: "/deplacement-groupe", label: "Groupé", desc: "Covoiturage", Icon: Users, tint: "from-accent/20 to-primary/10", iconColor: "text-accent-foreground" },
             { to: "/billets", label: "Billets", desc: "Événements", Icon: Ticket, tint: "from-accent/20 to-primary/10", iconColor: "text-accent-foreground" },
             { to: "/promos", label: "Promos", desc: "Offres", Icon: Tag, tint: "from-primary/15 to-primary/5", iconColor: "text-primary" },
             { to: "/support", label: "Support", desc: "24/7", Icon: Headphones, tint: "from-accent/15 to-accent/5", iconColor: "text-accent-foreground" },
