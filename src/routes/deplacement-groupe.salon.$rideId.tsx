@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Users, Wallet } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, Navigation, User, Users, Wallet, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -103,12 +103,31 @@ function SalonPage() {
   const statusLabel = GROUP_RIDE_STATUS_LABEL[ride.status] ?? ride.status;
   const isMatched = ride.status === "matched" || ride.status === "driver_arriving" || ride.status === "active";
 
+  const statusTone =
+    ride.status === "searching" ? "bg-amber-500/15 text-amber-600 ring-amber-500/30"
+    : ride.status === "matched" ? "bg-primary/15 text-primary ring-primary/30"
+    : ride.status === "driver_arriving" ? "bg-blue-500/15 text-blue-600 ring-blue-500/30"
+    : ride.status === "active" ? "bg-emerald-500/15 text-emerald-600 ring-emerald-500/30"
+    : ride.status === "completed" ? "bg-muted text-foreground ring-border"
+    : "bg-destructive/15 text-destructive ring-destructive/30";
+  const StatusIcon =
+    ride.status === "searching" ? Clock
+    : ride.status === "matched" ? CheckCircle2
+    : ride.status === "driver_arriving" ? Navigation
+    : ride.status === "active" ? Navigation
+    : ride.status === "completed" ? CheckCircle2
+    : XCircle;
+  const activePassengers = passengers.filter((p) => p.status !== "cancelled");
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
       <section className="rounded-b-[28px] bg-gradient-to-br from-primary to-primary/85 px-5 pb-6 pt-7 text-primary-foreground shadow-lg">
         <Link to="/deplacement-groupe" className="inline-flex items-center gap-1 text-[12px] font-semibold opacity-80"><ArrowLeft className="h-3 w-3" /> Retour</Link>
         <h1 className="mt-2 text-xl font-extrabold">Salle d'attente</h1>
-        <p className="text-[12px] opacity-85">{statusLabel}</p>
+        <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-3 py-1 text-[11px] font-bold ring-1 ring-primary-foreground/25 backdrop-blur">
+          <StatusIcon className="h-3 w-3" />
+          {statusLabel}
+        </div>
       </section>
 
       <main className="mx-auto -mt-3 max-w-md space-y-3 px-4">
@@ -117,6 +136,11 @@ function SalonPage() {
           <p className="mt-1 text-5xl font-extrabold tabular-nums text-foreground">{mm}:{ss}</p>
           <p className="mt-1 text-[12px] text-muted-foreground">{seats}/{GROUP_MAX_SEATS} places occupées</p>
         </motion.div>
+
+        <div className={`inline-flex w-full items-center justify-center gap-1.5 rounded-2xl px-3 py-2 text-[12px] font-bold ring-1 ${statusTone}`}>
+          <StatusIcon className="h-3.5 w-3.5" />
+          Statut en temps réel : {statusLabel}
+        </div>
 
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: GROUP_MAX_SEATS }).map((_, i) => {
@@ -132,6 +156,45 @@ function SalonPage() {
               </motion.div>
             );
           })}
+        </div>
+
+        <div className="rounded-3xl border bg-card p-4 shadow-sm">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Passagers ({activePassengers.length})</h2>
+            <span className="text-[10px] font-semibold text-primary">Temps réel</span>
+          </div>
+          <ul className="space-y-2">
+            {activePassengers.length === 0 && (
+              <li className="rounded-xl bg-muted/40 p-3 text-center text-[11.5px] text-muted-foreground">Aucun passager pour le moment…</li>
+            )}
+            {activePassengers.map((p) => {
+              const me = user?.id === p.user_id;
+              return (
+                <motion.li
+                  key={p.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`flex items-start gap-2.5 rounded-2xl border p-2.5 ${me ? "border-primary/40 bg-primary/5" : "bg-card"}`}
+                >
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${me ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+                    <User className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[12px] font-bold">Place {p.seat_index}{me ? " · Vous" : ""}</span>
+                      <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9.5px] font-bold uppercase text-primary">{p.status}</span>
+                    </div>
+                    <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+                      <MapPin className="h-3 w-3 shrink-0 text-primary" /> {p.pickup_address}
+                    </p>
+                    <p className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+                      <Navigation className="h-3 w-3 shrink-0 text-accent-foreground" /> {p.destination_address}
+                    </p>
+                  </div>
+                </motion.li>
+              );
+            })}
+          </ul>
         </div>
 
         <div className="rounded-2xl border bg-card p-4">
