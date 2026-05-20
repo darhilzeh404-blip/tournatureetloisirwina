@@ -312,3 +312,32 @@ function GroupRidePage() {
     </div>
   );
 }
+
+function StopChips({
+  target,
+  onPick,
+}: {
+  target: "pickup" | "destination";
+  onPick: (s: PopularStop, target: "pickup" | "destination") => void;
+}) {
+  return (
+    <div className="mt-2">
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        Arrêts populaires
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {POPULAR_STOPS.map((s) => (
+          <button
+            key={`${target}-${s.label}`}
+            type="button"
+            onClick={() => onPick(s, target)}
+            className="inline-flex items-center gap-1 rounded-full border bg-secondary/40 px-2.5 py-1 text-[10.5px] font-semibold text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+          >
+            <MapPin className="h-3 w-3 text-primary" />
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
