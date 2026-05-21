@@ -1390,6 +1390,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      join_group_ride: {
+        Args: {
+          _commune_destination: string
+          _commune_pickup: string
+          _communes_count: number
+          _destination_address: string
+          _destination_lat: number
+          _destination_lng: number
+          _max_seats: number
+          _pickup_address: string
+          _pickup_lat: number
+          _pickup_lng: number
+          _price_per_seat: number
+          _signature: string
+          _wait_minutes: number
+        }
+        Returns: {
+          ride_id: string
+          seat_index: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "gerant" | "chauffeur" | "client"

@@ -73,87 +73,62 @@ function GroupRidePage() {
   };
 
   const joinOrCreate = async () => {
-    if (!isAuthenticated || !user) { toast.error("Connectez-vous"); navigate({ to: "/connexion" }); return; }
-    if (!pickup || !destination || !fare) return;
-    if (!pickup.commune || !destination.commune) { toast.error("Trajet hors zone"); return; }
+    if (!isAuthenticated || !user) {
+      toast.error("Connectez-vous pour réserver");
+      navigate({ to: "/connexion" });
+      return;
+    }
+    if (!pickup || !destination || !fare) {
+      toast.error("Sélectionnez le départ et la destination");
+      return;
+    }
+    if (!pickup.commune || !destination.commune) {
+      toast.error("Trajet hors zone desservie");
+      return;
+    }
     setJoining(true);
     try {
-      // 1. Chercher une course en recherche compatible (signature, places dispo, deadline non dépassée)
-      const { data: existing } = await supabase
-        .from("group_rides" as never)
-        .select("*")
-        .eq("status", "searching")
-        .eq("signature", fare.signature)
-        .lt("seats_taken", GROUP_MAX_SEATS)
-        .gt("departure_deadline", new Date().toISOString())
-        .is("archived_at", null)
-        .order("created_at", { ascending: true })
-        .limit(1);
+      const { data, error } = await supabase.rpc("join_group_ride", {
+        _signature: fare.signature,
+        _communes_count: fare.count,
+        _price_per_seat: fare.perSeat,
+        _wait_minutes: GROUP_WAIT_MINUTES,
+        _max_seats: GROUP_MAX_SEATS,
+        _pickup_address: pickup.address,
+        _pickup_lat: pickup.lat,
+        _pickup_lng: pickup.lng,
+        _destination_address: destination.address,
+        _destination_lat: destination.lat,
+        _destination_lng: destination.lng,
+        _commune_pickup: pickup.commune,
+        _commune_destination: destination.commune,
+      });
 
-      let rideId: string;
-      let seatIndex: number;
-
-      const candidate = (existing as any[] | null)?.[0];
-
-      if (candidate) {
-        rideId = candidate.id;
-        seatIndex = (candidate.seats_taken as number) + 1;
-        const { error: upErr } = await supabase
-          .from("group_rides" as never)
-          .update({ seats_taken: seatIndex })
-          .eq("id", rideId)
-          .eq("seats_taken", candidate.seats_taken);
-        if (upErr) throw upErr;
-      } else {
-        const deadline = new Date(Date.now() + GROUP_WAIT_MINUTES * 60_000).toISOString();
-        const { data: created, error: insErr } = await supabase
-          .from("group_rides" as never)
-          .insert({
-            status: "searching",
-            communes_count: fare.count,
-            price_per_seat: fare.perSeat,
-            max_seats: GROUP_MAX_SEATS,
-            seats_taken: 1,
-            departure_deadline: deadline,
-            signature: fare.signature,
-          })
-          .select("id")
-          .single();
-        if (insErr) throw insErr;
-        rideId = (created as any).id;
-        seatIndex = 1;
+      if (error) {
+        const msg = String(error.message || "");
+        console.error("[group-ride] join error", error);
+        if (msg.includes("ALREADY_IN_RIDE")) {
+          toast.error("Vous avez déjà une course groupée en cours");
+        } else if (msg.includes("NOT_AUTHENTICATED")) {
+          toast.error("Session expirée, reconnectez-vous");
+          navigate({ to: "/connexion" });
+        } else {
+          toast.error("Impossible de réserver pour le moment. Réessayez.");
+        }
+        return;
       }
 
-      // 2. Insérer le passager
-      const { error: paxErr } = await supabase.from("group_ride_passengers" as never).insert({
-        ride_id: rideId,
-        user_id: user.id,
-        pickup_address: pickup.address,
-        pickup_lat: pickup.lat,
-        pickup_lng: pickup.lng,
-        destination_address: destination.address,
-        destination_lat: destination.lat,
-        destination_lng: destination.lng,
-        commune_pickup: pickup.commune,
-        commune_destination: destination.commune,
-        seat_index: seatIndex,
-        status: "matched",
-      });
-      if (paxErr) {
-        // Place déjà prise (race condition) → réessayer
-        if (paxErr.code === "23505") {
-          toast.message("Une place vient d'être prise, nouvelle tentative…");
-          setJoining(false);
-          setTimeout(() => joinOrCreate(), 300);
-          return;
-        }
-        throw paxErr;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row?.ride_id) {
+        toast.error("Réponse inattendue du serveur");
+        return;
       }
 
       toast.success("Place réservée ! Direction salle d'attente.");
-      navigate({ to: "/deplacement-groupe/salon/$rideId", params: { rideId } });
+      navigate({ to: "/deplacement-groupe/salon/$rideId", params: { rideId: row.ride_id } });
     } catch (e: any) {
-      toast.error(e.message || "Impossible de rejoindre une course");
+      console.error("[group-ride] join exception", e);
+      toast.error("Erreur réseau, veuillez réessayer");
     } finally {
       setJoining(false);
     }
