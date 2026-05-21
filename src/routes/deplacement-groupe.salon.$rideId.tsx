@@ -1,13 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, Navigation, User, Users, Wallet, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, Navigation, Timer, User, Users, Wallet, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
+import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { useAuth } from "@/hooks/use-auth";
+import { useDriverPosition } from "@/hooks/use-driver-position";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
 import { formatXAF } from "@/lib/vtc-zones";
-import { GROUP_MAX_SEATS, GROUP_RIDE_STATUS_LABEL } from "@/lib/group-ride";
+import { GROUP_MAX_SEATS, GROUP_RIDE_STATUS_LABEL, estimateTrip } from "@/lib/group-ride";
 
 const supabase = supabaseTyped as any;
 
@@ -119,6 +122,55 @@ function SalonPage() {
     : XCircle;
   const activePassengers = passengers.filter((p) => p.status !== "cancelled");
 
+  // Live ETA refresh (every 15s)
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const i = setInterval(() => setNowTick(Date.now()), 15000);
+    return () => clearInterval(i);
+  }, []);
+
+  const driverPos = useDriverPosition(ride.driver_id ?? null);
+  const myPassenger = useMemo(
+    () => passengers.find((p) => p.user_id === user?.id) ?? null,
+    [passengers, user?.id],
+  );
+
+  const etaToPickup = useMemo(() => {
+    if (!myPassenger) return null;
+    const pickup = { lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng) };
+    if (driverPos) {
+      return estimateTrip({ lat: Number(driverPos.latitude), lng: Number(driverPos.longitude) }, pickup);
+    }
+    if (ride.departure_deadline) {
+      const min = Math.max(1, Math.ceil((new Date(ride.departure_deadline).getTime() - nowTick) / 60000));
+      return { distanceKm: 0, durationMin: min };
+    }
+    return null;
+  }, [driverPos, myPassenger, ride.departure_deadline, nowTick]);
+
+  const etaToDestination = useMemo(() => {
+    if (!myPassenger) return null;
+    const pickup = { lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng) };
+    const dest = { lat: Number(myPassenger.destination_lat), lng: Number(myPassenger.destination_lng) };
+    const leg = estimateTrip(pickup, dest);
+    const pickupMin = etaToPickup?.durationMin ?? 0;
+    return { distanceKm: leg.distanceKm, durationMin: leg.durationMin + pickupMin };
+  }, [myPassenger, etaToPickup]);
+
+  const mapMarkers: MapMarker[] = useMemo(() => {
+    const out: MapMarker[] = [];
+    if (myPassenger) {
+      out.push({ id: "pickup", lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng), type: "client", label: myPassenger.pickup_address });
+      out.push({ id: "dest", lat: Number(myPassenger.destination_lat), lng: Number(myPassenger.destination_lng), type: "destination", label: myPassenger.destination_address });
+    }
+    if (driverPos) {
+      out.push({ id: "driver", lat: Number(driverPos.latitude), lng: Number(driverPos.longitude), type: "driver", service: "vtc", heading: driverPos.heading, label: "Chauffeur" });
+    }
+    return out;
+  }, [myPassenger, driverPos]);
+
+  const fmtEta = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)}h${(min % 60).toString().padStart(2, "0")}`);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
       <section className="rounded-b-[28px] bg-gradient-to-br from-primary to-primary/85 px-5 pb-6 pt-7 text-primary-foreground shadow-lg">
@@ -157,6 +209,53 @@ function SalonPage() {
             );
           })}
         </div>
+
+        {myPassenger && (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-2xl border bg-card p-3">
+                <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Timer className="h-3 w-3 text-primary" /> Pickup dans
+                </div>
+                <p className="mt-1 text-xl font-extrabold tabular-nums text-foreground">
+                  {etaToPickup ? fmtEta(etaToPickup.durationMin) : "—"}
+                </p>
+                <p className="text-[10.5px] text-muted-foreground">
+                  {driverPos ? `${etaToPickup?.distanceKm.toFixed(1)} km · live` : "départ prévu"}
+                </p>
+              </div>
+              <div className="rounded-2xl border bg-card p-3">
+                <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Navigation className="h-3 w-3 text-accent-foreground" /> Arrivée dans
+                </div>
+                <p className="mt-1 text-xl font-extrabold tabular-nums text-foreground">
+                  {etaToDestination ? fmtEta(etaToDestination.durationMin) : "—"}
+                </p>
+                <p className="text-[10.5px] text-muted-foreground">
+                  {etaToDestination ? `${etaToDestination.distanceKm.toFixed(1)} km estimés` : "—"}
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-3xl border bg-card shadow-sm">
+              <div className="flex items-center justify-between px-4 pt-3">
+                <h2 className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Carte du trajet</h2>
+                <span className="text-[10px] font-semibold text-primary">{driverPos ? "Position chauffeur · live" : "En attente du chauffeur"}</span>
+              </div>
+              <div className="mt-2 h-[220px] w-full">
+                <MapErrorBoundary>
+                  <LiveMap
+                    markers={mapMarkers}
+                    showRoute
+                    followMarkerId={driverPos ? "driver" : undefined}
+                    height="100%"
+                  />
+                </MapErrorBoundary>
+              </div>
+            </div>
+          </>
+        )}
+
 
         <div className="rounded-3xl border bg-card p-4 shadow-sm">
           <div className="mb-2 flex items-center justify-between">
