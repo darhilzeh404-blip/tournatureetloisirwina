@@ -1,13 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, Navigation, User, Users, Wallet, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, Navigation, Timer, User, Users, Wallet, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
+import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { useAuth } from "@/hooks/use-auth";
+import { useDriverPosition } from "@/hooks/use-driver-position";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
 import { formatXAF } from "@/lib/vtc-zones";
-import { GROUP_MAX_SEATS, GROUP_RIDE_STATUS_LABEL } from "@/lib/group-ride";
+import { GROUP_MAX_SEATS, GROUP_RIDE_STATUS_LABEL, estimateTrip } from "@/lib/group-ride";
 
 const supabase = supabaseTyped as any;
 
