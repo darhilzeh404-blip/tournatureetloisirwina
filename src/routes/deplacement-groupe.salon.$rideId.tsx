@@ -122,6 +122,55 @@ function SalonPage() {
     : XCircle;
   const activePassengers = passengers.filter((p) => p.status !== "cancelled");
 
+  // Live ETA refresh (every 15s)
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const i = setInterval(() => setNowTick(Date.now()), 15000);
+    return () => clearInterval(i);
+  }, []);
+
+  const driverPos = useDriverPosition(ride.driver_id ?? null);
+  const myPassenger = useMemo(
+    () => passengers.find((p) => p.user_id === user?.id) ?? null,
+    [passengers, user?.id],
+  );
+
+  const etaToPickup = useMemo(() => {
+    if (!myPassenger) return null;
+    const pickup = { lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng) };
+    if (driverPos) {
+      return estimateTrip({ lat: Number(driverPos.latitude), lng: Number(driverPos.longitude) }, pickup);
+    }
+    if (ride.departure_deadline) {
+      const min = Math.max(1, Math.ceil((new Date(ride.departure_deadline).getTime() - nowTick) / 60000));
+      return { distanceKm: 0, durationMin: min };
+    }
+    return null;
+  }, [driverPos, myPassenger, ride.departure_deadline, nowTick]);
+
+  const etaToDestination = useMemo(() => {
+    if (!myPassenger) return null;
+    const pickup = { lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng) };
+    const dest = { lat: Number(myPassenger.destination_lat), lng: Number(myPassenger.destination_lng) };
+    const leg = estimateTrip(pickup, dest);
+    const pickupMin = etaToPickup?.durationMin ?? 0;
+    return { distanceKm: leg.distanceKm, durationMin: leg.durationMin + pickupMin };
+  }, [myPassenger, etaToPickup]);
+
+  const mapMarkers: MapMarker[] = useMemo(() => {
+    const out: MapMarker[] = [];
+    if (myPassenger) {
+      out.push({ id: "pickup", lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng), type: "client", label: myPassenger.pickup_address });
+      out.push({ id: "dest", lat: Number(myPassenger.destination_lat), lng: Number(myPassenger.destination_lng), type: "destination", label: myPassenger.destination_address });
+    }
+    if (driverPos) {
+      out.push({ id: "driver", lat: Number(driverPos.latitude), lng: Number(driverPos.longitude), type: "driver", service: "vtc", heading: driverPos.heading, label: "Chauffeur" });
+    }
+    return out;
+  }, [myPassenger, driverPos]);
+
+  const fmtEta = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)}h${(min % 60).toString().padStart(2, "0")}`);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
       <section className="rounded-b-[28px] bg-gradient-to-br from-primary to-primary/85 px-5 pb-6 pt-7 text-primary-foreground shadow-lg">
