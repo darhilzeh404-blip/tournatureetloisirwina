@@ -27,17 +27,28 @@ function SalonPage() {
   const [passengers, setPassengers] = useState<any[]>([]);
   const [remaining, setRemaining] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
-      const [{ data: r }, { data: p }] = await Promise.all([
-        supabase.from("group_rides").select("*").eq("id", rideId).maybeSingle(),
-        supabase.from("group_ride_passengers").select("*").eq("ride_id", rideId).order("seat_index"),
-      ]);
-      if (!mounted) return;
-      setRide(r); setPassengers(p ?? []); setLoading(false);
+      try {
+        const [{ data: r, error: rErr }, { data: p, error: pErr }] = await Promise.all([
+          supabase.from("group_rides").select("*").eq("id", rideId).maybeSingle(),
+          supabase.from("group_ride_passengers").select("*").eq("ride_id", rideId).order("seat_index"),
+        ]);
+        if (!mounted) return;
+        if (rErr) { console.error("[salon] ride", rErr); setLoadError("Accès refusé ou trajet introuvable"); }
+        if (pErr) console.error("[salon] passengers", pErr);
+        setRide(r); setPassengers(p ?? []);
+      } catch (e: any) {
+        console.error("[salon] load exception", e);
+        if (mounted) { setLoadError("Erreur réseau"); toast.error("Réseau indisponible"); }
+      } finally {
+        if (mounted) setLoading(false);
+      }
     };
     load();
 
@@ -65,6 +76,11 @@ function SalonPage() {
     return () => clearInterval(i);
   }, [ride?.departure_deadline]);
 
+  useEffect(() => {
+    const i = setInterval(() => setNowTick(Date.now()), 15000);
+    return () => clearInterval(i);
+  }, []);
+
   // Auto-trigger : 3/3 ou deadline atteint avec >=2
   useEffect(() => {
     if (!ride || ride.status !== "searching") return;
@@ -77,6 +93,46 @@ function SalonPage() {
       supabase.from("group_rides").update({ status: "cancelled", archived_at: new Date().toISOString() }).eq("id", rideId).eq("status", "searching");
     }
   }, [remaining, ride, rideId]);
+
+  const driverPos = useDriverPosition(ride?.driver_id ?? null);
+  const myPassenger = useMemo(
+    () => passengers.find((p) => p.user_id === user?.id) ?? null,
+    [passengers, user?.id],
+  );
+
+  const etaToPickup = useMemo(() => {
+    if (!myPassenger) return null;
+    const pickup = { lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng) };
+    if (driverPos) {
+      return estimateTrip({ lat: Number(driverPos.latitude), lng: Number(driverPos.longitude) }, pickup);
+    }
+    if (ride?.departure_deadline) {
+      const min = Math.max(1, Math.ceil((new Date(ride.departure_deadline).getTime() - nowTick) / 60000));
+      return { distanceKm: 0, durationMin: min };
+    }
+    return null;
+  }, [driverPos, myPassenger, ride?.departure_deadline, nowTick]);
+
+  const etaToDestination = useMemo(() => {
+    if (!myPassenger) return null;
+    const pickup = { lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng) };
+    const dest = { lat: Number(myPassenger.destination_lat), lng: Number(myPassenger.destination_lng) };
+    const leg = estimateTrip(pickup, dest);
+    const pickupMin = etaToPickup?.durationMin ?? 0;
+    return { distanceKm: leg.distanceKm, durationMin: leg.durationMin + pickupMin };
+  }, [myPassenger, etaToPickup]);
+
+  const mapMarkers: MapMarker[] = useMemo(() => {
+    const out: MapMarker[] = [];
+    if (myPassenger) {
+      out.push({ id: "pickup", lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng), type: "client", label: myPassenger.pickup_address });
+      out.push({ id: "dest", lat: Number(myPassenger.destination_lat), lng: Number(myPassenger.destination_lng), type: "destination", label: myPassenger.destination_address });
+    }
+    if (driverPos) {
+      out.push({ id: "driver", lat: Number(driverPos.latitude), lng: Number(driverPos.longitude), type: "driver", service: "vtc", heading: driverPos.heading, label: "Chauffeur" });
+    }
+    return out;
+  }, [myPassenger, driverPos]);
 
   const cancelSeat = async () => {
     if (!user) return;
@@ -95,8 +151,32 @@ function SalonPage() {
     }
   };
 
-  if (loading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
-  if (!ride) return <div className="p-6 text-center text-sm text-muted-foreground">Course introuvable.</div>;
+  const fmtEta = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)}h${(min % 60).toString().padStart(2, "0")}`);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background p-4 pb-32">
+        <div className="mx-auto max-w-md space-y-3">
+          <div className="h-28 animate-pulse rounded-3xl bg-muted" />
+          <div className="h-20 animate-pulse rounded-3xl bg-muted" />
+          <div className="h-40 animate-pulse rounded-3xl bg-muted" />
+          <p className="pt-2 text-center text-[12px] font-semibold text-muted-foreground">
+            <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />
+            Connexion au trajet…
+          </p>
+        </div>
+      </div>
+    );
+  }
+  if (!ride) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-center">
+        <XCircle className="h-10 w-10 text-destructive" />
+        <p className="text-sm font-semibold">{loadError ?? "Trajet introuvable"}</p>
+        <Link to="/deplacement-groupe" className="rounded-full bg-primary px-4 py-2 text-[12px] font-bold text-primary-foreground">Réserver un trajet</Link>
+      </div>
+    );
+  }
 
   const seats = ride.seats_taken ?? 0;
   const remainingSeats = GROUP_MAX_SEATS - seats;
@@ -121,55 +201,6 @@ function SalonPage() {
     : ride.status === "completed" ? CheckCircle2
     : XCircle;
   const activePassengers = passengers.filter((p) => p.status !== "cancelled");
-
-  // Live ETA refresh (every 15s)
-  const [nowTick, setNowTick] = useState(() => Date.now());
-  useEffect(() => {
-    const i = setInterval(() => setNowTick(Date.now()), 15000);
-    return () => clearInterval(i);
-  }, []);
-
-  const driverPos = useDriverPosition(ride.driver_id ?? null);
-  const myPassenger = useMemo(
-    () => passengers.find((p) => p.user_id === user?.id) ?? null,
-    [passengers, user?.id],
-  );
-
-  const etaToPickup = useMemo(() => {
-    if (!myPassenger) return null;
-    const pickup = { lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng) };
-    if (driverPos) {
-      return estimateTrip({ lat: Number(driverPos.latitude), lng: Number(driverPos.longitude) }, pickup);
-    }
-    if (ride.departure_deadline) {
-      const min = Math.max(1, Math.ceil((new Date(ride.departure_deadline).getTime() - nowTick) / 60000));
-      return { distanceKm: 0, durationMin: min };
-    }
-    return null;
-  }, [driverPos, myPassenger, ride.departure_deadline, nowTick]);
-
-  const etaToDestination = useMemo(() => {
-    if (!myPassenger) return null;
-    const pickup = { lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng) };
-    const dest = { lat: Number(myPassenger.destination_lat), lng: Number(myPassenger.destination_lng) };
-    const leg = estimateTrip(pickup, dest);
-    const pickupMin = etaToPickup?.durationMin ?? 0;
-    return { distanceKm: leg.distanceKm, durationMin: leg.durationMin + pickupMin };
-  }, [myPassenger, etaToPickup]);
-
-  const mapMarkers: MapMarker[] = useMemo(() => {
-    const out: MapMarker[] = [];
-    if (myPassenger) {
-      out.push({ id: "pickup", lat: Number(myPassenger.pickup_lat), lng: Number(myPassenger.pickup_lng), type: "client", label: myPassenger.pickup_address });
-      out.push({ id: "dest", lat: Number(myPassenger.destination_lat), lng: Number(myPassenger.destination_lng), type: "destination", label: myPassenger.destination_address });
-    }
-    if (driverPos) {
-      out.push({ id: "driver", lat: Number(driverPos.latitude), lng: Number(driverPos.longitude), type: "driver", service: "vtc", heading: driverPos.heading, label: "Chauffeur" });
-    }
-    return out;
-  }, [myPassenger, driverPos]);
-
-  const fmtEta = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)}h${(min % 60).toString().padStart(2, "0")}`);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
