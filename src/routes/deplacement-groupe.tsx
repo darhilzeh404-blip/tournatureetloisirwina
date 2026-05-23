@@ -1,7 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Clock, Loader2, MapPin, Navigation, Route as RouteIcon, Sparkles, Users, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  Loader2,
+  MapPin,
+  Navigation,
+  Route as RouteIcon,
+  Sparkles,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
