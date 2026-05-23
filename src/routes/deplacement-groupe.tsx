@@ -162,6 +162,8 @@ function GroupRidePage() {
         } else if (msg.includes("NOT_AUTHENTICATED")) {
           toast.error("Session expirée, reconnectez-vous");
           navigate({ to: "/connexion" });
+        } else if (msg.includes("ride_full") || msg.includes("full")) {
+          toast.error("Ce trajet est complet, essayez un autre horaire.");
         } else {
           toast.error("Impossible de réserver pour le moment. Réessayez.");
         }
@@ -174,8 +176,12 @@ function GroupRidePage() {
         return;
       }
 
-      toast.success("Place réservée ! Direction salle d'attente.");
-      navigate({ to: "/deplacement-groupe/salon/$rideId", params: { rideId: row.ride_id } });
+      toast.success("Place réservée ! Redirection…");
+      navigate({
+        to: "/deplacement-groupe/salon/$rideId",
+        params: { rideId: row.ride_id },
+        replace: true,
+      });
     } catch (e: any) {
       console.error("[group-ride] join exception", e);
       toast.error("Erreur réseau, veuillez réessayer");
@@ -183,6 +189,15 @@ function GroupRidePage() {
       setJoining(false);
     }
   };
+
+  if (checkingActive) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gradient-to-b from-secondary/40 via-background to-background p-6 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm font-semibold text-muted-foreground">Vérification de vos trajets en cours…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
