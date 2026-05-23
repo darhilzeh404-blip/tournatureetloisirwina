@@ -1,7 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Clock, Loader2, MapPin, Navigation, Route as RouteIcon, Sparkles, Users, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  Clock,
+  Loader2,
+  MapPin,
+  Navigation,
+  Route as RouteIcon,
+  Sparkles,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -39,6 +49,46 @@ function GroupRidePage() {
   const [pickup, setPickup] = useState<GroupStop | null>(null);
   const [destination, setDestination] = useState<GroupStop | null>(null);
   const [joining, setJoining] = useState(false);
+  const [checkingActive, setCheckingActive] = useState(true);
+
+  // Détection automatique d'un trajet groupé actif au chargement
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setCheckingActive(false);
+      return;
+    }
+    let mounted = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("group_ride_passengers")
+          .select("ride_id")
+          .eq("user_id", user.id)
+          .neq("status", "cancelled")
+          .order("joined_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!mounted) return;
+        if (error) {
+          console.error("[group-ride] check active ride", error);
+        }
+        if (data?.ride_id) {
+          toast.info("Redirection vers votre trajet en cours…");
+          navigate({
+            to: "/deplacement-groupe/salon/$rideId",
+            params: { rideId: data.ride_id },
+            replace: true,
+          });
+          return;
+        }
+      } catch (e) {
+        console.error("[group-ride] check active exception", e);
+      } finally {
+        if (mounted) setCheckingActive(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [isAuthenticated, user, navigate]);
 
   const fare = useMemo(() => {
     if (!pickup || !destination) return null;
@@ -112,6 +162,8 @@ function GroupRidePage() {
         } else if (msg.includes("NOT_AUTHENTICATED")) {
           toast.error("Session expirée, reconnectez-vous");
           navigate({ to: "/connexion" });
+        } else if (msg.includes("ride_full") || msg.includes("full")) {
+          toast.error("Ce trajet est complet, essayez un autre horaire.");
         } else {
           toast.error("Impossible de réserver pour le moment. Réessayez.");
         }
@@ -124,8 +176,12 @@ function GroupRidePage() {
         return;
       }
 
-      toast.success("Place réservée ! Direction salle d'attente.");
-      navigate({ to: "/deplacement-groupe/salon/$rideId", params: { rideId: row.ride_id } });
+      toast.success("Place réservée ! Redirection…");
+      navigate({
+        to: "/deplacement-groupe/salon/$rideId",
+        params: { rideId: row.ride_id },
+        replace: true,
+      });
     } catch (e: any) {
       console.error("[group-ride] join exception", e);
       toast.error("Erreur réseau, veuillez réessayer");
@@ -133,6 +189,15 @@ function GroupRidePage() {
       setJoining(false);
     }
   };
+
+  if (checkingActive) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gradient-to-b from-secondary/40 via-background to-background p-6 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm font-semibold text-muted-foreground">Vérification de vos trajets en cours…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
