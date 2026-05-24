@@ -178,8 +178,9 @@ function GroupRidePage() {
       }
 
       toast.success("Place réservée ! Redirection…");
+      try { localStorage.setItem("active_group_ride_id", row.ride_id); } catch {}
       navigate({
-        to: "/deplacement-groupe/salon/$rideId",
+        to: "/deplacement-groupe/waiting/$rideId",
         params: { rideId: row.ride_id },
         replace: true,
       });
