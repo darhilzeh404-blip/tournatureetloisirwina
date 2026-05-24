@@ -14,7 +14,7 @@ import { GROUP_MAX_SEATS, GROUP_RIDE_STATUS_LABEL, estimateTrip } from "@/lib/gr
 
 const supabase = supabaseTyped as any;
 
-export const Route = createFileRoute("/deplacement-groupe/salon/$rideId")({
+export const Route = createFileRoute("/deplacement-groupe/waiting/$rideId")({
   head: () => ({ meta: [{ title: "Salle d'attente — Déplacement Groupé" }] }),
   component: SalonPage,
 });
