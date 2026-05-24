@@ -74,8 +74,9 @@ function GroupRidePage() {
         }
         if (data?.ride_id) {
           toast.info("Redirection vers votre trajet en cours…");
+          try { localStorage.setItem("active_group_ride_id", data.ride_id); } catch {}
           navigate({
-            to: "/deplacement-groupe/salon/$rideId",
+            to: "/deplacement-groupe/waiting/$rideId",
             params: { rideId: data.ride_id },
             replace: true,
           });
