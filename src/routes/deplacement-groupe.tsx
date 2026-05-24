@@ -345,9 +345,29 @@ function GroupRidePage() {
           {joining ? "Recherche…" : ready ? "Trouver un groupe et réserver" : "Sélectionnez départ & destination"}
         </button>
 
-        <Link to="/mes-reservations" className="flex items-center justify-center gap-1 pt-2 text-[12px] font-semibold text-primary">
+        <button
+          type="button"
+          onClick={async () => {
+            if (!user) { navigate({ to: "/connexion" }); return; }
+            const { data } = await supabase
+              .from("group_ride_passengers")
+              .select("ride_id, group_rides!inner(status)")
+              .eq("user_id", user.id)
+              .neq("status", "cancelled")
+              .order("joined_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            const rid = data?.ride_id;
+            const st = (data as any)?.group_rides?.status;
+            if (!rid) { toast.info("Aucune course groupée active"); return; }
+            if (st === "completed") { navigate({ to: "/mes-reservations" }); return; }
+            if (st === "cancelled") { toast.info("Course annulée"); return; }
+            navigate({ to: "/deplacement-groupe/waiting/$rideId", params: { rideId: rid } });
+          }}
+          className="flex w-full items-center justify-center gap-1 pt-2 text-[12px] font-semibold text-primary"
+        >
           Voir mes courses groupées <ArrowRight className="h-3 w-3" />
-        </Link>
+        </button>
       </main>
 
       <ClientNav />
