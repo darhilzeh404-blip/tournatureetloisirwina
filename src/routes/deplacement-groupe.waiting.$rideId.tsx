@@ -149,21 +149,54 @@ function SalonPage() {
   }, [myPassenger, driverPos]);
 
   const cancelSeat = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.error("Vous devez être connecté pour annuler");
+      return;
+    }
+    setShowCancelDialog(false);
     setCancelling(true);
     try {
       const me = passengers.find((p) => p.user_id === user.id);
-      if (!me) return;
-      await supabase.from("group_ride_passengers").update({ status: "cancelled" }).eq("id", me.id);
-      await supabase.from("group_rides").update({ seats_taken: Math.max(0, (ride?.seats_taken ?? 1) - 1) }).eq("id", rideId);
-      toast.success("Place libérée");
-      navigate({ to: "/espace-client" });
+      if (!me) {
+        toast.error("Vous n'êtes plus dans ce trajet");
+        setCancelling(false);
+        return;
+      }
+      if (me.status === "cancelled") {
+        toast.info("Votre place est déjà annulée");
+        setCancelling(false);
+        return;
+      }
+
+      const { error: updErr } = await supabase
+        .from("group_ride_passengers")
+        .update({ status: "cancelled" })
+        .eq("id", me.id);
+      if (updErr) throw updErr;
+
+      const newSeats = Math.max(0, (ride?.seats_taken ?? 1) - 1);
+      const { error: rideErr } = await supabase
+        .from("group_rides")
+        .update({ seats_taken: newSeats })
+        .eq("id", rideId);
+      if (rideErr) throw rideErr;
+
+      // Remove active ride from storage so auto-redirect won't fire
+      try { localStorage.removeItem("active_group_ride_id"); } catch {}
+
+      setCancelDone(true);
+      toast.success("Votre place a été annulée");
+      setTimeout(() => {
+        navigate({ to: "/deplacement-groupe" });
+      }, 1200);
     } catch (e: any) {
-      toast.error(e.message || "Erreur");
+      console.error("[salon] cancel error", e);
+      toast.error(e.message || "Impossible d'annuler, réessayez");
     } finally {
       setCancelling(false);
     }
   };
+
 
   const fmtEta = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)}h${(min % 60).toString().padStart(2, "0")}`);
 
