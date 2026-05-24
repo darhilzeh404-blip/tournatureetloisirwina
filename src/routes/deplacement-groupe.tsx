@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -74,8 +74,9 @@ function GroupRidePage() {
         }
         if (data?.ride_id) {
           toast.info("Redirection vers votre trajet en cours…");
+          try { localStorage.setItem("active_group_ride_id", data.ride_id); } catch {}
           navigate({
-            to: "/deplacement-groupe/salon/$rideId",
+            to: "/deplacement-groupe/waiting/$rideId",
             params: { rideId: data.ride_id },
             replace: true,
           });
@@ -177,8 +178,9 @@ function GroupRidePage() {
       }
 
       toast.success("Place réservée ! Redirection…");
+      try { localStorage.setItem("active_group_ride_id", row.ride_id); } catch {}
       navigate({
-        to: "/deplacement-groupe/salon/$rideId",
+        to: "/deplacement-groupe/waiting/$rideId",
         params: { rideId: row.ride_id },
         replace: true,
       });
@@ -343,9 +345,29 @@ function GroupRidePage() {
           {joining ? "Recherche…" : ready ? "Trouver un groupe et réserver" : "Sélectionnez départ & destination"}
         </button>
 
-        <Link to="/mes-reservations" className="flex items-center justify-center gap-1 pt-2 text-[12px] font-semibold text-primary">
+        <button
+          type="button"
+          onClick={async () => {
+            if (!user) { navigate({ to: "/connexion" }); return; }
+            const { data } = await supabase
+              .from("group_ride_passengers")
+              .select("ride_id, group_rides!inner(status)")
+              .eq("user_id", user.id)
+              .neq("status", "cancelled")
+              .order("joined_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            const rid = data?.ride_id;
+            const st = (data as any)?.group_rides?.status;
+            if (!rid) { toast.info("Aucune course groupée active"); return; }
+            if (st === "completed") { navigate({ to: "/mes-reservations" }); return; }
+            if (st === "cancelled") { toast.info("Course annulée"); return; }
+            navigate({ to: "/deplacement-groupe/waiting/$rideId", params: { rideId: rid } });
+          }}
+          className="flex w-full items-center justify-center gap-1 pt-2 text-[12px] font-semibold text-primary"
+        >
           Voir mes courses groupées <ArrowRight className="h-3 w-3" />
-        </Link>
+        </button>
       </main>
 
       <ClientNav />
