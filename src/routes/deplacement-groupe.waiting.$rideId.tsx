@@ -40,7 +40,10 @@ function SalonPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelDone, setCancelDone] = useState(false);
   const [nowTick, setNowTick] = useState(() => Date.now());
+
 
   useEffect(() => {
     let mounted = true;
