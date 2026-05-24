@@ -1,8 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, Navigation, Timer, User, Users, Wallet, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, Navigation, Timer, User, Users, Wallet, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 import { ClientNav } from "@/components/ClientNav";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
