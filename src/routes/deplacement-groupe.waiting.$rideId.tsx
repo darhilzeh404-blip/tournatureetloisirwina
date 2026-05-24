@@ -1,8 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, Navigation, Timer, User, Users, Wallet, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, Loader2, MapPin, Navigation, Timer, User, Users, Wallet, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 import { ClientNav } from "@/components/ClientNav";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
@@ -29,7 +40,10 @@ function SalonPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelDone, setCancelDone] = useState(false);
   const [nowTick, setNowTick] = useState(() => Date.now());
+
 
   useEffect(() => {
     let mounted = true;
@@ -135,21 +149,54 @@ function SalonPage() {
   }, [myPassenger, driverPos]);
 
   const cancelSeat = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.error("Vous devez être connecté pour annuler");
+      return;
+    }
+    setShowCancelDialog(false);
     setCancelling(true);
     try {
       const me = passengers.find((p) => p.user_id === user.id);
-      if (!me) return;
-      await supabase.from("group_ride_passengers").update({ status: "cancelled" }).eq("id", me.id);
-      await supabase.from("group_rides").update({ seats_taken: Math.max(0, (ride?.seats_taken ?? 1) - 1) }).eq("id", rideId);
-      toast.success("Place libérée");
-      navigate({ to: "/espace-client" });
+      if (!me) {
+        toast.error("Vous n'êtes plus dans ce trajet");
+        setCancelling(false);
+        return;
+      }
+      if (me.status === "cancelled") {
+        toast.info("Votre place est déjà annulée");
+        setCancelling(false);
+        return;
+      }
+
+      const { error: updErr } = await supabase
+        .from("group_ride_passengers")
+        .update({ status: "cancelled" })
+        .eq("id", me.id);
+      if (updErr) throw updErr;
+
+      const newSeats = Math.max(0, (ride?.seats_taken ?? 1) - 1);
+      const { error: rideErr } = await supabase
+        .from("group_rides")
+        .update({ seats_taken: newSeats })
+        .eq("id", rideId);
+      if (rideErr) throw rideErr;
+
+      // Remove active ride from storage so auto-redirect won't fire
+      try { localStorage.removeItem("active_group_ride_id"); } catch {}
+
+      setCancelDone(true);
+      toast.success("Votre place a été annulée");
+      setTimeout(() => {
+        navigate({ to: "/deplacement-groupe" });
+      }, 1200);
     } catch (e: any) {
-      toast.error(e.message || "Erreur");
+      console.error("[salon] cancel error", e);
+      toast.error(e.message || "Impossible d'annuler, réessayez");
     } finally {
       setCancelling(false);
     }
   };
+
 
   const fmtEta = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)}h${(min % 60).toString().padStart(2, "0")}`);
 
@@ -351,17 +398,58 @@ function SalonPage() {
             Pas assez de passagers à temps. Course annulée — aucun débit.
             <div className="mt-2"><Link to="/deplacement-groupe" className="text-primary underline">Réessayer</Link> · <Link to="/vtc" className="text-primary underline">Course privée</Link></div>
           </div>
+        ) : cancelDone ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center text-[13px] font-semibold text-emerald-600"
+          >
+            Votre place a été annulée avec succès.
+            <div className="mt-2 text-[12px]">Redirection…</div>
+          </motion.div>
         ) : (
           <button
             type="button"
-            onClick={cancelSeat}
+            onClick={() => setShowCancelDialog(true)}
             disabled={cancelling}
             className="flex w-full items-center justify-center gap-2 rounded-2xl border bg-card py-3 text-[13px] font-bold text-foreground hover:bg-muted disabled:opacity-50"
           >
-            Annuler ma place
+            {cancelling ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Annulation en cours…
+              </>
+            ) : (
+              <>Annuler ma place</>
+            )}
           </button>
         )}
       </main>
+
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-[16px]">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Annuler votre place ?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[13px]">
+              Vous perdrez votre réservation sur ce trajet groupé. Les autres passagers seront notifiés et une place sera libérée.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-xl text-[13px] font-semibold" onClick={() => setShowCancelDialog(false)}>
+              Rester dans le trajet
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-xl bg-destructive text-[13px] font-semibold text-destructive-foreground hover:bg-destructive/90"
+              onClick={cancelSeat}
+            >
+              Oui, annuler
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <ClientNav />
     </div>
   );
