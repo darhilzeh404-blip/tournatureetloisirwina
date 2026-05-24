@@ -398,17 +398,58 @@ function SalonPage() {
             Pas assez de passagers à temps. Course annulée — aucun débit.
             <div className="mt-2"><Link to="/deplacement-groupe" className="text-primary underline">Réessayer</Link> · <Link to="/vtc" className="text-primary underline">Course privée</Link></div>
           </div>
+        ) : cancelDone ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center text-[13px] font-semibold text-emerald-600"
+          >
+            Votre place a été annulée avec succès.
+            <div className="mt-2 text-[12px]">Redirection…</div>
+          </motion.div>
         ) : (
           <button
             type="button"
-            onClick={cancelSeat}
+            onClick={() => setShowCancelDialog(true)}
             disabled={cancelling}
             className="flex w-full items-center justify-center gap-2 rounded-2xl border bg-card py-3 text-[13px] font-bold text-foreground hover:bg-muted disabled:opacity-50"
           >
-            Annuler ma place
+            {cancelling ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Annulation en cours…
+              </>
+            ) : (
+              <>Annuler ma place</>
+            )}
           </button>
         )}
       </main>
+
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent className="max-w-sm rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-[16px]">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Annuler votre place ?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[13px]">
+              Vous perdrez votre réservation sur ce trajet groupé. Les autres passagers seront notifiés et une place sera libérée.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-xl text-[13px] font-semibold" onClick={() => setShowCancelDialog(false)}>
+              Rester dans le trajet
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-xl bg-destructive text-[13px] font-semibold text-destructive-foreground hover:bg-destructive/90"
+              onClick={cancelSeat}
+            >
+              Oui, annuler
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <ClientNav />
     </div>
   );
