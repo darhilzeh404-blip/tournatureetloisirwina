@@ -442,10 +442,17 @@ function SalonPage() {
               Rester dans le trajet
             </AlertDialogCancel>
             <AlertDialogAction
-              className="rounded-xl bg-destructive text-[13px] font-semibold text-destructive-foreground hover:bg-destructive/90"
+              disabled={cancelling}
+              className="rounded-xl bg-destructive text-[13px] font-semibold text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
               onClick={cancelSeat}
             >
-              Oui, annuler
+              {cancelling ? (
+                <>
+                  <Loader2 className="mr-1 inline h-3.5 w-3.5 animate-spin" /> Annulation…
+                </>
+              ) : (
+                "Oui, annuler"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
