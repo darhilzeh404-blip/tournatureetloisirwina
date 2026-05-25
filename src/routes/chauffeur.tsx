@@ -368,7 +368,7 @@ function ChauffeurPage() {
             </Button>
           </div>
           <nav className="mt-3 grid grid-cols-3 gap-2">
-            <Link to="/chauffeur/trips" className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-2 text-xs font-semibold hover:bg-accent">
+            <Link to="/chauffeur/trips" search={{ tripId: undefined }} className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-2 text-xs font-semibold hover:bg-accent">
               <RouteIcon className="h-4 w-4" /> Courses
             </Link>
             <Link to="/chauffeur-vtc" className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-2 text-xs font-semibold hover:bg-accent">
