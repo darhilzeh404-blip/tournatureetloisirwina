@@ -36,6 +36,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
+import { Route as ChauffeurGroupesRouteImport } from './routes/chauffeur.groupes'
 import { Route as BilletsIdRouteImport } from './routes/billets.$id'
 import { Route as AnnoncesIdRouteImport } from './routes/annonces.$id'
 import { Route as AdminVtcChauffeursRouteImport } from './routes/admin/vtc-chauffeurs'
@@ -47,6 +48,7 @@ import { Route as AdminSuiviRouteImport } from './routes/admin/suivi'
 import { Route as AdminReservationsRouteImport } from './routes/admin/reservations'
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
 import { Route as AdminOffresRouteImport } from './routes/admin/offres'
+import { Route as AdminGroupRidesRouteImport } from './routes/admin/group-rides'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-reservations'
@@ -194,6 +196,11 @@ const ChauffeurTripsRoute = ChauffeurTripsRouteImport.update({
   path: '/trips',
   getParentRoute: () => ChauffeurRoute,
 } as any)
+const ChauffeurGroupesRoute = ChauffeurGroupesRouteImport.update({
+  id: '/groupes',
+  path: '/groupes',
+  getParentRoute: () => ChauffeurRoute,
+} as any)
 const BilletsIdRoute = BilletsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -247,6 +254,11 @@ const AdminPaiementsRoute = AdminPaiementsRouteImport.update({
 const AdminOffresRoute = AdminOffresRouteImport.update({
   id: '/offres',
   path: '/offres',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminGroupRidesRoute = AdminGroupRidesRouteImport.update({
+  id: '/group-rides',
+  path: '/group-rides',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminClientsRoute = AdminClientsRouteImport.update({
@@ -336,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/reservations': typeof AdminReservationsRoute
@@ -347,6 +360,7 @@ export interface FileRoutesByFullPath {
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
+  '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -386,6 +400,7 @@ export interface FileRoutesByTo {
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/reservations': typeof AdminReservationsRoute
@@ -397,6 +412,7 @@ export interface FileRoutesByTo {
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
+  '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -438,6 +454,7 @@ export interface FileRoutesById {
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/reservations': typeof AdminReservationsRoute
@@ -449,6 +466,7 @@ export interface FileRoutesById {
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
+  '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -491,6 +509,7 @@ export interface FileRouteTypes {
     | '/admin/bus-reservations'
     | '/admin/circuits'
     | '/admin/clients'
+    | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/reservations'
@@ -502,6 +521,7 @@ export interface FileRouteTypes {
     | '/admin/vtc-chauffeurs'
     | '/annonces/$id'
     | '/billets/$id'
+    | '/chauffeur/groupes'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -541,6 +561,7 @@ export interface FileRouteTypes {
     | '/admin/bus-reservations'
     | '/admin/circuits'
     | '/admin/clients'
+    | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/reservations'
@@ -552,6 +573,7 @@ export interface FileRouteTypes {
     | '/admin/vtc-chauffeurs'
     | '/annonces/$id'
     | '/billets/$id'
+    | '/chauffeur/groupes'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -592,6 +614,7 @@ export interface FileRouteTypes {
     | '/admin/bus-reservations'
     | '/admin/circuits'
     | '/admin/clients'
+    | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/reservations'
@@ -603,6 +626,7 @@ export interface FileRouteTypes {
     | '/admin/vtc-chauffeurs'
     | '/annonces/$id'
     | '/billets/$id'
+    | '/chauffeur/groupes'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -836,6 +860,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChauffeurTripsRouteImport
       parentRoute: typeof ChauffeurRoute
     }
+    '/chauffeur/groupes': {
+      id: '/chauffeur/groupes'
+      path: '/groupes'
+      fullPath: '/chauffeur/groupes'
+      preLoaderRoute: typeof ChauffeurGroupesRouteImport
+      parentRoute: typeof ChauffeurRoute
+    }
     '/billets/$id': {
       id: '/billets/$id'
       path: '/$id'
@@ -911,6 +942,13 @@ declare module '@tanstack/react-router' {
       path: '/offres'
       fullPath: '/admin/offres'
       preLoaderRoute: typeof AdminOffresRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/group-rides': {
+      id: '/admin/group-rides'
+      path: '/group-rides'
+      fullPath: '/admin/group-rides'
+      preLoaderRoute: typeof AdminGroupRidesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/clients': {
@@ -1000,6 +1038,7 @@ interface AdminRouteChildren {
   AdminBusReservationsRoute: typeof AdminBusReservationsRoute
   AdminCircuitsRoute: typeof AdminCircuitsRoute
   AdminClientsRoute: typeof AdminClientsRoute
+  AdminGroupRidesRoute: typeof AdminGroupRidesRoute
   AdminOffresRoute: typeof AdminOffresRoute
   AdminPaiementsRoute: typeof AdminPaiementsRoute
   AdminReservationsRoute: typeof AdminReservationsRoute
@@ -1019,6 +1058,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBusReservationsRoute: AdminBusReservationsRoute,
   AdminCircuitsRoute: AdminCircuitsRoute,
   AdminClientsRoute: AdminClientsRoute,
+  AdminGroupRidesRoute: AdminGroupRidesRoute,
   AdminOffresRoute: AdminOffresRoute,
   AdminPaiementsRoute: AdminPaiementsRoute,
   AdminReservationsRoute: AdminReservationsRoute,
@@ -1045,10 +1085,12 @@ const BilletsRouteWithChildren =
   BilletsRoute._addFileChildren(BilletsRouteChildren)
 
 interface ChauffeurRouteChildren {
+  ChauffeurGroupesRoute: typeof ChauffeurGroupesRoute
   ChauffeurTripsRoute: typeof ChauffeurTripsRoute
 }
 
 const ChauffeurRouteChildren: ChauffeurRouteChildren = {
+  ChauffeurGroupesRoute: ChauffeurGroupesRoute,
   ChauffeurTripsRoute: ChauffeurTripsRoute,
 }
 

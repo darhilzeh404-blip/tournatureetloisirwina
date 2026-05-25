@@ -128,12 +128,12 @@ function ChauffeurGroupesPage() {
     const step = NEXT_STATUS[ride.status];
     if (!step) return;
     setBusyId(ride.id);
-    const patch: Record<string, unknown> = { status: step.next };
-    if (step.next === "active") patch.started_at = new Date().toISOString();
-    if (step.next === "completed") {
-      patch.completed_at = new Date().toISOString();
-      patch.archived_at = new Date().toISOString();
-    }
+    const now = new Date().toISOString();
+    const patch = {
+      status: step.next,
+      ...(step.next === "active" ? { started_at: now } : {}),
+      ...(step.next === "completed" ? { completed_at: now, archived_at: now } : {}),
+    };
     const { error } = await supabase.from("group_rides").update(patch).eq("id", ride.id);
     setBusyId(null);
     if (error) toast.error(error.message);
