@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { Bell, Check, Crosshair, Loader2, LocateFixed, LogOut, MapPin, Navigation, RefreshCw, Route as RouteIcon, ShieldAlert, X } from "lucide-react";
+import { Bell, Car, Check, Crosshair, Loader2, LocateFixed, LogOut, MapPin, Navigation, RefreshCw, Route as RouteIcon, ShieldAlert, UsersRound, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -367,6 +367,17 @@ function ChauffeurPage() {
               {refreshing ? "Mise à jour…" : "Rafraîchir"}
             </Button>
           </div>
+          <nav className="mt-3 grid grid-cols-3 gap-2">
+            <Link to="/chauffeur/trips" className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-2 text-xs font-semibold hover:bg-accent">
+              <RouteIcon className="h-4 w-4" /> Courses
+            </Link>
+            <Link to="/chauffeur-vtc" className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-2 text-xs font-semibold hover:bg-accent">
+              <Car className="h-4 w-4" /> VTC
+            </Link>
+            <Link to="/chauffeur/groupes" className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-2 text-xs font-semibold hover:bg-accent">
+              <UsersRound className="h-4 w-4" /> Groupes
+            </Link>
+          </nav>
         </header>
 
         <section className="flex-1 space-y-3 py-4">
