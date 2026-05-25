@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2 } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -15,6 +15,7 @@ const adminLinks = [
   { to: "/admin/circuits", label: "Circuits", icon: Map, exact: false },
   { to: "/admin/transport", label: "Module Transport", icon: RouteIcon, exact: false },
   { to: "/admin/trips", label: "Courses GPS", icon: Truck, exact: false },
+  { to: "/admin/group-rides", label: "Courses Groupées", icon: UsersRound, exact: false },
   { to: "/admin/vtc-chauffeurs", label: "VTC Chauffeurs", icon: Car, exact: false },
   { to: "/admin/vehicule-types", label: "Types véhicules", icon: Settings2, exact: false },
   { to: "/admin/billets", label: "Billets", icon: Ticket, exact: false },
