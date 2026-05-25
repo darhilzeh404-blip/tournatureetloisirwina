@@ -149,6 +149,7 @@ function SalonPage() {
   }, [myPassenger, driverPos]);
 
   const cancelSeat = async () => {
+    if (cancelling) return; // double-click guard
     if (!user) {
       toast.error("Vous devez être connecté pour annuler");
       return;
