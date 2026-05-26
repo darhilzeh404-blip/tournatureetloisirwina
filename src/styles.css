@@ -144,12 +144,29 @@
     overflow-x: hidden;
   }
 
+  /* iOS safe-area top padding (mobile) */
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
   /* Bottom safe-area when fixed ClientNav is mounted (mobile only) */
   body.has-client-nav {
     padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
   }
   @media (min-width: 768px) {
     body.has-client-nav { padding-bottom: 0; }
+    body { padding-top: 0; }
+  }
+
+  /* Hide scrollbars globally while keeping scroll functional */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+    width: 0 !important;
+    height: 0 !important;
   }
 
   /* Prevent long unbreakable strings (URLs, IDs) from causing horizontal scroll */
@@ -163,15 +180,25 @@
     max-width: 100%;
   }
 
-  /* Smoother default transitions for interactive elements */
+  /* Mobile-first: minimum 44px tap target for buttons & interactive elements */
+  button, a[role="button"], [role="button"], input[type="button"], input[type="submit"], .btn {
+    min-height: 44px;
+  }
+  /* Opt-out for truly compact controls (icon-only chips, nav items, etc.) */
+  button[data-compact="true"], a[data-compact="true"], .compact-tap {
+    min-height: 0;
+  }
+
+  /* Snappy press feedback for all interactive elements */
   button, a, [role="button"] {
     transition-property: color, background-color, border-color, box-shadow, transform, opacity;
-    transition-duration: 200ms;
+    transition-duration: 120ms;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   button:active, a:active, [role="button"]:active {
-    transform: scale(0.97);
+    transform: scale(0.95);
+    opacity: 0.85;
   }
 
   /* Refined focus ring */
