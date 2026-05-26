@@ -349,20 +349,26 @@ function GroupRidePage() {
           type="button"
           onClick={async () => {
             if (!user) { navigate({ to: "/connexion" }); return; }
-            const { data } = await supabase
+            const { data, error } = await supabase
               .from("group_ride_passengers")
-              .select("ride_id, group_rides!inner(status)")
+              .select("ride_id, group_rides!inner(status, archived_at)")
               .eq("user_id", user.id)
               .neq("status", "cancelled")
               .order("joined_at", { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            const rid = data?.ride_id;
-            const st = (data as any)?.group_rides?.status;
-            if (!rid) { toast.info("Aucune course groupée active"); return; }
-            if (st === "completed") { navigate({ to: "/mes-reservations" }); return; }
-            if (st === "cancelled") { toast.info("Course annulée"); return; }
-            navigate({ to: "/deplacement-groupe/waiting/$rideId", params: { rideId: rid } });
+              .limit(5);
+            if (error) { console.error(error); toast.error("Erreur de chargement"); return; }
+            const activeStatuses = ["searching", "matched", "driver_arriving", "active"];
+            const active = (data ?? []).find((row: any) => {
+              const r = row.group_rides;
+              return r && r.archived_at === null && activeStatuses.includes(r.status);
+            });
+            if (active?.ride_id) {
+              navigate({ to: "/deplacement-groupe/waiting/$rideId", params: { rideId: active.ride_id } });
+              return;
+            }
+            const lastCompleted = (data ?? []).find((row: any) => row.group_rides?.status === "completed");
+            if (lastCompleted) { navigate({ to: "/mes-reservations" }); return; }
+            toast.info("Aucune course groupée active");
           }}
           className="flex w-full items-center justify-center gap-1 pt-2 text-[12px] font-semibold text-primary"
         >
