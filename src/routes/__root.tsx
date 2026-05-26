@@ -8,6 +8,7 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { IosInstallBanner } from "@/components/IosInstallBanner";
 import { AppNotifications } from "@/components/AppNotifications";
 import { SplashScreen } from "@/components/SplashScreen";
+import { ActiveGroupRideGuard } from "@/components/ActiveGroupRideGuard";
 import { registerServiceWorker } from "@/lib/pwa";
 
 import appCss from "../styles.css?url";
@@ -159,6 +160,7 @@ function RootComponent() {
       <InstallPrompt />
       <IosInstallBanner />
       <AppNotifications />
+      <ActiveGroupRideGuard />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );
