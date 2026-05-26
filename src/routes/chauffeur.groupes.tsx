@@ -62,21 +62,36 @@ function ChauffeurGroupesPage() {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from("group_rides")
-      .select("*")
-      .or(`driver_id.eq.${user.id},and(driver_id.is.null,status.in.(searching,matched))`)
-      .is("archived_at", null)
-      .order("created_at", { ascending: false });
+    // Deux requêtes parallèles pour contourner les limites de PostgREST
+    // (le parsing de `or(and(...,in.(...)))` casse les filtres composés).
+    const [mineRes, poolRes] = await Promise.all([
+      supabase
+        .from("group_rides")
+        .select("*")
+        .eq("driver_id", user.id)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("group_rides")
+        .select("*")
+        .is("driver_id", null)
+        .is("archived_at", null)
+        .in("status", ["searching", "matched"])
+        .order("created_at", { ascending: false }),
+    ]);
 
-    if (error) {
+    if (mineRes.error || poolRes.error) {
+      console.error("[chauffeur.groupes] load error", mineRes.error || poolRes.error);
       toast.error("Erreur de chargement");
       setLoading(false);
       return;
     }
-    const rows = (data || []) as GroupRide[];
-    setMine(rows.filter((r) => r.driver_id === user.id));
-    setPool(rows.filter((r) => r.driver_id === null));
+    const mineRows = (mineRes.data || []) as GroupRide[];
+    const poolRows = (poolRes.data || []) as GroupRide[];
+    setMine(mineRows);
+    setPool(poolRows);
+    const rows = [...mineRows, ...poolRows];
+
 
     const ids = rows.map((r) => r.id);
     if (ids.length > 0) {
