@@ -160,6 +160,7 @@ function RootComponent() {
       <InstallPrompt />
       <IosInstallBanner />
       <AppNotifications />
+      <ActiveGroupRideGuard />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );
