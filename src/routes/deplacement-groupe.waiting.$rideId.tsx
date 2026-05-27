@@ -47,6 +47,7 @@ function SalonPage() {
 
   useEffect(() => {
     let mounted = true;
+    console.debug("[salon] chargement salle d'attente pour rideId =", rideId);
     const load = async () => {
       try {
         const [{ data: r, error: rErr }, { data: p, error: pErr }] = await Promise.all([
@@ -56,6 +57,7 @@ function SalonPage() {
         if (!mounted) return;
         if (rErr) { console.error("[salon] ride", rErr); setLoadError("Accès refusé ou trajet introuvable"); }
         if (pErr) console.error("[salon] passengers", pErr);
+        console.debug("[salon] course chargée", { ride: r, passengers: p });
         setRide(r); setPassengers(p ?? []);
       } catch (e: any) {
         console.error("[salon] load exception", e);
@@ -65,6 +67,7 @@ function SalonPage() {
       }
     };
     load();
+
 
     const channel = supabase
       .channel(`group-ride-${rideId}`)
