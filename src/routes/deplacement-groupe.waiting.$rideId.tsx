@@ -185,10 +185,8 @@ function SalonPage() {
         .eq("id", rideId);
       if (rideErr) throw rideErr;
 
-      // Remove active ride from storage so auto-redirect won't fire
-      try { localStorage.removeItem("active_group_ride_id"); } catch {}
-
       setCancelDone(true);
+
       toast.success("Votre place a été annulée");
       setTimeout(() => {
         navigate({ to: "/deplacement-groupe" });
