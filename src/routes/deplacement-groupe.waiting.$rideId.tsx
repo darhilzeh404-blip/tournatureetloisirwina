@@ -48,7 +48,9 @@ function SalonPage() {
   useEffect(() => {
     let mounted = true;
     console.debug("[salon] chargement salle d'attente pour rideId =", rideId);
-    const load = async () => {
+
+    const fetchAll = async (reason: string) => {
+      console.debug("[salon] resync", reason);
       try {
         const [{ data: r, error: rErr }, { data: p, error: pErr }] = await Promise.all([
           supabase.from("group_rides").select("*").eq("id", rideId).maybeSingle(),
@@ -57,30 +59,59 @@ function SalonPage() {
         if (!mounted) return;
         if (rErr) { console.error("[salon] ride", rErr); setLoadError("Accès refusé ou trajet introuvable"); }
         if (pErr) console.error("[salon] passengers", pErr);
-        console.debug("[salon] course chargée", { ride: r, passengers: p });
-        setRide(r); setPassengers(p ?? []);
+        if (r) setRide(r);
+        setPassengers(p ?? []);
       } catch (e: any) {
         console.error("[salon] load exception", e);
-        if (mounted) { setLoadError("Erreur réseau"); toast.error("Réseau indisponible"); }
+        if (mounted && reason === "initial") { setLoadError("Erreur réseau"); toast.error("Réseau indisponible"); }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted && reason === "initial") setLoading(false);
       }
     };
-    load();
 
+    fetchAll("initial");
+
+    const refetchPassengers = async () => {
+      const { data } = await supabase
+        .from("group_ride_passengers")
+        .select("*").eq("ride_id", rideId).order("seat_index");
+      if (mounted) setPassengers(data ?? []);
+    };
 
     const channel = supabase
       .channel(`group-ride-${rideId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "group_rides", filter: `id=eq.${rideId}` }, (payload: any) => {
+        console.debug("[salon] realtime group_rides", payload.eventType, payload.new?.status);
         if (payload.new) setRide(payload.new);
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers", filter: `ride_id=eq.${rideId}` }, () => {
-        supabase.from("group_ride_passengers").select("*").eq("ride_id", rideId).order("seat_index").then(({ data }: any) => setPassengers(data ?? []));
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers", filter: `ride_id=eq.${rideId}` }, (payload: any) => {
+        console.debug("[salon] realtime passenger", payload.eventType);
+        refetchPassengers();
       })
-      .subscribe();
+      .subscribe((status: string) => {
+        console.debug("[salon] channel status", status);
+        // À chaque (re)connexion réussie au canal, on re-synchronise pour rattraper les évènements manqués.
+        if (status === "SUBSCRIBED") {
+          fetchAll("subscribed");
+        }
+      });
 
-    return () => { mounted = false; supabase.removeChannel(channel); };
+    // Resync au retour en avant-plan / reconnexion réseau
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchAll("visibility");
+    };
+    const onOnline = () => fetchAll("online");
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("online", onOnline);
+
+    return () => {
+      mounted = false;
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("online", onOnline);
+      supabase.removeChannel(channel);
+    };
   }, [rideId]);
+
 
   useEffect(() => {
     if (!ride?.departure_deadline) return;
