@@ -49,47 +49,8 @@ function GroupRidePage() {
   const [pickup, setPickup] = useState<GroupStop | null>(null);
   const [destination, setDestination] = useState<GroupStop | null>(null);
   const [joining, setJoining] = useState(false);
-  const [checkingActive, setCheckingActive] = useState(true);
 
-  // Détection automatique d'un trajet groupé actif au chargement
-  useEffect(() => {
-    if (!isAuthenticated || !user) {
-      setCheckingActive(false);
-      return;
-    }
-    let mounted = true;
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from("group_ride_passengers")
-          .select("ride_id")
-          .eq("user_id", user.id)
-          .neq("status", "cancelled")
-          .order("joined_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (!mounted) return;
-        if (error) {
-          console.error("[group-ride] check active ride", error);
-        }
-        if (data?.ride_id) {
-          toast.info("Redirection vers votre trajet en cours…");
-          try { localStorage.setItem("active_group_ride_id", data.ride_id); } catch {}
-          navigate({
-            to: "/deplacement-groupe/waiting/$rideId",
-            params: { rideId: data.ride_id },
-            replace: true,
-          });
-          return;
-        }
-      } catch (e) {
-        console.error("[group-ride] check active exception", e);
-      } finally {
-        if (mounted) setCheckingActive(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [isAuthenticated, user, navigate]);
+
 
   const fare = useMemo(() => {
     if (!pickup || !destination) return null;
