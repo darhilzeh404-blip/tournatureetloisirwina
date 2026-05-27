@@ -133,13 +133,15 @@ function GroupRidePage() {
       }
 
       const row = Array.isArray(data) ? data[0] : data;
+      console.debug("[group-ride] RPC join_group_ride success", row);
       if (!row?.ride_id) {
+        console.error("[group-ride] missing ride_id in RPC response", data);
         toast.error("Réponse inattendue du serveur");
         return;
       }
 
+      console.debug("[group-ride] ride_id reçu, redirection vers waiting", row.ride_id);
       toast.success("Place réservée ! Redirection…");
-      try { localStorage.setItem("active_group_ride_id", row.ride_id); } catch {}
       navigate({
         to: "/deplacement-groupe/waiting/$rideId",
         params: { rideId: row.ride_id },
@@ -153,14 +155,7 @@ function GroupRidePage() {
     }
   };
 
-  if (checkingActive) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gradient-to-b from-secondary/40 via-background to-background p-6 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm font-semibold text-muted-foreground">Vérification de vos trajets en cours…</p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
