@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowRight,
   Clock,
   Loader2,
   MapPin,
@@ -16,6 +15,7 @@ import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
+
 const supabase = supabaseTyped as any;
 import { VtcDestinationSearch } from "@/components/VtcDestinationSearch";
 import { formatXAF } from "@/lib/vtc-zones";
