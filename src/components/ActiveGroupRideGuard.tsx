@@ -60,7 +60,7 @@ export function ActiveGroupRideGuard() {
         });
 
         if (active?.ride_id) {
-          try { localStorage.setItem("active_group_ride_id", active.ride_id); } catch {}
+          console.debug("[ActiveGroupRideGuard] course active détectée, redirection", active.ride_id);
           toast.info("Course groupée en cours — redirection…");
           navigate({
             to: "/deplacement-groupe/waiting/$rideId",
@@ -68,6 +68,7 @@ export function ActiveGroupRideGuard() {
             replace: true,
           });
         }
+
       } catch (e) {
         console.error("[ActiveGroupRideGuard] exception", e);
       }
