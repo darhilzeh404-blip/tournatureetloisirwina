@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowRight,
   Clock,
   Loader2,
   MapPin,
@@ -16,6 +15,7 @@ import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
+
 const supabase = supabaseTyped as any;
 import { VtcDestinationSearch } from "@/components/VtcDestinationSearch";
 import { formatXAF } from "@/lib/vtc-zones";
@@ -49,47 +49,8 @@ function GroupRidePage() {
   const [pickup, setPickup] = useState<GroupStop | null>(null);
   const [destination, setDestination] = useState<GroupStop | null>(null);
   const [joining, setJoining] = useState(false);
-  const [checkingActive, setCheckingActive] = useState(true);
 
-  // Détection automatique d'un trajet groupé actif au chargement
-  useEffect(() => {
-    if (!isAuthenticated || !user) {
-      setCheckingActive(false);
-      return;
-    }
-    let mounted = true;
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from("group_ride_passengers")
-          .select("ride_id")
-          .eq("user_id", user.id)
-          .neq("status", "cancelled")
-          .order("joined_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (!mounted) return;
-        if (error) {
-          console.error("[group-ride] check active ride", error);
-        }
-        if (data?.ride_id) {
-          toast.info("Redirection vers votre trajet en cours…");
-          try { localStorage.setItem("active_group_ride_id", data.ride_id); } catch {}
-          navigate({
-            to: "/deplacement-groupe/waiting/$rideId",
-            params: { rideId: data.ride_id },
-            replace: true,
-          });
-          return;
-        }
-      } catch (e) {
-        console.error("[group-ride] check active exception", e);
-      } finally {
-        if (mounted) setCheckingActive(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [isAuthenticated, user, navigate]);
+
 
   const fare = useMemo(() => {
     if (!pickup || !destination) return null;
@@ -172,13 +133,15 @@ function GroupRidePage() {
       }
 
       const row = Array.isArray(data) ? data[0] : data;
+      console.debug("[group-ride] RPC join_group_ride success", row);
       if (!row?.ride_id) {
+        console.error("[group-ride] missing ride_id in RPC response", data);
         toast.error("Réponse inattendue du serveur");
         return;
       }
 
+      console.debug("[group-ride] ride_id reçu, redirection vers waiting", row.ride_id);
       toast.success("Place réservée ! Redirection…");
-      try { localStorage.setItem("active_group_ride_id", row.ride_id); } catch {}
       navigate({
         to: "/deplacement-groupe/waiting/$rideId",
         params: { rideId: row.ride_id },
@@ -192,14 +155,7 @@ function GroupRidePage() {
     }
   };
 
-  if (checkingActive) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gradient-to-b from-secondary/40 via-background to-background p-6 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm font-semibold text-muted-foreground">Vérification de vos trajets en cours…</p>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
@@ -345,35 +301,6 @@ function GroupRidePage() {
           {joining ? "Recherche…" : ready ? "Trouver un groupe et réserver" : "Sélectionnez départ & destination"}
         </button>
 
-        <button
-          type="button"
-          onClick={async () => {
-            if (!user) { navigate({ to: "/connexion" }); return; }
-            const { data, error } = await supabase
-              .from("group_ride_passengers")
-              .select("ride_id, group_rides!inner(status, archived_at)")
-              .eq("user_id", user.id)
-              .neq("status", "cancelled")
-              .order("joined_at", { ascending: false })
-              .limit(5);
-            if (error) { console.error(error); toast.error("Erreur de chargement"); return; }
-            const activeStatuses = ["searching", "matched", "driver_arriving", "active"];
-            const active = (data ?? []).find((row: any) => {
-              const r = row.group_rides;
-              return r && r.archived_at === null && activeStatuses.includes(r.status);
-            });
-            if (active?.ride_id) {
-              navigate({ to: "/deplacement-groupe/waiting/$rideId", params: { rideId: active.ride_id } });
-              return;
-            }
-            const lastCompleted = (data ?? []).find((row: any) => row.group_rides?.status === "completed");
-            if (lastCompleted) { navigate({ to: "/mes-reservations" }); return; }
-            toast.info("Aucune course groupée active");
-          }}
-          className="flex w-full items-center justify-center gap-1 pt-2 text-[12px] font-semibold text-primary"
-        >
-          Voir mes courses groupées <ArrowRight className="h-3 w-3" />
-        </button>
       </main>
 
       <ClientNav />
