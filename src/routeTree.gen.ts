@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WinaCoinsRouteImport } from './routes/wina-coins'
 import { Route as VtcRouteImport } from './routes/vtc'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
 import { Route as TransportPublicRouteImport } from './routes/transport-public'
@@ -49,6 +50,7 @@ import { Route as AdminReservationsRouteImport } from './routes/admin/reservatio
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
 import { Route as AdminOffresRouteImport } from './routes/admin/offres'
 import { Route as AdminGroupRidesRouteImport } from './routes/admin/group-rides'
+import { Route as AdminFideliteRouteImport } from './routes/admin/fidelite'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-reservations'
@@ -61,6 +63,11 @@ import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
 
+const WinaCoinsRoute = WinaCoinsRouteImport.update({
+  id: '/wina-coins',
+  path: '/wina-coins',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VtcRoute = VtcRouteImport.update({
   id: '/vtc',
   path: '/vtc',
@@ -261,6 +268,11 @@ const AdminGroupRidesRoute = AdminGroupRidesRouteImport.update({
   path: '/group-rides',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminFideliteRoute = AdminFideliteRouteImport.update({
+  id: '/fidelite',
+  path: '/fidelite',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminClientsRoute = AdminClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
@@ -342,12 +354,14 @@ export interface FileRoutesByFullPath {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
+  '/wina-coins': typeof WinaCoinsRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
@@ -394,12 +408,14 @@ export interface FileRoutesByTo {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
+  '/wina-coins': typeof WinaCoinsRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
@@ -448,12 +464,14 @@ export interface FileRoutesById {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
+  '/wina-coins': typeof WinaCoinsRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
@@ -503,12 +521,14 @@ export interface FileRouteTypes {
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
+    | '/wina-coins'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
     | '/admin/bus-reservations'
     | '/admin/circuits'
     | '/admin/clients'
+    | '/admin/fidelite'
     | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
@@ -555,12 +575,14 @@ export interface FileRouteTypes {
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
+    | '/wina-coins'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
     | '/admin/bus-reservations'
     | '/admin/circuits'
     | '/admin/clients'
+    | '/admin/fidelite'
     | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
@@ -608,12 +630,14 @@ export interface FileRouteTypes {
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
+    | '/wina-coins'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
     | '/admin/bus-reservations'
     | '/admin/circuits'
     | '/admin/clients'
+    | '/admin/fidelite'
     | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
@@ -662,6 +686,7 @@ export interface RootRouteChildren {
   TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
   VtcRoute: typeof VtcRouteWithChildren
+  WinaCoinsRoute: typeof WinaCoinsRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
@@ -671,6 +696,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wina-coins': {
+      id: '/wina-coins'
+      path: '/wina-coins'
+      fullPath: '/wina-coins'
+      preLoaderRoute: typeof WinaCoinsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vtc': {
       id: '/vtc'
       path: '/vtc'
@@ -951,6 +983,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminGroupRidesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/fidelite': {
+      id: '/admin/fidelite'
+      path: '/fidelite'
+      fullPath: '/admin/fidelite'
+      preLoaderRoute: typeof AdminFideliteRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/clients': {
       id: '/admin/clients'
       path: '/clients'
@@ -1038,6 +1077,7 @@ interface AdminRouteChildren {
   AdminBusReservationsRoute: typeof AdminBusReservationsRoute
   AdminCircuitsRoute: typeof AdminCircuitsRoute
   AdminClientsRoute: typeof AdminClientsRoute
+  AdminFideliteRoute: typeof AdminFideliteRoute
   AdminGroupRidesRoute: typeof AdminGroupRidesRoute
   AdminOffresRoute: typeof AdminOffresRoute
   AdminPaiementsRoute: typeof AdminPaiementsRoute
@@ -1058,6 +1098,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBusReservationsRoute: AdminBusReservationsRoute,
   AdminCircuitsRoute: AdminCircuitsRoute,
   AdminClientsRoute: AdminClientsRoute,
+  AdminFideliteRoute: AdminFideliteRoute,
   AdminGroupRidesRoute: AdminGroupRidesRoute,
   AdminOffresRoute: AdminOffresRoute,
   AdminPaiementsRoute: AdminPaiementsRoute,
@@ -1155,6 +1196,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
   VtcRoute: VtcRouteWithChildren,
+  WinaCoinsRoute: WinaCoinsRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
