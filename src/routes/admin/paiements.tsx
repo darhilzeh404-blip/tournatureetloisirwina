@@ -153,13 +153,23 @@ function AdminPaiements() {
   const validate = async (id: string) => {
     const { error } = await supabase.from("payments").update({ status: "VALIDATED" }).eq("id", id);
     if (error) return toast.error(error.message);
-    // Update reservation paid amount + status
     const p = payments.find((x) => x.id === id);
     if (p) {
       await supabase
         .from("reservations")
         .update({ status: "CONFIRMED", paid_amount: p.amount })
         .eq("id", p.reservation_id);
+      // Wina Coins : attribution automatique après validation
+      const { data: coins, error: cErr } = await supabase.rpc("award_wina_coins", {
+        _reservation_id: p.reservation_id,
+      });
+      if (cErr) {
+        console.error("[award_wina_coins]", cErr);
+      } else if (coins && coins[0]?.coins_earned > 0) {
+        toast.success(`Paiement validé · +${coins[0].coins_earned} Wina Coins crédités`);
+        void loadPayments();
+        return;
+      }
     }
     toast.success("Paiement validé");
     void loadPayments();
