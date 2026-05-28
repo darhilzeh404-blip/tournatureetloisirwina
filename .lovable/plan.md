@@ -1,117 +1,116 @@
-## Plan : Refonte « Déplacement Groupé »
+# Système Wina Coins — Plan d'implémentation
 
-> Note technique : votre brief mentionne « React Native + Expo », mais ce projet est une **PWA TanStack Start (web mobile-first)**. Je conserve cette stack — l'UI restera mobile-first premium. Confirmez si vous vouliez réellement basculer en natif (autre projet).
+Système de fidélité premium intégré à Wina : les clients gagnent des coins quand l'admin valide leur paiement, progressent dans des niveaux VIP (Silver → Diamond+), et utilisent les coins comme réduction sur leurs prochaines réservations.
 
-> Note Mapbox : le projet utilise actuellement **Leaflet/OSRM** (cf. `VtcZoneMap`, `useOsrmRoute`). Passer à Mapbox implique une clé API et la réécriture des composants carte existants. Je propose de **garder Leaflet/OSRM** pour rester cohérent et éviter des frais Mapbox. Dites-moi si vous voulez vraiment Mapbox (j'ajouterai `add_secret` pour `MAPBOX_TOKEN`).
+## 1. Base de données (migration unique)
 
----
+### Nouvelles tables
 
-### Phase 1 — Nettoyage de l'ancien « Groupe » (VTC)
+**`vip_levels`** (table de référence, seedée)
+- `id`, `level_name` (Silver/Gold/Platinum/Diamond/Diamond+)
+- `min_coins`, `bonus_percentage`, `badge_icon`, `benefits` (jsonb), `sort_order`
 
-Fichiers touchés :
-- `src/routes/vtc.tsx` : retirer l'onglet `groupe`, `GroupeFlow`, constantes `GROUP_PICKUP_FEE`, `GROUP_PER_PAX`, l'entrée "Course de Groupe" dans `PremiumRangesSection`, et le type `MainTab`. L'onglet revient à `course | mariage`.
-- `src/routes/mes-reservations.tsx` : conserver l'affichage "Course de groupe — …" (rétrocompatibilité pour anciennes réservations) — pas de suppression destructive.
+Seuils proposés : Silver 0 / Gold 500 / Platinum 2000 / Diamond 5000 / Diamond+ 12000.
 
-**Préservé** : `transport_categories`, `reserver-transport` (groupes bus), `tarifs.tsx` groupes — ce sont des modules distincts (location bus de groupe), pas du covoiturage VTC.
+**`wina_coins_history`**
+- `id`, `user_id`, `reservation_id` (nullable), `reservation_type`
+- `amount_paid`, `coins_earned`, `bonus_percentage`
+- `operation_type` (`earn` | `spend` | `refund` | `admin_adjust`)
+- `status` (`completed` | `cancelled`), `note`, `created_at`
+- Contrainte unique `(reservation_id, operation_type)` pour empêcher double récompense
 
-Aucune table SQL supprimée → données existantes intactes.
+**`wina_coin_balances`** (1 ligne / user, simple à interroger)
+- `user_id` (PK), `coins_balance`, `total_coins_earned`, `total_reservations`
+- `vip_level_id`, `updated_at`
 
----
+### Ajouts sur `reservations`
+- `coins_used` int default 0 — coins dépensés en réduction sur cette réservation
+- `coins_awarded` boolean default false — anti double-récompense
 
-### Phase 2 — Nouveau module « Déplacement Groupé »
+### Fonctions SQL (security definer)
 
-#### 2.1 Base de données (migration)
+- `award_wina_coins(_reservation_id uuid)` : appelée à la validation admin. Idempotente (vérifie `coins_awarded`). Calcule coins selon montant payé net (total_amount − coins_used×1), applique bonus VIP, insère history, met à jour balance, recalcule `vip_level_id`.
+- `refund_wina_coins(_reservation_id uuid)` : si réservation annulée après validation, retire les coins gagnés + restaure les coins dépensés.
+- `spend_wina_coins(_reservation_id uuid, _amount int)` : utilisé côté client à la création de la réservation. Vérifie solde, débite, insère history `spend`.
+- `recompute_vip_level(_user_id uuid)` : recalcule le palier depuis `total_coins_earned`.
 
-5 tables neuves, isolées des modules existants :
+### RLS / GRANT
+- `vip_levels` : lecture publique, écriture admin
+- `wina_coins_history` : SELECT propre user + admin ; INSERT via fonctions definer
+- `wina_coin_balances` : SELECT propre user + admin ; UPDATE via fonctions
 
-```text
-group_routes              -- corridors admin (Akanda↔Centre, etc.)
-  id, name, communes_from[], communes_to[], is_active, created_at
+## 2. Hook validation admin
 
-group_rides               -- 1 course groupée (vehicle slot)
-  id, route_id?, status, communes_count(1|2|3), price_per_seat,
-  max_seats(3), seats_taken, departure_deadline, driver_id?,
-  started_at?, completed_at?, created_at, updated_at
+Dans `src/routes/admin/paiements.tsx` (ou la fonction serveur correspondante) : après le passage d'un paiement à `VALIDATED` et de la réservation à `CONFIRMED`, appeler `supabase.rpc('award_wina_coins', { _reservation_id })`. Idem pour `refund_wina_coins` en cas d'annulation après validation.
 
-group_ride_passengers     -- 1 ligne par passager
-  id, ride_id, user_id, pickup_address, pickup_lat/lng,
-  destination_address, destination_lat/lng, commune_pickup,
-  commune_destination, status (searching|matched|cancelled|completed),
-  seat_index, joined_at
+Même branchement pour `group_ride_payments` (validation admin du covoiturage).
 
-group_ride_payments       -- paiement par passager
-  id, ride_id, passenger_id, user_id, amount, method, status,
-  transaction_ref, created_at
+## 3. UI client
 
-group_ride_status_history -- audit
-  id, ride_id, old_status, new_status, changed_by, created_at
+### Page premium `/wina-coins` (`src/routes/wina-coins.tsx`)
+- Header : carte solde avec gradient bleu royal → noir, badge VIP courant, animation pièces
+- Barre de progression vers le palier suivant + nombre de coins manquants
+- Avantages du niveau actuel (liste depuis `vip_levels.benefits`)
+- Tabs : Historique des gains / Utilisations / Économies totales
+- Mobile-first, glassmorphism léger, accents silver/gold/platinum/diamond selon niveau
+
+### Composants partagés (`src/components/wina-coins/`)
+- `CoinsBalanceCard.tsx` — carte solde réutilisable
+- `VipBadge.tsx` — badge SVG/icône stylisé par niveau
+- `CoinsGainToast.tsx` — popup animé "+X coins"
+- `UseCoinsToggle.tsx` — switch dans le flux de paiement pour appliquer la réduction
+
+### Intégration paiement
+Dans `src/routes/paiement.$reservationId.tsx` : afficher solde, toggle "utiliser mes coins" (max = min(solde, total)), recalculer montant final, appeler `spend_wina_coins` à la confirmation.
+
+### Lien navigation
+Ajouter "Wina Coins" dans `ClientNav` + `mon-compte.tsx`.
+
+### Notification gain
+À l'ouverture de l'app, vérifier les nouveaux gains depuis la dernière visite (subscribe realtime sur `wina_coins_history` filtré user) → toast premium.
+
+## 4. Dashboard admin
+
+Nouvelle route `src/routes/admin/fidelite.tsx` :
+- Stats globales : total coins en circulation, coins dépensés, top utilisateurs
+- Recherche utilisateur → historique complet, ajustement manuel (+/−), changement niveau forcé
+- Gestion des paliers `vip_levels` (CRUD)
+
+Lien dans `AdminSidebar.tsx`.
+
+## 5. Anti-fraude
+- Contrainte unique sur `(reservation_id, 'earn')` dans l'historique
+- `coins_awarded` flag sur réservation
+- Toutes les mutations passent par fonctions `SECURITY DEFINER` avec validation `auth.uid()`
+- Ajustements manuels admin loggés avec `note` obligatoire
+
+## Design tokens (ajouts `src/styles.css`)
+```
+--wina-royal-blue, --wina-deep-black, --wina-silver, --wina-gold,
+--wina-platinum, --wina-diamond, --gradient-vip-{level},
+--shadow-coin-glow
 ```
 
-RLS strict :
-- passager voit sa ligne + sa course
-- chauffeur voit les courses qu'il a acceptées + pool `pending`
-- admin voit tout
-- realtime activé sur `group_rides` et `group_ride_passengers`
+## Fichiers
 
-#### 2.2 Logique de matching (server functions)
+**Créés**
+- migration SQL (tables + fonctions + seed vip_levels)
+- `src/routes/wina-coins.tsx`
+- `src/routes/admin/fidelite.tsx`
+- `src/components/wina-coins/CoinsBalanceCard.tsx`
+- `src/components/wina-coins/VipBadge.tsx`
+- `src/components/wina-coins/CoinsGainToast.tsx`
+- `src/components/wina-coins/UseCoinsToggle.tsx`
+- `src/lib/wina-coins.ts` (helpers : fetch balance, format, calcul niveau)
 
-`src/lib/group-ride.functions.ts` :
-- `findOrCreateGroupRide({pickup, destination, communes})` — cherche une course `searching` <5 min compatible (mêmes communes, places restantes), sinon en crée une.
-- `cancelGroupRidePassenger({passengerId})`
-- `startGroupRideIfReady({rideId})` — déclenche `active` si 3/3, ou via cron côté client (timer) si 2/3 au deadline.
-- Tarif fixé serveur via règle communes : `1500 / 2000 / 2500 FCFA`.
+**Édités**
+- `src/routes/admin/paiements.tsx` — appel `award_wina_coins` à la validation
+- `src/routes/admin/group-rides.tsx` — idem covoiturage
+- `src/routes/paiement.$reservationId.tsx` — toggle utilisation coins
+- `src/components/ClientNav.tsx` + `src/components/AdminSidebar.tsx` — liens
+- `src/styles.css` — tokens premium
+- `src/routes/mon-compte.tsx` — carte mini solde + lien
 
-Détection commune : utilise `src/lib/vtc-zones.ts` existant + une petite table mapping `lat/lng → commune` (Libreville, Akanda, Owendo, Ntoum). Pas d'appel Google Maps payant — règle géographique simple (bounding boxes), extensible plus tard.
-
-#### 2.3 UI client (3 nouvelles routes)
-
-- `src/routes/deplacement-groupe.tsx` — page principale (pickup, destination, estimation tarif live).
-- `src/routes/deplacement-groupe.salon.$rideId.tsx` — **salle d'attente** : sièges (2/3), compte-à-rebours animé (framer-motion), ETA, tarif, résumé trajet, bouton annuler, realtime sur `group_rides` + `group_ride_passengers`.
-- `src/routes/deplacement-groupe.suivi.$rideId.tsx` — suivi temps réel (réutilise `LiveMap` Leaflet + `useDriverPosition`).
-
-Composant maison :
-- `src/components/GroupRideServiceCard.tsx` — bouton home arrondi cohérent avec `ServiceCard` actuel, badges "Économique / Trajet partagé / Prix réduit".
-- Intégré dans `src/routes/espace-client.tsx`.
-
-#### 2.4 Chauffeur
-
-- `src/routes/chauffeur.groupes.tsx` — liste des courses groupées `pending`, accept, vue passagers groupés + ordre pickup/dropoff optimisé (tri simple par distance haversine), gains totaux.
-- Lien ajouté dans `chauffeur.tsx`.
-
-#### 2.5 Admin
-
-- `src/routes/admin/group-rides.tsx` — corridors (CRUD `group_routes`), monitoring courses actives, taux d'occupation, revenus.
-- Lien ajouté dans `AdminSidebar.tsx`.
-
-#### 2.6 Paiement
-
-Réutilise le pipeline `payments` existant : à la confirmation salle d'attente, crée une `reservation` `service_type='VTC'` (ou nouveau type ?) + entrée `group_ride_payments`. Validation admin déclenche `paiement_valide=true` → `group_rides.status='confirmed'`.
-
-> **Question** : voulez-vous un nouveau `service_type` enum `GROUP_RIDE` pour bien isoler dans l'historique, ou réutiliser `VTC` ?
-
-#### 2.7 Notifications
-
-Réutilise `requestNotificationPermission` + `showAppNotification` existants. Triggers : passager rejoint, course confirmée, chauffeur arrive, départ imminent.
-
----
-
-### Livrables phase par phase
-
-1. **Migration SQL** (5 tables + RLS + realtime publication) — *attente confirmation utilisateur*.
-2. Nettoyage `vtc.tsx`.
-3. Server functions matching + tarification.
-4. Pages client (home button, page principale, salon, suivi).
-5. Page chauffeur + admin.
-6. Tests manuels : 3 comptes (client × 2, chauffeur, admin), simulation 2/3 → départ après timer, 3/3 → départ immédiat.
-
-### Hors-scope (à confirmer)
-
-- Mapbox (vs Leaflet actuel)
-- Réécriture native React Native
-- Système de notation passager (mentionné en bonus) — peut être ajouté en phase 2 après validation du flow.
-
-### Confirmations demandées avant exécution
-
-1. Garde-t-on **Leaflet/OSRM** (oui par défaut) ou bascule **Mapbox** (clé requise) ?
-2. Nouveau `service_type='GROUP_RIDE'` (recommandé) ou réutiliser `VTC` ?
-3. Validation paiement : workflow admin existant (cohérent avec le reste) ou auto-validation wallet ?
+## Hors scope (à confirmer plus tard)
+- Tirages / tombolas Gold/Diamond/Diamond+ : nécessitent un module séparé (gestion lots, tirages, gagnants). Le plan actuel pose les bases (niveau, bonus, accès) mais n'implémente pas la mécanique de tombola.
+- Notifications push réelles (utilise toast + realtime in-app pour cette version).

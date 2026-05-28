@@ -704,6 +704,8 @@ export type Database = {
         Row: {
           admin_comment: string | null
           archived_at: string | null
+          coins_awarded: boolean
+          coins_used: number
           created_at: string
           details: Json
           id: string
@@ -719,6 +721,8 @@ export type Database = {
         Insert: {
           admin_comment?: string | null
           archived_at?: string | null
+          coins_awarded?: boolean
+          coins_used?: number
           created_at?: string
           details?: Json
           id?: string
@@ -734,6 +738,8 @@ export type Database = {
         Update: {
           admin_comment?: string | null
           archived_at?: string | null
+          coins_awarded?: boolean
+          coins_used?: number
           created_at?: string
           details?: Json
           id?: string
@@ -1255,6 +1261,119 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_levels: {
+        Row: {
+          badge_icon: string
+          benefits: Json
+          bonus_percentage: number
+          created_at: string
+          id: string
+          level_name: string
+          min_coins: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          badge_icon?: string
+          benefits?: Json
+          bonus_percentage?: number
+          created_at?: string
+          id?: string
+          level_name: string
+          min_coins?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          badge_icon?: string
+          benefits?: Json
+          bonus_percentage?: number
+          created_at?: string
+          id?: string
+          level_name?: string
+          min_coins?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wina_coin_balances: {
+        Row: {
+          coins_balance: number
+          total_coins_earned: number
+          total_reservations: number
+          updated_at: string
+          user_id: string
+          vip_level_id: string | null
+        }
+        Insert: {
+          coins_balance?: number
+          total_coins_earned?: number
+          total_reservations?: number
+          updated_at?: string
+          user_id: string
+          vip_level_id?: string | null
+        }
+        Update: {
+          coins_balance?: number
+          total_coins_earned?: number
+          total_reservations?: number
+          updated_at?: string
+          user_id?: string
+          vip_level_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wina_coin_balances_vip_level_id_fkey"
+            columns: ["vip_level_id"]
+            isOneToOne: false
+            referencedRelation: "vip_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wina_coins_history: {
+        Row: {
+          amount_paid: number
+          bonus_percentage: number
+          coins_earned: number
+          created_at: string
+          id: string
+          note: string | null
+          operation_type: string
+          reservation_id: string | null
+          reservation_type: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number
+          bonus_percentage?: number
+          coins_earned?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          operation_type: string
+          reservation_id?: string | null
+          reservation_type?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          bonus_percentage?: number
+          coins_earned?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          operation_type?: string
+          reservation_id?: string | null
+          reservation_type?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       rides_gerant: {
@@ -1349,9 +1468,21 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_adjust_coins: {
+        Args: { _delta: number; _note: string; _user_id: string }
+        Returns: number
+      }
       archive_trip_and_reservation: {
         Args: { _trip_id: string }
         Returns: undefined
+      }
+      award_wina_coins: {
+        Args: { _reservation_id: string }
+        Returns: {
+          coins_earned: number
+          new_balance: number
+          vip_level_id: string
+        }[]
       }
       complete_ride: {
         Args: { _ride_id: string }
@@ -1410,6 +1541,15 @@ export type Database = {
           ride_id: string
           seat_index: number
         }[]
+      }
+      recompute_vip_level: { Args: { _user_id: string }; Returns: string }
+      refund_wina_coins: {
+        Args: { _reservation_id: string }
+        Returns: undefined
+      }
+      spend_wina_coins: {
+        Args: { _amount: number; _reservation_id: string }
+        Returns: number
       }
     }
     Enums: {
