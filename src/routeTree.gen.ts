@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WinaCoinsRouteImport } from './routes/wina-coins'
 import { Route as VtcRouteImport } from './routes/vtc'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
 import { Route as TransportPublicRouteImport } from './routes/transport-public'
@@ -61,6 +62,11 @@ import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
 
+const WinaCoinsRoute = WinaCoinsRouteImport.update({
+  id: '/wina-coins',
+  path: '/wina-coins',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VtcRoute = VtcRouteImport.update({
   id: '/vtc',
   path: '/vtc',
@@ -342,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
+  '/wina-coins': typeof WinaCoinsRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -394,6 +401,7 @@ export interface FileRoutesByTo {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
+  '/wina-coins': typeof WinaCoinsRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -448,6 +456,7 @@ export interface FileRoutesById {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
+  '/wina-coins': typeof WinaCoinsRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -503,6 +512,7 @@ export interface FileRouteTypes {
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
+    | '/wina-coins'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -555,6 +565,7 @@ export interface FileRouteTypes {
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
+    | '/wina-coins'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -608,6 +619,7 @@ export interface FileRouteTypes {
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
+    | '/wina-coins'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -662,6 +674,7 @@ export interface RootRouteChildren {
   TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
   VtcRoute: typeof VtcRouteWithChildren
+  WinaCoinsRoute: typeof WinaCoinsRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
@@ -671,6 +684,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wina-coins': {
+      id: '/wina-coins'
+      path: '/wina-coins'
+      fullPath: '/wina-coins'
+      preLoaderRoute: typeof WinaCoinsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vtc': {
       id: '/vtc'
       path: '/vtc'
@@ -1155,6 +1175,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
   VtcRoute: VtcRouteWithChildren,
+  WinaCoinsRoute: WinaCoinsRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
