@@ -92,15 +92,27 @@ function PaiementPage() {
         return;
       }
       setReservation(data);
-      const remainingDue = Math.max(data.total_amount - data.paid_amount, 0);
+      const alreadySpent = data.coins_used ?? 0;
+      const remainingDue = Math.max(data.total_amount - data.paid_amount - alreadySpent, 0);
       setAmount(remainingDue || data.total_amount);
       const wnum = (settings ?? []).find((s) => s.key === "whatsapp_admin_number");
       const wen = (settings ?? []).find((s) => s.key === "whatsapp_fallback_enabled");
       setWhatsappNumber((wnum?.text_value as string | null) ?? "");
       setWhatsappEnabled(Number(wen?.value ?? 1) === 1);
+      const bal = await fetchBalance(user.id);
+      setCoinsBalance(bal?.coins_balance ?? 0);
       setLoading(false);
     })();
   }, [authLoading, user, reservationId, navigate]);
+
+  // Recalcul automatique du montant à payer lorsque la réduction coins change
+  useEffect(() => {
+    if (!reservation) return;
+    const discount = coinsEnabled ? coinsAmount : 0;
+    const alreadySpent = reservation.coins_used ?? 0;
+    const net = Math.max(reservation.total_amount - reservation.paid_amount - alreadySpent - discount, 0);
+    setAmount(net);
+  }, [coinsEnabled, coinsAmount, reservation]);
 
   const codeAgent = method === "Moov Money" ? CODE_AGENT_MOOV : CODE_AGENT_AIRTEL;
   const ussdCode = method === "Moov Money" ? "*555#" : "*150*4#";
