@@ -57,6 +57,9 @@ function PaiementPage() {
   const [whatsappNumber, setWhatsappNumber] = useState<string>("");
   const [whatsappEnabled, setWhatsappEnabled] = useState<boolean>(true);
   const [uploadFailed, setUploadFailed] = useState(false);
+  const [coinsBalance, setCoinsBalance] = useState<number>(0);
+  const [coinsEnabled, setCoinsEnabled] = useState(false);
+  const [coinsAmount, setCoinsAmount] = useState(0);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
