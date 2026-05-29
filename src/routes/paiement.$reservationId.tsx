@@ -252,6 +252,31 @@ function PaiementPage() {
             <span className="text-muted-foreground">Déjà payé</span>
             <span>{formatXAF(reservation.paid_amount)}</span>
           </div>
+          {(reservation.coins_used ?? 0) > 0 && (
+            <div className="flex justify-between text-sm text-primary">
+              <span>Réduction Wina Coins déjà appliquée</span>
+              <span>−{formatXAF(reservation.coins_used)}</span>
+            </div>
+          )}
+          {(reservation.coins_used ?? 0) === 0 && (
+            <UseCoinsToggle
+              balance={coinsBalance}
+              total={Math.max(reservation.total_amount - reservation.paid_amount - 1, 0)}
+              enabled={coinsEnabled}
+              amount={coinsAmount}
+              onToggle={(v) => {
+                setCoinsEnabled(v);
+                if (!v) setCoinsAmount(0);
+              }}
+              onAmountChange={setCoinsAmount}
+            />
+          )}
+          {coinsEnabled && coinsAmount > 0 && (
+            <div className="flex justify-between text-sm text-primary">
+              <span>Réduction Wina Coins</span>
+              <span>−{formatXAF(coinsAmount)}</span>
+            </div>
+          )}
           <div>
             <Label htmlFor="amount" className="text-xs">Montant de ce versement (FCFA)</Label>
             <NumberInput
