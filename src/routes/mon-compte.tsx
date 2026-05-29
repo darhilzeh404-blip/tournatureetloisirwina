@@ -68,6 +68,9 @@ function MonComptePage() {
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [stats, setStats] = useState<ActivityStats | null>(null);
+  const [coinsBalance, setCoinsBalance] = useState<number>(0);
+  const [totalEarned, setTotalEarned] = useState<number>(0);
+  const [vipLevels, setVipLevels] = useState<VipLevel[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
