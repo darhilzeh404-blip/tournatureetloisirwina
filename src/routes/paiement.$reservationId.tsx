@@ -75,7 +75,7 @@ function PaiementPage() {
       const [{ data, error }, { data: settings }] = await Promise.all([
         supabase
           .from("reservations")
-          .select("id, total_amount, paid_amount, status, user_id")
+          .select("id, total_amount, paid_amount, status, user_id, coins_used")
           .eq("id", reservationId)
           .maybeSingle(),
         supabase
