@@ -118,6 +118,37 @@ function MonComptePage() {
     }
   }, [isAuthenticated, user, fetchProfileData]);
 
+  // Solde Wina Coins + temps réel
+  useEffect(() => {
+    if (!user) return;
+    let mounted = true;
+    const refresh = async () => {
+      const [bal, levels] = await Promise.all([fetchBalance(user.id), fetchLevels()]);
+      if (!mounted) return;
+      setCoinsBalance(bal?.coins_balance ?? 0);
+      setTotalEarned(bal?.total_coins_earned ?? 0);
+      setVipLevels(levels);
+    };
+    void refresh();
+    const ch = supabase
+      .channel(`coins-balance-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "wina_coin_balances", filter: `user_id=eq.${user.id}` },
+        () => void refresh()
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "wina_coins_history", filter: `user_id=eq.${user.id}` },
+        () => void refresh()
+      )
+      .subscribe();
+    return () => {
+      mounted = false;
+      supabase.removeChannel(ch);
+    };
+  }, [user]);
+
   const handleLogout = async () => {
     try {
       await signOut();
