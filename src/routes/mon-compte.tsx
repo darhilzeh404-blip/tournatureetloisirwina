@@ -36,6 +36,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ClientNav } from "@/components/ClientNav";
+import { fetchBalance, fetchLevels, formatCoins, levelOf, type VipLevel } from "@/lib/wina-coins";
 
 export const Route = createFileRoute("/mon-compte")({
   head: () => ({
