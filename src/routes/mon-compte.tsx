@@ -273,6 +273,43 @@ function MonComptePage() {
       </div>
 
       <div className="mx-auto max-w-md px-4">
+        {/* Mini-solde Wina Coins */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="-mt-4"
+        >
+          <Link
+            to="/wina-coins"
+            className="group relative block overflow-hidden rounded-2xl border border-primary/20 p-5 shadow-md transition-all hover:shadow-lg"
+            style={{ background: "var(--gradient-vip-card, linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 60%, #1e3a8a 100%))" }}
+          >
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10" />
+            <div className="absolute -bottom-8 -right-2 h-16 w-16 rounded-full bg-white/5" />
+            <div className="relative flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm ring-1 ring-white/30">
+                  <Coins className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-white/80">
+                    Wina Coins <Sparkles className="h-3 w-3" />
+                  </p>
+                  <p className="text-2xl font-extrabold text-white">
+                    {formatCoins(coinsBalance)}
+                  </p>
+                  {vipLevels.length > 0 && (
+                    <p className="text-[11px] font-medium text-white/80">
+                      Niveau {levelOf(totalEarned, vipLevels)?.level_name ?? "Silver"}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-white/90 transition-transform group-hover:translate-x-1" />
+            </div>
+          </Link>
+        </motion.div>
+
         {/* Informations personnelles */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
