@@ -161,18 +161,34 @@ function PaiementPage() {
       toast.error("Veuillez joindre la photo du reçu / SMS de confirmation");
       return;
     }
+    const discount = coinsEnabled ? coinsAmount : 0;
+    const alreadySpent = reservation.coins_used ?? 0;
+    const remaining = Math.max(reservation.total_amount - reservation.paid_amount - alreadySpent - discount, 0);
     if (amount <= 0) {
       toast.error("Montant invalide");
       return;
     }
-    const remaining = Math.max(reservation.total_amount - reservation.paid_amount, 0);
-    if (remaining > 0 && amount < remaining) {
+    if (amount < remaining) {
       toast.error(`Montant total requis : ${formatXAF(remaining)}`);
       return;
     }
     setSubmitting(true);
     setUploadFailed(false);
     try {
+      // Appliquer la réduction Wina Coins avant l'enregistrement du paiement
+      if (discount > 0 && alreadySpent === 0) {
+        const { error: spendErr } = await supabase.rpc("spend_wina_coins", {
+          _reservation_id: reservation.id,
+          _amount: discount,
+        });
+        if (spendErr) {
+          console.error("[wina-coins] spend", spendErr);
+          toast.error("Impossible d'appliquer la réduction Wina Coins.");
+          setSubmitting(false);
+          return;
+        }
+      }
+
       // Upload photo dans le bucket privé sous le dossier de l'utilisateur
       const ext = (receiptFile.name.split(".").pop() || "jpg").toLowerCase();
       const path = `${user.id}/${transactionUuid}.${ext}`;
