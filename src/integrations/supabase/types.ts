@@ -392,6 +392,7 @@ export type Database = {
         Row: {
           admin_comment: string | null
           amount: number
+          coins_awarded: boolean
           created_at: string
           id: string
           method: string
@@ -406,6 +407,7 @@ export type Database = {
         Insert: {
           admin_comment?: string | null
           amount: number
+          coins_awarded?: boolean
           created_at?: string
           id?: string
           method?: string
@@ -420,6 +422,7 @@ export type Database = {
         Update: {
           admin_comment?: string | null
           amount?: number
+          coins_awarded?: boolean
           created_at?: string
           id?: string
           method?: string
@@ -1484,6 +1487,14 @@ export type Database = {
           vip_level_id: string
         }[]
       }
+      award_wina_coins_group_payment: {
+        Args: { _payment_id: string }
+        Returns: {
+          coins_earned: number
+          new_balance: number
+          vip_level_id: string
+        }[]
+      }
       complete_ride: {
         Args: { _ride_id: string }
         Returns: {
@@ -1545,6 +1556,10 @@ export type Database = {
       recompute_vip_level: { Args: { _user_id: string }; Returns: string }
       refund_wina_coins: {
         Args: { _reservation_id: string }
+        Returns: undefined
+      }
+      refund_wina_coins_group_payment: {
+        Args: { _payment_id: string }
         Returns: undefined
       }
       spend_wina_coins: {
