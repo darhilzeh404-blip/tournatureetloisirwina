@@ -11,6 +11,8 @@ import { NumberInput } from "@/components/ui/number-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
+import { UseCoinsToggle } from "@/components/wina-coins/UseCoinsToggle";
+import { fetchBalance } from "@/lib/wina-coins";
 
 // Codes agents marchands (à personnaliser depuis l'admin plus tard)
 const CODE_AGENT_MOOV = "074512";
