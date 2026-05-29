@@ -148,7 +148,17 @@ function AdminGroupRides() {
   const validate = async (id: string) => {
     const { error } = await supabase.from("group_ride_payments").update({ status: "VALIDATED" }).eq("id", id);
     if (error) return toast.error(error.message);
-    toast.success("Paiement validé");
+    // Attribution automatique des Wina Coins au passager
+    const { data: coinsData, error: coinsErr } = await supabase.rpc("award_wina_coins_group_payment", {
+      _payment_id: id,
+    });
+    if (coinsErr) {
+      console.error("[wina-coins] award group", coinsErr);
+      toast.warning("Paiement validé mais l'attribution des Wina Coins a échoué.");
+    } else {
+      const earned = coinsData?.[0]?.coins_earned ?? 0;
+      toast.success(earned > 0 ? `Paiement validé · +${earned} Wina Coins` : "Paiement validé");
+    }
     void load();
   };
 
@@ -158,6 +168,11 @@ function AdminGroupRides() {
       .update({ status: "REJECTED", admin_comment: rejectComment || "Rejeté par l'admin" })
       .eq("id", id);
     if (error) return toast.error(error.message);
+    // Si des coins avaient été attribués (re-rejet après validation), on les rembourse
+    const { error: refundErr } = await supabase.rpc("refund_wina_coins_group_payment", {
+      _payment_id: id,
+    });
+    if (refundErr) console.error("[wina-coins] refund group", refundErr);
     setRejectTarget(null);
     setRejectComment("");
     toast.success("Paiement rejeté");
