@@ -11,6 +11,8 @@ import { NumberInput } from "@/components/ui/number-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
+import { UseCoinsToggle } from "@/components/wina-coins/UseCoinsToggle";
+import { fetchBalance } from "@/lib/wina-coins";
 
 // Codes agents marchands (à personnaliser depuis l'admin plus tard)
 const CODE_AGENT_MOOV = "074512";
@@ -32,6 +34,7 @@ interface Reservation {
   paid_amount: number;
   status: string;
   user_id: string;
+  coins_used: number;
 }
 
 function formatXAF(n: number) {
@@ -54,6 +57,9 @@ function PaiementPage() {
   const [whatsappNumber, setWhatsappNumber] = useState<string>("");
   const [whatsappEnabled, setWhatsappEnabled] = useState<boolean>(true);
   const [uploadFailed, setUploadFailed] = useState(false);
+  const [coinsBalance, setCoinsBalance] = useState<number>(0);
+  const [coinsEnabled, setCoinsEnabled] = useState(false);
+  const [coinsAmount, setCoinsAmount] = useState(0);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -72,7 +78,7 @@ function PaiementPage() {
       const [{ data, error }, { data: settings }] = await Promise.all([
         supabase
           .from("reservations")
-          .select("id, total_amount, paid_amount, status, user_id")
+          .select("id, total_amount, paid_amount, status, user_id, coins_used")
           .eq("id", reservationId)
           .maybeSingle(),
         supabase
@@ -86,15 +92,27 @@ function PaiementPage() {
         return;
       }
       setReservation(data);
-      const remainingDue = Math.max(data.total_amount - data.paid_amount, 0);
+      const alreadySpent = data.coins_used ?? 0;
+      const remainingDue = Math.max(data.total_amount - data.paid_amount - alreadySpent, 0);
       setAmount(remainingDue || data.total_amount);
       const wnum = (settings ?? []).find((s) => s.key === "whatsapp_admin_number");
       const wen = (settings ?? []).find((s) => s.key === "whatsapp_fallback_enabled");
       setWhatsappNumber((wnum?.text_value as string | null) ?? "");
       setWhatsappEnabled(Number(wen?.value ?? 1) === 1);
+      const bal = await fetchBalance(user.id);
+      setCoinsBalance(bal?.coins_balance ?? 0);
       setLoading(false);
     })();
   }, [authLoading, user, reservationId, navigate]);
+
+  // Recalcul automatique du montant à payer lorsque la réduction coins change
+  useEffect(() => {
+    if (!reservation) return;
+    const discount = coinsEnabled ? coinsAmount : 0;
+    const alreadySpent = reservation.coins_used ?? 0;
+    const net = Math.max(reservation.total_amount - reservation.paid_amount - alreadySpent - discount, 0);
+    setAmount(net);
+  }, [coinsEnabled, coinsAmount, reservation]);
 
   const codeAgent = method === "Moov Money" ? CODE_AGENT_MOOV : CODE_AGENT_AIRTEL;
   const ussdCode = method === "Moov Money" ? "*555#" : "*150*4#";
@@ -143,18 +161,34 @@ function PaiementPage() {
       toast.error("Veuillez joindre la photo du reçu / SMS de confirmation");
       return;
     }
+    const discount = coinsEnabled ? coinsAmount : 0;
+    const alreadySpent = reservation.coins_used ?? 0;
+    const remaining = Math.max(reservation.total_amount - reservation.paid_amount - alreadySpent - discount, 0);
     if (amount <= 0) {
       toast.error("Montant invalide");
       return;
     }
-    const remaining = Math.max(reservation.total_amount - reservation.paid_amount, 0);
-    if (remaining > 0 && amount < remaining) {
+    if (amount < remaining) {
       toast.error(`Montant total requis : ${formatXAF(remaining)}`);
       return;
     }
     setSubmitting(true);
     setUploadFailed(false);
     try {
+      // Appliquer la réduction Wina Coins avant l'enregistrement du paiement
+      if (discount > 0 && alreadySpent === 0) {
+        const { error: spendErr } = await supabase.rpc("spend_wina_coins", {
+          _reservation_id: reservation.id,
+          _amount: discount,
+        });
+        if (spendErr) {
+          console.error("[wina-coins] spend", spendErr);
+          toast.error("Impossible d'appliquer la réduction Wina Coins.");
+          setSubmitting(false);
+          return;
+        }
+      }
+
       // Upload photo dans le bucket privé sous le dossier de l'utilisateur
       const ext = (receiptFile.name.split(".").pop() || "jpg").toLowerCase();
       const path = `${user.id}/${transactionUuid}.${ext}`;
@@ -218,6 +252,31 @@ function PaiementPage() {
             <span className="text-muted-foreground">Déjà payé</span>
             <span>{formatXAF(reservation.paid_amount)}</span>
           </div>
+          {(reservation.coins_used ?? 0) > 0 && (
+            <div className="flex justify-between text-sm text-primary">
+              <span>Réduction Wina Coins déjà appliquée</span>
+              <span>−{formatXAF(reservation.coins_used)}</span>
+            </div>
+          )}
+          {(reservation.coins_used ?? 0) === 0 && (
+            <UseCoinsToggle
+              balance={coinsBalance}
+              total={Math.max(reservation.total_amount - reservation.paid_amount - 1, 0)}
+              enabled={coinsEnabled}
+              amount={coinsAmount}
+              onToggle={(v) => {
+                setCoinsEnabled(v);
+                if (!v) setCoinsAmount(0);
+              }}
+              onAmountChange={setCoinsAmount}
+            />
+          )}
+          {coinsEnabled && coinsAmount > 0 && (
+            <div className="flex justify-between text-sm text-primary">
+              <span>Réduction Wina Coins</span>
+              <span>−{formatXAF(coinsAmount)}</span>
+            </div>
+          )}
           <div>
             <Label htmlFor="amount" className="text-xs">Montant de ce versement (FCFA)</Label>
             <NumberInput
