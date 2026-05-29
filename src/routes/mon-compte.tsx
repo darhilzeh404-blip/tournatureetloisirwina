@@ -315,7 +315,7 @@ function MonComptePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="-mt-4 rounded-2xl border bg-card p-5 shadow-sm"
+          className="mt-4 rounded-2xl border bg-card p-5 shadow-sm"
         >
           <div className="flex items-center gap-2">
             <Shield className="h-4 w-4 text-primary" />
