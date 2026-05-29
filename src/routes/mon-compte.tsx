@@ -16,6 +16,8 @@ import {
   Ticket,
   AlertTriangle,
   ChevronRight,
+  Coins,
+  Sparkles,
 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
