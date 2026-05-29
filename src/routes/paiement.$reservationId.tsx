@@ -34,6 +34,7 @@ interface Reservation {
   paid_amount: number;
   status: string;
   user_id: string;
+  coins_used: number;
 }
 
 function formatXAF(n: number) {
