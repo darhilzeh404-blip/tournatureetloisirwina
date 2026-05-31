@@ -96,7 +96,9 @@ function ChauffeurVtcPage() {
     setTogglingOnline(false);
     if (error) { toast.error("Impossible de changer le statut"); return; }
     setIsOnline(next);
+    if (next) { void requestNotificationPermission(); }
     toast.success(next ? "Vous êtes en ligne" : "Vous êtes hors ligne");
+
   }, [user]);
 
   // Heartbeat: refresh last_seen_at every 30s while online; mark offline on tab close
