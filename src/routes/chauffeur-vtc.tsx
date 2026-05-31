@@ -171,12 +171,35 @@ function ChauffeurVtcPage() {
       .channel(`chauffeur-vtc-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "trips" },
+        { event: "INSERT", schema: "public", table: "trips" },
+        (payload) => {
+          const t = payload.new as { status?: string; driver_id?: string | null; origin_lat?: number | null; origin_lng?: number | null };
+          if (isOnline && t?.status === "pending" && !t.driver_id) {
+            // Optional 5km proximity filter for notification
+            let withinRange = true;
+            if (driverPos && t.origin_lat != null && t.origin_lng != null) {
+              const km = haversineKm(driverPos.lat, driverPos.lng, Number(t.origin_lat), Number(t.origin_lng));
+              withinRange = km <= 5;
+            }
+            if (withinRange) {
+              showAppNotification("Nouvelle course VTC à proximité", {
+                body: "Une demande vient d'arriver. Acceptez avant les autres !",
+                tag: "vtc-pool",
+              });
+            }
+          }
+          load();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "trips" },
         () => load(),
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [user, load]);
+  }, [user, load, isOnline, driverPos]);
+
 
   // Live driver position for the dashboard map
   useEffect(() => {
