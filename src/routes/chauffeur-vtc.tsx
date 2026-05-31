@@ -318,10 +318,11 @@ function ChauffeurVtcPage() {
       load();
       return;
     }
-    toast.success("Course acceptée !");
-    setTab("courses");
-    load();
+    toast.success("Course acceptée — navigation GPS en cours");
+    // Go straight to the GPS / navigation page for this trip (pickup → destination)
+    navigate({ to: "/chauffeur/trips", search: { tripId: t.id } });
   };
+
 
   const startTrip = async (t: VtcTrip) => {
     setBusyId(t.id);
