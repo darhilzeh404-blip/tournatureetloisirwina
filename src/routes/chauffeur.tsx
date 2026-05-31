@@ -459,22 +459,17 @@ function TripCard({ trip, client, busy, onAccept, onRefuse, onGps }: {
         <p className="truncate text-sm font-semibold">{trip.destination_address || "Non renseignée"}</p>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <Button onClick={onGps} className="col-span-2 h-12 gap-2 rounded-2xl">
+      <div className="mt-4 grid grid-cols-1 gap-2">
+        <Button onClick={onGps} className="h-12 gap-2 rounded-2xl">
           <LocateFixed className="h-4 w-4" /> Voir GPS
         </Button>
         {trip.status !== "active" && (
-          <Button onClick={onAccept} disabled={busy} variant="secondary" className="h-11 gap-2 rounded-2xl">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-            Accepter
-          </Button>
-        )}
-        {trip.status !== "active" && (
-          <Button onClick={onRefuse} disabled={busy} variant="outline" className="h-11 gap-2 rounded-2xl">
-            <X className="h-4 w-4" /> Refuser
-          </Button>
+          <div className="flex items-center justify-center gap-2 rounded-2xl bg-secondary/60 px-3 py-2 text-sm font-semibold text-muted-foreground">
+            <Check className="h-4 w-4 text-primary" /> Course assignée
+          </div>
         )}
       </div>
+
     </article>
   );
 }
