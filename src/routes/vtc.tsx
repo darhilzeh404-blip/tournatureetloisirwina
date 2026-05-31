@@ -1003,10 +1003,11 @@ function PriceRow({ label, value }: { label: string; value: string }) {
 }
 
 function StickyContinue({
-  loading, disabled, label, onClick, icon,
+  loading, disabled, label, onClick, icon, loadingLabel,
 }: {
   loading: boolean; disabled: boolean; label: string;
   onClick: () => void; icon: React.ReactNode;
+  loadingLabel?: string;
 }) {
   return (
     <div
@@ -1026,8 +1027,9 @@ function StickyContinue({
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-[14px] font-bold text-primary-foreground shadow-[0_12px_30px_-10px_hsl(var(--primary)/0.55)] transition-all active:scale-[0.98] disabled:opacity-50"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
-          {loading ? "Réservation..." : label}
+          {loading ? (loadingLabel ?? "Réservation...") : label}
         </button>
+
       </motion.div>
     </div>
   );
