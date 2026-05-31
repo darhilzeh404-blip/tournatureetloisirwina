@@ -467,7 +467,7 @@ function CourseFlow() {
 
       await requestNotificationPermission();
       await showAppNotification("Demande VTC enregistrée", { tag: `vtc-${data.id}` });
-      toast.success("Recherche d'un chauffeur en cours…");
+      toast.success("Recherche de chauffeur dans un rayon de 5 km…");
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de la réservation");
