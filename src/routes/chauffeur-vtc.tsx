@@ -96,10 +96,20 @@ function ChauffeurVtcPage() {
     setTogglingOnline(false);
     if (error) { toast.error("Impossible de changer le statut"); return; }
     setIsOnline(next);
-    if (next) { void requestNotificationPermission(); }
+    if (next) {
+      void requestNotificationPermission();
+    } else {
+      // Archive current position so we disappear from the map / dispatch radius
+      void supabase
+        .from("driver_positions")
+        .update({ archived_at: new Date().toISOString() })
+        .eq("driver_id", user.id)
+        .is("archived_at", null);
+    }
     toast.success(next ? "Vous êtes en ligne" : "Vous êtes hors ligne");
 
   }, [user]);
+
 
   // Heartbeat: refresh last_seen_at every 30s while online; mark offline on tab close
   useEffect(() => {
@@ -214,16 +224,67 @@ function ChauffeurVtcPage() {
   }, [user, load, isOnline, driverPos]);
 
 
-  // Live driver position for the dashboard map
+  // Live driver position for the dashboard map + realtime upsert to driver_positions
+  // (used by clients to see the car and by the 5 km dispatch filter).
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    let lastPushAt = 0;
+    let lastLat: number | null = null;
+    let lastLng: number | null = null;
     const id = navigator.geolocation.watchPosition(
-      (p) => setDriverPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      (p) => {
+        const lat = p.coords.latitude;
+        const lng = p.coords.longitude;
+        setDriverPos({ lat, lng });
+        if (!user || !isOnline) return;
+        // Throttle: push at most every 5 s OR when the driver has moved >= 20 m.
+        const now = Date.now();
+        const movedFar =
+          lastLat == null || lastLng == null
+            ? true
+            : haversineKm(lastLat, lastLng, lat, lng) * 1000 >= 20;
+        if (now - lastPushAt < 5000 && !movedFar) return;
+        lastPushAt = now;
+        lastLat = lat;
+        lastLng = lng;
+        void supabase.from("driver_positions").upsert(
+          {
+            driver_id: user.id,
+            latitude: lat,
+            longitude: lng,
+            heading: p.coords.heading ?? null,
+            speed: p.coords.speed ?? null,
+            accuracy: p.coords.accuracy ?? null,
+            archived_at: null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "driver_id" },
+        );
+      },
       () => {},
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
     );
     return () => navigator.geolocation.clearWatch(id);
-  }, []);
+  }, [user, isOnline]);
+
+  // Only show pool trips within 5 km of the driver's current position.
+  // If GPS is not yet available, show everything so we don't hide work.
+  const nearbyPool = useMemo(() => {
+    if (!driverPos) return pool;
+    return pool
+      .map((t) => {
+        const lat = t.origin_lat != null ? Number(t.origin_lat) : null;
+        const lng = t.origin_lng != null ? Number(t.origin_lng) : null;
+        const km = lat != null && lng != null
+          ? haversineKm(driverPos.lat, driverPos.lng, lat, lng)
+          : null;
+        return { trip: t, km };
+      })
+      .filter(({ km }) => km == null || km <= 5)
+      .sort((a, b) => (a.km ?? 99) - (b.km ?? 99))
+      .map(({ trip }) => trip);
+  }, [pool, driverPos]);
+
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -321,9 +382,10 @@ function ChauffeurVtcPage() {
       </header>
 
       <div className="mx-auto max-w-md px-4 pt-4">
-        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={pool.length} onGoPool={() => setTab("pool")} isOnline={isOnline} />}
+        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={nearbyPool.length} onGoPool={() => setTab("pool")} isOnline={isOnline} />}
         {tab === "pool" && (
-          <PoolTab trips={pool} loading={loading} busyId={busyId} onAccept={acceptTrip} isOnline={isOnline} onGoOnline={() => setOnline(true)} />
+          <PoolTab trips={nearbyPool} loading={loading} busyId={busyId} onAccept={acceptTrip} isOnline={isOnline} onGoOnline={() => setOnline(true)} />
+
         )}
         {tab === "courses" && (
           <CoursesTab
@@ -340,7 +402,7 @@ function ChauffeurVtcPage() {
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t bg-card/95 backdrop-blur">
         <div className="mx-auto grid max-w-md grid-cols-4">
           <TabBtn active={tab === "dashboard"} onClick={() => setTab("dashboard")} icon={<LayoutDashboard className="h-5 w-5" />} label="Dashboard" />
-          <TabBtn active={tab === "pool"} onClick={() => setTab("pool")} icon={<Zap className="h-5 w-5" />} label="Demandes" badge={pool.length || undefined} />
+          <TabBtn active={tab === "pool"} onClick={() => setTab("pool")} icon={<Zap className="h-5 w-5" />} label="Demandes" badge={nearbyPool.length || undefined} />
           <TabBtn active={tab === "courses"} onClick={() => setTab("courses")} icon={<RouteIcon className="h-5 w-5" />} label="Courses" badge={active.length || undefined} />
           <TabBtn active={tab === "historique"} onClick={() => setTab("historique")} icon={<History className="h-5 w-5" />} label="Historique" />
         </div>
