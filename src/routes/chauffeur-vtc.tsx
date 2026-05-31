@@ -382,9 +382,10 @@ function ChauffeurVtcPage() {
       </header>
 
       <div className="mx-auto max-w-md px-4 pt-4">
-        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={pool.length} onGoPool={() => setTab("pool")} isOnline={isOnline} />}
+        {tab === "dashboard" && <DashboardTab stats={stats} active={active} driverPos={driverPos} poolCount={nearbyPool.length} onGoPool={() => setTab("pool")} isOnline={isOnline} />}
         {tab === "pool" && (
-          <PoolTab trips={pool} loading={loading} busyId={busyId} onAccept={acceptTrip} isOnline={isOnline} onGoOnline={() => setOnline(true)} />
+          <PoolTab trips={nearbyPool} loading={loading} busyId={busyId} onAccept={acceptTrip} isOnline={isOnline} onGoOnline={() => setOnline(true)} />
+
         )}
         {tab === "courses" && (
           <CoursesTab
