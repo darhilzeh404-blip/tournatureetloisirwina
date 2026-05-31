@@ -688,11 +688,30 @@ function HistoryTab({ trips, loading }: { trips: VtcTrip[]; loading: boolean }) 
   );
 }
 
-function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline }: {
+function PoolCountdown({ createdAt, windowSec = 120 }: { createdAt: string; windowSec?: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = Math.max(0, Math.floor((now - new Date(createdAt).getTime()) / 1000));
+  const remaining = Math.max(0, windowSec - elapsed);
+  const m = Math.floor(remaining / 60);
+  const s = String(remaining % 60).padStart(2, "0");
+  const danger = remaining <= 20;
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${danger ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
+      <Clock className="h-3 w-3" /> Disponible {m}:{s}
+    </span>
+  );
+}
+
+function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline, driverPos }: {
   trips: VtcTrip[]; loading: boolean; busyId: string | null;
   onAccept: (t: VtcTrip) => void;
   isOnline: boolean;
   onGoOnline: () => void;
+  driverPos: { lat: number; lng: number } | null;
 }) {
   if (!isOnline) {
     return (
@@ -721,33 +740,50 @@ function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline }: {
       <div className="rounded-xl bg-primary/5 p-3 text-center text-xs text-muted-foreground">
         ⚡ {trips.length} demande{trips.length > 1 ? "s" : ""} disponible{trips.length > 1 ? "s" : ""} — premier arrivé, premier servi
       </div>
-      {trips.map((t) => (
-        <Card key={t.id} className="border-primary/20">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between gap-2">
-              <Badge className="bg-primary text-primary-foreground">Nouvelle demande</Badge>
-              <p className="text-sm font-bold text-primary">{FCFA(t.reservations?.total_amount ?? 0)}</p>
-            </div>
-            <p className="mt-3 flex items-start gap-2 text-sm">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-              <span className="truncate">{t.origin_address}</span>
-            </p>
-            <p className="mt-1 flex items-start gap-2 text-sm">
-              <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-              <span className="truncate">{t.destination_address}</span>
-            </p>
-            <Button
-              onClick={() => onAccept(t)}
-              disabled={busyId === t.id}
-              className="mt-4 w-full gap-2"
-              size="lg"
-            >
-              {busyId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Hand className="h-4 w-4" />}
-              Accepter la course
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+      {trips.map((t) => {
+        const km =
+          driverPos && t.origin_lat != null && t.origin_lng != null
+            ? haversineKm(driverPos.lat, driverPos.lng, Number(t.origin_lat), Number(t.origin_lng))
+            : null;
+        return (
+          <Card key={t.id} className="border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="bg-primary text-primary-foreground">Nouvelle demande</Badge>
+                  {km != null && (
+                    <Badge variant="secondary" className="gap-1">
+                      <Navigation className="h-3 w-3" /> {km.toFixed(1)} km
+                    </Badge>
+                  )}
+                  <PoolCountdown createdAt={t.created_at} />
+                </div>
+                <p className="text-sm font-bold text-primary tabular-nums">{FCFA(t.reservations?.total_amount ?? 0)}</p>
+              </div>
+              <div className="mt-3 space-y-2 rounded-2xl border border-border bg-background p-3">
+                <p className="flex items-start gap-2 text-sm">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                  <span className="truncate"><span className="text-muted-foreground">Départ : </span>{t.origin_address}</span>
+                </p>
+                <p className="flex items-start gap-2 text-sm">
+                  <Navigation className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <span className="truncate"><span className="text-muted-foreground">Arrivée : </span>{t.destination_address}</span>
+                </p>
+              </div>
+              <Button
+                onClick={() => onAccept(t)}
+                disabled={busyId === t.id}
+                className="mt-4 w-full gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                size="lg"
+              >
+                {busyId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Hand className="h-4 w-4" />}
+                Accepter la course
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
+
