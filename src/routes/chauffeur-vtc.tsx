@@ -402,7 +402,7 @@ function ChauffeurVtcPage() {
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t bg-card/95 backdrop-blur">
         <div className="mx-auto grid max-w-md grid-cols-4">
           <TabBtn active={tab === "dashboard"} onClick={() => setTab("dashboard")} icon={<LayoutDashboard className="h-5 w-5" />} label="Dashboard" />
-          <TabBtn active={tab === "pool"} onClick={() => setTab("pool")} icon={<Zap className="h-5 w-5" />} label="Demandes" badge={pool.length || undefined} />
+          <TabBtn active={tab === "pool"} onClick={() => setTab("pool")} icon={<Zap className="h-5 w-5" />} label="Demandes" badge={nearbyPool.length || undefined} />
           <TabBtn active={tab === "courses"} onClick={() => setTab("courses")} icon={<RouteIcon className="h-5 w-5" />} label="Courses" badge={active.length || undefined} />
           <TabBtn active={tab === "historique"} onClick={() => setTab("historique")} icon={<History className="h-5 w-5" />} label="Historique" />
         </div>
