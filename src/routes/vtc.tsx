@@ -822,9 +822,11 @@ function CourseFlow() {
         loading={loading}
         disabled={!fare.ok || !wizard.allConfirmed}
         label={wizard.allConfirmed ? "Continuer · Réserver ma course" : "Confirmez toutes les étapes"}
+        loadingLabel="Recherche de chauffeur dans un rayon de 5 km…"
         onClick={submit}
         icon={<CarFront className="h-4 w-4" />}
       />
+
     </>
   );
 }
