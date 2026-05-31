@@ -224,16 +224,67 @@ function ChauffeurVtcPage() {
   }, [user, load, isOnline, driverPos]);
 
 
-  // Live driver position for the dashboard map
+  // Live driver position for the dashboard map + realtime upsert to driver_positions
+  // (used by clients to see the car and by the 5 km dispatch filter).
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    let lastPushAt = 0;
+    let lastLat: number | null = null;
+    let lastLng: number | null = null;
     const id = navigator.geolocation.watchPosition(
-      (p) => setDriverPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      (p) => {
+        const lat = p.coords.latitude;
+        const lng = p.coords.longitude;
+        setDriverPos({ lat, lng });
+        if (!user || !isOnline) return;
+        // Throttle: push at most every 5 s OR when the driver has moved >= 20 m.
+        const now = Date.now();
+        const movedFar =
+          lastLat == null || lastLng == null
+            ? true
+            : haversineKm(lastLat, lastLng, lat, lng) * 1000 >= 20;
+        if (now - lastPushAt < 5000 && !movedFar) return;
+        lastPushAt = now;
+        lastLat = lat;
+        lastLng = lng;
+        void supabase.from("driver_positions").upsert(
+          {
+            driver_id: user.id,
+            latitude: lat,
+            longitude: lng,
+            heading: p.coords.heading ?? null,
+            speed: p.coords.speed ?? null,
+            accuracy: p.coords.accuracy ?? null,
+            archived_at: null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "driver_id" },
+        );
+      },
       () => {},
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
     );
     return () => navigator.geolocation.clearWatch(id);
-  }, []);
+  }, [user, isOnline]);
+
+  // Only show pool trips within 5 km of the driver's current position.
+  // If GPS is not yet available, show everything so we don't hide work.
+  const nearbyPool = useMemo(() => {
+    if (!driverPos) return pool;
+    return pool
+      .map((t) => {
+        const lat = t.origin_lat != null ? Number(t.origin_lat) : null;
+        const lng = t.origin_lng != null ? Number(t.origin_lng) : null;
+        const km = lat != null && lng != null
+          ? haversineKm(driverPos.lat, driverPos.lng, lat, lng)
+          : null;
+        return { trip: t, km };
+      })
+      .filter(({ km }) => km == null || km <= 5)
+      .sort((a, b) => (a.km ?? 99) - (b.km ?? 99))
+      .map(({ trip }) => trip);
+  }, [pool, driverPos]);
+
 
   const stats = useMemo(() => {
     const now = new Date();
