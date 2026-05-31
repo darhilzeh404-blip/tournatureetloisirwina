@@ -427,6 +427,8 @@ function CourseFlow() {
         reservation_date: effectiveScheduledAt.slice(0, 10),
         total_amount: total,
         paid_amount: 0,
+        paiement_valide: true,
+        status: "CONFIRMED" as const,
         details: {
           flow: "vtc_course", category,
           category_label: CATEGORIES.find((c) => c.id === category)!.title,
@@ -437,17 +439,41 @@ function CourseFlow() {
           destination: { ...destination, label: destLabel, zone: fare.zoneTo },
           scheduled_at: effectiveScheduledAt, ride_timing: rideTiming,
           unit_price: fare.price, base_standard_price: fare.base, estimated_total: total,
+          auto_dispatch: true,
         },
       }).select("id").single();
       if (error) throw error;
+      console.log("[VTC] reservation créée", data.id);
+
+      // Create trip immediately in pending pool → first available driver wins
+      const { error: tripErr } = await supabase.from("trips").insert({
+        reservation_id: data.id,
+        client_id: user.id,
+        driver_id: null,
+        status: "pending",
+        origin_address: pickupLabel || "Point de prise en charge",
+        origin_lat: pickup?.lat ?? null,
+        origin_lng: pickup?.lng ?? null,
+        destination_address: destLabel || "Destination",
+        destination_lat: destination?.lat ?? null,
+        destination_lng: destination?.lng ?? null,
+      });
+      if (tripErr) {
+        console.error("[VTC] erreur création trip", tripErr);
+        toast.error("Course créée mais dispatch chauffeur impossible");
+      } else {
+        console.log("[VTC] trip pending dispatché aux chauffeurs en ligne");
+      }
+
       await requestNotificationPermission();
       await showAppNotification("Demande VTC enregistrée", { tag: `vtc-${data.id}` });
-      toast.success("Demande VTC enregistrée");
+      toast.success("Recherche d'un chauffeur en cours…");
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de la réservation");
     } finally { setLoading(false); }
   };
+
 
   const activeCat = CATEGORIES.find((c) => c.id === category)!;
 

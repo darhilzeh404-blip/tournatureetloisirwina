@@ -13,6 +13,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { showAppNotification, requestNotificationPermission } from "@/lib/notifications";
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 
 export const Route = createFileRoute("/chauffeur-vtc")({
   head: () => ({
@@ -85,7 +96,9 @@ function ChauffeurVtcPage() {
     setTogglingOnline(false);
     if (error) { toast.error("Impossible de changer le statut"); return; }
     setIsOnline(next);
+    if (next) { void requestNotificationPermission(); }
     toast.success(next ? "Vous êtes en ligne" : "Vous êtes hors ligne");
+
   }, [user]);
 
   // Heartbeat: refresh last_seen_at every 30s while online; mark offline on tab close
@@ -171,12 +184,35 @@ function ChauffeurVtcPage() {
       .channel(`chauffeur-vtc-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "trips" },
+        { event: "INSERT", schema: "public", table: "trips" },
+        (payload) => {
+          const t = payload.new as { status?: string; driver_id?: string | null; origin_lat?: number | null; origin_lng?: number | null };
+          if (isOnline && t?.status === "pending" && !t.driver_id) {
+            // Optional 5km proximity filter for notification
+            let withinRange = true;
+            if (driverPos && t.origin_lat != null && t.origin_lng != null) {
+              const km = haversineKm(driverPos.lat, driverPos.lng, Number(t.origin_lat), Number(t.origin_lng));
+              withinRange = km <= 5;
+            }
+            if (withinRange) {
+              showAppNotification("Nouvelle course VTC à proximité", {
+                body: "Une demande vient d'arriver. Acceptez avant les autres !",
+                tag: "vtc-pool",
+              });
+            }
+          }
+          load();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "trips" },
         () => load(),
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [user, load]);
+  }, [user, load, isOnline, driverPos]);
+
 
   // Live driver position for the dashboard map
   useEffect(() => {
