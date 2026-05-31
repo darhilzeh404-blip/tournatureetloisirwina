@@ -1517,6 +1517,16 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      find_nearby_vtc_drivers: {
+        Args: { _pickup_lat: number; _pickup_lng: number; _radius_km?: number }
+        Returns: {
+          distance_km: number
+          driver_id: string
+          last_seen_at: string
+          latitude: number
+          longitude: number
+        }[]
+      }
       gerant_has_circuit: {
         Args: { _circuit_id: string; _user_id: string }
         Returns: boolean
@@ -1565,6 +1575,13 @@ export type Database = {
       spend_wina_coins: {
         Args: { _amount: number; _reservation_id: string }
         Returns: number
+      }
+      trigger_driver_search: {
+        Args: { _trip_id: string }
+        Returns: {
+          nearby_count: number
+          status: string
+        }[]
       }
     }
     Enums: {
