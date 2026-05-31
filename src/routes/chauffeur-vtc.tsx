@@ -96,10 +96,20 @@ function ChauffeurVtcPage() {
     setTogglingOnline(false);
     if (error) { toast.error("Impossible de changer le statut"); return; }
     setIsOnline(next);
-    if (next) { void requestNotificationPermission(); }
+    if (next) {
+      void requestNotificationPermission();
+    } else {
+      // Archive current position so we disappear from the map / dispatch radius
+      void supabase
+        .from("driver_positions")
+        .update({ archived_at: new Date().toISOString() })
+        .eq("driver_id", user.id)
+        .is("archived_at", null);
+    }
     toast.success(next ? "Vous êtes en ligne" : "Vous êtes hors ligne");
 
   }, [user]);
+
 
   // Heartbeat: refresh last_seen_at every 30s while online; mark offline on tab close
   useEffect(() => {
