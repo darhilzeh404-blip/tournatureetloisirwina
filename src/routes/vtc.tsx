@@ -463,12 +463,38 @@ function CourseFlow() {
         toast.error("Course créée mais dispatch chauffeur impossible");
       } else {
         console.log("[VTC] trip pending dispatché aux chauffeurs en ligne");
+        // Post-flight: find nearby drivers within 5 km. If none, the RPC will
+        // flip the trip to status='no_driver_found' so the suivi page can
+        // show a "aucun chauffeur disponible" state instead of spinning.
+        try {
+          const trip = await supabase
+            .from("trips")
+            .select("id, origin_lat, origin_lng")
+            .eq("reservation_id", data.id)
+            .maybeSingle();
+          if (trip.data?.origin_lat != null && trip.data?.origin_lng != null) {
+            const { triggerDriverSearch } = await import("@/lib/vtc-dispatch");
+            const result = await triggerDriverSearch(
+              trip.data.id,
+              Number(trip.data.origin_lat),
+              Number(trip.data.origin_lng),
+            );
+            if (result.nearbyCount === 0) {
+              toast.warning("Aucun chauffeur disponible dans un rayon de 5 km. Vous pourrez relancer la recherche depuis le suivi.");
+            } else {
+              console.log(`[VTC] ${result.nearbyCount} chauffeur(s) à proximité`);
+            }
+          }
+        } catch (e) {
+          console.error("[VTC] triggerDriverSearch", e);
+        }
       }
 
       await requestNotificationPermission();
       await showAppNotification("Demande VTC enregistrée", { tag: `vtc-${data.id}` });
       toast.success("Recherche de chauffeur dans un rayon de 5 km…");
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
+
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de la réservation");
     } finally { setLoading(false); }
