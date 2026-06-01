@@ -223,6 +223,11 @@ function TripTrackingPage() {
                 <p className="font-bold text-lg">
                   {routeLoading ? "…" : `${liveEta} min`}
                 </p>
+                {liveEta !== null && !routeLoading && (
+                  <p className="text-[11px] text-muted-foreground">
+                    Arrivée ~{new Date(Date.now() + liveEta * 60_000).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                )}
                 {osrmRoute && (
                   <p className="text-[10px] text-muted-foreground">
                     {osrmRoute.distanceKm.toFixed(1)} km
