@@ -59,13 +59,20 @@ function parsePosition(value: unknown): { lat: number; lng: number } | null {
   return { lat: Number(match[1]), lng: Number(match[2]) };
 }
 
+interface DriverInfo {
+  full_name: string | null;
+  phone: string | null;
+  vehicle_type: string | null;
+  license_plate: string | null;
+}
+
 function VtcTrackingPage() {
   const { reservationId } = Route.useParams();
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
   const [reservation, setReservation] = useState<VtcReservation | null>(null);
   const [trip, setTrip] = useState<Trip | null>(null);
-  const [driverName, setDriverName] = useState("");
+  const [driverInfo, setDriverInfo] = useState<DriverInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [sharePosition, setSharePosition] = useState(false);
   const driverPos = useDriverPosition(trip?.driver_id ?? null);
@@ -91,6 +98,7 @@ function VtcTrackingPage() {
     setTrip((tripData as Trip | null) ?? null);
     setLoading(false);
   };
+
 
   useEffect(() => {
     if (!isLoading && !user) navigate({ to: "/connexion" });
