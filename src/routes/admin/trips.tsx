@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { UserCheck, MapPin, Loader2, Truck } from "lucide-react";
-import { DRIVER_SERVICE_LIST, requiresDriver } from "@/lib/service-routing";
+import { ADMIN_DISPATCH_SERVICE_LIST, isAutoDispatch } from "@/lib/service-routing";
 
 export const Route = createFileRoute("/admin/trips")({
   head: () => ({ meta: [{ title: "Courses GPS — Admin" }] }),
@@ -79,19 +79,19 @@ function AdminTripsPage() {
         .from("reservations")
         .select("*")
         .eq("status", "CONFIRMED")
-        .in("service_type", DRIVER_SERVICE_LIST)
+        .in("service_type", ADMIN_DISPATCH_SERVICE_LIST)
         .is("archived_at", null)
         .order("reservation_date"),
       supabase
         .from("trips")
         .select("*, reservations!inner(service_type)")
-        .in("reservations.service_type", DRIVER_SERVICE_LIST)
+        .in("reservations.service_type", ADMIN_DISPATCH_SERVICE_LIST)
         .is("archived_at", null)
         .order("created_at", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "chauffeur"),
     ]);
 
-    const reservationsList = ((resData as Reservation[]) || []).filter((r) => requiresDriver(r.service_type));
+    const reservationsList = ((resData as Reservation[]) || []).filter((r) => !isAutoDispatch(r.service_type));
     setReservations(reservationsList);
     setTrips((tripData as Trip[]) || []);
 

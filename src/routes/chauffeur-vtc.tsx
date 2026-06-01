@@ -327,21 +327,45 @@ function ChauffeurVtcPage() {
 
   const startTrip = async (t: VtcTrip) => {
     setBusyId(t.id);
+    console.log("▶️ [VTC] Démarrage course", { tripId: t.id, status: t.status, driver_id: t.driver_id });
     const { error } = await supabase
       .from("trips")
       .update({ status: "active", started_at: new Date().toISOString() })
-      .eq("id", t.id);
+      .eq("id", t.id)
+      .eq("driver_id", t.driver_id ?? "")
+      .in("status", ["assigned", "pending"]);
     setBusyId(null);
-    if (error) { toast.error("Impossible de démarrer la course"); return; }
+    if (error) {
+      console.error("[VTC] startTrip", error);
+      toast.error(`Impossible de démarrer : ${error.message}`);
+      return;
+    }
     toast.success("Course démarrée");
     load();
   };
 
   const completeTrip = async (t: VtcTrip) => {
     setBusyId(t.id);
+    console.log("✅ [VTC] Finalisation course", { tripId: t.id, status: t.status });
+    // Set completed first, then archive — RLS for UPDATE only requires driver_id match.
+    const { error: updErr } = await supabase
+      .from("trips")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("id", t.id);
+    if (updErr) {
+      setBusyId(null);
+      console.error("[VTC] completeTrip update", updErr);
+      toast.error(`Erreur finalisation : ${updErr.message}`);
+      return;
+    }
     const { error } = await supabase.rpc("archive_trip_and_reservation", { _trip_id: t.id });
     setBusyId(null);
-    if (error) { toast.error("Erreur lors de la finalisation"); return; }
+    if (error) {
+      console.error("[VTC] archive", error);
+      toast.error(`Course terminée mais archivage impossible : ${error.message}`);
+      load();
+      return;
+    }
     toast.success("Course terminée");
     load();
   };

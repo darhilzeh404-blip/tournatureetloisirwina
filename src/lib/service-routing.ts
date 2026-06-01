@@ -41,9 +41,24 @@ export function isStatusOnlyService(serviceType: string): boolean {
   return STATUS_ONLY_SERVICES.has(serviceType);
 }
 
+/**
+ * Services auto-dispatched (no admin assignment needed).
+ * VTC trips are pushed live to nearby online drivers via the trip pool;
+ * the first driver to accept claims the course. The admin never assigns.
+ */
+const AUTO_DISPATCH_SERVICES = new Set<string>(["VTC"]);
+
+export function isAutoDispatch(serviceType: string): boolean {
+  return AUTO_DISPATCH_SERVICES.has(serviceType);
+}
+
 /** Should an admin be able to assign anyone (driver or gérant) to this reservation? */
 export function canAssignTrip(serviceType: string): boolean {
+  if (isAutoDispatch(serviceType)) return false;
   return requiresDriver(serviceType) || requiresGerant(serviceType);
 }
+
+/** Driver-required services that still need admin assignment (excludes VTC auto-dispatch). */
+export const ADMIN_DISPATCH_SERVICE_LIST = ["TRANSPORT_SCOLAIRE", "LOCATION_BUS"] as const;
 
 export const DRIVER_SERVICE_LIST = ["VTC", "TRANSPORT_SCOLAIRE", "LOCATION_BUS"] as const;
