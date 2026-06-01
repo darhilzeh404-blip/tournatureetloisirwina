@@ -423,15 +423,22 @@ function ChauffeurVtcPage() {
 
   const acceptTrip = async (t: VtcTrip) => {
     setBusyId(t.id);
-    const { error } = await supabase.rpc("accept_vtc_trip", { _trip_id: t.id });
+    const { data, error } = await supabase.rpc("accept_vtc_trip", { _trip_id: t.id });
     setBusyId(null);
     if (error) {
       const msg = error.message || "";
       if (msg.includes("ALREADY_TAKEN")) {
         toast.error("Course déjà prise par un autre chauffeur");
+      } else if (msg.includes("DRIVER_NOT_AVAILABLE")) {
+        toast.error("Votre GPS ou statut en ligne n'est pas à jour, repassez en ligne puis réessayez.");
       } else {
-        toast.error("Impossible d'accepter la course");
+        toast.error(`Impossible d'accepter la course : ${error.message}`);
       }
+      load();
+      return;
+    }
+    if (!data) {
+      toast.error("Assignation non confirmée. Rafraîchissez les demandes.");
       load();
       return;
     }
