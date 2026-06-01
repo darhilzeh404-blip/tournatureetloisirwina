@@ -188,6 +188,24 @@ function VtcTrackingPage() {
     { key: "arrived", label: "Arrivé", active: trip?.status === "completed", done: trip?.status === "completed" },
   ];
 
+  // Dispatch progression: 4 steps from creation to driver on the way.
+  const dispatchStep: "searching" | "no_driver" | "found" | "assigned" | "active" | "completed" =
+    !trip ? "searching"
+    : trip.status === "no_driver_found" ? "no_driver"
+    : trip.status === "pending" && !trip.driver_id ? "searching"
+    : trip.status === "assigned" || (trip.driver_id && trip.status === "pending") ? "found"
+    : trip.status === "active" ? "active"
+    : trip.status === "completed" ? "completed"
+    : "searching";
+
+  const dispatchSteps = [
+    { key: "request", label: "Demande envoyée", icon: CheckCircle2, done: true, active: dispatchStep === "searching" },
+    { key: "search", label: "Recherche de chauffeur", icon: Search, done: dispatchStep !== "searching" && dispatchStep !== "no_driver", active: dispatchStep === "searching" },
+    { key: "found", label: "Chauffeur trouvé", icon: CarFront, done: ["found", "assigned", "active", "completed"].includes(dispatchStep), active: dispatchStep === "found" },
+    { key: "onway", label: "En route vers vous", icon: Navigation, done: ["active", "completed"].includes(dispatchStep), active: dispatchStep === "active" },
+  ];
+
+
   if (loading) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Chargement du suivi VTC...</div>;
 
   if (!reservation) {
