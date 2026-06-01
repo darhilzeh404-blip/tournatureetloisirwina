@@ -134,16 +134,24 @@ function VtcTrackingPage() {
 
   useEffect(() => {
     if (!trip?.driver_id) {
-      setDriverName("");
+      setDriverInfo(null);
       return;
     }
-    supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("user_id", trip.driver_id)
-      .maybeSingle()
-      .then(({ data }) => setDriverName(data?.full_name ?? ""));
+    (async () => {
+      const [{ data: profile }, { data: driver }] = await Promise.all([
+        supabase.from("profiles").select("full_name, phone").eq("user_id", trip.driver_id).maybeSingle(),
+        supabase.from("drivers").select("vehicle_type, license_plate, phone, full_name").eq("user_id", trip.driver_id).maybeSingle(),
+      ]);
+      setDriverInfo({
+        full_name: driver?.full_name || profile?.full_name || null,
+        phone: driver?.phone || profile?.phone || null,
+        vehicle_type: driver?.vehicle_type ?? null,
+        license_plate: driver?.license_plate ?? null,
+      });
+    })();
   }, [trip?.driver_id]);
+
+  const driverName = driverInfo?.full_name ?? "";
 
   const markers = useMemo<MapMarker[]>(() => {
     const details = reservation?.details ?? {};
@@ -155,6 +163,7 @@ function VtcTrackingPage() {
     if (driverPos) next.push({ id: "driver", type: "driver", lat: Number(driverPos.latitude), lng: Number(driverPos.longitude), label: driverName || "Chauffeur", service: "vtc", heading: driverPos.heading });
     return next;
   }, [driverName, driverPos, reservation?.details, trip]);
+
 
   const details = reservation?.details ?? {};
   const status = reservation ? STATUS_COPY[reservation.status] : null;
