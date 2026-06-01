@@ -14,6 +14,7 @@ import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { showAppNotification, requestNotificationPermission } from "@/lib/notifications";
+import { EtaBadge } from "@/components/EtaBadge";
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 6371;
@@ -756,6 +757,14 @@ function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline, drive
                     <Badge variant="secondary" className="gap-1">
                       <Navigation className="h-3 w-3" /> {km.toFixed(1)} km
                     </Badge>
+                  )}
+                  {driverPos && t.origin_lat != null && t.origin_lng != null && (
+                    <EtaBadge
+                      from={{ lat: driverPos.lat, lng: driverPos.lng }}
+                      to={{ lat: Number(t.origin_lat), lng: Number(t.origin_lng) }}
+                      label="Pickup"
+                      showArrival
+                    />
                   )}
                   <PoolCountdown createdAt={t.created_at} />
                 </div>

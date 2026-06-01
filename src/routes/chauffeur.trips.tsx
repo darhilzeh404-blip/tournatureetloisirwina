@@ -263,6 +263,9 @@ function DriverTripsPage() {
                       {routeLoading ? "…" : `${osrmRoute.durationMin} min`}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
+                      Arrivée ~{new Date(Date.now() + osrmRoute.durationMin * 60_000).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
                       {osrmRoute.distanceKm.toFixed(1)} km
                     </p>
                   </div>
