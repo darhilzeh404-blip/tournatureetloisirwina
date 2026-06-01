@@ -445,8 +445,10 @@ function CourseFlow() {
       if (error) throw error;
       console.log("[VTC] reservation créée", data.id);
 
-      // Create trip immediately in pending pool → first available driver wins
-      const { error: tripErr } = await supabase.from("trips").insert({
+      // Create trip immediately in pending pool → first available driver wins.
+      // Keep `.select().single()` so the frontend verifies the row was really
+      // created and can surface RLS / backend errors instead of failing silently.
+      const { data: createdTrip, error: tripErr } = await supabase.from("trips").insert({
         reservation_id: data.id,
         client_id: user.id,
         driver_id: null,
@@ -457,27 +459,22 @@ function CourseFlow() {
         destination_address: destLabel || "Destination",
         destination_lat: destination?.lat ?? null,
         destination_lng: destination?.lng ?? null,
-      });
+      }).select("id, origin_lat, origin_lng").single();
       if (tripErr) {
         console.error("[VTC] erreur création trip", tripErr);
-        toast.error("Course créée mais dispatch chauffeur impossible");
+        toast.error(`Course créée mais dispatch chauffeur impossible : ${tripErr.message}`);
       } else {
         console.log("[VTC] trip pending dispatché aux chauffeurs en ligne");
         // Post-flight: find nearby drivers within 5 km. If none, the RPC will
         // flip the trip to status='no_driver_found' so the suivi page can
         // show a "aucun chauffeur disponible" state instead of spinning.
         try {
-          const trip = await supabase
-            .from("trips")
-            .select("id, origin_lat, origin_lng")
-            .eq("reservation_id", data.id)
-            .maybeSingle();
-          if (trip.data?.origin_lat != null && trip.data?.origin_lng != null) {
+          if (createdTrip?.origin_lat != null && createdTrip?.origin_lng != null) {
             const { triggerDriverSearch } = await import("@/lib/vtc-dispatch");
             const result = await triggerDriverSearch(
-              trip.data.id,
-              Number(trip.data.origin_lat),
-              Number(trip.data.origin_lng),
+              createdTrip.id,
+              Number(createdTrip.origin_lat),
+              Number(createdTrip.origin_lng),
             );
             if (result.nearbyCount === 0) {
               toast.warning("Aucun chauffeur disponible dans un rayon de 5 km. Vous pourrez relancer la recherche depuis le suivi.");
