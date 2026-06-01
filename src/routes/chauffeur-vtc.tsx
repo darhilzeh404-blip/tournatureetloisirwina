@@ -801,7 +801,7 @@ function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline, drive
             ? haversineKm(driverPos.lat, driverPos.lng, Number(t.origin_lat), Number(t.origin_lng))
             : null;
         return (
-          <Card key={t.id} className="border-primary/20">
+          <Card key={t.id} id={`vtc-trip-${t.id}`} className="border-primary/20 scroll-mt-24">
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
