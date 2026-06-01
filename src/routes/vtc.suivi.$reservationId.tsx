@@ -247,7 +247,76 @@ function VtcTrackingPage() {
           </div>
         </section>
 
-        {isInstantRequest && !trip?.driver_id && (
+        {/* Dispatch progression — temps réel */}
+        <section className="border-b bg-background p-4">
+          <div className="rounded-2xl border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Avancement de la demande</p>
+              {dispatchStep === "searching" && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+              {dispatchStep === "no_driver" && <XCircle className="h-4 w-4 text-destructive" />}
+            </div>
+
+            {dispatchStep === "no_driver" ? (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                <p className="font-semibold">Aucun chauffeur disponible à proximité.</p>
+                <p className="mt-1 text-xs">Réessayez dans quelques minutes ou contactez le support.</p>
+              </div>
+            ) : (
+              <ol className="grid grid-cols-4 gap-2">
+                {dispatchSteps.map((s, i) => {
+                  const Icon = s.icon;
+                  return (
+                    <li key={s.key} className="flex flex-col items-center text-center">
+                      <div className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors ${
+                        s.done ? "border-primary bg-primary text-primary-foreground"
+                        : s.active ? "border-primary bg-primary/10 text-primary animate-pulse"
+                        : "border-muted bg-muted/30 text-muted-foreground"
+                      }`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <p className={`mt-1 text-[10px] font-semibold leading-tight ${s.done || s.active ? "text-foreground" : "text-muted-foreground"}`}>
+                        {s.label}
+                      </p>
+                      {i < dispatchSteps.length - 1 && (
+                        <div className={`absolute hidden ${s.done ? "bg-primary" : "bg-muted"}`} />
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+        </section>
+
+        {/* Carte chauffeur sélectionné — visible dès qu'un chauffeur est assigné */}
+        {trip?.driver_id && (
+          <section className="border-b bg-primary/5 p-4">
+            <div className="rounded-2xl border border-primary/30 bg-card p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/15">
+                  <CarFront className="h-6 w-6 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Chauffeur assigné</p>
+                  <p className="mt-0.5 truncate text-base font-bold text-foreground">{driverInfo?.full_name ?? "Chauffeur Wina"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {driverInfo?.vehicle_type ?? "VTC"}
+                    {driverInfo?.license_plate ? ` · ${driverInfo.license_plate}` : ""}
+                  </p>
+                </div>
+                {driverInfo?.phone && (
+                  <a href={`tel:${driverInfo.phone}`}>
+                    <Button size="sm" variant="outline" className="gap-1.5">
+                      <Phone className="h-3.5 w-3.5" /> Appeler
+                    </Button>
+                  </a>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {isInstantRequest && !trip?.driver_id && dispatchStep !== "no_driver" && (
           <section className="border-b bg-primary/5 p-4">
             <div className="rounded-xl border border-primary/20 bg-card p-4 text-sm">
               <p className="flex items-center gap-2 text-xs font-bold text-primary"><Clock className="h-3.5 w-3.5" /> Disponibilité estimée</p>
@@ -258,6 +327,7 @@ function VtcTrackingPage() {
             </div>
           </section>
         )}
+
 
         <section className="grid gap-3 border-b bg-background p-4 text-sm lg:grid-cols-[1fr_auto]">
           <div className="rounded-xl border bg-card p-3">
