@@ -140,6 +140,23 @@ function ChauffeurVtcPage() {
     }
   }, [isAuthenticated, isLoading, role, navigate]);
 
+  // Deep-link: ouverture depuis une notification système ?tab=pool&trip=xxx
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("tab");
+    const trip = params.get("trip");
+    if (t === "pool") setTab("pool");
+    if (trip) {
+      const tryScroll = (attempts = 0) => {
+        const el = document.getElementById(`vtc-trip-${trip}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        else if (attempts < 20) setTimeout(() => tryScroll(attempts + 1), 250);
+      };
+      setTimeout(() => tryScroll(), 300);
+    }
+  }, []);
+
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
