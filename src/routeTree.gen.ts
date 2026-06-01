@@ -61,6 +61,7 @@ import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-res
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as AdminBilletsRouteImport } from './routes/admin/billets'
 import { Route as AdminAnnoncesRouteImport } from './routes/admin/annonces'
+import { Route as AdminAgencesRouteImport } from './routes/admin.agences'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
 import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/deplacement-groupe.waiting.$rideId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
@@ -328,6 +329,11 @@ const AdminAnnoncesRoute = AdminAnnoncesRouteImport.update({
   path: '/annonces',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAgencesRoute = AdminAgencesRouteImport.update({
+  id: '/agences',
+  path: '/agences',
+  getParentRoute: () => AdminRoute,
+} as any)
 const VtcSuiviReservationIdRoute = VtcSuiviReservationIdRouteImport.update({
   id: '/suivi/$reservationId',
   path: '/suivi/$reservationId',
@@ -386,6 +392,7 @@ export interface FileRoutesByFullPath {
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
+  '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -444,6 +451,7 @@ export interface FileRoutesByTo {
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
+  '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -505,6 +513,7 @@ export interface FileRoutesById {
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
+  '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -567,6 +576,7 @@ export interface FileRouteTypes {
     | '/transport-scolaire'
     | '/vtc'
     | '/wina-coins'
+    | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -625,6 +635,7 @@ export interface FileRouteTypes {
     | '/transport-scolaire'
     | '/vtc'
     | '/wina-coins'
+    | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -685,6 +696,7 @@ export interface FileRouteTypes {
     | '/transport-scolaire'
     | '/vtc'
     | '/wina-coins'
+    | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -1119,6 +1131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnnoncesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/agences': {
+      id: '/admin/agences'
+      path: '/agences'
+      fullPath: '/admin/agences'
+      preLoaderRoute: typeof AdminAgencesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/vtc/suivi/$reservationId': {
       id: '/vtc/suivi/$reservationId'
       path: '/suivi/$reservationId'
@@ -1165,6 +1184,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAgencesRoute: typeof AdminAgencesRoute
   AdminAnnoncesRoute: typeof AdminAnnoncesRoute
   AdminBilletsRoute: typeof AdminBilletsRoute
   AdminBusRoute: typeof AdminBusRoute
@@ -1186,6 +1206,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAgencesRoute: AdminAgencesRoute,
   AdminAnnoncesRoute: AdminAnnoncesRoute,
   AdminBilletsRoute: AdminBilletsRoute,
   AdminBusRoute: AdminBusRoute,
