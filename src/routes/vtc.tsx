@@ -446,7 +446,7 @@ function CourseFlow() {
       console.log("[VTC] reservation créée", data.id);
 
       // Create trip immediately in pending pool → first available driver wins.
-      // Keep `.select().single()` so the frontend verifies the row was really
+      // Keep `.select().maybeSingle()` so the frontend verifies the row was really
       // created and can surface RLS / backend errors instead of failing silently.
       const { data: createdTrip, error: tripErr } = await supabase.from("trips").insert({
         reservation_id: data.id,
@@ -465,9 +465,8 @@ function CourseFlow() {
         throw new Error(tripErr?.message || "La course VTC n'a pas pu être créée.");
       } else {
         console.log("[VTC] trip pending dispatché aux chauffeurs en ligne");
-        // Post-flight: find nearby drivers within 5 km. If none, the RPC will
-        // flip the trip to status='no_driver_found' so the suivi page can
-        // show a "aucun chauffeur disponible" state instead of spinning.
+        // Post-flight: find nearby drivers within 5 km without closing the
+        // request, so a driver who comes online moments later can still accept.
         try {
           if (createdTrip?.origin_lat != null && createdTrip?.origin_lng != null) {
             const { triggerDriverSearch } = await import("@/lib/vtc-dispatch");
