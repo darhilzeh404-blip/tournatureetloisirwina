@@ -757,6 +757,14 @@ function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline, drive
                       <Navigation className="h-3 w-3" /> {km.toFixed(1)} km
                     </Badge>
                   )}
+                  {driverPos && t.origin_lat != null && t.origin_lng != null && (
+                    <EtaBadge
+                      from={{ lat: driverPos.lat, lng: driverPos.lng }}
+                      to={{ lat: Number(t.origin_lat), lng: Number(t.origin_lng) }}
+                      label="Pickup"
+                      showArrival
+                    />
+                  )}
                   <PoolCountdown createdAt={t.created_at} />
                 </div>
                 <p className="text-sm font-bold text-primary tabular-nums">{FCFA(t.reservations?.total_amount ?? 0)}</p>
