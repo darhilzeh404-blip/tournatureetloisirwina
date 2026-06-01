@@ -197,18 +197,47 @@ function ChauffeurVtcPage() {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "trips" },
         (payload) => {
-          const t = payload.new as { status?: string; driver_id?: string | null; origin_lat?: number | null; origin_lng?: number | null };
-          if (isOnline && t?.status === "pending" && !t.driver_id) {
-            // Optional 5km proximity filter for notification
-            let withinRange = true;
+          const t = payload.new as {
+            id?: string;
+            status?: string;
+            driver_id?: string | null;
+            origin_lat?: number | null;
+            origin_lng?: number | null;
+            origin_address?: string | null;
+            destination_address?: string | null;
+          };
+          if (isOnline && t?.status === "pending" && !t.driver_id && t.id) {
+            let km: number | null = null;
             if (driverPos && t.origin_lat != null && t.origin_lng != null) {
-              const km = haversineKm(driverPos.lat, driverPos.lng, Number(t.origin_lat), Number(t.origin_lng));
-              withinRange = km <= 5;
+              km = haversineKm(driverPos.lat, driverPos.lng, Number(t.origin_lat), Number(t.origin_lng));
             }
+            const withinRange = km == null || km <= 5;
             if (withinRange) {
+              const distLabel = km != null ? ` · ${km.toFixed(1)} km` : "";
+              const body = `${t.origin_address ?? "Course"}${t.destination_address ? ` → ${t.destination_address}` : ""}${distLabel}`;
+              const tripId = t.id;
+              // System notification (background) — clicking jumps to pool tab
               showAppNotification("Nouvelle course VTC à proximité", {
-                body: "Une demande vient d'arriver. Acceptez avant les autres !",
-                tag: "vtc-pool",
+                body,
+                tag: `vtc-pool-${tripId}`,
+                url: `/chauffeur-vtc?tab=pool&trip=${tripId}`,
+              });
+              // In-app actionable toast (foreground)
+              toast("Nouvelle course VTC", {
+                description: body,
+                duration: 20000,
+                action: {
+                  label: "Voir la course",
+                  onClick: () => {
+                    setTab("pool");
+                    setTimeout(() => {
+                      document.getElementById(`vtc-trip-${tripId}`)?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                    }, 100);
+                  },
+                },
               });
             }
           }
