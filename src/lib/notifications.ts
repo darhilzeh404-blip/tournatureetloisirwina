@@ -5,20 +5,37 @@ export async function requestNotificationPermission() {
   return Notification.requestPermission();
 }
 
-export async function showAppNotification(title: string, options?: NotificationOptions) {
+export interface AppNotificationOptions extends NotificationOptions {
+  /** If provided, clicking the system notification will focus the app and navigate to this path. */
+  url?: string;
+}
+
+export async function showAppNotification(title: string, options?: AppNotificationOptions) {
   if (typeof window === "undefined" || !("Notification" in window)) return false;
   if (Notification.permission !== "granted") return false;
+
+  const { url, ...rest } = options ?? {};
+  const data = { ...(rest.data as Record<string, unknown> | undefined), url };
 
   const registration = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
   if (registration?.showNotification) {
     await registration.showNotification(title, {
       badge: "/icon-192.png",
       icon: "/icon-192.png",
-      ...options,
+      ...rest,
+      data,
     });
     return true;
   }
 
-  new Notification(title, { icon: "/icon-192.png", ...options });
+  const n = new Notification(title, { icon: "/icon-192.png", ...rest, data });
+  n.onclick = () => {
+    try {
+      window.focus();
+      if (url) window.location.assign(url);
+    } finally {
+      n.close();
+    }
+  };
   return true;
 }
