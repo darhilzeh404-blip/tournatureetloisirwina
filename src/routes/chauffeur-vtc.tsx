@@ -771,10 +771,27 @@ function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline, drive
                   <span className="truncate"><span className="text-muted-foreground">Arrivée : </span>{t.destination_address}</span>
                 </p>
               </div>
+              {t.origin_lat != null && t.origin_lng != null && t.destination_lat != null && t.destination_lng != null && (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="mt-3 w-full gap-2"
+                  size="sm"
+                >
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&origin=${t.origin_lat},${t.origin_lng}&destination=${t.destination_lat},${t.destination_lng}&travelmode=driving`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Navigation className="h-4 w-4" />
+                    Voir l&apos;itinéraire
+                  </a>
+                </Button>
+              )}
               <Button
                 onClick={() => onAccept(t)}
                 disabled={busyId === t.id}
-                className="mt-4 w-full gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                className="mt-3 w-full gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
                 size="lg"
               >
                 {busyId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Hand className="h-4 w-4" />}
