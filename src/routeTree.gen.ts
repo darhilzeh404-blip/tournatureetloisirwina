@@ -42,6 +42,8 @@ import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
 import { Route as ChauffeurGroupesRouteImport } from './routes/chauffeur.groupes'
 import { Route as BilletsIdRouteImport } from './routes/billets.$id'
 import { Route as AnnoncesIdRouteImport } from './routes/annonces.$id'
+import { Route as AgenceProfilRouteImport } from './routes/agence.profil'
+import { Route as AgenceBilletsRouteImport } from './routes/agence.billets'
 import { Route as AdminVtcChauffeursRouteImport } from './routes/admin/vtc-chauffeurs'
 import { Route as AdminVehiculeTypesRouteImport } from './routes/admin/vehicule-types'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
@@ -231,6 +233,16 @@ const AnnoncesIdRoute = AnnoncesIdRouteImport.update({
   path: '/annonces/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgenceProfilRoute = AgenceProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => AgenceRoute,
+} as any)
+const AgenceBilletsRoute = AgenceBilletsRouteImport.update({
+  id: '/billets',
+  path: '/billets',
+  getParentRoute: () => AgenceRoute,
+} as any)
 const AdminVtcChauffeursRoute = AdminVtcChauffeursRouteImport.update({
   id: '/vtc-chauffeurs',
   path: '/vtc-chauffeurs',
@@ -391,6 +403,8 @@ export interface FileRoutesByFullPath {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
+  '/agence/billets': typeof AgenceBilletsRoute
+  '/agence/profil': typeof AgenceProfilRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
@@ -447,6 +461,8 @@ export interface FileRoutesByTo {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
+  '/agence/billets': typeof AgenceBilletsRoute
+  '/agence/profil': typeof AgenceProfilRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
@@ -506,6 +522,8 @@ export interface FileRoutesById {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
+  '/agence/billets': typeof AgenceBilletsRoute
+  '/agence/profil': typeof AgenceProfilRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
@@ -566,6 +584,8 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
     | '/admin/vtc-chauffeurs'
+    | '/agence/billets'
+    | '/agence/profil'
     | '/annonces/$id'
     | '/billets/$id'
     | '/chauffeur/groupes'
@@ -622,6 +642,8 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
     | '/admin/vtc-chauffeurs'
+    | '/agence/billets'
+    | '/agence/profil'
     | '/annonces/$id'
     | '/billets/$id'
     | '/chauffeur/groupes'
@@ -680,6 +702,8 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
     | '/admin/vtc-chauffeurs'
+    | '/agence/billets'
+    | '/agence/profil'
     | '/annonces/$id'
     | '/billets/$id'
     | '/chauffeur/groupes'
@@ -962,6 +986,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnnoncesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agence/profil': {
+      id: '/agence/profil'
+      path: '/profil'
+      fullPath: '/agence/profil'
+      preLoaderRoute: typeof AgenceProfilRouteImport
+      parentRoute: typeof AgenceRoute
+    }
+    '/agence/billets': {
+      id: '/agence/billets'
+      path: '/billets'
+      fullPath: '/agence/billets'
+      preLoaderRoute: typeof AgenceBilletsRouteImport
+      parentRoute: typeof AgenceRoute
+    }
     '/admin/vtc-chauffeurs': {
       id: '/admin/vtc-chauffeurs'
       path: '/vtc-chauffeurs'
@@ -1171,10 +1209,14 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AgenceRouteChildren {
+  AgenceBilletsRoute: typeof AgenceBilletsRoute
+  AgenceProfilRoute: typeof AgenceProfilRoute
   AgenceIndexRoute: typeof AgenceIndexRoute
 }
 
 const AgenceRouteChildren: AgenceRouteChildren = {
+  AgenceBilletsRoute: AgenceBilletsRoute,
+  AgenceProfilRoute: AgenceProfilRoute,
   AgenceIndexRoute: AgenceIndexRoute,
 }
 
