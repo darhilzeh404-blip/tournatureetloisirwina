@@ -30,9 +30,11 @@ import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
 import { Route as ChauffeurRouteImport } from './routes/chauffeur'
 import { Route as BilletsRouteImport } from './routes/billets'
+import { Route as AgenceRouteImport } from './routes/agence'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgenceIndexRouteImport } from './routes/agence.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
@@ -40,6 +42,8 @@ import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
 import { Route as ChauffeurGroupesRouteImport } from './routes/chauffeur.groupes'
 import { Route as BilletsIdRouteImport } from './routes/billets.$id'
 import { Route as AnnoncesIdRouteImport } from './routes/annonces.$id'
+import { Route as AgenceProfilRouteImport } from './routes/agence.profil'
+import { Route as AgenceBilletsRouteImport } from './routes/agence.billets'
 import { Route as AdminVtcChauffeursRouteImport } from './routes/admin/vtc-chauffeurs'
 import { Route as AdminVehiculeTypesRouteImport } from './routes/admin/vehicule-types'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
@@ -57,9 +61,11 @@ import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-res
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as AdminBilletsRouteImport } from './routes/admin/billets'
 import { Route as AdminAnnoncesRouteImport } from './routes/admin/annonces'
+import { Route as AdminAgencesRouteImport } from './routes/admin.agences'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
 import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/deplacement-groupe.waiting.$rideId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
+import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
 
@@ -168,6 +174,11 @@ const BilletsRoute = BilletsRouteImport.update({
   path: '/billets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgenceRoute = AgenceRouteImport.update({
+  id: '/agence',
+  path: '/agence',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -182,6 +193,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AgenceIndexRoute = AgenceIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AgenceRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -217,6 +233,16 @@ const AnnoncesIdRoute = AnnoncesIdRouteImport.update({
   id: '/annonces/$id',
   path: '/annonces/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AgenceProfilRoute = AgenceProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => AgenceRoute,
+} as any)
+const AgenceBilletsRoute = AgenceBilletsRouteImport.update({
+  id: '/billets',
+  path: '/billets',
+  getParentRoute: () => AgenceRoute,
 } as any)
 const AdminVtcChauffeursRoute = AdminVtcChauffeursRouteImport.update({
   id: '/vtc-chauffeurs',
@@ -303,6 +329,11 @@ const AdminAnnoncesRoute = AdminAnnoncesRouteImport.update({
   path: '/annonces',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAgencesRoute = AdminAgencesRouteImport.update({
+  id: '/agences',
+  path: '/agences',
+  getParentRoute: () => AdminRoute,
+} as any)
 const VtcSuiviReservationIdRoute = VtcSuiviReservationIdRouteImport.update({
   id: '/suivi/$reservationId',
   path: '/suivi/$reservationId',
@@ -319,6 +350,11 @@ const CircuitsSuiviSlugRoute = CircuitsSuiviSlugRouteImport.update({
   path: '/suivi/$slug',
   getParentRoute: () => CircuitsRoute,
 } as any)
+const BilletsCategorieSlugRoute = BilletsCategorieSlugRouteImport.update({
+  id: '/categorie/$slug',
+  path: '/categorie/$slug',
+  getParentRoute: () => BilletsRoute,
+} as any)
 const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
   id: '/api/admin/create-user',
   path: '/api/admin/create-user',
@@ -334,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
+  '/agence': typeof AgenceRouteWithChildren
   '/billets': typeof BilletsRouteWithChildren
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
@@ -355,6 +392,7 @@ export interface FileRoutesByFullPath {
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
+  '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -372,6 +410,8 @@ export interface FileRoutesByFullPath {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
+  '/agence/billets': typeof AgenceBilletsRoute
+  '/agence/profil': typeof AgenceProfilRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
@@ -379,8 +419,10 @@ export interface FileRoutesByFullPath {
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/agence/': typeof AgenceIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
@@ -409,6 +451,7 @@ export interface FileRoutesByTo {
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
+  '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -426,6 +469,8 @@ export interface FileRoutesByTo {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
+  '/agence/billets': typeof AgenceBilletsRoute
+  '/agence/profil': typeof AgenceProfilRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
@@ -433,8 +478,10 @@ export interface FileRoutesByTo {
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin': typeof AdminIndexRoute
+  '/agence': typeof AgenceIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
@@ -444,6 +491,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
   '/admin': typeof AdminRouteWithChildren
+  '/agence': typeof AgenceRouteWithChildren
   '/billets': typeof BilletsRouteWithChildren
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
@@ -465,6 +513,7 @@ export interface FileRoutesById {
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
+  '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -482,6 +531,8 @@ export interface FileRoutesById {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
+  '/agence/billets': typeof AgenceBilletsRoute
+  '/agence/profil': typeof AgenceProfilRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
@@ -489,8 +540,10 @@ export interface FileRoutesById {
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/agence/': typeof AgenceIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
@@ -501,6 +554,7 @@ export interface FileRouteTypes {
     | '/'
     | '/activites'
     | '/admin'
+    | '/agence'
     | '/billets'
     | '/chauffeur'
     | '/chauffeur-vtc'
@@ -522,6 +576,7 @@ export interface FileRouteTypes {
     | '/transport-scolaire'
     | '/vtc'
     | '/wina-coins'
+    | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -539,6 +594,8 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
     | '/admin/vtc-chauffeurs'
+    | '/agence/billets'
+    | '/agence/profil'
     | '/annonces/$id'
     | '/billets/$id'
     | '/chauffeur/groupes'
@@ -546,8 +603,10 @@ export interface FileRouteTypes {
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/admin/'
+    | '/agence/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
@@ -576,6 +635,7 @@ export interface FileRouteTypes {
     | '/transport-scolaire'
     | '/vtc'
     | '/wina-coins'
+    | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -593,6 +653,8 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
     | '/admin/vtc-chauffeurs'
+    | '/agence/billets'
+    | '/agence/profil'
     | '/annonces/$id'
     | '/billets/$id'
     | '/chauffeur/groupes'
@@ -600,8 +662,10 @@ export interface FileRouteTypes {
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/admin'
+    | '/agence'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
@@ -610,6 +674,7 @@ export interface FileRouteTypes {
     | '/'
     | '/activites'
     | '/admin'
+    | '/agence'
     | '/billets'
     | '/chauffeur'
     | '/chauffeur-vtc'
@@ -631,6 +696,7 @@ export interface FileRouteTypes {
     | '/transport-scolaire'
     | '/vtc'
     | '/wina-coins'
+    | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -648,6 +714,8 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
     | '/admin/vtc-chauffeurs'
+    | '/agence/billets'
+    | '/agence/profil'
     | '/annonces/$id'
     | '/billets/$id'
     | '/chauffeur/groupes'
@@ -655,8 +723,10 @@ export interface FileRouteTypes {
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/admin/'
+    | '/agence/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
@@ -666,6 +736,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivitesRoute: typeof ActivitesRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AgenceRoute: typeof AgenceRouteWithChildren
   BilletsRoute: typeof BilletsRouteWithChildren
   ChauffeurRoute: typeof ChauffeurRouteWithChildren
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
@@ -843,6 +914,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BilletsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agence': {
+      id: '/agence'
+      path: '/agence'
+      fullPath: '/agence'
+      preLoaderRoute: typeof AgenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -863,6 +941,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/agence/': {
+      id: '/agence/'
+      path: '/'
+      fullPath: '/agence/'
+      preLoaderRoute: typeof AgenceIndexRouteImport
+      parentRoute: typeof AgenceRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -912,6 +997,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/annonces/$id'
       preLoaderRoute: typeof AnnoncesIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/agence/profil': {
+      id: '/agence/profil'
+      path: '/profil'
+      fullPath: '/agence/profil'
+      preLoaderRoute: typeof AgenceProfilRouteImport
+      parentRoute: typeof AgenceRoute
+    }
+    '/agence/billets': {
+      id: '/agence/billets'
+      path: '/billets'
+      fullPath: '/agence/billets'
+      preLoaderRoute: typeof AgenceBilletsRouteImport
+      parentRoute: typeof AgenceRoute
     }
     '/admin/vtc-chauffeurs': {
       id: '/admin/vtc-chauffeurs'
@@ -1032,6 +1131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnnoncesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/agences': {
+      id: '/admin/agences'
+      path: '/agences'
+      fullPath: '/admin/agences'
+      preLoaderRoute: typeof AdminAgencesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/vtc/suivi/$reservationId': {
       id: '/vtc/suivi/$reservationId'
       path: '/suivi/$reservationId'
@@ -1053,6 +1159,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CircuitsSuiviSlugRouteImport
       parentRoute: typeof CircuitsRoute
     }
+    '/billets/categorie/$slug': {
+      id: '/billets/categorie/$slug'
+      path: '/categorie/$slug'
+      fullPath: '/billets/categorie/$slug'
+      preLoaderRoute: typeof BilletsCategorieSlugRouteImport
+      parentRoute: typeof BilletsRoute
+    }
     '/api/admin/create-user': {
       id: '/api/admin/create-user'
       path: '/api/admin/create-user'
@@ -1071,6 +1184,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAgencesRoute: typeof AdminAgencesRoute
   AdminAnnoncesRoute: typeof AdminAnnoncesRoute
   AdminBilletsRoute: typeof AdminBilletsRoute
   AdminBusRoute: typeof AdminBusRoute
@@ -1092,6 +1206,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAgencesRoute: AdminAgencesRoute,
   AdminAnnoncesRoute: AdminAnnoncesRoute,
   AdminBilletsRoute: AdminBilletsRoute,
   AdminBusRoute: AdminBusRoute,
@@ -1114,12 +1229,29 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface AgenceRouteChildren {
+  AgenceBilletsRoute: typeof AgenceBilletsRoute
+  AgenceProfilRoute: typeof AgenceProfilRoute
+  AgenceIndexRoute: typeof AgenceIndexRoute
+}
+
+const AgenceRouteChildren: AgenceRouteChildren = {
+  AgenceBilletsRoute: AgenceBilletsRoute,
+  AgenceProfilRoute: AgenceProfilRoute,
+  AgenceIndexRoute: AgenceIndexRoute,
+}
+
+const AgenceRouteWithChildren =
+  AgenceRoute._addFileChildren(AgenceRouteChildren)
+
 interface BilletsRouteChildren {
   BilletsIdRoute: typeof BilletsIdRoute
+  BilletsCategorieSlugRoute: typeof BilletsCategorieSlugRoute
 }
 
 const BilletsRouteChildren: BilletsRouteChildren = {
   BilletsIdRoute: BilletsIdRoute,
+  BilletsCategorieSlugRoute: BilletsCategorieSlugRoute,
 }
 
 const BilletsRouteWithChildren =
@@ -1176,6 +1308,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivitesRoute: ActivitesRoute,
   AdminRoute: AdminRouteWithChildren,
+  AgenceRoute: AgenceRouteWithChildren,
   BilletsRoute: BilletsRouteWithChildren,
   ChauffeurRoute: ChauffeurRouteWithChildren,
   ChauffeurVtcRoute: ChauffeurVtcRoute,

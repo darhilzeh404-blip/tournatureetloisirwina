@@ -1,116 +1,63 @@
-# Système Wina Coins — Plan d'implémentation
+## Section "Billets" — 5 catégories + portail agences partenaires
 
-Système de fidélité premium intégré à Wina : les clients gagnent des coins quand l'admin valide leur paiement, progressent dans des niveaux VIP (Silver → Diamond+), et utilisent les coins comme réduction sur leurs prochaines réservations.
+### 1. Base de données (migration)
 
-## 1. Base de données (migration unique)
+Nouvelles tables :
 
-### Nouvelles tables
+- **`ticket_categories`** (table fixe, seedée) — `slug` (bus|train|avion|bateau|evenement), `name`, `icon`, `sort_order`. Sert de référentiel pour le matching automatique.
+- **`partner_agencies`** — `id`, `owner_user_id` (uuid, agence connectée), `name`, `phone`, `email`, `logo_url`, `is_verified`, `created_at`. Une agence = un utilisateur avec le rôle `agence`.
+- **`partner_tickets`** — `id`, `agency_id` (FK), `category_id` (FK → ticket_categories, c'est le matching), `title`, `origin`, `destination`, `departure_at` (timestamp, nullable pour événements), `price` (int FCFA), `seats_available` (int), `description`, `image_url`, `is_active`, timestamps.
 
-**`vip_levels`** (table de référence, seedée)
-- `id`, `level_name` (Silver/Gold/Platinum/Diamond/Diamond+)
-- `min_coins`, `bonus_percentage`, `badge_icon`, `benefits` (jsonb), `sort_order`
+Ajout du rôle dans l'enum existant `app_role` : `'agence'`.
 
-Seuils proposés : Silver 0 / Gold 500 / Platinum 2000 / Diamond 5000 / Diamond+ 12000.
+RLS :
+- `ticket_categories` : lecture publique, écriture admin uniquement.
+- `partner_agencies` : agence voit/édite la sienne (`owner_user_id = auth.uid()`), admin full, lecture publique des champs vitrine.
+- `partner_tickets` : lecture publique des `is_active=true`, l'agence CRUD ses propres billets, admin full.
 
-**`wina_coins_history`**
-- `id`, `user_id`, `reservation_id` (nullable), `reservation_type`
-- `amount_paid`, `coins_earned`, `bonus_percentage`
-- `operation_type` (`earn` | `spend` | `refund` | `admin_adjust`)
-- `status` (`completed` | `cancelled`), `note`, `created_at`
-- Contrainte unique `(reservation_id, operation_type)` pour empêcher double récompense
+Matching automatique = simple FK `category_id` choisie au moment de la création (formulaire avec select sur les 5 catégories). Pas de NLP — le type est explicite.
 
-**`wina_coin_balances`** (1 ligne / user, simple à interroger)
-- `user_id` (PK), `coins_balance`, `total_coins_earned`, `total_reservations`
-- `vip_level_id`, `updated_at`
+### 2. Routes & pages
 
-### Ajouts sur `reservations`
-- `coins_used` int default 0 — coins dépensés en réduction sur cette réservation
-- `coins_awarded` boolean default false — anti double-récompense
+**Côté client (public) :**
+- `/billets` : refonte. Affiche les 5 catégories en tuiles avec icônes (Bus, Train, Plane, Ship, PartyPopper). Compteur de billets disponibles par catégorie. Conserve la liste actuelle `tickets` (billets internes Wina) dans une section "Billets Wina" en bas pour ne rien casser.
+- `/billets/categorie/$slug` : liste filtrée d'une catégorie. Filtres : agence (dropdown), prix (min/max), date départ. Chaque carte montre agence + logo, trajet/événement, date, prix, places.
 
-### Fonctions SQL (security definer)
+**Portail agences partenaires :**
+- `/agence` (layout pour role=agence, redirige `/connexion` si pas connecté, `/` si rôle ≠ agence).
+- `/agence/index` : dashboard agence (mes billets, mes ventes, profil agence).
+- `/agence/billets` : liste de mes billets + bouton "Nouveau billet".
+- `/agence/billets/nouveau` : formulaire (type, titre, départ/arrivée, date, prix, places, description, image). Validation Zod côté client.
+- `/agence/profil` : édition fiche agence.
 
-- `award_wina_coins(_reservation_id uuid)` : appelée à la validation admin. Idempotente (vérifie `coins_awarded`). Calcule coins selon montant payé net (total_amount − coins_used×1), applique bonus VIP, insère history, met à jour balance, recalcule `vip_level_id`.
-- `refund_wina_coins(_reservation_id uuid)` : si réservation annulée après validation, retire les coins gagnés + restaure les coins dépensés.
-- `spend_wina_coins(_reservation_id uuid, _amount int)` : utilisé côté client à la création de la réservation. Vérifie solde, débite, insère history `spend`.
-- `recompute_vip_level(_user_id uuid)` : recalcule le palier depuis `total_coins_earned`.
+**Côté admin :**
+- `/admin/agences` : liste + activation/vérification des agences partenaires, attribution du rôle.
 
-### RLS / GRANT
-- `vip_levels` : lecture publique, écriture admin
-- `wina_coins_history` : SELECT propre user + admin ; INSERT via fonctions definer
-- `wina_coin_balances` : SELECT propre user + admin ; UPDATE via fonctions
+### 3. Composants
 
-## 2. Hook validation admin
+- `TicketCategoryIcon` : map slug → icône lucide (`Bus`, `TrainFront`, `Plane`, `Ship`, `PartyPopper`).
+- `PartnerTicketCard` : carte billet réutilisée (liste + détail).
+- `PartnerTicketForm` : formulaire création/édition avec validation Zod.
 
-Dans `src/routes/admin/paiements.tsx` (ou la fonction serveur correspondante) : après le passage d'un paiement à `VALIDATED` et de la réservation à `CONFIRMED`, appeler `supabase.rpc('award_wina_coins', { _reservation_id })`. Idem pour `refund_wina_coins` en cas d'annulation après validation.
+### 4. Navigation & UX
 
-Même branchement pour `group_ride_payments` (validation admin du covoiturage).
+- Ajout de l'entrée "Espace agence" dans le header quand `role=agence`.
+- Page `/billets` met les 5 icônes en avant comme entrée principale.
+- Filtres en haut de chaque catégorie (debounced, URL synced).
 
-## 3. UI client
+### 5. Détails techniques (section non lue par défaut côté user)
 
-### Page premium `/wina-coins` (`src/routes/wina-coins.tsx`)
-- Header : carte solde avec gradient bleu royal → noir, badge VIP courant, animation pièces
-- Barre de progression vers le palier suivant + nombre de coins manquants
-- Avantages du niveau actuel (liste depuis `vip_levels.benefits`)
-- Tabs : Historique des gains / Utilisations / Économies totales
-- Mobile-first, glassmorphism léger, accents silver/gold/platinum/diamond selon niveau
+- Pas de Edge Function — toutes les écritures passent par le client Supabase avec RLS.
+- L'image agence/billet utilise un nouveau bucket public `partner-tickets`.
+- Le hook `useAuth` est étendu pour exposer le rôle `agence` (déjà géré par `user_roles`).
+- Le matching n'utilise pas d'IA : `category_id` est choisi dans le formulaire et la FK garantit la cohérence. L'icône en front lit `category.slug`.
+- Achat / réservation des billets partenaires : hors scope de ce plan (à demander explicitement). Pour l'instant : bouton "Contacter l'agence" (tel/email) ou "Voir détails".
 
-### Composants partagés (`src/components/wina-coins/`)
-- `CoinsBalanceCard.tsx` — carte solde réutilisable
-- `VipBadge.tsx` — badge SVG/icône stylisé par niveau
-- `CoinsGainToast.tsx` — popup animé "+X coins"
-- `UseCoinsToggle.tsx` — switch dans le flux de paiement pour appliquer la réduction
+### Ordre d'implémentation
 
-### Intégration paiement
-Dans `src/routes/paiement.$reservationId.tsx` : afficher solde, toggle "utiliser mes coins" (max = min(solde, total)), recalculer montant final, appeler `spend_wina_coins` à la confirmation.
-
-### Lien navigation
-Ajouter "Wina Coins" dans `ClientNav` + `mon-compte.tsx`.
-
-### Notification gain
-À l'ouverture de l'app, vérifier les nouveaux gains depuis la dernière visite (subscribe realtime sur `wina_coins_history` filtré user) → toast premium.
-
-## 4. Dashboard admin
-
-Nouvelle route `src/routes/admin/fidelite.tsx` :
-- Stats globales : total coins en circulation, coins dépensés, top utilisateurs
-- Recherche utilisateur → historique complet, ajustement manuel (+/−), changement niveau forcé
-- Gestion des paliers `vip_levels` (CRUD)
-
-Lien dans `AdminSidebar.tsx`.
-
-## 5. Anti-fraude
-- Contrainte unique sur `(reservation_id, 'earn')` dans l'historique
-- `coins_awarded` flag sur réservation
-- Toutes les mutations passent par fonctions `SECURITY DEFINER` avec validation `auth.uid()`
-- Ajustements manuels admin loggés avec `note` obligatoire
-
-## Design tokens (ajouts `src/styles.css`)
-```
---wina-royal-blue, --wina-deep-black, --wina-silver, --wina-gold,
---wina-platinum, --wina-diamond, --gradient-vip-{level},
---shadow-coin-glow
-```
-
-## Fichiers
-
-**Créés**
-- migration SQL (tables + fonctions + seed vip_levels)
-- `src/routes/wina-coins.tsx`
-- `src/routes/admin/fidelite.tsx`
-- `src/components/wina-coins/CoinsBalanceCard.tsx`
-- `src/components/wina-coins/VipBadge.tsx`
-- `src/components/wina-coins/CoinsGainToast.tsx`
-- `src/components/wina-coins/UseCoinsToggle.tsx`
-- `src/lib/wina-coins.ts` (helpers : fetch balance, format, calcul niveau)
-
-**Édités**
-- `src/routes/admin/paiements.tsx` — appel `award_wina_coins` à la validation
-- `src/routes/admin/group-rides.tsx` — idem covoiturage
-- `src/routes/paiement.$reservationId.tsx` — toggle utilisation coins
-- `src/components/ClientNav.tsx` + `src/components/AdminSidebar.tsx` — liens
-- `src/styles.css` — tokens premium
-- `src/routes/mon-compte.tsx` — carte mini solde + lien
-
-## Hors scope (à confirmer plus tard)
-- Tirages / tombolas Gold/Diamond/Diamond+ : nécessitent un module séparé (gestion lots, tirages, gagnants). Le plan actuel pose les bases (niveau, bonus, accès) mais n'implémente pas la mécanique de tombola.
-- Notifications push réelles (utilise toast + realtime in-app pour cette version).
+1. Migration DB (tables + rôle `agence` + RLS + seed des 5 catégories + bucket storage).
+2. Page `/billets` refondue avec 5 catégories.
+3. Page `/billets/categorie/$slug` + filtres.
+4. Portail `/agence/*` (layout + CRUD billets + profil).
+5. Page admin `/admin/agences`.
+6. Header : entrée "Espace agence" conditionnelle.
