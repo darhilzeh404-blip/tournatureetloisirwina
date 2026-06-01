@@ -89,36 +89,106 @@ function ChauffeurVtcPage() {
   const setOnline = useCallback(async (next: boolean) => {
     if (!user) return;
     setTogglingOnline(true);
-    const { error } = await supabase.from("driver_availability").upsert({
-      driver_id: user.id,
-      is_online: next,
-      last_seen_at: new Date().toISOString(),
-    });
-    setTogglingOnline(false);
-    if (error) { toast.error("Impossible de changer le statut"); return; }
-    setIsOnline(next);
-    if (next) {
-      void requestNotificationPermission();
-    } else {
-      // Archive current position so we disappear from the map / dispatch radius
+
+    // Going OFFLINE: just flip the flag and archive position.
+    if (!next) {
+      const { error } = await supabase.from("driver_availability").upsert({
+        driver_id: user.id,
+        is_online: false,
+        last_seen_at: new Date().toISOString(),
+      });
+      setTogglingOnline(false);
+      if (error) { toast.error("Impossible de changer le statut"); return; }
+      setIsOnline(false);
       void supabase
         .from("driver_positions")
         .update({ archived_at: new Date().toISOString() })
         .eq("driver_id", user.id)
         .is("archived_at", null);
+      toast.success("Vous êtes hors ligne");
+      return;
     }
-    toast.success(next ? "Vous êtes en ligne" : "Vous êtes hors ligne");
 
+    // Going ONLINE: REQUIRE a fresh GPS fix BEFORE flipping the flag.
+    // Without an active driver_positions row, the dispatch RPC excludes us.
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setTogglingOnline(false);
+      toast.error("Géolocalisation non supportée par ce navigateur.");
+      return;
+    }
+
+    const fix = await new Promise<GeolocationPosition | null>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (p) => resolve(p),
+        () => resolve(null),
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
+      );
+    });
+
+    if (!fix) {
+      setTogglingOnline(false);
+      toast.error("Autorisation GPS requise pour passer en ligne. Activez la localisation dans votre navigateur.");
+      return;
+    }
+
+    const lat = fix.coords.latitude;
+    const lng = fix.coords.longitude;
+
+    // 1. Upsert position FIRST so the dispatch radius includes us immediately.
+    const { error: posErr } = await supabase.from("driver_positions").upsert(
+      {
+        driver_id: user.id,
+        latitude: lat,
+        longitude: lng,
+        heading: fix.coords.heading ?? null,
+        speed: fix.coords.speed ?? null,
+        accuracy: fix.coords.accuracy ?? null,
+        archived_at: null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "driver_id" },
+    );
+    if (posErr) {
+      setTogglingOnline(false);
+      toast.error("Impossible d'enregistrer votre position");
+      return;
+    }
+
+    // 2. Then flip availability ON.
+    const { error } = await supabase.from("driver_availability").upsert({
+      driver_id: user.id,
+      is_online: true,
+      last_seen_at: new Date().toISOString(),
+    });
+    setTogglingOnline(false);
+    if (error) { toast.error("Impossible de changer le statut"); return; }
+    setIsOnline(true);
+    setDriverPos({ lat, lng });
+    void requestNotificationPermission();
+    toast.success("Vous êtes en ligne");
   }, [user]);
 
 
-  // Heartbeat: refresh last_seen_at every 30s while online; mark offline on tab close
+  // Heartbeat: refresh last_seen_at + position every 30s while online so we
+  // stay inside the dispatch window even if the driver isn't moving.
   useEffect(() => {
     if (!user || !isOnline) return;
     const ping = () => {
       supabase.from("driver_availability").update({
         last_seen_at: new Date().toISOString(),
       }).eq("driver_id", user.id).then(() => {});
+      if (driverPos) {
+        supabase.from("driver_positions").upsert(
+          {
+            driver_id: user.id,
+            latitude: driverPos.lat,
+            longitude: driverPos.lng,
+            archived_at: null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "driver_id" },
+        ).then(() => {});
+      }
     };
     ping();
     const id = window.setInterval(ping, 30_000);
@@ -132,7 +202,7 @@ function ChauffeurVtcPage() {
       window.clearInterval(id);
       document.removeEventListener("visibilitychange", handleHide);
     };
-  }, [user, isOnline]);
+  }, [user, isOnline, driverPos]);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || (role !== "chauffeur" && role !== "admin"))) {
