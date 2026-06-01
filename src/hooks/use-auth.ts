@@ -107,6 +107,7 @@ export function getRoleRedirectPath(role: AppRole | null): string {
     case "admin": return "/admin";
     case "gerant": return "/gerant";
     case "chauffeur": return "/chauffeur";
+    case "agence": return "/agence";
     case "client": return "/";
     default: return "/";
   }
