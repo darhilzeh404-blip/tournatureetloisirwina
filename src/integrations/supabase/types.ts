@@ -1630,6 +1630,14 @@ export type Database = {
           vip_level_id: string
         }[]
       }
+      can_chauffeur_view_vtc_reservation: {
+        Args: { _reservation_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_client_view_assigned_vtc_driver: {
+        Args: { _client_id: string; _driver_id: string }
+        Returns: boolean
+      }
       complete_ride: {
         Args: { _ride_id: string }
         Returns: {
@@ -1675,6 +1683,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_vtc_reservation: {
+        Args: { _reservation_id: string }
         Returns: boolean
       }
       join_group_ride: {
