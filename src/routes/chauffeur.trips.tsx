@@ -8,7 +8,7 @@ import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Truck, ArrowLeft, MapPin, Navigation, Play, Flag, CheckCircle, Radio, RadioTower, AlertTriangle, Loader2, MapPinOff } from "lucide-react";
+import { Truck, ArrowLeft, MapPin, Navigation, Play, Flag, CheckCircle, Radio, RadioTower, AlertTriangle, Loader2, MapPinOff, Route as RouteIcon } from "lucide-react";
 import { toast } from "sonner";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 
@@ -282,27 +282,56 @@ function DriverTripsPage() {
                 )}
               </div>
 
-              {clientPos && (
-                <Button asChild variant="secondary" className="mt-2 w-full gap-2">
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${clientPos.latitude},${clientPos.longitude}&travelmode=driving`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Navigation className="h-4 w-4" />
-                    Naviguer vers le client
-                  </a>
-                </Button>
-              )}
-              {!clientPos && trip.destination_lat && trip.destination_lng && (
+              {/* Navigation GPS selon le statut */}
+              {trip.status === "pending" || trip.status === "assigned" ? (
+                trip.origin_lat && trip.origin_lng ? (
+                  <Button asChild variant="secondary" className="mt-2 w-full gap-2">
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${trip.origin_lat},${trip.origin_lng}&travelmode=driving`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <Navigation className="h-4 w-4" />
+                      Naviguer vers le pickup
+                    </a>
+                  </Button>
+                ) : null
+              ) : trip.status === "active" ? (
+                clientPos ? (
+                  <Button asChild variant="secondary" className="mt-2 w-full gap-2">
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${clientPos.latitude},${clientPos.longitude}&travelmode=driving`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <Navigation className="h-4 w-4" />
+                      Naviguer vers le client
+                    </a>
+                  </Button>
+                ) : trip.destination_lat && trip.destination_lng ? (
+                  <Button asChild variant="secondary" className="mt-2 w-full gap-2">
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <Flag className="h-4 w-4" />
+                      Naviguer vers la destination
+                    </a>
+                  </Button>
+                ) : null
+              ) : null}
+
+              {/* Itinéraire complet : pickup → destination (toujours visible si coordonnées dispo) */}
+              {trip.origin_lat && trip.origin_lng && trip.destination_lat && trip.destination_lng && (
                 <Button asChild variant="outline" className="mt-2 w-full gap-2">
                   <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
+                    href={`https://www.google.com/maps/dir/?api=1&origin=${trip.origin_lat},${trip.origin_lng}&destination=${trip.destination_lat},${trip.destination_lng}&travelmode=driving`}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <Flag className="h-4 w-4" />
-                    Naviguer vers la destination
+                    <RouteIcon className="h-4 w-4" />
+                    Itinéraire complet (pickup → destination)
                   </a>
                 </Button>
               )}
