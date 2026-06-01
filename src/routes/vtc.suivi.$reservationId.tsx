@@ -138,10 +138,13 @@ function VtcTrackingPage() {
       return;
     }
     (async () => {
+      const driverId = trip.driver_id;
+      if (!driverId) return;
       const [{ data: profile }, { data: driver }] = await Promise.all([
-        supabase.from("profiles").select("full_name, phone").eq("user_id", trip.driver_id).maybeSingle(),
-        supabase.from("drivers").select("vehicle_type, license_plate, phone, full_name").eq("user_id", trip.driver_id).maybeSingle(),
+        supabase.from("profiles").select("full_name, phone").eq("user_id", driverId).maybeSingle(),
+        supabase.from("drivers").select("vehicle_type, license_plate, phone, full_name").eq("user_id", driverId).maybeSingle(),
       ]);
+
       setDriverInfo({
         full_name: driver?.full_name || profile?.full_name || null,
         phone: driver?.phone || profile?.phone || null,
