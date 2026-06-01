@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { UserCheck, MapPin, Loader2, Truck } from "lucide-react";
-import { DRIVER_SERVICE_LIST, requiresDriver } from "@/lib/service-routing";
+import { ADMIN_DISPATCH_SERVICE_LIST, isAutoDispatch } from "@/lib/service-routing";
 
 export const Route = createFileRoute("/admin/trips")({
   head: () => ({ meta: [{ title: "Courses GPS — Admin" }] }),
