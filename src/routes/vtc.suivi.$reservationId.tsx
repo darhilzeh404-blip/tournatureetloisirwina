@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarClock, CarFront, Clock, MapPin, Navigation, RefreshCw } from "lucide-react";
+import { ArrowLeft, CalendarClock, CarFront, CheckCircle2, Clock, Loader2, MapPin, Navigation, Phone, RefreshCw, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
@@ -9,6 +9,7 @@ import { useShareClientPosition } from "@/hooks/use-client-position";
 import { distanceKm, estimateEtaMinutes } from "@/hooks/use-geolocation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/vtc/suivi/$reservationId")({
   head: () => ({
@@ -58,13 +59,20 @@ function parsePosition(value: unknown): { lat: number; lng: number } | null {
   return { lat: Number(match[1]), lng: Number(match[2]) };
 }
 
+interface DriverInfo {
+  full_name: string | null;
+  phone: string | null;
+  vehicle_type: string | null;
+  license_plate: string | null;
+}
+
 function VtcTrackingPage() {
   const { reservationId } = Route.useParams();
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
   const [reservation, setReservation] = useState<VtcReservation | null>(null);
   const [trip, setTrip] = useState<Trip | null>(null);
-  const [driverName, setDriverName] = useState("");
+  const [driverInfo, setDriverInfo] = useState<DriverInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [sharePosition, setSharePosition] = useState(false);
   const driverPos = useDriverPosition(trip?.driver_id ?? null);
@@ -90,6 +98,7 @@ function VtcTrackingPage() {
     setTrip((tripData as Trip | null) ?? null);
     setLoading(false);
   };
+
 
   useEffect(() => {
     if (!isLoading && !user) navigate({ to: "/connexion" });
@@ -125,16 +134,27 @@ function VtcTrackingPage() {
 
   useEffect(() => {
     if (!trip?.driver_id) {
-      setDriverName("");
+      setDriverInfo(null);
       return;
     }
-    supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("user_id", trip.driver_id)
-      .maybeSingle()
-      .then(({ data }) => setDriverName(data?.full_name ?? ""));
+    (async () => {
+      const driverId = trip.driver_id;
+      if (!driverId) return;
+      const [{ data: profile }, { data: driver }] = await Promise.all([
+        supabase.from("profiles").select("full_name, phone").eq("user_id", driverId).maybeSingle(),
+        supabase.from("drivers").select("vehicle_type, license_plate, phone, full_name").eq("user_id", driverId).maybeSingle(),
+      ]);
+
+      setDriverInfo({
+        full_name: driver?.full_name || profile?.full_name || null,
+        phone: driver?.phone || profile?.phone || null,
+        vehicle_type: driver?.vehicle_type ?? null,
+        license_plate: driver?.license_plate ?? null,
+      });
+    })();
   }, [trip?.driver_id]);
+
+  const driverName = driverInfo?.full_name ?? "";
 
   const markers = useMemo<MapMarker[]>(() => {
     const details = reservation?.details ?? {};
@@ -146,6 +166,7 @@ function VtcTrackingPage() {
     if (driverPos) next.push({ id: "driver", type: "driver", lat: Number(driverPos.latitude), lng: Number(driverPos.longitude), label: driverName || "Chauffeur", service: "vtc", heading: driverPos.heading });
     return next;
   }, [driverName, driverPos, reservation?.details, trip]);
+
 
   const details = reservation?.details ?? {};
   const status = reservation ? STATUS_COPY[reservation.status] : null;
@@ -166,6 +187,24 @@ function VtcTrackingPage() {
     { key: "route", label: "En route", active: trip?.status === "active", done: trip?.status === "active" || trip?.status === "completed" },
     { key: "arrived", label: "Arrivé", active: trip?.status === "completed", done: trip?.status === "completed" },
   ];
+
+  // Dispatch progression: 4 steps from creation to driver on the way.
+  const dispatchStep: "searching" | "no_driver" | "found" | "assigned" | "active" | "completed" =
+    !trip ? "searching"
+    : trip.status === "no_driver_found" ? "no_driver"
+    : trip.status === "pending" && !trip.driver_id ? "searching"
+    : trip.status === "assigned" || (trip.driver_id && trip.status === "pending") ? "found"
+    : trip.status === "active" ? "active"
+    : trip.status === "completed" ? "completed"
+    : "searching";
+
+  const dispatchSteps = [
+    { key: "request", label: "Demande envoyée", icon: CheckCircle2, done: true, active: dispatchStep === "searching" },
+    { key: "search", label: "Recherche de chauffeur", icon: Search, done: dispatchStep !== "searching" && dispatchStep !== "no_driver", active: dispatchStep === "searching" },
+    { key: "found", label: "Chauffeur trouvé", icon: CarFront, done: ["found", "assigned", "active", "completed"].includes(dispatchStep), active: dispatchStep === "found" },
+    { key: "onway", label: "En route vers vous", icon: Navigation, done: ["active", "completed"].includes(dispatchStep), active: dispatchStep === "active" },
+  ];
+
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Chargement du suivi VTC...</div>;
 
@@ -208,7 +247,76 @@ function VtcTrackingPage() {
           </div>
         </section>
 
-        {isInstantRequest && !trip?.driver_id && (
+        {/* Dispatch progression — temps réel */}
+        <section className="border-b bg-background p-4">
+          <div className="rounded-2xl border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Avancement de la demande</p>
+              {dispatchStep === "searching" && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+              {dispatchStep === "no_driver" && <XCircle className="h-4 w-4 text-destructive" />}
+            </div>
+
+            {dispatchStep === "no_driver" ? (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                <p className="font-semibold">Aucun chauffeur disponible à proximité.</p>
+                <p className="mt-1 text-xs">Réessayez dans quelques minutes ou contactez le support.</p>
+              </div>
+            ) : (
+              <ol className="grid grid-cols-4 gap-2">
+                {dispatchSteps.map((s, i) => {
+                  const Icon = s.icon;
+                  return (
+                    <li key={s.key} className="flex flex-col items-center text-center">
+                      <div className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors ${
+                        s.done ? "border-primary bg-primary text-primary-foreground"
+                        : s.active ? "border-primary bg-primary/10 text-primary animate-pulse"
+                        : "border-muted bg-muted/30 text-muted-foreground"
+                      }`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <p className={`mt-1 text-[10px] font-semibold leading-tight ${s.done || s.active ? "text-foreground" : "text-muted-foreground"}`}>
+                        {s.label}
+                      </p>
+                      {i < dispatchSteps.length - 1 && (
+                        <div className={`absolute hidden ${s.done ? "bg-primary" : "bg-muted"}`} />
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+        </section>
+
+        {/* Carte chauffeur sélectionné — visible dès qu'un chauffeur est assigné */}
+        {trip?.driver_id && (
+          <section className="border-b bg-primary/5 p-4">
+            <div className="rounded-2xl border border-primary/30 bg-card p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/15">
+                  <CarFront className="h-6 w-6 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Chauffeur assigné</p>
+                  <p className="mt-0.5 truncate text-base font-bold text-foreground">{driverInfo?.full_name ?? "Chauffeur Wina"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {driverInfo?.vehicle_type ?? "VTC"}
+                    {driverInfo?.license_plate ? ` · ${driverInfo.license_plate}` : ""}
+                  </p>
+                </div>
+                {driverInfo?.phone && (
+                  <a href={`tel:${driverInfo.phone}`}>
+                    <Button size="sm" variant="outline" className="gap-1.5">
+                      <Phone className="h-3.5 w-3.5" /> Appeler
+                    </Button>
+                  </a>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {isInstantRequest && !trip?.driver_id && dispatchStep !== "no_driver" && (
           <section className="border-b bg-primary/5 p-4">
             <div className="rounded-xl border border-primary/20 bg-card p-4 text-sm">
               <p className="flex items-center gap-2 text-xs font-bold text-primary"><Clock className="h-3.5 w-3.5" /> Disponibilité estimée</p>
@@ -219,6 +327,7 @@ function VtcTrackingPage() {
             </div>
           </section>
         )}
+
 
         <section className="grid gap-3 border-b bg-background p-4 text-sm lg:grid-cols-[1fr_auto]">
           <div className="rounded-xl border bg-card p-3">
