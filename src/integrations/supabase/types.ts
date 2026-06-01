@@ -614,6 +614,114 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_agencies: {
+        Row: {
+          created_at: string
+          description: string
+          email: string | null
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          logo_url: string | null
+          name: string
+          owner_user_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          is_verified?: boolean
+          logo_url?: string | null
+          name: string
+          owner_user_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          is_verified?: boolean
+          logo_url?: string | null
+          name?: string
+          owner_user_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partner_tickets: {
+        Row: {
+          agency_id: string
+          category_id: string
+          created_at: string
+          departure_at: string | null
+          description: string
+          destination: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          origin: string | null
+          price: number
+          seats_available: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          category_id: string
+          created_at?: string
+          departure_at?: string | null
+          description?: string
+          destination?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          origin?: string | null
+          price?: number
+          seats_available?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          category_id?: string
+          created_at?: string
+          departure_at?: string | null
+          description?: string
+          destination?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          origin?: string | null
+          price?: number
+          seats_available?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_tickets_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_tickets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           admin_comment: string | null
@@ -796,6 +904,33 @@ export type Database = {
           scheduled_at?: string | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ticket_categories: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
         }
         Relationships: []
       }
@@ -1585,7 +1720,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user" | "gerant" | "chauffeur" | "client"
+      app_role: "admin" | "user" | "gerant" | "chauffeur" | "client" | "agence"
       payment_status: "PENDING" | "VALIDATED" | "REJECTED"
       reservation_status:
         | "PENDING_PAYMENT"
@@ -1725,7 +1860,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user", "gerant", "chauffeur", "client"],
+      app_role: ["admin", "user", "gerant", "chauffeur", "client", "agence"],
       payment_status: ["PENDING", "VALIDATED", "REJECTED"],
       reservation_status: [
         "PENDING_PAYMENT",
