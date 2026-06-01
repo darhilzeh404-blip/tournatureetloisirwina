@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useShareClientPosition } from "@/hooks/use-client-position";
 import { ReservationListSkeleton } from "@/components/skeletons";
+import { TripEtaInline } from "@/components/TripEtaInline";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
