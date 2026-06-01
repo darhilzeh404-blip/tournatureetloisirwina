@@ -14,6 +14,7 @@ import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { showAppNotification, requestNotificationPermission } from "@/lib/notifications";
+import { EtaBadge } from "@/components/EtaBadge";
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 6371;
