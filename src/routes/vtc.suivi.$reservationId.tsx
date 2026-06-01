@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarClock, CarFront, Clock, MapPin, Navigation, RefreshCw } from "lucide-react";
+import { ArrowLeft, CalendarClock, CarFront, CheckCircle2, Clock, Loader2, MapPin, Navigation, Phone, RefreshCw, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
@@ -9,6 +9,7 @@ import { useShareClientPosition } from "@/hooks/use-client-position";
 import { distanceKm, estimateEtaMinutes } from "@/hooks/use-geolocation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/vtc/suivi/$reservationId")({
   head: () => ({
