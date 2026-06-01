@@ -319,12 +319,15 @@ function MesReservationsPage() {
                         </Link>
                       )}
                       {res.trip_id && (
-                        <Link to="/suivi/$tripId" params={{ tripId: res.trip_id }}>
-                          <Button size="sm" variant="outline" className="gap-2">
-                            <MapPin className="h-4 w-4" />
-                            Suivre en direct
-                          </Button>
-                        </Link>
+                        <>
+                          <TripEtaInline tripId={res.trip_id} />
+                          <Link to="/suivi/$tripId" params={{ tripId: res.trip_id }}>
+                            <Button size="sm" variant="outline" className="gap-2">
+                              <MapPin className="h-4 w-4" />
+                              Suivre en direct
+                            </Button>
+                          </Link>
+                        </>
                       )}
                       {canPay && (
                         <Link to="/paiement/$reservationId" params={{ reservationId: res.id }}>
