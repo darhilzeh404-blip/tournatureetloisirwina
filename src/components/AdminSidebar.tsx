@@ -20,6 +20,7 @@ const adminLinks = [
   { to: "/admin/vtc-chauffeurs", label: "VTC Chauffeurs", icon: Car, exact: false },
   { to: "/admin/vehicule-types", label: "Types véhicules", icon: Settings2, exact: false },
   { to: "/admin/billets", label: "Billets", icon: Ticket, exact: false },
+  { to: "/admin/agences", label: "Agences partenaires", icon: Building2, exact: false },
   { to: "/admin/annonces", label: "Annonces", icon: Megaphone, exact: false },
   { to: "/admin/suivi", label: "Suivi temps réel", icon: Radio, exact: false },
 ] as const;
