@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 import { ArrowLeft, CalendarClock, CarFront, CheckCircle2, Clock, Loader2, MapPin, Navigation, Phone, RefreshCw, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
