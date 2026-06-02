@@ -253,7 +253,7 @@ function ChauffeurVtcPage() {
     if (isOnline) {
       const { data, error: e0 } = await supabase
         .from("trips")
-        .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+        .select("*, reservations!inner(service_type, total_amount, reservation_date, details)")
         .is("driver_id", null)
         .eq("status", "pending")
         .eq("reservations.service_type", "VTC")
@@ -266,7 +266,7 @@ function ChauffeurVtcPage() {
     // Active VTC trips assigned to me
     const { data: act, error: e1 } = await supabase
       .from("trips")
-      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+      .select("*, reservations!inner(service_type, total_amount, reservation_date, details)")
       .eq("driver_id", user.id)
       .eq("reservations.service_type", "VTC")
       .in("status", ["assigned", "active"])
@@ -276,7 +276,7 @@ function ChauffeurVtcPage() {
     // Completed VTC trips (history)
     const { data: done, error: e2 } = await supabase
       .from("trips")
-      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+      .select("*, reservations!inner(service_type, total_amount, reservation_date, details)")
       .eq("driver_id", user.id)
       .eq("reservations.service_type", "VTC")
       .eq("status", "completed")
