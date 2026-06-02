@@ -5,6 +5,16 @@ export async function requestNotificationPermission() {
   return Notification.requestPermission();
 }
 
+/**
+ * Renvoie true entre 22h00 et 05h59 (heure locale).
+ * Utilisé pour basculer automatiquement les avis "paiement en espèces" sur les
+ * écrans VTC, indépendamment du `payment_mode` enregistré côté réservation.
+ */
+export function isNightHoursNow(date: Date = new Date()): boolean {
+  const h = date.getHours();
+  return h >= 22 || h < 6;
+}
+
 export interface AppNotificationOptions extends NotificationOptions {
   /** If provided, clicking the system notification will focus the app and navigate to this path. */
   url?: string;

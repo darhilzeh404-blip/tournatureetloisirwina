@@ -67,7 +67,7 @@ interface VtcTrip {
   started_at: string | null;
   completed_at: string | null;
   archived_at: string | null;
-  reservations: { service_type: string; total_amount: number; reservation_date: string } | null;
+  reservations: { service_type: string; total_amount: number; reservation_date: string; details: Record<string, unknown> | null } | null;
 }
 
 type Tab = "dashboard" | "pool" | "courses" | "historique";
@@ -253,7 +253,7 @@ function ChauffeurVtcPage() {
     if (isOnline) {
       const { data, error: e0 } = await supabase
         .from("trips")
-        .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+        .select("*, reservations!inner(service_type, total_amount, reservation_date, details)")
         .is("driver_id", null)
         .eq("status", "pending")
         .eq("reservations.service_type", "VTC")
@@ -266,7 +266,7 @@ function ChauffeurVtcPage() {
     // Active VTC trips assigned to me
     const { data: act, error: e1 } = await supabase
       .from("trips")
-      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+      .select("*, reservations!inner(service_type, total_amount, reservation_date, details)")
       .eq("driver_id", user.id)
       .eq("reservations.service_type", "VTC")
       .in("status", ["assigned", "active"])
@@ -276,7 +276,7 @@ function ChauffeurVtcPage() {
     // Completed VTC trips (history)
     const { data: done, error: e2 } = await supabase
       .from("trips")
-      .select("*, reservations!inner(service_type, total_amount, reservation_date)")
+      .select("*, reservations!inner(service_type, total_amount, reservation_date, details)")
       .eq("driver_id", user.id)
       .eq("reservations.service_type", "VTC")
       .eq("status", "completed")
@@ -461,8 +461,22 @@ function ChauffeurVtcPage() {
       load();
       return;
     }
-    toast.success("Course acceptée — navigation GPS en cours");
-    // Go straight to the GPS / navigation page for this trip (pickup → destination)
+    const paymentMode = (t.reservations?.details as Record<string, unknown> | null | undefined)?.payment_mode;
+    const isCash = paymentMode === "cash";
+    toast.success(
+      isCash
+        ? "Course acceptée — 💵 Encaissez le montant en espèces à l'arrivée"
+        : "Course acceptée — ✅ Paiement Mobile Money déjà validé",
+    );
+    try {
+      await requestNotificationPermission();
+      await showAppNotification("Course VTC acceptée", {
+        body: isCash
+          ? "Paiement en ESPÈCES à percevoir à l'arrivée."
+          : "Paiement Mobile Money déjà validé — rien à percevoir.",
+        tag: `vtc-driver-accept-${t.id}`,
+      });
+    } catch { /* notifications best-effort */ }
     navigate({ to: "/chauffeur/trips", search: { tripId: t.id } });
   };
 

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
 import { UseCoinsToggle } from "@/components/wina-coins/UseCoinsToggle";
 import { fetchBalance } from "@/lib/wina-coins";
+import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 
 // Codes agents marchands (à personnaliser depuis l'admin plus tard)
 const CODE_AGENT_MOOV = "074512";
@@ -255,9 +256,18 @@ function PaiementPage() {
           }
         }
         toast.success("Paiement envoyé — recherche d'un chauffeur lancée.");
+        try {
+          await requestNotificationPermission();
+          await showAppNotification("Paiement VTC reçu", {
+            body: "Recherche d'un chauffeur en cours. Vous serez prévenu dès l'assignation.",
+            tag: `vtc-paid-${reservation.id}`,
+          });
+        } catch { /* notifications best-effort */ }
         navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: reservation.id } });
         return;
       }
+
+
 
       toast.success("Paiement soumis. En attente de validation par l'admin.");
       navigate({ to: "/mes-reservations" });
@@ -291,6 +301,16 @@ function PaiementPage() {
         <h1 className="text-2xl font-bold">Paiement Mobile Money</h1>
         <p className="text-sm text-muted-foreground">Réservation #{reservation.id.slice(0, 8).toUpperCase()}</p>
       </div>
+
+      {reservation.service_type === "VTC" && isNightHoursNow() && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+          <p className="font-semibold text-amber-700">💵 Heures de nuit (22h → 06h)</p>
+          <p className="mt-1 text-xs text-amber-700/80">
+            Pour les courses VTC entre 22h et 06h, le paiement se fait <strong>en espèces directement au chauffeur</strong> à l'arrivée. Vous pouvez ignorer ce paiement Mobile Money si votre course est de nuit.
+          </p>
+        </div>
+      )}
+
 
       {/* Récap montant */}
       <Card className="border-primary/30 bg-primary/5">

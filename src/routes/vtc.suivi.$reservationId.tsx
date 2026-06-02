@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 import { ArrowLeft, CalendarClock, CarFront, CheckCircle2, Clock, Loader2, MapPin, Navigation, Phone, RefreshCw, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -273,6 +274,48 @@ function VtcTrackingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReplan, retryCount, trip?.id]);
 
+  // ===== Notifications client : assignation, démarrage, fin =====
+  // On garde une référence sur le dernier statut notifié pour éviter les doublons
+  // lorsque le canal realtime renvoie plusieurs updates rapides.
+  const lastNotifiedRef = useRef<{ driverId?: string | null; status?: string }>({});
+  useEffect(() => {
+    if (!trip) return;
+    const paymentMode = (reservation?.details as Record<string, unknown> | null)?.payment_mode;
+    const cashReminder = paymentMode === "cash" || isNightHoursNow()
+      ? " Préparez le règlement en espèces."
+      : " Paiement déjà validé, rien à régler à bord.";
+
+    (async () => {
+      await requestNotificationPermission();
+
+      if (trip.driver_id && lastNotifiedRef.current.driverId !== trip.driver_id) {
+        lastNotifiedRef.current.driverId = trip.driver_id;
+        await showAppNotification("Chauffeur assigné", {
+          body: `Un chauffeur a accepté votre course.${cashReminder}`,
+          tag: `vtc-assigned-${trip.id}`,
+        });
+      }
+
+      if (trip.status !== lastNotifiedRef.current.status) {
+        lastNotifiedRef.current.status = trip.status;
+        if (trip.status === "active") {
+          await showAppNotification("Course démarrée", {
+            body: `Vous êtes à bord — bon trajet !${cashReminder}`,
+            tag: `vtc-active-${trip.id}`,
+          });
+        } else if (trip.status === "completed") {
+          await showAppNotification("Course terminée", {
+            body: paymentMode === "cash" || isNightHoursNow()
+              ? "Merci d'avoir voyagé avec Wina. Pensez à régler en espèces au chauffeur."
+              : "Merci d'avoir voyagé avec Wina. Paiement confirmé.",
+            tag: `vtc-done-${trip.id}`,
+          });
+        }
+      }
+    })();
+  }, [trip, reservation?.details]);
+
+
 
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Chargement du suivi VTC...</div>;
@@ -301,11 +344,13 @@ function VtcTrackingPage() {
       </header>
 
       <main className="flex flex-1 flex-col">
-        {details.payment_mode === "cash" && (
+        {(details.payment_mode === "cash" || isNightHoursNow()) && (
           <div className="border-b bg-amber-500/10 px-4 py-3 text-sm">
             <p className="font-semibold text-amber-700">💵 Paiement en espèces</p>
             <p className="text-xs text-amber-700/80">
-              Course de nuit (22h–06h) : réglez le montant total directement au chauffeur à l'arrivée.
+              {details.payment_mode === "cash"
+                ? "Course de nuit (22h–06h) : réglez le montant total directement au chauffeur à l'arrivée."
+                : "Il est entre 22h et 06h : prévoyez de régler en espèces directement au chauffeur si votre course se déroule cette nuit."}
             </p>
           </div>
         )}
