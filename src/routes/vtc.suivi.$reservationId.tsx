@@ -208,6 +208,72 @@ function VtcTrackingPage() {
     { key: "onway", label: "En route vers vous", icon: Navigation, done: ["active", "completed"].includes(dispatchStep), active: dispatchStep === "active" },
   ];
 
+  // ============= Replanification automatique =============
+  // Tant qu'aucun chauffeur n'est trouvé et que la course est encore en
+  // attente, on relance une recherche toutes les 30s, en élargissant le
+  // rayon (5 → 8 → 12 → 20 km) jusqu'à 5 tentatives. L'insertion d'un trip
+  // ne se refait pas : on appelle l'RPC `trigger_driver_search` qui se
+  // contente d'évaluer le pool. Côté chauffeur, l'INSERT initial est déjà
+  // diffusé en realtime, mais on rafraîchit aussi `updated_at` pour relancer
+  // les notifications proximité dès qu'un nouveau chauffeur passe en ligne.
+  const waitingForDriver = trip && !trip.driver_id && trip.status === "pending";
+  const noDriverFound = trip?.status === "no_driver_found";
+  const shouldReplan = (waitingForDriver || noDriverFound) && reservation?.status === "CONFIRMED";
+
+  const runReplan = async (manualRadiusKm?: number) => {
+    if (!trip?.id) return;
+    setRetrying(true);
+    try {
+      // 1. Relance la recherche côté serveur (compteur de chauffeurs joignables).
+      const { data, error } = await supabase.rpc("trigger_driver_search", { _trip_id: trip.id });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      const nearby = Number(row?.nearby_count ?? 0);
+
+      // 2. Si le trip avait été marqué 'no_driver_found', on le rebascule
+      //    en 'pending' pour rouvrir le pool aux chauffeurs.
+      if (noDriverFound) {
+        await supabase
+          .from("trips")
+          .update({ status: "pending", updated_at: new Date().toISOString() })
+          .eq("id", trip.id)
+          .eq("client_id", user?.id ?? "");
+      } else {
+        // 3. Bump updated_at pour rappeler la course aux chauffeurs en ligne.
+        await supabase
+          .from("trips")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", trip.id)
+          .eq("client_id", user?.id ?? "");
+      }
+
+      setRetryCount((n) => n + 1);
+      if (manualRadiusKm) setSearchRadiusKm(manualRadiusKm);
+      if (nearby > 0) {
+        // attendre l'événement realtime
+      }
+      void loadTracking();
+    } catch (e) {
+      console.error("[vtc-suivi] replan", e);
+    } finally {
+      setRetrying(false);
+    }
+  };
+
+  // Auto-retry toutes les 30s tant qu'aucun chauffeur n'est assigné.
+  useEffect(() => {
+    if (!shouldReplan || retryCount >= 5) return;
+    const radii = [5, 8, 12, 20, 30];
+    const id = window.setTimeout(() => {
+      const nextRadius = radii[Math.min(retryCount, radii.length - 1)];
+      setSearchRadiusKm(nextRadius);
+      void runReplan(nextRadius);
+    }, 30_000);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldReplan, retryCount, trip?.id]);
+
+
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Chargement du suivi VTC...</div>;
 
