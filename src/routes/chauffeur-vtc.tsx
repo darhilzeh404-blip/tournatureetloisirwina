@@ -67,7 +67,7 @@ interface VtcTrip {
   started_at: string | null;
   completed_at: string | null;
   archived_at: string | null;
-  reservations: { service_type: string; total_amount: number; reservation_date: string } | null;
+  reservations: { service_type: string; total_amount: number; reservation_date: string; details: Record<string, unknown> | null } | null;
 }
 
 type Tab = "dashboard" | "pool" | "courses" | "historique";
