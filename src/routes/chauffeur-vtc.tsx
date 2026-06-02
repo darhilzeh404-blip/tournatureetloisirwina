@@ -588,7 +588,7 @@ function ChauffeurVtcPage() {
             loading={loading}
             busyId={busyId}
             onStart={startTrip}
-            onComplete={completeTrip}
+            onComplete={askCompleteTrip}
           />
         )}
         {tab === "historique" && <HistoryTab trips={completed} loading={loading} />}
