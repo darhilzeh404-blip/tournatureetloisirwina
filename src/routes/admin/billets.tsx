@@ -263,7 +263,7 @@ function TicketFormDialog({ open, ticket, onClose, onSaved }: {
             <div className="mt-1 flex flex-wrap gap-2">
               {images.map((url) => (
                 <div key={url} className="relative h-20 w-20 overflow-hidden rounded-lg border">
-                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  <img loading="lazy" decoding="async" src={url} alt="" className="h-full w-full object-cover" />
                   <button type="button" onClick={() => removeImage(url)} className="absolute top-0.5 right-0.5 rounded-full bg-black/60 p-0.5 text-white">
                     <X className="h-3 w-3" />
                   </button>

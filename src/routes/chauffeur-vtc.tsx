@@ -476,7 +476,6 @@ function ChauffeurVtcPage() {
     lastActionAtRef.current[t.id] = now;
 
     setBusyId(t.id);
-    console.log("▶️ [VTC] Démarrage course", { tripId: t.id, status: t.status, driver_id: t.driver_id });
     const { data, error } = await supabase
       .from("trips")
       .update({ status: "active", started_at: new Date().toISOString() })
@@ -516,7 +515,6 @@ function ChauffeurVtcPage() {
     setConfirmCompleteId(null);
     setBusyId(t.id);
     lastActionAtRef.current[t.id] = Date.now();
-    console.log("✅ [VTC] Finalisation course", { tripId: t.id, status: t.status });
     const { error: updErr } = await supabase
       .from("trips")
       .update({ status: "completed", completed_at: new Date().toISOString() })

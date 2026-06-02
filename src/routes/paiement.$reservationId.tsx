@@ -423,7 +423,7 @@ function PaiementPage() {
 
           {receiptPreview && (
             <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-success/40 bg-success/5 p-4">
-              <img src={receiptPreview} alt="Reçu" className="max-h-48 rounded shadow" />
+              <img loading="lazy" decoding="async" src={receiptPreview} alt="Reçu" className="max-h-48 rounded shadow" />
               <span className="text-xs text-muted-foreground">
                 {receiptFile ? `${(receiptFile.size / 1024).toFixed(0)} Ko — prêt à envoyer` : ""}
               </span>

@@ -101,7 +101,7 @@ function CircuitsPage() {
   return (
     <>
       <section className="relative h-48 overflow-hidden lg:h-64">
-        <img src={circuitsImg} alt="Circuits touristiques" className="h-full w-full object-cover" width={1280} height={720} />
+        <img loading="lazy" decoding="async" src={circuitsImg} alt="Circuits touristiques" className="h-full w-full object-cover" width={1280} height={720} />
         <div className="absolute inset-0 hero-gradient opacity-80" />
         <div className="absolute inset-0 flex items-center">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">

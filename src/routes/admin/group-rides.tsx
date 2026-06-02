@@ -295,7 +295,7 @@ function AdminGroupRides() {
                                 className="relative h-24 w-full shrink-0 overflow-hidden rounded-md bg-muted sm:w-24"
                               >
                                 {p.signed_receipt_url ? (
-                                  <img src={p.signed_receipt_url} alt="Reçu" className="h-full w-full object-cover" />
+                                  <img loading="lazy" decoding="async" src={p.signed_receipt_url} alt="Reçu" className="h-full w-full object-cover" />
                                 ) : (
                                   <div className="flex h-full w-full items-center justify-center text-muted-foreground"><ImageIcon className="h-6 w-6" /></div>
                                 )}
@@ -347,7 +347,7 @@ function AdminGroupRides() {
       <Dialog open={!!previewUrl} onOpenChange={(o) => !o && setPreviewUrl(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader><DialogTitle>Reçu de paiement</DialogTitle></DialogHeader>
-          {previewUrl && <img src={previewUrl} alt="Reçu" className="max-h-[75vh] w-full rounded-lg object-contain" />}
+          {previewUrl && <img loading="lazy" decoding="async" src={previewUrl} alt="Reçu" className="max-h-[75vh] w-full rounded-lg object-contain" />}
         </DialogContent>
       </Dialog>
 

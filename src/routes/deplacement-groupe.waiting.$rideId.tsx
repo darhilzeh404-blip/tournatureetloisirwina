@@ -47,10 +47,8 @@ function SalonPage() {
 
   useEffect(() => {
     let mounted = true;
-    console.debug("[salon] chargement salle d'attente pour rideId =", rideId);
 
     const fetchAll = async (reason: string) => {
-      console.debug("[salon] resync", reason);
       try {
         const [{ data: r, error: rErr }, { data: p, error: pErr }] = await Promise.all([
           supabase.from("group_rides").select("*").eq("id", rideId).maybeSingle(),
@@ -81,15 +79,12 @@ function SalonPage() {
     const channel = supabase
       .channel(`group-ride-${rideId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "group_rides", filter: `id=eq.${rideId}` }, (payload: any) => {
-        console.debug("[salon] realtime group_rides", payload.eventType, payload.new?.status);
         if (payload.new) setRide(payload.new);
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers", filter: `ride_id=eq.${rideId}` }, (payload: any) => {
-        console.debug("[salon] realtime passenger", payload.eventType);
         refetchPassengers();
       })
       .subscribe((status: string) => {
-        console.debug("[salon] channel status", status);
         // À chaque (re)connexion réussie au canal, on re-synchronise pour rattraper les évènements manqués.
         if (status === "SUBSCRIBED") {
           fetchAll("subscribed");

@@ -443,7 +443,6 @@ function CourseFlow() {
         },
       }).select("id").single();
       if (error) throw error;
-      console.log("[VTC] reservation créée", data.id);
 
       // Create trip immediately in pending pool → first available driver wins.
       // Keep `.select().maybeSingle()` so the frontend verifies the row was really
@@ -464,7 +463,6 @@ function CourseFlow() {
         console.error("[VTC] erreur création trip", tripErr);
         throw new Error(tripErr?.message || "La course VTC n'a pas pu être créée.");
       } else {
-        console.log("[VTC] trip pending dispatché aux chauffeurs en ligne");
         // Post-flight: find nearby drivers within 5 km without closing the
         // request, so a driver who comes online moments later can still accept.
         try {
@@ -478,7 +476,6 @@ function CourseFlow() {
             if (result.nearbyCount === 0) {
               toast.info("Demande envoyée. Aucun chauffeur proche détecté pour l’instant, elle reste visible dès qu’un chauffeur revient en ligne.");
             } else {
-              console.log(`[VTC] ${result.nearbyCount} chauffeur(s) à proximité`);
             }
           }
         } catch (e) {

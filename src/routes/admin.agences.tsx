@@ -74,7 +74,7 @@ function AdminAgences() {
           {list.map((a) => (
             <article key={a.id} className="flex flex-wrap items-center gap-4 rounded-2xl border bg-card p-4">
               {a.logo_url ? (
-                <img src={a.logo_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+                <img loading="lazy" decoding="async" src={a.logo_url} alt="" className="h-12 w-12 rounded-full object-cover" />
               ) : (
                 <div className="h-12 w-12 rounded-full bg-primary/10" />
               )}

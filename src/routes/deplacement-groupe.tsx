@@ -162,14 +162,12 @@ function GroupRidePage() {
       }
 
       const row = Array.isArray(data) ? data[0] : data;
-      console.debug("[group-ride] RPC join_group_ride success", row);
       if (!row?.ride_id) {
         console.error("[group-ride] missing ride_id in RPC response", data);
         toast.error("Réponse inattendue du serveur");
         return;
       }
 
-      console.debug("[group-ride] ride_id reçu, redirection vers waiting", row.ride_id);
       toast.success("Place réservée ! Redirection…");
       navigate({
         to: "/deplacement-groupe/waiting/$rideId",

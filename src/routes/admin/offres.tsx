@@ -188,7 +188,7 @@ function AdminOffres() {
             <Card key={offer.id} className={!offer.is_active ? "opacity-60" : ""}>
               <CardContent className="p-5">
                 {offer.image_url && (
-                  <img src={offer.image_url} alt={offer.title} className="mb-3 h-32 w-full rounded-lg object-cover" />
+                  <img loading="lazy" decoding="async" src={offer.image_url} alt={offer.title} className="mb-3 h-32 w-full rounded-lg object-cover" />
                 )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">

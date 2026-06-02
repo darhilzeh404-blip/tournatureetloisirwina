@@ -91,7 +91,7 @@ function AgenceProfil() {
         <div>
           <label className="text-xs font-semibold">Logo</label>
           <div className="mt-1 flex items-center gap-3">
-            {form.logo_url && <img src={form.logo_url} alt="" className="h-14 w-14 rounded-full object-cover" />}
+            {form.logo_url && <img loading="lazy" decoding="async" src={form.logo_url} alt="" className="h-14 w-14 rounded-full object-cover" />}
             <Input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) onLogo(f); }} />
           </div>
         </div>

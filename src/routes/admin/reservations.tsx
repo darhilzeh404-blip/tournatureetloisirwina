@@ -303,7 +303,6 @@ function AdminReservations() {
       }
     }
     if (!gerantUserId) {
-      console.log("[CIRCUIT AUTO-ASSIGN] aucun gérant assigné pour ce circuit");
       return;
     }
 
@@ -326,7 +325,6 @@ function AdminReservations() {
         destination_address: destination,
       });
     }
-    console.log(`[CIRCUIT AUTO-ASSIGN] Circuit transféré au gérant ${gerantUserId}`);
     toast.success("Circuit transféré automatiquement au gérant assigné.");
   };
 
@@ -649,7 +647,7 @@ function AdminReservations() {
             >
               <X className="h-5 w-5" />
             </button>
-            <img src={previewUrl} alt="Preuve de paiement" className="w-full h-auto rounded-lg shadow-2xl" />
+            <img loading="lazy" decoding="async" src={previewUrl} alt="Preuve de paiement" className="w-full h-auto rounded-lg shadow-2xl" />
             <a
               href={previewUrl}
               target="_blank"
@@ -891,7 +889,6 @@ function AssignDialog({
         });
         if (error) throw error;
       }
-      console.log(`[ADMIN ASSIGN] ${reservation.service_type} → driver=${driverValue ?? "—"} / gerant=${gerantValue ?? "—"} pour résa ${reservation.id}`);
       toast.success("Assignation enregistrée.");
       onAssigned();
     } catch (err: unknown) {

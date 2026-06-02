@@ -60,7 +60,6 @@ export function ActiveGroupRideGuard() {
         });
 
         if (active?.ride_id) {
-          console.debug("[ActiveGroupRideGuard] course active détectée, redirection", active.ride_id);
           toast.info("Course groupée en cours — redirection…");
           navigate({
             to: "/deplacement-groupe/waiting/$rideId",
