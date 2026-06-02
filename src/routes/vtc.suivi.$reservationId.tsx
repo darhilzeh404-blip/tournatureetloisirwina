@@ -302,11 +302,13 @@ function VtcTrackingPage() {
       </header>
 
       <main className="flex flex-1 flex-col">
-        {details.payment_mode === "cash" && (
+        {(details.payment_mode === "cash" || isNightHoursNow()) && (
           <div className="border-b bg-amber-500/10 px-4 py-3 text-sm">
             <p className="font-semibold text-amber-700">💵 Paiement en espèces</p>
             <p className="text-xs text-amber-700/80">
-              Course de nuit (22h–06h) : réglez le montant total directement au chauffeur à l'arrivée.
+              {details.payment_mode === "cash"
+                ? "Course de nuit (22h–06h) : réglez le montant total directement au chauffeur à l'arrivée."
+                : "Il est entre 22h et 06h : prévoyez de régler en espèces directement au chauffeur si votre course se déroule cette nuit."}
             </p>
           </div>
         )}
