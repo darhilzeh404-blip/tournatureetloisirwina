@@ -302,6 +302,16 @@ function PaiementPage() {
         <p className="text-sm text-muted-foreground">Réservation #{reservation.id.slice(0, 8).toUpperCase()}</p>
       </div>
 
+      {reservation.service_type === "VTC" && isNightHoursNow() && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+          <p className="font-semibold text-amber-700">💵 Heures de nuit (22h → 06h)</p>
+          <p className="mt-1 text-xs text-amber-700/80">
+            Pour les courses VTC entre 22h et 06h, le paiement se fait <strong>en espèces directement au chauffeur</strong> à l'arrivée. Vous pouvez ignorer ce paiement Mobile Money si votre course est de nuit.
+          </p>
+        </div>
+      )}
+
+
       {/* Récap montant */}
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="p-5 space-y-3">
