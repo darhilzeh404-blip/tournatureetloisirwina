@@ -120,7 +120,6 @@ export const Route = createFileRoute("/api/admin/create-user")({
           );
         }
 
-        console.log(`[create-user] Admin ${callerId} created user ${newUserId} with role ${role}`);
 
         return jsonResponse({
           success: true,

@@ -29,7 +29,6 @@ const DESTINATION_COORDS: Record<string, { lat: number; lng: number }> = {
 };
 
 function openGoogleMaps(destId: string, destName: string) {
-  console.log("bouton cliqué", destId);
   const coords = DESTINATION_COORDS[destId];
   if (!coords) {
     toast.error("Position GPS indisponible pour ce site touristique.");

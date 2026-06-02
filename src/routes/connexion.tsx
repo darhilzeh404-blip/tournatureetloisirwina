@@ -27,7 +27,6 @@ function ConnexionPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && isAuthenticated && role) {
-      console.log("[CONNEXION] Already authenticated, redirecting to:", getRoleRedirectPath(role));
       navigate({ to: getRoleRedirectPath(role) as any });
     }
   }, [isAuthenticated, role, isLoading, navigate]);
@@ -40,13 +39,11 @@ function ConnexionPage() {
     try {
       // Step 1: Sign in
       const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-      console.log("[LOGIN] Result:", { data, error });
 
       if (error) throw error;
 
       // Step 2: Confirm session is available
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      console.log("[LOGIN] Session after login:", sessionData.session?.user?.email);
 
       if (sessionError || !sessionData.session) {
         throw new Error("Impossible de récupérer la session");
@@ -62,13 +59,11 @@ function ConnexionPage() {
         .single();
 
       const userRole = (roleData?.role as AppRole) ?? "client";
-      console.log("[LOGIN] User role:", userRole);
 
       toast.success("Connexion réussie !");
 
       // Step 4: Navigate
       const redirectPath = getRoleRedirectPath(userRole);
-      console.log("[LOGIN] Navigating to:", redirectPath);
       navigate({ to: redirectPath as any });
     } catch (err: any) {
       console.error("[LOGIN] Error:", err);
