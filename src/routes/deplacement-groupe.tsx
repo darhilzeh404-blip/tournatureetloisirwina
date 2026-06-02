@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import { motion } from "framer-motion";
 import {
   Clock,
@@ -49,6 +50,34 @@ function GroupRidePage() {
   const [pickup, setPickup] = useState<GroupStop | null>(null);
   const [destination, setDestination] = useState<GroupStop | null>(null);
   const [joining, setJoining] = useState(false);
+  const [activeRideId, setActiveRideId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setActiveRideId(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("group_ride_passengers")
+        .select("ride_id, group_rides!inner(status, archived_at)")
+        .eq("user_id", user.id)
+        .neq("status", "cancelled")
+        .order("joined_at", { ascending: false })
+        .limit(10);
+      if (cancelled || error) return;
+      const active = (data ?? []).find((row: any) => {
+        const r = row.group_rides;
+        return r && r.archived_at === null &&
+          ["searching", "matched", "driver_arriving", "active"].includes(r.status);
+      });
+      setActiveRideId(active?.ride_id ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [isAuthenticated, user]);
+
+
 
 
 
@@ -187,7 +216,35 @@ function GroupRidePage() {
       </section>
 
       <main className="mx-auto -mt-3 max-w-3xl space-y-3 px-4">
+        {activeRideId && (
+          <motion.button
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            type="button"
+            onClick={() =>
+              navigate({
+                to: "/deplacement-groupe/waiting/$rideId",
+                params: { rideId: activeRideId },
+              })
+            }
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-card p-3.5 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Course en cours</p>
+                <p className="text-[13px] font-bold text-foreground">Reprendre ma salle d'attente</p>
+              </div>
+            </div>
+            <span className="rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground">
+              Ouvrir →
+            </span>
+          </motion.button>
+        )}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 rounded-3xl border bg-card p-4 shadow-sm">
+
           <div>
             <label className="mb-1.5 flex items-center gap-2 text-[12px] font-bold text-foreground">
               <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">A</span>
