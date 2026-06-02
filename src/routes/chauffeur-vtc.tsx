@@ -602,6 +602,28 @@ function ChauffeurVtcPage() {
           <TabBtn active={tab === "historique"} onClick={() => setTab("historique")} icon={<History className="h-5 w-5" />} label="Historique" />
         </div>
       </nav>
+
+      <AlertDialog
+        open={confirmCompleteId !== null}
+        onOpenChange={(open) => { if (!open) setConfirmCompleteId(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Terminer la course ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous êtes bien arrivé à destination ? Cette action clôture la course et l'archive — elle est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { if (confirmCompleteId) void completeTrip(confirmCompleteId); }}
+            >
+              Oui, terminer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }
