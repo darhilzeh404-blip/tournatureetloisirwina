@@ -50,6 +50,34 @@ function GroupRidePage() {
   const [pickup, setPickup] = useState<GroupStop | null>(null);
   const [destination, setDestination] = useState<GroupStop | null>(null);
   const [joining, setJoining] = useState(false);
+  const [activeRideId, setActiveRideId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setActiveRideId(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("group_ride_passengers")
+        .select("ride_id, group_rides!inner(status, archived_at)")
+        .eq("user_id", user.id)
+        .neq("status", "cancelled")
+        .order("joined_at", { ascending: false })
+        .limit(10);
+      if (cancelled || error) return;
+      const active = (data ?? []).find((row: any) => {
+        const r = row.group_rides;
+        return r && r.archived_at === null &&
+          ["searching", "matched", "driver_arriving", "active"].includes(r.status);
+      });
+      setActiveRideId(active?.ride_id ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [isAuthenticated, user]);
+
+
 
 
 
