@@ -1,5 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   ArrowLeft, CheckCircle, Clock, Crosshair, Hand, History, LayoutDashboard, Loader2, LogOut,
   MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet, Zap,
