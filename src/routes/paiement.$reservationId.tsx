@@ -265,6 +265,9 @@ function PaiementPage() {
         } catch { /* notifications best-effort */ }
         navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: reservation.id } });
         return;
+      }
+
+
 
       toast.success("Paiement soumis. En attente de validation par l'admin.");
       navigate({ to: "/mes-reservations" });
