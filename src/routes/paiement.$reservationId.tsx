@@ -35,7 +35,10 @@ interface Reservation {
   status: string;
   user_id: string;
   coins_used: number;
+  service_type: string;
+  details: Record<string, any> | null;
 }
+
 
 function formatXAF(n: number) {
   return new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
