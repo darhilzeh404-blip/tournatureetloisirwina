@@ -95,7 +95,7 @@ function PaiementPage() {
         navigate({ to: "/mes-reservations" });
         return;
       }
-      setReservation(data);
+      setReservation(data as unknown as Reservation);
       const alreadySpent = data.coins_used ?? 0;
       const remainingDue = Math.max(data.total_amount - data.paid_amount - alreadySpent, 0);
       setAmount(remainingDue || data.total_amount);
