@@ -207,7 +207,7 @@ function AgenceBillets() {
               <div>
                 <label className="text-xs font-semibold">Image</label>
                 <div className="mt-1 flex items-center gap-3">
-                  {editing.image_url && <img src={editing.image_url} alt="" className="h-14 w-14 rounded-md object-cover" />}
+                  {editing.image_url && <img loading="lazy" decoding="async" src={editing.image_url} alt="" className="h-14 w-14 rounded-md object-cover" />}
                   <Input type="file" accept="image/*" onChange={async (e) => {
                     const f = e.target.files?.[0]; if (!f) return;
                     const url = await uploadImage(f);

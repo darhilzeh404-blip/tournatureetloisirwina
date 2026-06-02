@@ -54,7 +54,7 @@ function AgenceDashboard() {
       <div className="rounded-2xl border bg-card p-5">
         <div className="flex items-center gap-3">
           {agency.logo_url ? (
-            <img src={agency.logo_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+            <img loading="lazy" decoding="async" src={agency.logo_url} alt="" className="h-12 w-12 rounded-full object-cover" />
           ) : (
             <div className="h-12 w-12 rounded-full bg-primary/10" />
           )}

@@ -117,7 +117,7 @@ function CategoryPage() {
                 )}
                 <div className="p-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    {t.agency?.logo_url && <img src={t.agency.logo_url} alt="" className="h-6 w-6 rounded-full object-cover" />}
+                    {t.agency?.logo_url && <img loading="lazy" decoding="async" src={t.agency.logo_url} alt="" className="h-6 w-6 rounded-full object-cover" />}
                     <span className="text-xs font-semibold text-muted-foreground">{t.agency?.name ?? "Agence"}</span>
                   </div>
                   <h2 className="text-base font-bold">{t.title}</h2>

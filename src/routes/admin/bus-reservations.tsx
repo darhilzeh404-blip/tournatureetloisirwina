@@ -239,7 +239,7 @@ function AdminBusReservations() {
                 <CardContent className="p-0">
                   <div className="grid gap-0 md:grid-cols-[180px_1fr]">
                     <button type="button" onClick={() => payment?.signed_receipt_url && setPreviewUrl(payment.signed_receipt_url)} className="flex min-h-44 items-center justify-center bg-muted">
-                      {payment?.signed_receipt_url ? <img src={payment.signed_receipt_url} alt="Preuve de paiement" className="h-full w-full object-cover" /> : <ImageIcon className="h-8 w-8 text-muted-foreground" />}
+                      {payment?.signed_receipt_url ? <img loading="lazy" decoding="async" src={payment.signed_receipt_url} alt="Preuve de paiement" className="h-full w-full object-cover" /> : <ImageIcon className="h-8 w-8 text-muted-foreground" />}
                     </button>
                     <div className="space-y-4 p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -295,7 +295,7 @@ function AdminBusReservations() {
       <Dialog open={Boolean(previewUrl)} onOpenChange={() => setPreviewUrl(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader><DialogTitle>Preuve de paiement</DialogTitle></DialogHeader>
-          {previewUrl && <img src={previewUrl} alt="Preuve de paiement" className="max-h-[75vh] w-full rounded-xl object-contain" />}
+          {previewUrl && <img loading="lazy" decoding="async" src={previewUrl} alt="Preuve de paiement" className="max-h-[75vh] w-full rounded-xl object-contain" />}
         </DialogContent>
       </Dialog>
     </div>

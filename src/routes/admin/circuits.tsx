@@ -400,7 +400,7 @@ function AdminCircuits() {
                 <label className="mb-1 block text-xs font-medium">Image de couverture</label>
                 {form.image_url && (
                   <div className="mb-2 overflow-hidden rounded-lg border">
-                    <img src={form.image_url} alt="Aperçu" className="h-32 w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={form.image_url} alt="Aperçu" className="h-32 w-full object-cover" />
                   </div>
                 )}
                 <div className="flex items-center gap-2">

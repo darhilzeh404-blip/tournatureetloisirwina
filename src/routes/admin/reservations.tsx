@@ -647,7 +647,7 @@ function AdminReservations() {
             >
               <X className="h-5 w-5" />
             </button>
-            <img src={previewUrl} alt="Preuve de paiement" className="w-full h-auto rounded-lg shadow-2xl" />
+            <img loading="lazy" decoding="async" src={previewUrl} alt="Preuve de paiement" className="w-full h-auto rounded-lg shadow-2xl" />
             <a
               href={previewUrl}
               target="_blank"

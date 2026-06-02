@@ -112,7 +112,7 @@ function BilletDetailPage() {
 
         {images.length > 0 && (
           <div className="mt-6 overflow-hidden rounded-3xl border bg-muted">
-            <img src={images[activeImage]} alt={ticket.title} className="h-64 w-full object-cover sm:h-80" />
+            <img loading="lazy" decoding="async" src={images[activeImage]} alt={ticket.title} className="h-64 w-full object-cover sm:h-80" />
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto p-3">
                 {images.map((url, i) => (
@@ -122,7 +122,7 @@ function BilletDetailPage() {
                     onClick={() => setActiveImage(i)}
                     className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 ${i === activeImage ? "border-primary" : "border-transparent"}`}
                   >
-                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={url} alt="" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>

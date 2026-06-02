@@ -290,7 +290,7 @@ function AdminPaiements() {
                       className="relative h-40 w-full shrink-0 bg-muted sm:h-auto sm:w-40"
                     >
                       {p.signed_receipt_url ? (
-                        <img
+                        <img loading="lazy" decoding="async"
                           src={p.signed_receipt_url}
                           alt={`Reçu ${p.transaction_ref || p.id}`}
                           className="h-full w-full object-cover"
@@ -399,7 +399,7 @@ function AdminPaiements() {
             <DialogTitle>Reçu de paiement</DialogTitle>
           </DialogHeader>
           {previewUrl && (
-            <img src={previewUrl} alt="Reçu" className="max-h-[75vh] w-full rounded-lg object-contain" />
+            <img loading="lazy" decoding="async" src={previewUrl} alt="Reçu" className="max-h-[75vh] w-full rounded-lg object-contain" />
           )}
         </DialogContent>
       </Dialog>
