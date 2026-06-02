@@ -194,18 +194,21 @@ function ChauffeurVtcPage() {
 
   // Heartbeat: refresh last_seen_at + position every 30s while online so we
   // stay inside the dispatch window even if the driver isn't moving.
+  // IMPORTANT: deps are only [user, isOnline] — we read driverPos via ref so
+  // GPS updates do NOT tear this effect down.
   useEffect(() => {
     if (!user || !isOnline) return;
     const ping = () => {
       supabase.from("driver_availability").update({
         last_seen_at: new Date().toISOString(),
       }).eq("driver_id", user.id).then(() => {});
-      if (driverPos) {
+      const pos = driverPosRef.current;
+      if (pos) {
         supabase.from("driver_positions").upsert(
           {
             driver_id: user.id,
-            latitude: driverPos.lat,
-            longitude: driverPos.lng,
+            latitude: pos.lat,
+            longitude: pos.lng,
             archived_at: null,
             updated_at: new Date().toISOString(),
           },
@@ -215,17 +218,8 @@ function ChauffeurVtcPage() {
     };
     ping();
     const id = window.setInterval(ping, 30_000);
-    const handleHide = () => {
-      if (document.visibilityState === "hidden") {
-        navigator.sendBeacon?.("");
-      }
-    };
-    document.addEventListener("visibilitychange", handleHide);
-    return () => {
-      window.clearInterval(id);
-      document.removeEventListener("visibilitychange", handleHide);
-    };
-  }, [user, isOnline, driverPos]);
+    return () => { window.clearInterval(id); };
+  }, [user, isOnline]);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || (role !== "chauffeur" && role !== "admin"))) {
