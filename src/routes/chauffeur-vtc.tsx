@@ -84,6 +84,19 @@ function ChauffeurVtcPage() {
   const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
   const [isOnline, setIsOnline] = useState(false);
   const [togglingOnline, setTogglingOnline] = useState(false);
+  const [confirmCompleteId, setConfirmCompleteId] = useState<string | null>(null);
+
+  // Refs mirroring state so we can read latest values inside long-lived
+  // effects (realtime subscription, heartbeat) WITHOUT re-subscribing
+  // every time GPS or online status changes. This is what stops the
+  // infinite reload loop.
+  const driverPosRef = useRef<{ lat: number; lng: number } | null>(null);
+  const isOnlineRef = useRef(false);
+  // Lock to debounce Démarrer/Terminer taps so a click cannot land on the
+  // freshly-mounted "Terminer" button right after Démarrer succeeds.
+  const lastActionAtRef = useRef<Record<string, number>>({});
+  useEffect(() => { driverPosRef.current = driverPos; }, [driverPos]);
+  useEffect(() => { isOnlineRef.current = isOnline; }, [isOnline]);
 
   // Load current online status
   useEffect(() => {
