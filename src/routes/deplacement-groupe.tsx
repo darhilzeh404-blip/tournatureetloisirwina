@@ -243,7 +243,7 @@ function GroupRidePage() {
             </span>
           </motion.button>
         )}
-
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 rounded-3xl border bg-card p-4 shadow-sm">
 
           <div>
             <label className="mb-1.5 flex items-center gap-2 text-[12px] font-bold text-foreground">
