@@ -35,7 +35,10 @@ interface Reservation {
   status: string;
   user_id: string;
   coins_used: number;
+  service_type: string;
+  details: Record<string, any> | null;
 }
+
 
 function formatXAF(n: number) {
   return new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
@@ -78,8 +81,9 @@ function PaiementPage() {
       const [{ data, error }, { data: settings }] = await Promise.all([
         supabase
           .from("reservations")
-          .select("id, total_amount, paid_amount, status, user_id, coins_used")
+          .select("id, total_amount, paid_amount, status, user_id, coins_used, service_type, details")
           .eq("id", reservationId)
+
           .maybeSingle(),
         supabase
           .from("transport_settings")
@@ -91,7 +95,7 @@ function PaiementPage() {
         navigate({ to: "/mes-reservations" });
         return;
       }
-      setReservation(data);
+      setReservation(data as unknown as Reservation);
       const alreadySpent = data.coins_used ?? 0;
       const remainingDue = Math.max(data.total_amount - data.paid_amount - alreadySpent, 0);
       setAmount(remainingDue || data.total_amount);
@@ -209,8 +213,55 @@ function PaiementPage() {
       });
       if (payErr) throw payErr;
 
+      // Pour une course VTC sans trip encore créé, on lance le dispatch après paiement.
+      const details = reservation.details ?? {};
+      if (reservation.service_type === "VTC" && details.flow === "vtc_course") {
+        const { data: existingTrip } = await supabase
+          .from("trips")
+          .select("id")
+          .eq("reservation_id", reservation.id)
+          .is("archived_at", null)
+          .maybeSingle();
+        let tripId = existingTrip?.id as string | undefined;
+        if (!tripId) {
+          const pickup = details.pickup ?? {};
+          const destination = details.destination ?? {};
+          const { data: createdTrip, error: tripErr } = await supabase.from("trips").insert({
+            reservation_id: reservation.id,
+            client_id: user.id,
+            driver_id: null,
+            status: "pending",
+            origin_address: pickup.label || "Point de prise en charge",
+            origin_lat: pickup.lat ?? null,
+            origin_lng: pickup.lng ?? null,
+            destination_address: destination.label || "Destination",
+            destination_lat: destination.lat ?? null,
+            destination_lng: destination.lng ?? null,
+          }).select("id, origin_lat, origin_lng").maybeSingle();
+          if (!tripErr && createdTrip) {
+            tripId = createdTrip.id;
+            try {
+              if (createdTrip.origin_lat != null && createdTrip.origin_lng != null) {
+                const { triggerDriverSearch } = await import("@/lib/vtc-dispatch");
+                await triggerDriverSearch(
+                  createdTrip.id,
+                  Number(createdTrip.origin_lat),
+                  Number(createdTrip.origin_lng),
+                );
+              }
+            } catch (e) {
+              console.error("[VTC paiement] triggerDriverSearch", e);
+            }
+          }
+        }
+        toast.success("Paiement envoyé — recherche d'un chauffeur lancée.");
+        navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: reservation.id } });
+        return;
+      }
+
       toast.success("Paiement soumis. En attente de validation par l'admin.");
       navigate({ to: "/mes-reservations" });
+
     } catch (e) {
       console.error(e);
       setUploadFailed(true);

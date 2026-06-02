@@ -421,14 +421,19 @@ function CourseFlow() {
     setLoading(true);
     try {
       const effectiveScheduledAt = rideTiming === "now" ? new Date().toISOString() : scheduledAt;
+      // Heures de nuit (22h → 06h) : paiement cash au chauffeur ; sinon paiement mobile money intégral avant dispatch.
+      const rideHour = new Date(effectiveScheduledAt).getHours();
+      const isNight = rideHour >= 22 || rideHour < 6;
+      const paymentMode: "cash" | "mobile_money" = isNight ? "cash" : "mobile_money";
+
       const { data, error } = await supabase.from("reservations").insert({
         user_id: user.id,
         service_type: "VTC" as const,
         reservation_date: effectiveScheduledAt.slice(0, 10),
         total_amount: total,
         paid_amount: 0,
-        paiement_valide: true,
-        status: "CONFIRMED" as const,
+        paiement_valide: isNight,
+        status: isNight ? ("CONFIRMED" as const) : ("PENDING_PAYMENT" as const),
         details: {
           flow: "vtc_course", category,
           category_label: CATEGORIES.find((c) => c.id === category)!.title,
@@ -440,13 +445,19 @@ function CourseFlow() {
           scheduled_at: effectiveScheduledAt, ride_timing: rideTiming,
           unit_price: fare.price, base_standard_price: fare.base, estimated_total: total,
           auto_dispatch: true,
+          payment_mode: paymentMode,
         },
       }).select("id").single();
       if (error) throw error;
 
-      // Create trip immediately in pending pool → first available driver wins.
-      // Keep `.select().maybeSingle()` so the frontend verifies the row was really
-      // created and can surface RLS / backend errors instead of failing silently.
+      if (!isNight) {
+        // Paiement obligatoire avant dispatch — le trip sera créé après soumission du paiement.
+        toast.info("Réservation enregistrée — payez le montant total pour lancer la recherche d'un chauffeur.");
+        navigate({ to: "/paiement/$reservationId", params: { reservationId: data.id } });
+        return;
+      }
+
+      // Nuit : dispatch immédiat, paiement cash au chauffeur.
       const { data: createdTrip, error: tripErr } = await supabase.from("trips").insert({
         reservation_id: data.id,
         client_id: user.id,
@@ -462,36 +473,33 @@ function CourseFlow() {
       if (tripErr || !createdTrip) {
         console.error("[VTC] erreur création trip", tripErr);
         throw new Error(tripErr?.message || "La course VTC n'a pas pu être créée.");
-      } else {
-        // Post-flight: find nearby drivers within 5 km without closing the
-        // request, so a driver who comes online moments later can still accept.
-        try {
-          if (createdTrip?.origin_lat != null && createdTrip?.origin_lng != null) {
-            const { triggerDriverSearch } = await import("@/lib/vtc-dispatch");
-            const result = await triggerDriverSearch(
-              createdTrip.id,
-              Number(createdTrip.origin_lat),
-              Number(createdTrip.origin_lng),
-            );
-            if (result.nearbyCount === 0) {
-              toast.info("Demande envoyée. Aucun chauffeur proche détecté pour l’instant, elle reste visible dès qu’un chauffeur revient en ligne.");
-            } else {
-            }
+      }
+      try {
+        if (createdTrip?.origin_lat != null && createdTrip?.origin_lng != null) {
+          const { triggerDriverSearch } = await import("@/lib/vtc-dispatch");
+          const result = await triggerDriverSearch(
+            createdTrip.id,
+            Number(createdTrip.origin_lat),
+            Number(createdTrip.origin_lng),
+          );
+          if (result.nearbyCount === 0) {
+            toast.info("Demande envoyée. Aucun chauffeur proche détecté pour l'instant, elle reste visible dès qu'un chauffeur revient en ligne.");
           }
-        } catch (e) {
-          console.error("[VTC] triggerDriverSearch", e);
         }
+      } catch (e) {
+        console.error("[VTC] triggerDriverSearch", e);
       }
 
       await requestNotificationPermission();
       await showAppNotification("Demande VTC enregistrée", { tag: `vtc-${data.id}` });
-      toast.success("Recherche de chauffeur dans un rayon de 5 km…");
+      toast.success("Course de nuit : payez en espèces au chauffeur à l'arrivée 💵");
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
 
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de la réservation");
     } finally { setLoading(false); }
   };
+
 
 
   const activeCat = CATEGORIES.find((c) => c.id === category)!;

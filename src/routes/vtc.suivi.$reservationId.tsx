@@ -301,6 +301,15 @@ function VtcTrackingPage() {
       </header>
 
       <main className="flex flex-1 flex-col">
+        {details.payment_mode === "cash" && (
+          <div className="border-b bg-amber-500/10 px-4 py-3 text-sm">
+            <p className="font-semibold text-amber-700">💵 Paiement en espèces</p>
+            <p className="text-xs text-amber-700/80">
+              Course de nuit (22h–06h) : réglez le montant total directement au chauffeur à l'arrivée.
+            </p>
+          </div>
+        )}
+
         <section className="grid gap-3 border-b bg-card/60 p-4 text-sm sm:grid-cols-3">
           <div className="rounded-xl border bg-background p-3">
             <p className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarClock className="h-3.5 w-3.5" /> Horaire</p>
