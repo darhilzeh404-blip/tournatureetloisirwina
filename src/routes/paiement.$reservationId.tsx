@@ -256,9 +256,15 @@ function PaiementPage() {
           }
         }
         toast.success("Paiement envoyé — recherche d'un chauffeur lancée.");
+        try {
+          await requestNotificationPermission();
+          await showAppNotification("Paiement VTC reçu", {
+            body: "Recherche d'un chauffeur en cours. Vous serez prévenu dès l'assignation.",
+            tag: `vtc-paid-${reservation.id}`,
+          });
+        } catch { /* notifications best-effort */ }
         navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: reservation.id } });
         return;
-      }
 
       toast.success("Paiement soumis. En attente de validation par l'admin.");
       navigate({ to: "/mes-reservations" });
