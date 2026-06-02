@@ -274,6 +274,48 @@ function VtcTrackingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReplan, retryCount, trip?.id]);
 
+  // ===== Notifications client : assignation, démarrage, fin =====
+  // On garde une référence sur le dernier statut notifié pour éviter les doublons
+  // lorsque le canal realtime renvoie plusieurs updates rapides.
+  const lastNotifiedRef = useRef<{ driverId?: string | null; status?: string }>({});
+  useEffect(() => {
+    if (!trip) return;
+    const paymentMode = (reservation?.details as Record<string, unknown> | null)?.payment_mode;
+    const cashReminder = paymentMode === "cash" || isNightHoursNow()
+      ? " Préparez le règlement en espèces."
+      : " Paiement déjà validé, rien à régler à bord.";
+
+    (async () => {
+      await requestNotificationPermission();
+
+      if (trip.driver_id && lastNotifiedRef.current.driverId !== trip.driver_id) {
+        lastNotifiedRef.current.driverId = trip.driver_id;
+        await showAppNotification("Chauffeur assigné", {
+          body: `Un chauffeur a accepté votre course.${cashReminder}`,
+          tag: `vtc-assigned-${trip.id}`,
+        });
+      }
+
+      if (trip.status !== lastNotifiedRef.current.status) {
+        lastNotifiedRef.current.status = trip.status;
+        if (trip.status === "active") {
+          await showAppNotification("Course démarrée", {
+            body: `Vous êtes à bord — bon trajet !${cashReminder}`,
+            tag: `vtc-active-${trip.id}`,
+          });
+        } else if (trip.status === "completed") {
+          await showAppNotification("Course terminée", {
+            body: paymentMode === "cash" || isNightHoursNow()
+              ? "Merci d'avoir voyagé avec Wina. Pensez à régler en espèces au chauffeur."
+              : "Merci d'avoir voyagé avec Wina. Paiement confirmé.",
+            tag: `vtc-done-${trip.id}`,
+          });
+        }
+      }
+    })();
+  }, [trip, reservation?.details]);
+
+
 
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Chargement du suivi VTC...</div>;
