@@ -1,5 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   ArrowLeft, CheckCircle, Clock, Crosshair, Hand, History, LayoutDashboard, Loader2, LogOut,
   MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet, Zap,
@@ -74,6 +84,19 @@ function ChauffeurVtcPage() {
   const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
   const [isOnline, setIsOnline] = useState(false);
   const [togglingOnline, setTogglingOnline] = useState(false);
+  const [confirmCompleteId, setConfirmCompleteId] = useState<string | null>(null);
+
+  // Refs mirroring state so we can read latest values inside long-lived
+  // effects (realtime subscription, heartbeat) WITHOUT re-subscribing
+  // every time GPS or online status changes. This is what stops the
+  // infinite reload loop.
+  const driverPosRef = useRef<{ lat: number; lng: number } | null>(null);
+  const isOnlineRef = useRef(false);
+  // Lock to debounce Démarrer/Terminer taps so a click cannot land on the
+  // freshly-mounted "Terminer" button right after Démarrer succeeds.
+  const lastActionAtRef = useRef<Record<string, number>>({});
+  useEffect(() => { driverPosRef.current = driverPos; }, [driverPos]);
+  useEffect(() => { isOnlineRef.current = isOnline; }, [isOnline]);
 
   // Load current online status
   useEffect(() => {
@@ -171,18 +194,21 @@ function ChauffeurVtcPage() {
 
   // Heartbeat: refresh last_seen_at + position every 30s while online so we
   // stay inside the dispatch window even if the driver isn't moving.
+  // IMPORTANT: deps are only [user, isOnline] — we read driverPos via ref so
+  // GPS updates do NOT tear this effect down.
   useEffect(() => {
     if (!user || !isOnline) return;
     const ping = () => {
       supabase.from("driver_availability").update({
         last_seen_at: new Date().toISOString(),
       }).eq("driver_id", user.id).then(() => {});
-      if (driverPos) {
+      const pos = driverPosRef.current;
+      if (pos) {
         supabase.from("driver_positions").upsert(
           {
             driver_id: user.id,
-            latitude: driverPos.lat,
-            longitude: driverPos.lng,
+            latitude: pos.lat,
+            longitude: pos.lng,
             archived_at: null,
             updated_at: new Date().toISOString(),
           },
@@ -192,17 +218,8 @@ function ChauffeurVtcPage() {
     };
     ping();
     const id = window.setInterval(ping, 30_000);
-    const handleHide = () => {
-      if (document.visibilityState === "hidden") {
-        navigator.sendBeacon?.("");
-      }
-    };
-    document.addEventListener("visibilitychange", handleHide);
-    return () => {
-      window.clearInterval(id);
-      document.removeEventListener("visibilitychange", handleHide);
-    };
-  }, [user, isOnline, driverPos]);
+    return () => { window.clearInterval(id); };
+  }, [user, isOnline]);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || (role !== "chauffeur" && role !== "admin"))) {
@@ -293,23 +310,22 @@ function ChauffeurVtcPage() {
             origin_address?: string | null;
             destination_address?: string | null;
           };
-          if (isOnline && t?.status === "pending" && !t.driver_id && t.id) {
+          if (isOnlineRef.current && t?.status === "pending" && !t.driver_id && t.id) {
+            const pos = driverPosRef.current;
             let km: number | null = null;
-            if (driverPos && t.origin_lat != null && t.origin_lng != null) {
-              km = haversineKm(driverPos.lat, driverPos.lng, Number(t.origin_lat), Number(t.origin_lng));
+            if (pos && t.origin_lat != null && t.origin_lng != null) {
+              km = haversineKm(pos.lat, pos.lng, Number(t.origin_lat), Number(t.origin_lng));
             }
             const withinRange = km == null || km <= 5;
             if (withinRange) {
               const distLabel = km != null ? ` · ${km.toFixed(1)} km` : "";
               const body = `${t.origin_address ?? "Course"}${t.destination_address ? ` → ${t.destination_address}` : ""}${distLabel}`;
               const tripId = t.id;
-              // System notification (background) — clicking jumps to pool tab
               showAppNotification("Nouvelle course VTC à proximité", {
                 body,
                 tag: `vtc-pool-${tripId}`,
                 url: `/chauffeur-vtc?tab=pool&trip=${tripId}`,
               });
-              // In-app actionable toast (foreground)
               toast("Nouvelle course VTC", {
                 description: body,
                 duration: 20000,
@@ -338,7 +354,10 @@ function ChauffeurVtcPage() {
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [user, load, isOnline, driverPos]);
+    // IMPORTANT: deps are only [user, load] — isOnline / driverPos are read via
+    // refs above so GPS updates do NOT re-subscribe (which used to cause an
+    // infinite reload loop on the chauffeur screen).
+  }, [user, load]);
 
 
   // Live driver position for the dashboard map + realtime upsert to driver_positions
@@ -449,28 +468,55 @@ function ChauffeurVtcPage() {
 
 
   const startTrip = async (t: VtcTrip) => {
+    // Debounce: ignore taps within 1500ms of the last action on this trip so a
+    // "Démarrer" click cannot land on the freshly-mounted "Terminer" button.
+    const now = Date.now();
+    const last = lastActionAtRef.current[t.id] ?? 0;
+    if (now - last < 1500 || busyId === t.id) return;
+    lastActionAtRef.current[t.id] = now;
+
     setBusyId(t.id);
     console.log("▶️ [VTC] Démarrage course", { tripId: t.id, status: t.status, driver_id: t.driver_id });
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("trips")
       .update({ status: "active", started_at: new Date().toISOString() })
       .eq("id", t.id)
       .eq("driver_id", t.driver_id ?? "")
-      .in("status", ["assigned", "pending"]);
-    setBusyId(null);
+      .in("status", ["assigned", "pending"])
+      .select("id, status");
     if (error) {
+      setBusyId(null);
       console.error("[VTC] startTrip", error);
       toast.error(`Impossible de démarrer : ${error.message}`);
       return;
     }
+    if (!data || data.length === 0) {
+      setBusyId(null);
+      toast.error("La course n'a pas pu être démarrée (statut incompatible).");
+      load();
+      return;
+    }
+    // Keep the button locked for a short moment so the realtime UPDATE has time
+    // to morph the card to "Terminer" without a stray tap on the same area.
+    setTimeout(() => setBusyId(null), 800);
     toast.success("Course démarrée");
     load();
   };
 
-  const completeTrip = async (t: VtcTrip) => {
+  const askCompleteTrip = (t: VtcTrip) => {
+    const now = Date.now();
+    const last = lastActionAtRef.current[t.id] ?? 0;
+    if (now - last < 1500) return; // ignore taps just after Démarrer
+    setConfirmCompleteId(t.id);
+  };
+
+  const completeTrip = async (tripId: string) => {
+    const t = active.find((x) => x.id === tripId);
+    if (!t) return;
+    setConfirmCompleteId(null);
     setBusyId(t.id);
+    lastActionAtRef.current[t.id] = Date.now();
     console.log("✅ [VTC] Finalisation course", { tripId: t.id, status: t.status });
-    // Set completed first, then archive — RLS for UPDATE only requires driver_id match.
     const { error: updErr } = await supabase
       .from("trips")
       .update({ status: "completed", completed_at: new Date().toISOString() })
@@ -542,7 +588,7 @@ function ChauffeurVtcPage() {
             loading={loading}
             busyId={busyId}
             onStart={startTrip}
-            onComplete={completeTrip}
+            onComplete={askCompleteTrip}
           />
         )}
         {tab === "historique" && <HistoryTab trips={completed} loading={loading} />}
@@ -556,6 +602,28 @@ function ChauffeurVtcPage() {
           <TabBtn active={tab === "historique"} onClick={() => setTab("historique")} icon={<History className="h-5 w-5" />} label="Historique" />
         </div>
       </nav>
+
+      <AlertDialog
+        open={confirmCompleteId !== null}
+        onOpenChange={(open) => { if (!open) setConfirmCompleteId(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Terminer la course ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous êtes bien arrivé à destination ? Cette action clôture la course et l'archive — elle est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { if (confirmCompleteId) void completeTrip(confirmCompleteId); }}
+            >
+              Oui, terminer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }
