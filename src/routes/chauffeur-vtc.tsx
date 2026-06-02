@@ -310,23 +310,22 @@ function ChauffeurVtcPage() {
             origin_address?: string | null;
             destination_address?: string | null;
           };
-          if (isOnline && t?.status === "pending" && !t.driver_id && t.id) {
+          if (isOnlineRef.current && t?.status === "pending" && !t.driver_id && t.id) {
+            const pos = driverPosRef.current;
             let km: number | null = null;
-            if (driverPos && t.origin_lat != null && t.origin_lng != null) {
-              km = haversineKm(driverPos.lat, driverPos.lng, Number(t.origin_lat), Number(t.origin_lng));
+            if (pos && t.origin_lat != null && t.origin_lng != null) {
+              km = haversineKm(pos.lat, pos.lng, Number(t.origin_lat), Number(t.origin_lng));
             }
             const withinRange = km == null || km <= 5;
             if (withinRange) {
               const distLabel = km != null ? ` · ${km.toFixed(1)} km` : "";
               const body = `${t.origin_address ?? "Course"}${t.destination_address ? ` → ${t.destination_address}` : ""}${distLabel}`;
               const tripId = t.id;
-              // System notification (background) — clicking jumps to pool tab
               showAppNotification("Nouvelle course VTC à proximité", {
                 body,
                 tag: `vtc-pool-${tripId}`,
                 url: `/chauffeur-vtc?tab=pool&trip=${tripId}`,
               });
-              // In-app actionable toast (foreground)
               toast("Nouvelle course VTC", {
                 description: body,
                 duration: 20000,
@@ -355,7 +354,10 @@ function ChauffeurVtcPage() {
       )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [user, load, isOnline, driverPos]);
+    // IMPORTANT: deps are only [user, load] — isOnline / driverPos are read via
+    // refs above so GPS updates do NOT re-subscribe (which used to cause an
+    // infinite reload loop on the chauffeur screen).
+  }, [user, load]);
 
 
   // Live driver position for the dashboard map + realtime upsert to driver_positions
