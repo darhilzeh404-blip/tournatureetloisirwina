@@ -325,37 +325,81 @@ function VtcTrackingPage() {
               {dispatchStep === "no_driver" && <XCircle className="h-4 w-4 text-destructive" />}
             </div>
 
-            {dispatchStep === "no_driver" ? (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-                <p className="font-semibold">Aucun chauffeur disponible à proximité.</p>
-                <p className="mt-1 text-xs">Réessayez dans quelques minutes ou contactez le support.</p>
+            <ol className="grid grid-cols-4 gap-2">
+              {dispatchSteps.map((s, i) => {
+                const Icon = s.icon;
+                return (
+                  <li key={s.key} className="flex flex-col items-center text-center">
+                    <div className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors ${
+                      s.done ? "border-primary bg-primary text-primary-foreground"
+                      : s.active ? "border-primary bg-primary/10 text-primary animate-pulse"
+                      : "border-muted bg-muted/30 text-muted-foreground"
+                    }`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <p className={`mt-1 text-[10px] font-semibold leading-tight ${s.done || s.active ? "text-foreground" : "text-muted-foreground"}`}>
+                      {s.label}
+                    </p>
+                    {i < dispatchSteps.length - 1 && (
+                      <div className={`absolute hidden ${s.done ? "bg-primary" : "bg-muted"}`} />
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+
+            {/* === Statut de recherche détaillé + replanification === */}
+            {shouldReplan && (
+              <div className={`mt-4 rounded-xl border p-3 text-sm ${
+                noDriverFound
+                  ? "border-destructive/30 bg-destructive/10 text-destructive"
+                  : "border-primary/30 bg-primary/5"
+              }`}>
+                <div className="flex items-start gap-2">
+                  {noDriverFound ? (
+                    <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  ) : (
+                    <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-primary" />
+                  )}
+                  <div className="flex-1">
+                    <p className="font-semibold">
+                      {noDriverFound
+                        ? "Aucun chauffeur n'a pu prendre votre course"
+                        : retryCount === 0
+                          ? `Recherche d'un chauffeur dans un rayon de ${searchRadiusKm} km…`
+                          : `Nouvelle recherche élargie à ${searchRadiusKm} km (tentative ${retryCount + 1}/5)`}
+                    </p>
+                    <p className="mt-1 text-xs opacity-80">
+                      {noDriverFound
+                        ? "Nous avons élargi la zone plusieurs fois sans réponse. Relancez la recherche ou annulez."
+                        : "Votre demande est diffusée à tous les chauffeurs en ligne. Dès qu'un chauffeur accepte, vous serez notifié(e)."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant={noDriverFound ? "default" : "outline"}
+                    disabled={retrying}
+                    onClick={() => {
+                      const next = Math.min(searchRadiusKm + 5, 30);
+                      void runReplan(next);
+                    }}
+                    className="gap-1.5"
+                  >
+                    {retrying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                    {noDriverFound ? "Relancer la recherche" : `Élargir à ${Math.min(searchRadiusKm + 5, 30)} km`}
+                  </Button>
+                  <Link to="/mes-reservations">
+                    <Button size="sm" variant="ghost">Annuler</Button>
+                  </Link>
+                </div>
               </div>
-            ) : (
-              <ol className="grid grid-cols-4 gap-2">
-                {dispatchSteps.map((s, i) => {
-                  const Icon = s.icon;
-                  return (
-                    <li key={s.key} className="flex flex-col items-center text-center">
-                      <div className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors ${
-                        s.done ? "border-primary bg-primary text-primary-foreground"
-                        : s.active ? "border-primary bg-primary/10 text-primary animate-pulse"
-                        : "border-muted bg-muted/30 text-muted-foreground"
-                      }`}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <p className={`mt-1 text-[10px] font-semibold leading-tight ${s.done || s.active ? "text-foreground" : "text-muted-foreground"}`}>
-                        {s.label}
-                      </p>
-                      {i < dispatchSteps.length - 1 && (
-                        <div className={`absolute hidden ${s.done ? "bg-primary" : "bg-muted"}`} />
-                      )}
-                    </li>
-                  );
-                })}
-              </ol>
             )}
           </div>
         </section>
+
 
         {/* Carte chauffeur sélectionné — visible dès qu'un chauffeur est assigné */}
         {trip?.driver_id && (
