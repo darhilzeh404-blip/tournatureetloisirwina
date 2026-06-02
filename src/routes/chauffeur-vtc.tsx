@@ -461,8 +461,22 @@ function ChauffeurVtcPage() {
       load();
       return;
     }
-    toast.success("Course acceptée — navigation GPS en cours");
-    // Go straight to the GPS / navigation page for this trip (pickup → destination)
+    const paymentMode = (t.reservations?.details as Record<string, unknown> | null | undefined)?.payment_mode;
+    const isCash = paymentMode === "cash";
+    toast.success(
+      isCash
+        ? "Course acceptée — 💵 Encaissez le montant en espèces à l'arrivée"
+        : "Course acceptée — ✅ Paiement Mobile Money déjà validé",
+    );
+    try {
+      await requestNotificationPermission();
+      await showAppNotification("Course VTC acceptée", {
+        body: isCash
+          ? "Paiement en ESPÈCES à percevoir à l'arrivée."
+          : "Paiement Mobile Money déjà validé — rien à percevoir.",
+        tag: `vtc-driver-accept-${t.id}`,
+      });
+    } catch { /* notifications best-effort */ }
     navigate({ to: "/chauffeur/trips", search: { tripId: t.id } });
   };
 
