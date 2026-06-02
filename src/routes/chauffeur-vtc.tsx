@@ -468,28 +468,55 @@ function ChauffeurVtcPage() {
 
 
   const startTrip = async (t: VtcTrip) => {
+    // Debounce: ignore taps within 1500ms of the last action on this trip so a
+    // "Démarrer" click cannot land on the freshly-mounted "Terminer" button.
+    const now = Date.now();
+    const last = lastActionAtRef.current[t.id] ?? 0;
+    if (now - last < 1500 || busyId === t.id) return;
+    lastActionAtRef.current[t.id] = now;
+
     setBusyId(t.id);
     console.log("▶️ [VTC] Démarrage course", { tripId: t.id, status: t.status, driver_id: t.driver_id });
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("trips")
       .update({ status: "active", started_at: new Date().toISOString() })
       .eq("id", t.id)
       .eq("driver_id", t.driver_id ?? "")
-      .in("status", ["assigned", "pending"]);
-    setBusyId(null);
+      .in("status", ["assigned", "pending"])
+      .select("id, status");
     if (error) {
+      setBusyId(null);
       console.error("[VTC] startTrip", error);
       toast.error(`Impossible de démarrer : ${error.message}`);
       return;
     }
+    if (!data || data.length === 0) {
+      setBusyId(null);
+      toast.error("La course n'a pas pu être démarrée (statut incompatible).");
+      load();
+      return;
+    }
+    // Keep the button locked for a short moment so the realtime UPDATE has time
+    // to morph the card to "Terminer" without a stray tap on the same area.
+    setTimeout(() => setBusyId(null), 800);
     toast.success("Course démarrée");
     load();
   };
 
-  const completeTrip = async (t: VtcTrip) => {
+  const askCompleteTrip = (t: VtcTrip) => {
+    const now = Date.now();
+    const last = lastActionAtRef.current[t.id] ?? 0;
+    if (now - last < 1500) return; // ignore taps just after Démarrer
+    setConfirmCompleteId(t.id);
+  };
+
+  const completeTrip = async (tripId: string) => {
+    const t = active.find((x) => x.id === tripId);
+    if (!t) return;
+    setConfirmCompleteId(null);
     setBusyId(t.id);
+    lastActionAtRef.current[t.id] = Date.now();
     console.log("✅ [VTC] Finalisation course", { tripId: t.id, status: t.status });
-    // Set completed first, then archive — RLS for UPDATE only requires driver_id match.
     const { error: updErr } = await supabase
       .from("trips")
       .update({ status: "completed", completed_at: new Date().toISOString() })
