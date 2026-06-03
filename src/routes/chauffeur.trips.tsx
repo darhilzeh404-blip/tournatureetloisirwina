@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useClientPosition } from "@/hooks/use-client-position";
+import { useGeolocation } from "@/hooks/use-geolocation";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
 import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
@@ -134,9 +135,17 @@ function DriverTripsPage() {
     }
   };
 
-  // Markers : position du client (live), point de départ prévu, destination
+  // Position GPS du chauffeur (local) pour tracer le segment chauffeur → client
+  const { position: driverGeo } = useGeolocation({ enabled: Boolean(trip) });
+  const driverPoint = driverGeo
+    ? { lat: Number(driverGeo.latitude), lng: Number(driverGeo.longitude) }
+    : null;
+
+  // Markers : position du chauffeur, position du client (live ou origin prévu), destination
   const markers: MapMarker[] = [];
   if (trip) {
+    if (driverPoint)
+      markers.push({ id: "me", lat: driverPoint.lat, lng: driverPoint.lng, type: "driver", label: "Vous", service: "vtc" });
     if (trip.destination_lat && trip.destination_lng)
       markers.push({ id: "dest", lat: Number(trip.destination_lat), lng: Number(trip.destination_lng), type: "destination", label: trip.destination_address });
     if (clientPos) {
@@ -146,8 +155,8 @@ function DriverTripsPage() {
     }
   }
 
-  // Itinéraire OSRM : départ chauffeur (position client si dispo, sinon origin) → destination
-  const fromPoint = clientPos
+  // Itinéraires OSRM : (1) chauffeur → client (prise en charge), (2) client → destination finale
+  const clientPoint = clientPos
     ? { lat: Number(clientPos.latitude), lng: Number(clientPos.longitude) }
     : trip?.origin_lat && trip?.origin_lng
     ? { lat: Number(trip.origin_lat), lng: Number(trip.origin_lng) }
@@ -156,16 +165,27 @@ function DriverTripsPage() {
     ? { lat: Number(trip.destination_lat), lng: Number(trip.destination_lng) }
     : null;
 
-  const refreshKey = clientPos
-    ? `${Number(clientPos.latitude).toFixed(3)}-${Number(clientPos.longitude).toFixed(3)}`
-    : "static";
+  const refreshKey = `${driverPoint ? `${driverPoint.lat.toFixed(3)}-${driverPoint.lng.toFixed(3)}` : "nd"}|${clientPos ? `${Number(clientPos.latitude).toFixed(3)}-${Number(clientPos.longitude).toFixed(3)}` : "nc"}`;
 
-  const { route: osrmRoute, loading: routeLoading } = useOsrmRoute(
-    fromPoint,
-    toPoint,
-    Boolean(fromPoint && toPoint),
-    refreshKey
+  const isActive = trip?.status === "active";
+  const { route: pickupRoute, loading: pickupLoading } = useOsrmRoute(
+    driverPoint,
+    clientPoint,
+    Boolean(driverPoint && clientPoint && !isActive),
+    refreshKey,
   );
+  const { route: dropoffRoute, loading: dropoffLoading } = useOsrmRoute(
+    isActive && driverPoint ? driverPoint : clientPoint,
+    toPoint,
+    Boolean((isActive && driverPoint ? driverPoint : clientPoint) && toPoint),
+    refreshKey,
+  );
+  const combinedGeometry: [number, number][] | undefined =
+    pickupRoute?.geometry && dropoffRoute?.geometry
+      ? [...pickupRoute.geometry, ...dropoffRoute.geometry]
+      : pickupRoute?.geometry ?? dropoffRoute?.geometry;
+  const routeLoading = pickupLoading || dropoffLoading;
+  const osrmRoute = dropoffRoute ?? pickupRoute;
 
   const tracking = !!clientPos;
 
@@ -193,7 +213,7 @@ function DriverTripsPage() {
             <LiveMap
               markers={markers}
               showRoute
-              routePath={osrmRoute?.geometry}
+              routePath={combinedGeometry}
               followMarkerId={tracking ? "client" : undefined}
               height="100%"
             />
