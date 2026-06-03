@@ -442,16 +442,17 @@ function ChauffeurVtcPage() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const buckets = { day: { count: 0, gross: 0 }, week: { count: 0, gross: 0 }, month: { count: 0, gross: 0 } };
-    for (const t of completed) {
-      const ts = t.completed_at ? new Date(t.completed_at) : null;
+    for (const e of earnings) {
+      const ref = e.validated_at || e.completed_at;
+      const ts = ref ? new Date(ref) : null;
       if (!ts) continue;
-      const amt = t.reservations?.total_amount ?? 0;
+      const amt = e.amount ?? 0;
       if (ts >= startOfDay) { buckets.day.count++; buckets.day.gross += amt; }
       if (ts >= startOfWeek) { buckets.week.count++; buckets.week.gross += amt; }
       if (ts >= startOfMonth) { buckets.month.count++; buckets.month.gross += amt; }
     }
     return buckets;
-  }, [completed]);
+  }, [earnings]);
 
   const acceptTrip = async (t: VtcTrip) => {
     setBusyId(t.id);
