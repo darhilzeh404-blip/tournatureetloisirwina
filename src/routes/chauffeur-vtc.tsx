@@ -783,9 +783,14 @@ function DashboardTab({ stats, active, driverPos, poolCount, onGoPool, isOnline 
               {followMe ? "Suivi actif" : "Centrer sur moi"}
             </Button>
           )}
-          {osrmRoute && currentTrip && (
-            <div className="absolute left-3 top-3 z-[400] rounded-full bg-card/95 px-3 py-1.5 text-xs font-semibold shadow-md backdrop-blur">
-              {osrmRoute.distanceKm.toFixed(1)} km · {osrmRoute.durationMin} min
+          {(pickupRoute || dropoffRoute) && currentTrip && (
+            <div className="absolute left-3 top-3 z-[400] flex flex-col gap-1 rounded-xl bg-card/95 px-3 py-1.5 text-xs font-semibold shadow-md backdrop-blur">
+              {pickupRoute && !isActive && (
+                <span>🚗 Vers client : {pickupRoute.distanceKm.toFixed(1)} km · {pickupRoute.durationMin} min</span>
+              )}
+              {dropoffRoute && (
+                <span>📍 Vers destination : {dropoffRoute.distanceKm.toFixed(1)} km · {dropoffRoute.durationMin} min</span>
+              )}
             </div>
           )}
         </div>
