@@ -79,6 +79,7 @@ function ChauffeurVtcPage() {
   const [pool, setPool] = useState<VtcTrip[]>([]);
   const [active, setActive] = useState<VtcTrip[]>([]);
   const [completed, setCompleted] = useState<VtcTrip[]>([]);
+  const [earnings, setEarnings] = useState<{ amount: number; validated_at: string | null; completed_at: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
