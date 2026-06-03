@@ -370,6 +370,11 @@ function ChauffeurVtcPage() {
         { event: "*", schema: "public", table: "payments" },
         () => load(),
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "reservations" },
+        () => load(),
+      )
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // IMPORTANT: deps are only [user, load] — isOnline / driverPos are read via
