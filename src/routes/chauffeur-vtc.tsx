@@ -762,7 +762,7 @@ function DashboardTab({ stats, active, driverPos, poolCount, onGoPool, isOnline 
                   zoom={14}
                   center={center}
                   showRoute={Boolean(currentTrip)}
-                  routePath={osrmRoute?.geometry}
+                  routePath={combinedGeometry}
                   followMarkerId={followMe && driverPos ? "me" : undefined}
                 />
               ) : (
