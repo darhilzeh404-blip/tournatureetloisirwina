@@ -79,6 +79,7 @@ function ChauffeurVtcPage() {
   const [pool, setPool] = useState<VtcTrip[]>([]);
   const [active, setActive] = useState<VtcTrip[]>([]);
   const [completed, setCompleted] = useState<VtcTrip[]>([]);
+  const [earnings, setEarnings] = useState<{ amount: number; validated_at: string | null; completed_at: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
@@ -288,6 +289,18 @@ function ChauffeurVtcPage() {
     setPool((poolData as unknown as VtcTrip[]) ?? []);
     setActive((act as unknown as VtcTrip[]) ?? []);
     setCompleted((done as unknown as VtcTrip[]) ?? []);
+
+    // Gains : paiements validés par l'admin pour les courses VTC de ce chauffeur
+    const { data: earn, error: e3 } = await supabase.rpc("get_driver_vtc_earnings", { _driver_id: user.id });
+    if (e3) console.error("[vtc] earnings", e3);
+    setEarnings(
+      (earn ?? []).map((r: { amount: number; validated_at: string | null; completed_at: string | null }) => ({
+        amount: r.amount,
+        validated_at: r.validated_at,
+        completed_at: r.completed_at,
+      }))
+    );
+
     setLoading(false);
   }, [user, isOnline]);
 
@@ -350,6 +363,16 @@ function ChauffeurVtcPage() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "trips" },
+        () => load(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "payments" },
+        () => load(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "reservations" },
         () => load(),
       )
       .subscribe();
@@ -429,16 +452,17 @@ function ChauffeurVtcPage() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const buckets = { day: { count: 0, gross: 0 }, week: { count: 0, gross: 0 }, month: { count: 0, gross: 0 } };
-    for (const t of completed) {
-      const ts = t.completed_at ? new Date(t.completed_at) : null;
+    for (const e of earnings) {
+      const ref = e.validated_at || e.completed_at;
+      const ts = ref ? new Date(ref) : null;
       if (!ts) continue;
-      const amt = t.reservations?.total_amount ?? 0;
+      const amt = e.amount ?? 0;
       if (ts >= startOfDay) { buckets.day.count++; buckets.day.gross += amt; }
       if (ts >= startOfWeek) { buckets.week.count++; buckets.week.gross += amt; }
       if (ts >= startOfMonth) { buckets.month.count++; buckets.month.gross += amt; }
     }
     return buckets;
-  }, [completed]);
+  }, [earnings]);
 
   const acceptTrip = async (t: VtcTrip) => {
     setBusyId(t.id);
