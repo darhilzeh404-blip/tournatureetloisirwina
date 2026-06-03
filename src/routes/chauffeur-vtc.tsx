@@ -289,6 +289,18 @@ function ChauffeurVtcPage() {
     setPool((poolData as unknown as VtcTrip[]) ?? []);
     setActive((act as unknown as VtcTrip[]) ?? []);
     setCompleted((done as unknown as VtcTrip[]) ?? []);
+
+    // Gains : paiements validés par l'admin pour les courses VTC de ce chauffeur
+    const { data: earn, error: e3 } = await supabase.rpc("get_driver_vtc_earnings", { _driver_id: user.id });
+    if (e3) console.error("[vtc] earnings", e3);
+    setEarnings(
+      (earn ?? []).map((r: { amount: number; validated_at: string | null; completed_at: string | null }) => ({
+        amount: r.amount,
+        validated_at: r.validated_at,
+        completed_at: r.completed_at,
+      }))
+    );
+
     setLoading(false);
   }, [user, isOnline]);
 
