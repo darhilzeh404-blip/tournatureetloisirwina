@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useClientPosition } from "@/hooks/use-client-position";
+import { useGeolocation } from "@/hooks/use-geolocation";
 import { LiveMap, type MapMarker } from "@/components/LiveMap";
 import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
