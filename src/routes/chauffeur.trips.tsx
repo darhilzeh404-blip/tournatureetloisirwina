@@ -213,7 +213,7 @@ function DriverTripsPage() {
             <LiveMap
               markers={markers}
               showRoute
-              routePath={osrmRoute?.geometry}
+              routePath={combinedGeometry}
               followMarkerId={tracking ? "client" : undefined}
               height="100%"
             />
