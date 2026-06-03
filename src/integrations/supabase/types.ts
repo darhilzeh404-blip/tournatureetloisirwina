@@ -1678,6 +1678,18 @@ export type Database = {
         Args: { _name: string; _user_id: string }
         Returns: boolean
       }
+      get_driver_vtc_earnings: {
+        Args: { _driver_id: string }
+        Returns: {
+          amount: number
+          completed_at: string
+          payment_id: string
+          reservation_id: string
+          trip_id: string
+          trip_status: string
+          validated_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
