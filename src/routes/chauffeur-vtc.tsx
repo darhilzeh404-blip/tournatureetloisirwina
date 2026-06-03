@@ -697,17 +697,29 @@ function DashboardTab({ stats, active, driverPos, poolCount, onGoPool, isOnline 
     ? { lat: Number(currentTrip.destination_lat), lng: Number(currentTrip.destination_lng) }
     : null;
 
-  // Route from driver position (if active) or from origin to destination
-  const routeFrom = driverPos && currentTrip?.status === "active" ? driverPos : origin;
+  // Deux segments : (1) chauffeur → client (prise en charge) et (2) client → destination finale
   const refreshKey = driverPos
     ? `${driverPos.lat.toFixed(3)}-${driverPos.lng.toFixed(3)}`
     : "static";
-  const { route: osrmRoute } = useOsrmRoute(
-    routeFrom,
-    destination,
-    Boolean(routeFrom && destination),
+  const isActive = currentTrip?.status === "active";
+  const pickupFrom = driverPos ?? null;
+  const { route: pickupRoute } = useOsrmRoute(
+    pickupFrom,
+    origin,
+    Boolean(pickupFrom && origin && !isActive),
     refreshKey,
   );
+  const dropoffFrom = isActive && driverPos ? driverPos : origin;
+  const { route: dropoffRoute } = useOsrmRoute(
+    dropoffFrom,
+    destination,
+    Boolean(dropoffFrom && destination),
+    refreshKey,
+  );
+  const combinedGeometry: [number, number][] | undefined =
+    pickupRoute?.geometry && dropoffRoute?.geometry
+      ? [...pickupRoute.geometry, ...dropoffRoute.geometry]
+      : pickupRoute?.geometry ?? dropoffRoute?.geometry;
 
   const markers: MapMarker[] = [];
   if (driverPos) markers.push({ id: "me", lat: driverPos.lat, lng: driverPos.lng, type: "driver", label: "Vous" });
