@@ -34,7 +34,7 @@ import {
   type PopularStop,
 } from "@/lib/group-ride";
 
-export const Route = createFileRoute("/deplacement-groupe")({
+export const Route = createFileRoute("/deplacement-groupe/")({
   head: () => ({
     meta: [
       { title: "Déplacement Groupé — Agence Wina" },

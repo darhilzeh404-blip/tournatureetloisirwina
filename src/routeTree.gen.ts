@@ -24,7 +24,6 @@ import { Route as LocationBusRouteImport } from './routes/location-bus'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as GerantRouteImport } from './routes/gerant'
 import { Route as EspaceClientRouteImport } from './routes/espace-client'
-import { Route as DeplacementGroupeRouteImport } from './routes/deplacement-groupe'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
@@ -34,6 +33,7 @@ import { Route as AgenceRouteImport } from './routes/agence'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DeplacementGroupeIndexRouteImport } from './routes/deplacement-groupe.index'
 import { Route as AgenceIndexRouteImport } from './routes/agence.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
@@ -144,11 +144,6 @@ const EspaceClientRoute = EspaceClientRouteImport.update({
   path: '/espace-client',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DeplacementGroupeRoute = DeplacementGroupeRouteImport.update({
-  id: '/deplacement-groupe',
-  path: '/deplacement-groupe',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ConnexionRoute = ConnexionRouteImport.update({
   id: '/connexion',
   path: '/connexion',
@@ -192,6 +187,11 @@ const ActivitesRoute = ActivitesRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeplacementGroupeIndexRoute = DeplacementGroupeIndexRouteImport.update({
+  id: '/deplacement-groupe/',
+  path: '/deplacement-groupe/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgenceIndexRoute = AgenceIndexRouteImport.update({
@@ -376,7 +376,6 @@ export interface FileRoutesByFullPath {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
-  '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -420,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/agence/': typeof AgenceIndexRoute
+  '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -435,7 +435,6 @@ export interface FileRoutesByTo {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
-  '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -479,6 +478,7 @@ export interface FileRoutesByTo {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin': typeof AdminIndexRoute
   '/agence': typeof AgenceIndexRoute
+  '/deplacement-groupe': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -497,7 +497,6 @@ export interface FileRoutesById {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
-  '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -541,6 +540,7 @@ export interface FileRoutesById {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/agence/': typeof AgenceIndexRoute
+  '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -560,7 +560,6 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
-    | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -604,6 +603,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin/'
     | '/agence/'
+    | '/deplacement-groupe/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/categorie/$slug'
@@ -619,7 +619,6 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
-    | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -663,6 +662,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin'
     | '/agence'
+    | '/deplacement-groupe'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/categorie/$slug'
@@ -680,7 +680,6 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
-    | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -724,6 +723,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin/'
     | '/agence/'
+    | '/deplacement-groupe/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/categorie/$slug'
@@ -742,7 +742,6 @@ export interface RootRouteChildren {
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
-  DeplacementGroupeRoute: typeof DeplacementGroupeRouteWithChildren
   EspaceClientRoute: typeof EspaceClientRoute
   GerantRoute: typeof GerantRoute
   InscriptionRoute: typeof InscriptionRoute
@@ -761,6 +760,7 @@ export interface RootRouteChildren {
   AnnoncesIdRoute: typeof AnnoncesIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
+  DeplacementGroupeIndexRoute: typeof DeplacementGroupeIndexRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
 }
@@ -872,13 +872,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EspaceClientRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/deplacement-groupe': {
-      id: '/deplacement-groupe'
-      path: '/deplacement-groupe'
-      fullPath: '/deplacement-groupe'
-      preLoaderRoute: typeof DeplacementGroupeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/connexion': {
       id: '/connexion'
       path: '/connexion'
@@ -940,6 +933,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deplacement-groupe/': {
+      id: '/deplacement-groupe/'
+      path: '/deplacement-groupe'
+      fullPath: '/deplacement-groupe/'
+      preLoaderRoute: typeof DeplacementGroupeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agence/': {
@@ -1283,17 +1283,6 @@ const CircuitsRouteWithChildren = CircuitsRoute._addFileChildren(
   CircuitsRouteChildren,
 )
 
-interface DeplacementGroupeRouteChildren {
-  DeplacementGroupeWaitingRideIdRoute: typeof DeplacementGroupeWaitingRideIdRoute
-}
-
-const DeplacementGroupeRouteChildren: DeplacementGroupeRouteChildren = {
-  DeplacementGroupeWaitingRideIdRoute: DeplacementGroupeWaitingRideIdRoute,
-}
-
-const DeplacementGroupeRouteWithChildren =
-  DeplacementGroupeRoute._addFileChildren(DeplacementGroupeRouteChildren)
-
 interface VtcRouteChildren {
   VtcSuiviReservationIdRoute: typeof VtcSuiviReservationIdRoute
 }
@@ -1314,7 +1303,6 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
-  DeplacementGroupeRoute: DeplacementGroupeRouteWithChildren,
   EspaceClientRoute: EspaceClientRoute,
   GerantRoute: GerantRoute,
   InscriptionRoute: InscriptionRoute,
@@ -1333,9 +1321,19 @@ const rootRouteChildren: RootRouteChildren = {
   AnnoncesIdRoute: AnnoncesIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
+  DeplacementGroupeIndexRoute: DeplacementGroupeIndexRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
