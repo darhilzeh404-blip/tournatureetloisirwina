@@ -34,6 +34,7 @@ import { Route as AgenceRouteImport } from './routes/agence'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DeplacementGroupeIndexRouteImport } from './routes/deplacement-groupe.index'
 import { Route as AgenceIndexRouteImport } from './routes/agence.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
@@ -193,6 +194,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DeplacementGroupeIndexRoute = DeplacementGroupeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DeplacementGroupeRoute,
 } as any)
 const AgenceIndexRoute = AgenceIndexRouteImport.update({
   id: '/',
@@ -420,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/agence/': typeof AgenceIndexRoute
+  '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -435,7 +442,6 @@ export interface FileRoutesByTo {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
-  '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -479,6 +485,7 @@ export interface FileRoutesByTo {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin': typeof AdminIndexRoute
   '/agence': typeof AgenceIndexRoute
+  '/deplacement-groupe': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -541,6 +548,7 @@ export interface FileRoutesById {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/admin/': typeof AdminIndexRoute
   '/agence/': typeof AgenceIndexRoute
+  '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -604,6 +612,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin/'
     | '/agence/'
+    | '/deplacement-groupe/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/categorie/$slug'
@@ -619,7 +628,6 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
-    | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -663,6 +671,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin'
     | '/agence'
+    | '/deplacement-groupe'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/categorie/$slug'
@@ -724,6 +733,7 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/admin/'
     | '/agence/'
+    | '/deplacement-groupe/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/categorie/$slug'
@@ -941,6 +951,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/deplacement-groupe/': {
+      id: '/deplacement-groupe/'
+      path: '/'
+      fullPath: '/deplacement-groupe/'
+      preLoaderRoute: typeof DeplacementGroupeIndexRouteImport
+      parentRoute: typeof DeplacementGroupeRoute
     }
     '/agence/': {
       id: '/agence/'
@@ -1284,10 +1301,12 @@ const CircuitsRouteWithChildren = CircuitsRoute._addFileChildren(
 )
 
 interface DeplacementGroupeRouteChildren {
+  DeplacementGroupeIndexRoute: typeof DeplacementGroupeIndexRoute
   DeplacementGroupeWaitingRideIdRoute: typeof DeplacementGroupeWaitingRideIdRoute
 }
 
 const DeplacementGroupeRouteChildren: DeplacementGroupeRouteChildren = {
+  DeplacementGroupeIndexRoute: DeplacementGroupeIndexRoute,
   DeplacementGroupeWaitingRideIdRoute: DeplacementGroupeWaitingRideIdRoute,
 }
 
