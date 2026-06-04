@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Globe, ArrowRight, CarFront, Navigation, MapPin } from "lucide-react";
-import { fetchOffersByType, type Offer } from "@/server/fetch-offers";
+import { fetchOffersByType, type Offer } from "@/lib/fetch-offers.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
 import { formatFCFA } from "@/lib/destinations";
