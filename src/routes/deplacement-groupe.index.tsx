@@ -247,12 +247,21 @@ function GroupRidePage() {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             type="button"
-            onClick={() =>
+            onClick={async () => {
+              // Re-vérifie la course active au clic, au cas où le state local serait obsolète
+              const latest = user ? await fetchActiveRide(user.id) : null;
+              const target = latest ?? activeRideId;
+              if (!target) {
+                toast.info("Aucune course active en cours");
+                setActiveRideId(null);
+                return;
+              }
+              setActiveRideId(target);
               navigate({
                 to: "/deplacement-groupe/waiting/$rideId",
-                params: { rideId: activeRideId },
-              })
-            }
+                params: { rideId: target },
+              });
+            }}
             className="flex w-full items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-card p-3.5 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
           >
             <div className="flex items-center gap-3">
