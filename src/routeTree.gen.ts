@@ -24,6 +24,7 @@ import { Route as LocationBusRouteImport } from './routes/location-bus'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as GerantRouteImport } from './routes/gerant'
 import { Route as EspaceClientRouteImport } from './routes/espace-client'
+import { Route as DeplacementGroupeRouteImport } from './routes/deplacement-groupe'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
@@ -144,6 +145,11 @@ const EspaceClientRoute = EspaceClientRouteImport.update({
   path: '/espace-client',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeplacementGroupeRoute = DeplacementGroupeRouteImport.update({
+  id: '/deplacement-groupe',
+  path: '/deplacement-groupe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConnexionRoute = ConnexionRouteImport.update({
   id: '/connexion',
   path: '/connexion',
@@ -190,9 +196,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeplacementGroupeIndexRoute = DeplacementGroupeIndexRouteImport.update({
-  id: '/deplacement-groupe/',
-  path: '/deplacement-groupe/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => DeplacementGroupeRoute,
 } as any)
 const AgenceIndexRoute = AgenceIndexRouteImport.update({
   id: '/',
@@ -376,6 +382,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -497,6 +504,7 @@ export interface FileRoutesById {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -560,6 +568,7 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
+    | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -680,6 +689,7 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
+    | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -742,6 +752,7 @@ export interface RootRouteChildren {
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
+  DeplacementGroupeRoute: typeof DeplacementGroupeRouteWithChildren
   EspaceClientRoute: typeof EspaceClientRoute
   GerantRoute: typeof GerantRoute
   InscriptionRoute: typeof InscriptionRoute
@@ -760,7 +771,6 @@ export interface RootRouteChildren {
   AnnoncesIdRoute: typeof AnnoncesIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
-  DeplacementGroupeIndexRoute: typeof DeplacementGroupeIndexRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
 }
@@ -872,6 +882,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EspaceClientRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/deplacement-groupe': {
+      id: '/deplacement-groupe'
+      path: '/deplacement-groupe'
+      fullPath: '/deplacement-groupe'
+      preLoaderRoute: typeof DeplacementGroupeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/connexion': {
       id: '/connexion'
       path: '/connexion'
@@ -937,10 +954,10 @@ declare module '@tanstack/react-router' {
     }
     '/deplacement-groupe/': {
       id: '/deplacement-groupe/'
-      path: '/deplacement-groupe'
+      path: '/'
       fullPath: '/deplacement-groupe/'
       preLoaderRoute: typeof DeplacementGroupeIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DeplacementGroupeRoute
     }
     '/agence/': {
       id: '/agence/'
@@ -1283,6 +1300,19 @@ const CircuitsRouteWithChildren = CircuitsRoute._addFileChildren(
   CircuitsRouteChildren,
 )
 
+interface DeplacementGroupeRouteChildren {
+  DeplacementGroupeIndexRoute: typeof DeplacementGroupeIndexRoute
+  DeplacementGroupeWaitingRideIdRoute: typeof DeplacementGroupeWaitingRideIdRoute
+}
+
+const DeplacementGroupeRouteChildren: DeplacementGroupeRouteChildren = {
+  DeplacementGroupeIndexRoute: DeplacementGroupeIndexRoute,
+  DeplacementGroupeWaitingRideIdRoute: DeplacementGroupeWaitingRideIdRoute,
+}
+
+const DeplacementGroupeRouteWithChildren =
+  DeplacementGroupeRoute._addFileChildren(DeplacementGroupeRouteChildren)
+
 interface VtcRouteChildren {
   VtcSuiviReservationIdRoute: typeof VtcSuiviReservationIdRoute
 }
@@ -1303,6 +1333,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
+  DeplacementGroupeRoute: DeplacementGroupeRouteWithChildren,
   EspaceClientRoute: EspaceClientRoute,
   GerantRoute: GerantRoute,
   InscriptionRoute: InscriptionRoute,
@@ -1321,19 +1352,9 @@ const rootRouteChildren: RootRouteChildren = {
   AnnoncesIdRoute: AnnoncesIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
-  DeplacementGroupeIndexRoute: DeplacementGroupeIndexRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
