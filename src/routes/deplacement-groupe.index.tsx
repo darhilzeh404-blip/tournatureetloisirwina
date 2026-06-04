@@ -162,6 +162,18 @@ function GroupRidePage() {
         const msg = String(error.message || "");
         console.error("[group-ride] join error", error);
         if (msg.includes("ALREADY_IN_RIDE")) {
+          // Récupère la course en cours et redirige vers la salle d'attente
+          const existing = await fetchActiveRide(user.id);
+          if (existing) {
+            setActiveRideId(existing);
+            toast.info("Course déjà en cours — reprise de la salle d'attente");
+            navigate({
+              to: "/deplacement-groupe/waiting/$rideId",
+              params: { rideId: existing },
+              replace: true,
+            });
+            return;
+          }
           toast.error("Vous avez déjà une course groupée en cours");
         } else if (msg.includes("NOT_AUTHENTICATED")) {
           toast.error("Session expirée, reconnectez-vous");
@@ -181,6 +193,9 @@ function GroupRidePage() {
         return;
       }
 
+      // Filet de sécurité : enregistre l'id avant la navigation pour que le
+      // bouton "Reprendre" reste utilisable même si la nav échoue (réseau lent).
+      setActiveRideId(row.ride_id);
       toast.success("Place réservée ! Redirection…");
       navigate({
         to: "/deplacement-groupe/waiting/$rideId",
