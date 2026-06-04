@@ -48,7 +48,7 @@ function CategoryPage() {
       setCategoryName((cat as any).name);
       const { data } = await supabase
         .from("partner_tickets" as any)
-        .select("id, title, origin, destination, departure_at, price, seats_available, description, image_url, agency:partner_agencies(id, name, logo_url, phone, email)")
+        .select("id, title, origin, destination, departure_at, price, seats_available, description, image_url, agency:partner_agencies(id, name, logo_url, phone)")
         .eq("category_id", (cat as any).id)
         .eq("is_active", true)
         .order("departure_at", { ascending: true, nullsFirst: false });
