@@ -52,29 +52,42 @@ function GroupRidePage() {
   const [joining, setJoining] = useState(false);
   const [activeRideId, setActiveRideId] = useState<string | null>(null);
 
+  const fetchActiveRide = async (uid: string): Promise<string | null> => {
+    const { data, error } = await supabase
+      .from("group_ride_passengers")
+      .select("ride_id, group_rides!inner(status, archived_at)")
+      .eq("user_id", uid)
+      .neq("status", "cancelled")
+      .order("joined_at", { ascending: false })
+      .limit(10);
+    if (error) return null;
+    const active = (data ?? []).find((row: any) => {
+      const r = row.group_rides;
+      return r && r.archived_at === null &&
+        ["searching", "matched", "driver_arriving", "active"].includes(r.status);
+    });
+    return active?.ride_id ?? null;
+  };
+
   useEffect(() => {
     if (!isAuthenticated || !user) {
       setActiveRideId(null);
       return;
     }
     let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from("group_ride_passengers")
-        .select("ride_id, group_rides!inner(status, archived_at)")
-        .eq("user_id", user.id)
-        .neq("status", "cancelled")
-        .order("joined_at", { ascending: false })
-        .limit(10);
-      if (cancelled || error) return;
-      const active = (data ?? []).find((row: any) => {
-        const r = row.group_rides;
-        return r && r.archived_at === null &&
-          ["searching", "matched", "driver_arriving", "active"].includes(r.status);
-      });
-      setActiveRideId(active?.ride_id ?? null);
-    })();
-    return () => { cancelled = true; };
+    const refresh = async () => {
+      const id = await fetchActiveRide(user.id);
+      if (!cancelled) setActiveRideId(id);
+    };
+    void refresh();
+    const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", refresh);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", refresh);
+    };
   }, [isAuthenticated, user]);
 
 
@@ -149,6 +162,18 @@ function GroupRidePage() {
         const msg = String(error.message || "");
         console.error("[group-ride] join error", error);
         if (msg.includes("ALREADY_IN_RIDE")) {
+          // Récupère la course en cours et redirige vers la salle d'attente
+          const existing = await fetchActiveRide(user.id);
+          if (existing) {
+            setActiveRideId(existing);
+            toast.info("Course déjà en cours — reprise de la salle d'attente");
+            navigate({
+              to: "/deplacement-groupe/waiting/$rideId",
+              params: { rideId: existing },
+              replace: true,
+            });
+            return;
+          }
           toast.error("Vous avez déjà une course groupée en cours");
         } else if (msg.includes("NOT_AUTHENTICATED")) {
           toast.error("Session expirée, reconnectez-vous");
@@ -168,6 +193,9 @@ function GroupRidePage() {
         return;
       }
 
+      // Filet de sécurité : enregistre l'id avant la navigation pour que le
+      // bouton "Reprendre" reste utilisable même si la nav échoue (réseau lent).
+      setActiveRideId(row.ride_id);
       toast.success("Place réservée ! Redirection…");
       navigate({
         to: "/deplacement-groupe/waiting/$rideId",
@@ -219,12 +247,21 @@ function GroupRidePage() {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             type="button"
-            onClick={() =>
+            onClick={async () => {
+              // Re-vérifie la course active au clic, au cas où le state local serait obsolète
+              const latest = user ? await fetchActiveRide(user.id) : null;
+              const target = latest ?? activeRideId;
+              if (!target) {
+                toast.info("Aucune course active en cours");
+                setActiveRideId(null);
+                return;
+              }
+              setActiveRideId(target);
               navigate({
                 to: "/deplacement-groupe/waiting/$rideId",
-                params: { rideId: activeRideId },
-              })
-            }
+                params: { rideId: target },
+              });
+            }}
             className="flex w-full items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-card p-3.5 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
           >
             <div className="flex items-center gap-3">
