@@ -1697,6 +1697,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_group_ride_passenger: {
+        Args: { _ride_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_vtc_reservation: {
         Args: { _reservation_id: string }
         Returns: boolean
