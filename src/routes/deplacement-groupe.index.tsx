@@ -242,42 +242,53 @@ function GroupRidePage() {
       </section>
 
       <main className="mx-auto -mt-3 max-w-3xl space-y-3 px-4">
-        {activeRideId && (
-          <motion.button
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            type="button"
-            onClick={async () => {
-              // Re-vérifie la course active au clic, au cas où le state local serait obsolète
-              const latest = user ? await fetchActiveRide(user.id) : null;
-              const target = latest ?? activeRideId;
-              if (!target) {
-                toast.info("Aucune course active en cours");
-                setActiveRideId(null);
-                return;
-              }
-              setActiveRideId(target);
-              navigate({
-                to: "/deplacement-groupe/waiting/$rideId",
-                params: { rideId: target },
-              });
-            }}
-            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-card p-3.5 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <Loader2 className="h-5 w-5 animate-spin" />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Course en cours</p>
-                <p className="text-[13px] font-bold text-foreground">Reprendre ma salle d'attente</p>
-              </div>
+        <motion.button
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          type="button"
+          onClick={async () => {
+            if (!isAuthenticated || !user) {
+              toast.error("Connectez-vous pour accéder à la salle d'attente");
+              navigate({ to: "/connexion" });
+              return;
+            }
+            // Re-vérifie la course active au clic
+            const latest = await fetchActiveRide(user.id);
+            const target = latest ?? activeRideId;
+            if (!target) {
+              toast.info("Aucune course en cours — réservez une place ci-dessous pour rejoindre une salle d'attente");
+              setActiveRideId(null);
+              return;
+            }
+            setActiveRideId(target);
+            navigate({
+              to: "/deplacement-groupe/waiting/$rideId",
+              params: { rideId: target },
+            });
+          }}
+          className={`flex w-full items-center justify-between gap-3 rounded-2xl border p-3.5 text-left shadow-sm transition-all hover:shadow-md active:scale-[0.99] ${
+            activeRideId
+              ? "border-primary/30 bg-gradient-to-r from-primary/15 via-primary/10 to-card"
+              : "border-border bg-card"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${activeRideId ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+              {activeRideId ? <Loader2 className="h-5 w-5 animate-spin" /> : <Users className="h-5 w-5" />}
             </div>
-            <span className="rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground">
-              Ouvrir →
-            </span>
-          </motion.button>
-        )}
+            <div>
+              <p className={`text-[10px] font-bold uppercase tracking-widest ${activeRideId ? "text-primary" : "text-muted-foreground"}`}>
+                {activeRideId ? "Course en cours" : "Salle d'attente"}
+              </p>
+              <p className="text-[13px] font-bold text-foreground">
+                {activeRideId ? "Reprendre ma salle d'attente" : "Voir les passagers du même trajet"}
+              </p>
+            </div>
+          </div>
+          <span className={`rounded-full px-3 py-1.5 text-[11px] font-bold ${activeRideId ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+            Ouvrir →
+          </span>
+        </motion.button>
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 rounded-3xl border bg-card p-4 shadow-sm">
 
           <div>
