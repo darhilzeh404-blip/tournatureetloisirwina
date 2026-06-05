@@ -368,7 +368,37 @@ function ChauffeurVtcPage() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "payments" },
-        () => load(),
+        async (payload) => {
+          try {
+            const newRow = (payload.new ?? {}) as { id?: string; status?: string; reservation_id?: string; amount?: number };
+            const oldRow = (payload.old ?? {}) as { status?: string };
+            if (
+              payload.eventType === "UPDATE" &&
+              newRow.status === "VALIDATED" &&
+              oldRow.status !== "VALIDATED" &&
+              newRow.reservation_id
+            ) {
+              const { data: trip } = await supabase
+                .from("trips")
+                .select("driver_id")
+                .eq("reservation_id", newRow.reservation_id)
+                .maybeSingle();
+              if (trip?.driver_id === user.id) {
+                const gross = newRow.amount ?? 0;
+                const net = Math.round(gross * (1 - COMMISSION_RATE));
+                toast.success(`Paiement validé · ${FCFA(net)} crédités dans votre portefeuille`);
+                void showAppNotification("Paiement validé", {
+                  body: `${FCFA(net)} crédités (net après commission 20%)`,
+                  tag: `payment-${newRow.id}`,
+                  url: "/chauffeur-vtc",
+                });
+              }
+            }
+          } catch (e) {
+            console.error("[vtc] payment notification", e);
+          }
+          load();
+        },
       )
       .on(
         "postgres_changes",
