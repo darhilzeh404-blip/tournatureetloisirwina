@@ -231,10 +231,57 @@ function MesReservationsPage() {
       )
       .subscribe();
 
+    // Fetch group rides (courses de groupe actives où l'utilisateur est passager)
+    const ACTIVE_STATUSES = ["searching", "matched", "driver_arriving", "active"];
+    const loadGroupRides = async () => {
+      const { data: pax } = await supabase
+        .from("group_ride_passengers")
+        .select("ride_id, status, seat_index, pickup_address, destination_address, joined_at, group_rides!inner(id, status, price_per_seat, seats_taken, max_seats, departure_deadline, created_at, archived_at, route_id)")
+        .eq("user_id", user.id)
+        .neq("status", "cancelled")
+        .order("joined_at", { ascending: false });
+      const active = (pax ?? []).filter((row: any) => {
+        const r = row.group_rides;
+        return r && r.archived_at === null && ACTIVE_STATUSES.includes(r.status);
+      });
+      const routeIds = Array.from(new Set(active.map((row: any) => row.group_rides.route_id).filter(Boolean)));
+      let routeMap: Record<string, string> = {};
+      if (routeIds.length > 0) {
+        const { data: routes } = await supabase
+          .from("group_routes")
+          .select("id, name")
+          .in("id", routeIds);
+        (routes ?? []).forEach((rt: any) => (routeMap[rt.id] = rt.name));
+      }
+      if (cancelled) return;
+      setGroupRides(active.map((row: any) => ({
+        id: row.group_rides.id,
+        status: row.group_rides.status,
+        price_per_seat: row.group_rides.price_per_seat,
+        seats_taken: row.group_rides.seats_taken,
+        max_seats: row.group_rides.max_seats,
+        departure_deadline: row.group_rides.departure_deadline,
+        created_at: row.group_rides.created_at,
+        passenger_status: row.status,
+        seat_index: row.seat_index,
+        pickup_address: row.pickup_address,
+        destination_address: row.destination_address,
+        route_name: row.group_rides.route_id ? routeMap[row.group_rides.route_id] ?? null : null,
+      })));
+    };
+    void loadGroupRides();
+
+    const groupChannel = supabase
+      .channel(`group-rides-user-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers", filter: `user_id=eq.${user.id}` }, () => { void loadGroupRides(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_rides" }, () => { void loadGroupRides(); })
+      .subscribe();
+
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
       supabase.removeChannel(tripsChannel);
+      supabase.removeChannel(groupChannel);
     };
   }, [user]);
 
