@@ -29,6 +29,31 @@ interface Reservation {
   trip_id?: string | null;
 }
 
+interface GroupRideRow {
+  id: string;
+  status: string;
+  price_per_seat: number;
+  seats_taken: number;
+  max_seats: number;
+  departure_deadline: string;
+  created_at: string;
+  passenger_status: string;
+  seat_index: number;
+  pickup_address: string | null;
+  destination_address: string | null;
+  route_name: string | null;
+}
+  id: string;
+  service_type: ServiceType;
+  reservation_date: string;
+  total_amount: number;
+  paid_amount: number;
+  status: ReservationStatus;
+  details: Record<string, unknown> | null;
+  created_at: string;
+  trip_id?: string | null;
+}
+
 export const Route = createFileRoute("/mes-reservations")({
   head: () => ({
     meta: [
