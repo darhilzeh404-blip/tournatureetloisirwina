@@ -105,6 +105,7 @@ function MesReservationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [payTarget, setPayTarget] = useState<Reservation | null>(null);
+  const [groupRides, setGroupRides] = useState<GroupRideRow[]>([]);
 
   // Trouve un trip actif (pending|active) pour partager auto la position
   const activeTripId = reservations.find(
