@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2, MapPin, Radio } from "lucide-react";
+import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2, MapPin, Radio, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useShareClientPosition } from "@/hooks/use-client-position";
@@ -27,6 +27,21 @@ interface Reservation {
   details: Record<string, unknown> | null;
   created_at: string;
   trip_id?: string | null;
+}
+
+interface GroupRideRow {
+  id: string;
+  status: string;
+  price_per_seat: number;
+  seats_taken: number;
+  max_seats: number;
+  departure_deadline: string;
+  created_at: string;
+  passenger_status: string;
+  seat_index: number;
+  pickup_address: string | null;
+  destination_address: string | null;
+  route_name: string | null;
 }
 
 export const Route = createFileRoute("/mes-reservations")({
@@ -105,6 +120,7 @@ function MesReservationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [payTarget, setPayTarget] = useState<Reservation | null>(null);
+  const [groupRides, setGroupRides] = useState<GroupRideRow[]>([]);
 
   // Trouve un trip actif (pending|active) pour partager auto la position
   const activeTripId = reservations.find(
@@ -215,10 +231,57 @@ function MesReservationsPage() {
       )
       .subscribe();
 
+    // Fetch group rides (courses de groupe actives où l'utilisateur est passager)
+    const ACTIVE_STATUSES = ["searching", "matched", "driver_arriving", "active"];
+    const loadGroupRides = async () => {
+      const { data: pax } = await supabase
+        .from("group_ride_passengers")
+        .select("ride_id, status, seat_index, pickup_address, destination_address, joined_at, group_rides!inner(id, status, price_per_seat, seats_taken, max_seats, departure_deadline, created_at, archived_at, route_id)")
+        .eq("user_id", user.id)
+        .neq("status", "cancelled")
+        .order("joined_at", { ascending: false });
+      const active = (pax ?? []).filter((row: any) => {
+        const r = row.group_rides;
+        return r && r.archived_at === null && ACTIVE_STATUSES.includes(r.status);
+      });
+      const routeIds = Array.from(new Set(active.map((row: any) => row.group_rides.route_id).filter(Boolean)));
+      let routeMap: Record<string, string> = {};
+      if (routeIds.length > 0) {
+        const { data: routes } = await supabase
+          .from("group_routes")
+          .select("id, name")
+          .in("id", routeIds);
+        (routes ?? []).forEach((rt: any) => (routeMap[rt.id] = rt.name));
+      }
+      if (cancelled) return;
+      setGroupRides(active.map((row: any) => ({
+        id: row.group_rides.id,
+        status: row.group_rides.status,
+        price_per_seat: row.group_rides.price_per_seat,
+        seats_taken: row.group_rides.seats_taken,
+        max_seats: row.group_rides.max_seats,
+        departure_deadline: row.group_rides.departure_deadline,
+        created_at: row.group_rides.created_at,
+        passenger_status: row.status,
+        seat_index: row.seat_index,
+        pickup_address: row.pickup_address,
+        destination_address: row.destination_address,
+        route_name: row.group_rides.route_id ? routeMap[row.group_rides.route_id] ?? null : null,
+      })));
+    };
+    void loadGroupRides();
+
+    const groupChannel = supabase
+      .channel(`group-rides-user-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers", filter: `user_id=eq.${user.id}` }, () => { void loadGroupRides(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_rides" }, () => { void loadGroupRides(); })
+      .subscribe();
+
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
       supabase.removeChannel(tripsChannel);
+      supabase.removeChannel(groupChannel);
     };
   }, [user]);
 
@@ -243,6 +306,56 @@ function MesReservationsPage() {
       {gpsError && activeTripId && (
         <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
           GPS bloqué : {gpsError.message}. Autorisez la géolocalisation pour que le chauffeur vous trouve.
+        </div>
+      )}
+
+      {groupRides.length > 0 && (
+        <div className="mt-6 space-y-3">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <Users className="h-5 w-5 text-primary" />
+            Mes courses de groupe
+          </h2>
+          {groupRides.map((gr) => {
+            const statusLabel: Record<string, string> = {
+              searching: "Recherche de passagers",
+              matched: "Course confirmée",
+              driver_arriving: "Chauffeur en route",
+              active: "Course en cours",
+            };
+            return (
+              <div key={gr.id} className="card-hover rounded-2xl border border-primary/20 bg-primary/5 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-bold text-muted-foreground">#{gr.id.slice(0, 8).toUpperCase()}</span>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        {statusLabel[gr.status] ?? gr.status}
+                      </span>
+                    </div>
+                    <h3 className="mt-1 font-bold">{gr.route_name ?? "Course de groupe"}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {gr.pickup_address ?? "Départ"} → {gr.destination_address ?? "Destination"}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Place {gr.seat_index + 1} · {gr.seats_taken}/{gr.max_seats} passagers
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Prix/place</p>
+                    <p className="text-lg font-bold">{formatXAF(gr.price_per_seat)}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end border-t border-primary/10 pt-4">
+                  <Link to="/deplacement-groupe/waiting/$rideId" params={{ rideId: gr.id }}>
+                    <Button size="sm" className="gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Salle d'attente
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
