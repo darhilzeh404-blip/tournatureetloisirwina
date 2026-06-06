@@ -43,16 +43,6 @@ interface GroupRideRow {
   destination_address: string | null;
   route_name: string | null;
 }
-  id: string;
-  service_type: ServiceType;
-  reservation_date: string;
-  total_amount: number;
-  paid_amount: number;
-  status: ReservationStatus;
-  details: Record<string, unknown> | null;
-  created_at: string;
-  trip_id?: string | null;
-}
 
 export const Route = createFileRoute("/mes-reservations")({
   head: () => ({
