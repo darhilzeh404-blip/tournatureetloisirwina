@@ -309,6 +309,56 @@ function MesReservationsPage() {
         </div>
       )}
 
+      {groupRides.length > 0 && (
+        <div className="mt-6 space-y-3">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <Users className="h-5 w-5 text-primary" />
+            Mes courses de groupe
+          </h2>
+          {groupRides.map((gr) => {
+            const statusLabel: Record<string, string> = {
+              searching: "Recherche de passagers",
+              matched: "Course confirmée",
+              driver_arriving: "Chauffeur en route",
+              active: "Course en cours",
+            };
+            return (
+              <div key={gr.id} className="card-hover rounded-2xl border border-primary/20 bg-primary/5 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-bold text-muted-foreground">#{gr.id.slice(0, 8).toUpperCase()}</span>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        {statusLabel[gr.status] ?? gr.status}
+                      </span>
+                    </div>
+                    <h3 className="mt-1 font-bold">{gr.route_name ?? "Course de groupe"}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {gr.pickup_address ?? "Départ"} → {gr.destination_address ?? "Destination"}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Place {gr.seat_index + 1} · {gr.seats_taken}/{gr.max_seats} passagers
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Prix/place</p>
+                    <p className="text-lg font-bold">{formatXAF(gr.price_per_seat)}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end border-t border-primary/10 pt-4">
+                  <Link to="/deplacement-groupe/waiting/$rideId" params={{ rideId: gr.id }}>
+                    <Button size="sm" className="gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Salle d'attente
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <div className="mt-8">
         {loading ? (
           <ReservationListSkeleton count={4} />
