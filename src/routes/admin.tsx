@@ -1,9 +1,18 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) throw redirect({ to: "/connexion" });
+    const { data: roleRow } = await supabase
+      .from("user_roles").select("role").eq("user_id", session.user.id).limit(1).single();
+    if (roleRow?.role !== "admin") throw redirect({ to: "/" });
+  },
   head: () => ({
     meta: [
       { title: "Admin — Agence Wina" },
