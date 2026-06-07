@@ -9,7 +9,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CircuitGridSkeleton, ReservationListSkeleton } from "@/components/skeletons";
 import { toast } from "sonner";
 
+import { redirect } from "@tanstack/react-router";
+
 export const Route = createFileRoute("/gerant")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) throw redirect({ to: "/connexion" });
+    const { data: roleRow } = await supabase
+      .from("user_roles").select("role").eq("user_id", session.user.id).limit(1).single();
+    if (roleRow?.role !== "gerant" && roleRow?.role !== "admin") throw redirect({ to: "/" });
+  },
   head: () => ({
     meta: [
       { title: "Espace Gérant — Agence Wina" },
