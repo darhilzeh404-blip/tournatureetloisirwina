@@ -314,7 +314,13 @@ function MesReservationsPage() {
           <h2 className="flex items-center gap-2 text-lg font-bold">
             <Users className="h-5 w-5 text-primary" />
             Mes courses de groupe
+            <span className="ml-1 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+              {groupRides.length} active{groupRides.length > 1 ? "s" : ""}
+            </span>
           </h2>
+          <p className="text-xs text-muted-foreground">
+            Vous pouvez consulter vos réservations ci-dessous sans interrompre votre course en cours.
+          </p>
           {groupRides.map((gr) => {
             const statusLabel: Record<string, string> = {
               searching: "Recherche de passagers",
@@ -322,13 +328,15 @@ function MesReservationsPage() {
               driver_arriving: "Chauffeur en route",
               active: "Course en cours",
             };
+            const isLive = gr.status === "driver_arriving" || gr.status === "active";
             return (
-              <div key={gr.id} className="card-hover rounded-2xl border border-primary/20 bg-primary/5 p-5">
+              <div key={gr.id} className="card-hover rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/0 p-5 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-bold text-muted-foreground">#{gr.id.slice(0, 8).toUpperCase()}</span>
-                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                        {isLive && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />}
                         {statusLabel[gr.status] ?? gr.status}
                       </span>
                     </div>
@@ -349,7 +357,7 @@ function MesReservationsPage() {
                   <Link to="/deplacement-groupe/waiting/$rideId" params={{ rideId: gr.id }}>
                     <Button size="sm" className="gap-2">
                       <MapPin className="h-4 w-4" />
-                      Salle d'attente
+                      Rejoindre la salle d'attente
                     </Button>
                   </Link>
                 </div>
