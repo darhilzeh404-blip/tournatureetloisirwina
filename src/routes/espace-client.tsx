@@ -69,6 +69,13 @@ function EspaceClient() {
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
   const [target, setTarget] = useState<BookingTarget | null>(null);
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate({ to: "/connexion" });
+    }
+  }, [isLoading, isAuthenticated, navigate]);
+
   const openCircuitNavigation = (slug: string) => {
     navigate({ to: "/circuits/suivi/$slug", params: { slug } });
   };
@@ -76,6 +83,7 @@ function EspaceClient() {
   if (isLoading || !isAuthenticated) {
     return <EspaceClientSkeleton />;
   }
+
 
   return (
     <div className="pb-20">
