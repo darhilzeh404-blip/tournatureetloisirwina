@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Tag, Headphones, Users } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { ClientNav } from "@/components/ClientNav";
@@ -69,6 +69,13 @@ function EspaceClient() {
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
   const [target, setTarget] = useState<BookingTarget | null>(null);
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate({ to: "/connexion" });
+    }
+  }, [isLoading, isAuthenticated, navigate]);
+
   const openCircuitNavigation = (slug: string) => {
     navigate({ to: "/circuits/suivi/$slug", params: { slug } });
   };
@@ -76,6 +83,7 @@ function EspaceClient() {
   if (isLoading || !isAuthenticated) {
     return <EspaceClientSkeleton />;
   }
+
 
   return (
     <div className="pb-20">

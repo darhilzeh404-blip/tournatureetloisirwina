@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, History, Sparkles, TrendingUp, Gift } from "lucide-react";
 import { motion } from "framer-motion";
@@ -44,10 +44,19 @@ interface HistoryRow {
 
 function WinaCoinsPage() {
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
   const [balance, setBalance] = useState<CoinsBalance | null>(null);
   const [levels, setLevels] = useState<VipLevel[]>([]);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate({ to: "/connexion" });
+    }
+  }, [isLoading, user, navigate]);
+
 
   useEffect(() => {
     if (isLoading || !user) return;
