@@ -140,9 +140,10 @@ function ReserverTransport() {
     }
     setSubmitting(true);
     try {
-      const labels = EXTRA_ACTIVITIES.filter((a) => extraSelected.includes(a.id)).map(
-        (a) => a.label,
-      );
+      const labels = catalog.extraActivities
+        .filter((a) => extraSelected.includes(a.code))
+        .map((a) => a.label);
+
       const { error } = await supabase.from("reservations").insert({
         user_id: user!.id,
         service_type: "TRANSPORT_SCOLAIRE" as const,
