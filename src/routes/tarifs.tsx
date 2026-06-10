@@ -239,35 +239,50 @@ function TarifsPage() {
           </motion.div>
 
           <motion.div variants={fadeUp} className="mt-4 grid gap-4">
-            {GROUP_BUS_PRICING.map((group) => (
-              <div key={group.title} className="rounded-2xl border bg-card p-5">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                    <MapPin className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold">{group.title}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">Rassemblement : {group.gathering}</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {group.destinations.map((destination) => (
-                    <span key={destination} className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
-                      {destination}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-4 rounded-xl bg-secondary/50 p-3">
-                  {group.rows.map(([label, price]) => (
-                    <div key={label} className="flex items-baseline justify-between gap-3 border-b border-dashed border-border py-2 first:pt-0 last:border-0 last:pb-0">
-                      <span className="text-sm text-muted-foreground">{label}</span>
-                      <span className="text-sm font-extrabold text-primary">{formatXAF(price)}</span>
-                    </div>
-                  ))}
-                </div>
+            {catalog.loading ? (
+              <div className="flex items-center justify-center rounded-2xl border bg-card p-8 text-sm text-muted-foreground">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Chargement…
               </div>
-            ))}
+            ) : (
+              catalog.groupBusTrips.map((trip: GroupBusTrip) => {
+                const rows: [string, number][] =
+                  trip.pricing.type === "direction"
+                    ? [["Aller", trip.pricing.aller], ["Retour", trip.pricing.retour]]
+                    : Object.entries(trip.pricing.byCapacity)
+                        .sort((a, b) => Number(a[0]) - Number(b[0]))
+                        .map(([cap, price]) => [`Bus ${cap} places / journée`, Number(price)]);
+                return (
+                  <div key={trip.id} className="rounded-2xl border bg-card p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <MapPin className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold">{trip.title}</h3>
+                        <p className="mt-1 text-xs text-muted-foreground">Rassemblement : {trip.gathering}</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {trip.destinations.map((destination) => (
+                        <span key={destination} className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
+                          {destination}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-4 rounded-xl bg-secondary/50 p-3">
+                      {rows.map(([label, price]) => (
+                        <div key={label} className="flex items-baseline justify-between gap-3 border-b border-dashed border-border py-2 first:pt-0 last:border-0 last:pb-0">
+                          <span className="text-sm text-muted-foreground">{label}</span>
+                          <span className="text-sm font-extrabold text-primary">{formatXAF(price)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </motion.div>
+
         </motion.section>
 
         {/* CTA */}
