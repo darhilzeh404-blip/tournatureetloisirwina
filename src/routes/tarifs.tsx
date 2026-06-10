@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Bus, GraduationCap, Sparkles, MapPin, Crown, Check, LogIn } from "lucide-react";
+import { Bus, GraduationCap, Sparkles, MapPin, Crown, Check, LogIn, Loader2 } from "lucide-react";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 import { ClientNav } from "@/components/ClientNav";
+import { usePricingCatalog, type SchoolTripTariff, type GroupBusTrip } from "@/hooks/use-pricing-catalog";
 
 export const Route = createFileRoute("/tarifs")({
   head: () => ({
@@ -31,30 +32,27 @@ function formatXAF(amount: number) {
   return new Intl.NumberFormat("fr-FR").format(amount) + " XAF";
 }
 
-const GROUP_BUS_PRICING = [
-  {
-    title: "Parc d’Akanda",
-    gathering: "Parking SANgel",
-    destinations: ["Cap Santa-Clara", "Cap Estérias", "Cap des Pères", "Cap Caravane", "Boulokoboué", "Malibé 1", "Malibé 2", "Ndossi village", "Akouago-village"],
-    rows: [["Aller", 20_000], ["Retour", 20_000]] as [string, number][],
-  },
-  {
-    title: "Ntoum-Meyan & Donguila",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Donguila", "LBV - Meyang"],
-    rows: [["Bus 16 places / journée", 100_000], ["Bus 32 places / journée", 200_000]] as [string, number][],
-  },
-  {
-    title: "LBV - Cocobeach",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Cocobeach"],
-    rows: [["Bus 16 places / journée", 192_000], ["Bus 32 places / journée", 384_000]] as [string, number][],
-  },
-];
+
+
 
 function TarifsPage() {
   const { isAuthenticated, isLoading, role } = useAuth();
   const navigate = useNavigate();
+  const catalog = usePricingCatalog();
+
+  // Group school trip tariffs by route_label
+  const schoolByRoute = useMemo(() => {
+    const map = new Map<string, { sort_order: number; rows: SchoolTripTariff[] }>();
+    catalog.schoolTrips.forEach((t) => {
+      const entry = map.get(t.route_label) ?? { sort_order: t.sort_order, rows: [] };
+      entry.rows.push(t);
+      map.set(t.route_label, entry);
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => a[1].sort_order - b[1].sort_order)
+      .map(([label, v]) => ({ label, rows: v.rows }));
+  }, [catalog.schoolTrips]);
+
 
   // Redirection des non-clients (chauffeur/admin/gerant) vers leur espace
   useEffect(() => {
@@ -157,55 +155,36 @@ function TarifsPage() {
             </ul>
           </motion.div>
 
-          {/* Akanda-LBV */}
-          <motion.div variants={fadeUp} className="mt-5">
-            <h3 className="mb-3 flex items-center gap-2 text-base font-bold">
-              <MapPin className="h-4 w-4 text-primary" /> Trajet Akanda — Libreville
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <PricingBlock
-                variant="standard"
-                title="Standard"
-                rows={[
-                  ["Aller-retour", 80000],
-                  ["Simple", 50000],
-                ]}
-              />
-              <PricingBlock
-                variant="vip"
-                title="VIP"
-                rows={[
-                  ["Aller-retour", 150000],
-                  ["Simple", 80000],
-                ]}
-              />
+          {catalog.loading ? (
+            <div className="mt-5 flex items-center justify-center rounded-2xl border bg-card p-8 text-sm text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Chargement des tarifs…
             </div>
-          </motion.div>
+          ) : (
+            schoolByRoute.map(({ label, rows }) => {
+              const standardRows = rows.filter(r => r.standing === "standard");
+              const vipRows = rows.filter(r => r.standing === "vip");
+              const fmt = (rs: SchoolTripTariff[]): [string, number][] =>
+                rs
+                  .sort((a, b) => (a.formule === "ar" ? -1 : 1) - (b.formule === "ar" ? -1 : 1))
+                  .map(r => [r.formule === "ar" ? "Aller-retour" : "Simple", r.amount]);
+              return (
+                <motion.div key={label} variants={fadeUp} className="mt-5">
+                  <h3 className="mb-3 flex items-center gap-2 text-base font-bold">
+                    <MapPin className="h-4 w-4 text-primary" /> Trajet {label}
+                  </h3>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {standardRows.length > 0 && (
+                      <PricingBlock variant="standard" title="Standard" rows={fmt(standardRows)} />
+                    )}
+                    {vipRows.length > 0 && (
+                      <PricingBlock variant="vip" title="VIP" rows={fmt(vipRows)} />
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })
+          )}
 
-          {/* Owendo-LBV */}
-          <motion.div variants={fadeUp} className="mt-5">
-            <h3 className="mb-3 flex items-center gap-2 text-base font-bold">
-              <MapPin className="h-4 w-4 text-primary" /> Trajet Owendo — Libreville
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <PricingBlock
-                variant="standard"
-                title="Standard"
-                rows={[
-                  ["Aller-retour", 80000],
-                  ["Simple", 50000],
-                ]}
-              />
-              <PricingBlock
-                variant="vip"
-                title="VIP"
-                rows={[
-                  ["Aller-retour", 150000],
-                  ["Simple", 80000],
-                ]}
-              />
-            </div>
-          </motion.div>
         </motion.section>
 
         {/* TRANSPORT EXTRA SCOLAIRE */}
@@ -260,35 +239,50 @@ function TarifsPage() {
           </motion.div>
 
           <motion.div variants={fadeUp} className="mt-4 grid gap-4">
-            {GROUP_BUS_PRICING.map((group) => (
-              <div key={group.title} className="rounded-2xl border bg-card p-5">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                    <MapPin className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold">{group.title}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">Rassemblement : {group.gathering}</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {group.destinations.map((destination) => (
-                    <span key={destination} className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
-                      {destination}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-4 rounded-xl bg-secondary/50 p-3">
-                  {group.rows.map(([label, price]) => (
-                    <div key={label} className="flex items-baseline justify-between gap-3 border-b border-dashed border-border py-2 first:pt-0 last:border-0 last:pb-0">
-                      <span className="text-sm text-muted-foreground">{label}</span>
-                      <span className="text-sm font-extrabold text-primary">{formatXAF(price)}</span>
-                    </div>
-                  ))}
-                </div>
+            {catalog.loading ? (
+              <div className="flex items-center justify-center rounded-2xl border bg-card p-8 text-sm text-muted-foreground">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Chargement…
               </div>
-            ))}
+            ) : (
+              catalog.groupBusTrips.map((trip: GroupBusTrip) => {
+                const rows: [string, number][] =
+                  trip.pricing.type === "direction"
+                    ? [["Aller", trip.pricing.aller], ["Retour", trip.pricing.retour]]
+                    : Object.entries(trip.pricing.byCapacity)
+                        .sort((a, b) => Number(a[0]) - Number(b[0]))
+                        .map(([cap, price]) => [`Bus ${cap} places / journée`, Number(price)]);
+                return (
+                  <div key={trip.id} className="rounded-2xl border bg-card p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <MapPin className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold">{trip.title}</h3>
+                        <p className="mt-1 text-xs text-muted-foreground">Rassemblement : {trip.gathering}</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {trip.destinations.map((destination) => (
+                        <span key={destination} className="rounded-full border bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
+                          {destination}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-4 rounded-xl bg-secondary/50 p-3">
+                      {rows.map(([label, price]) => (
+                        <div key={label} className="flex items-baseline justify-between gap-3 border-b border-dashed border-border py-2 first:pt-0 last:border-0 last:pb-0">
+                          <span className="text-sm text-muted-foreground">{label}</span>
+                          <span className="text-sm font-extrabold text-primary">{formatXAF(price)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </motion.div>
+
         </motion.section>
 
         {/* CTA */}

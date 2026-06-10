@@ -329,6 +329,135 @@ export type Database = {
         }
         Relationships: []
       }
+      event_bus_capacity_factors: {
+        Row: {
+          capacity: number
+          created_at: string
+          factor: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          capacity: number
+          created_at?: string
+          factor: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          factor?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      event_bus_tariffs: {
+        Row: {
+          amount: number
+          created_at: string
+          formule: string
+          id: string
+          standing: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          formule: string
+          id?: string
+          standing: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          formule?: string
+          id?: string
+          standing?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      extra_activities: {
+        Row: {
+          code: string
+          created_at: string
+          emoji: string | null
+          id: string
+          is_active: boolean
+          label: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      group_bus_trips: {
+        Row: {
+          code: string
+          created_at: string
+          destinations: string[]
+          gathering: string
+          id: string
+          is_active: boolean
+          note: string | null
+          pricing: Json
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          destinations?: string[]
+          gathering: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          pricing: Json
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          destinations?: string[]
+          gathering?: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          pricing?: Json
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       group_ride_passengers: {
         Row: {
           commune_destination: string
@@ -907,6 +1036,66 @@ export type Database = {
         }
         Relationships: []
       }
+      school_monthly_tariffs: {
+        Row: {
+          amount: number
+          created_at: string
+          formule: string
+          id: string
+          standing: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          formule: string
+          id?: string
+          standing: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          formule?: string
+          id?: string
+          standing?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      school_trip_tariffs: {
+        Row: {
+          amount: number
+          created_at: string
+          formule: string
+          id: string
+          route_label: string
+          sort_order: number
+          standing: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          formule: string
+          id?: string
+          route_label: string
+          sort_order?: number
+          standing: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          formule?: string
+          id?: string
+          route_label?: string
+          sort_order?: number
+          standing?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ticket_categories: {
         Row: {
           created_at: string
@@ -1045,6 +1234,30 @@ export type Database = {
           slug?: string
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      transport_misc_settings: {
+        Row: {
+          created_at: string
+          key: string
+          label: string | null
+          updated_at: string
+          value_int: number
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          label?: string | null
+          updated_at?: string
+          value_int: number
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          label?: string | null
+          updated_at?: string
+          value_int?: number
         }
         Relationships: []
       }

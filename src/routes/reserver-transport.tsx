@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   GraduationCap,
   Bus,
@@ -19,6 +19,12 @@ import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NumberInput } from "@/components/ui/number-input";
+import {
+  usePricingCatalog,
+  findSchoolMonthly,
+  findEventBus,
+  findCapacityFactor,
+} from "@/hooks/use-pricing-catalog";
 
 export const Route = createFileRoute("/reserver-transport")({
   head: () => ({
@@ -34,64 +40,17 @@ export const Route = createFileRoute("/reserver-transport")({
   component: ReserverTransport,
 });
 
-// ─────────── Données catalogue ───────────
+// ─────────── Catalogue statique non-tarifaire ───────────
 const SCOLAIRE_ROUTES = ["Akanda → LBV", "Owendo → LBV", "LBV → Akanda", "LBV → Owendo"] as const;
 const NIVEAUX = ["Maternelle", "Primaire", "Collège", "Lycée"] as const;
-const SCOLAIRE_TARIFS = {
-  standard: { mensuel_simple: 80_000, mensuel_ar: 120_000 },
-  vip: { mensuel_simple: 150_000, mensuel_ar: 220_000 },
-} as const;
+const EVENT_BUS_CAPACITIES = [14, 16, 24, 32] as const;
 
-const EXTRA_ACTIVITIES = [
-  { id: "jardinage", emoji: "🌱", label: "Jardinage fruits & légumes", price: 15_000 },
-  { id: "culinaire", emoji: "👨‍🍳", label: "Art culinaire", price: 18_000 },
-  { id: "nutrition", emoji: "🥗", label: "Nutrition saine", price: 12_000 },
-  { id: "nature", emoji: "🌳", label: "Nature & culture", price: 20_000 },
-  { id: "natation", emoji: "🏊", label: "Natation & danse", price: 25_000 },
-];
 
-const GROUP_BUS_TRIPS = [
-  {
-    id: "parc-akanda",
-    title: "Trajet Parc d’Akanda",
-    gathering: "Parking SANgel",
-    note: "Aller et retour facturés séparément pour les déplacements en groupe.",
-    destinations: ["Cap Santa-Clara", "Cap Estérias", "Cap des Pères", "Cap Caravane", "Boulokoboué", "Malibé 1", "Malibé 2", "Ndossi village", "Akouago-village"],
-    pricing: { type: "direction", aller: 20_000, retour: 20_000 },
-  },
-  {
-    id: "lbv-donguila",
-    title: "LBV - Donguila",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Donguila"],
-    pricing: { type: "daily", byCapacity: { 16: 100_000, 24: 150_000, 32: 200_000 } },
-  },
-  {
-    id: "lbv-meyang",
-    title: "LBV - Meyang",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Meyang"],
-    pricing: { type: "daily", byCapacity: { 16: 100_000, 24: 150_000, 32: 200_000 } },
-  },
-  {
-    id: "cocobeach",
-    title: "LBV - Cocobeach",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Cocobeach"],
-    pricing: { type: "daily", byCapacity: { 16: 192_000, 24: 288_000, 32: 384_000 } },
-  },
-] as const;
-
-// Tarifs Location bus pour événements (urbain / mariage / excursion)
-const EVENT_BUS_PRICING = {
-  standard: { journee: 180_000, demi: 100_000 },
-  vip: { journee: 250_000, demi: 130_000 },
-} as const;
-const EVENT_BUS_CAPACITIES = ["14 places", "16 places", "24 places", "32 places"] as const;
 
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const catalog = usePricingCatalog();
   const [tab, setTab] = useState("scolaire");
   const [busSubTab, setBusSubTab] = useState<"groupe" | "evenement">("groupe");
   const [submitting, setSubmitting] = useState(false);
@@ -113,14 +72,15 @@ function ReserverTransport() {
   const [scoVip, setScoVip] = useState(false);
   const [scoDate, setScoDate] = useState("");
 
+  const scoStandardSimple = findSchoolMonthly(catalog.schoolMonthly, "standard", "simple");
+  const scoStandardAr = findSchoolMonthly(catalog.schoolMonthly, "standard", "ar");
+  const scoVipSimple = findSchoolMonthly(catalog.schoolMonthly, "vip", "simple");
+  const scoVipAr = findSchoolMonthly(catalog.schoolMonthly, "vip", "ar");
   const scoUnit = scoVip
-    ? scoFormule === "simple"
-      ? SCOLAIRE_TARIFS.vip.mensuel_simple
-      : SCOLAIRE_TARIFS.vip.mensuel_ar
-    : scoFormule === "simple"
-      ? SCOLAIRE_TARIFS.standard.mensuel_simple
-      : SCOLAIRE_TARIFS.standard.mensuel_ar;
+    ? scoFormule === "simple" ? scoVipSimple : scoVipAr
+    : scoFormule === "simple" ? scoStandardSimple : scoStandardAr;
   const scoTotal = scoUnit * scoEnfants;
+
 
   const submitScolaire = async () => {
     if (!ensureAuth()) return;
@@ -158,11 +118,12 @@ function ReserverTransport() {
   const [extraSelected, setExtraSelected] = useState<string[]>([]);
   const [extraEnfants, setExtraEnfants] = useState(1);
   const [extraDate, setExtraDate] = useState("");
-  const TRANSPORT_FEE = 10_000;
-  const extraActivitiesTotal = EXTRA_ACTIVITIES.filter((a) =>
-    extraSelected.includes(a.id),
-  ).reduce((sum, a) => sum + a.price, 0);
+  const TRANSPORT_FEE = catalog.settings.extra_transport_fee ?? 10_000;
+  const extraActivitiesTotal = catalog.extraActivities
+    .filter((a) => extraSelected.includes(a.code))
+    .reduce((sum, a) => sum + a.price, 0);
   const extraTotal = (extraActivitiesTotal + TRANSPORT_FEE) * extraEnfants;
+
 
   const toggleExtra = (id: string) =>
     setExtraSelected((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -179,9 +140,10 @@ function ReserverTransport() {
     }
     setSubmitting(true);
     try {
-      const labels = EXTRA_ACTIVITIES.filter((a) => extraSelected.includes(a.id)).map(
-        (a) => a.label,
-      );
+      const labels = catalog.extraActivities
+        .filter((a) => extraSelected.includes(a.code))
+        .map((a) => a.label);
+
       const { error } = await supabase.from("reservations").insert({
         user_id: user!.id,
         service_type: "TRANSPORT_SCOLAIRE" as const,
@@ -214,10 +176,11 @@ function ReserverTransport() {
   const [evtNom, setEvtNom] = useState("");
   const [evtTel, setEvtTel] = useState("");
 
-  const evtUnit = EVENT_BUS_PRICING[evtStanding][evtFormule];
-  // Tarifs publiés pour 32 places. Réduction proportionnelle indicative pour 14/16/24 places.
-  const evtCapacityFactor = evtCapacity === 32 ? 1 : evtCapacity === 24 ? 0.85 : evtCapacity === 16 ? 0.7 : 0.6;
+  const evtUnit = findEventBus(catalog.eventBusTariffs, evtStanding, evtFormule);
+  // Tarifs publiés pour 32 places. Réduction proportionnelle indicative pour autres capacités.
+  const evtCapacityFactor = findCapacityFactor(catalog.eventBusCapacityFactors, evtCapacity);
   const evtTotal = Math.round(evtUnit * evtCapacityFactor);
+
 
   const submitEvenement = async () => {
     if (!ensureAuth()) return;
@@ -266,7 +229,7 @@ function ReserverTransport() {
   };
 
   // ─────────── Form Bus groupe ───────────
-  const [busTripId, setBusTripId] = useState<string>(GROUP_BUS_TRIPS[0].id);
+  const [busTripCode, setBusTripCode] = useState<string>("");
   const [busDirection, setBusDirection] = useState<"aller" | "retour" | "aller_retour">("aller");
   const [busCapacity, setBusCapacity] = useState<16 | 24 | 32>(16);
   const [busDepartureAt, setBusDepartureAt] = useState("");
@@ -277,15 +240,22 @@ function ReserverTransport() {
   const [busEnfants, setBusEnfants] = useState(0);
   const [busClim, setBusClim] = useState<boolean>(true);
 
-  const selectedBusTrip = GROUP_BUS_TRIPS.find((trip) => trip.id === busTripId)!;
-  const isDirectionalBusTrip = selectedBusTrip.pricing.type === "direction";
-  const busUnit = isDirectionalBusTrip
-    ? busDirection === "aller_retour"
-      ? selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour
-      : selectedBusTrip.pricing[busDirection]
-    : selectedBusTrip.pricing.byCapacity[busCapacity];
+  const selectedBusTrip = useMemo(
+    () => catalog.groupBusTrips.find((t) => t.code === busTripCode) ?? catalog.groupBusTrips[0],
+    [catalog.groupBusTrips, busTripCode],
+  );
+  const isDirectionalBusTrip = selectedBusTrip?.pricing.type === "direction";
+  const busUnit = !selectedBusTrip
+    ? 0
+    : selectedBusTrip.pricing.type === "direction"
+      ? busDirection === "aller_retour"
+        ? selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour
+        : selectedBusTrip.pricing[busDirection]
+      : Number(selectedBusTrip.pricing.byCapacity[String(busCapacity)] ?? 0);
   const busTotal = isDirectionalBusTrip ? busUnit : busUnit * busDays;
-  const dailyBusPrices = selectedBusTrip.pricing.type === "daily" ? selectedBusTrip.pricing.byCapacity : null;
+  const dailyBusPrices =
+    selectedBusTrip?.pricing.type === "daily" ? selectedBusTrip.pricing.byCapacity : null;
+
 
   const submitBus = async () => {
     if (!ensureAuth()) return;
@@ -411,11 +381,12 @@ function ReserverTransport() {
             <Field label="Standing">
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" onClick={() => setScoVip(false)} className={pillCls(!scoVip)}>
-                  Standard · {formatFCFA(scoFormule === "simple" ? SCOLAIRE_TARIFS.standard.mensuel_simple : SCOLAIRE_TARIFS.standard.mensuel_ar)}
+                  Standard · {formatFCFA(scoFormule === "simple" ? scoStandardSimple : scoStandardAr)}
                 </button>
                 <button type="button" onClick={() => setScoVip(true)} className={pillCls(scoVip)}>
-                  VIP · {formatFCFA(scoFormule === "simple" ? SCOLAIRE_TARIFS.vip.mensuel_simple : SCOLAIRE_TARIFS.vip.mensuel_ar)}
+                  VIP · {formatFCFA(scoFormule === "simple" ? scoVipSimple : scoVipAr)}
                 </button>
+
               </div>
             </Field>
 
@@ -441,13 +412,14 @@ function ReserverTransport() {
             <div>
               <h3 className="mb-2 text-sm font-semibold">Activités</h3>
               <div className="space-y-2">
-                {EXTRA_ACTIVITIES.map((a) => {
-                  const sel = extraSelected.includes(a.id);
+                {catalog.extraActivities.map((a) => {
+                  const sel = extraSelected.includes(a.code);
                   return (
                     <button
-                      key={a.id}
+                      key={a.code}
                       type="button"
-                      onClick={() => toggleExtra(a.id)}
+                      onClick={() => toggleExtra(a.code)}
+
                       className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${sel ? "border-primary bg-primary/10" : "border-border bg-card"}`}
                     >
                       <span className="flex items-center gap-2 text-sm font-medium">
@@ -524,17 +496,18 @@ function ReserverTransport() {
             {/* Étape 1 — Choix du trajet */}
             <SectionCard step="1" title="Choisir un trajet" icon={<MapPin className="h-4 w-4" />}>
               <div className="space-y-2">
-                {GROUP_BUS_TRIPS.map((trip) => {
-                  const active = busTripId === trip.id;
+                {catalog.groupBusTrips.map((trip) => {
+                  const active = (busTripCode || catalog.groupBusTrips[0]?.code) === trip.code;
                   const isDirectional = trip.pricing.type === "direction";
-                  const priceHint = isDirectional
+                  const priceHint = trip.pricing.type === "direction"
                     ? `Aller ${formatFCFA(trip.pricing.aller)} · Retour ${formatFCFA(trip.pricing.retour)}`
-                    : `Dès ${formatFCFA(trip.pricing.byCapacity[16])}/jour`;
+                    : `Dès ${formatFCFA(Number(trip.pricing.byCapacity["16"] ?? 0))}/jour`;
+
                   return (
                     <button
-                      key={trip.id}
+                      key={trip.code}
                       type="button"
-                      onClick={() => setBusTripId(trip.id)}
+                      onClick={() => setBusTripCode(trip.code)}
                       className={`relative w-full overflow-hidden rounded-2xl border-2 p-4 text-left transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40 hover:shadow-sm"}`}
                       aria-pressed={active}
                     >
@@ -550,6 +523,7 @@ function ReserverTransport() {
                   );
                 })}
               </div>
+
             </SectionCard>
 
             {/* Étape 2 — Détails du trajet (dépliant) */}
