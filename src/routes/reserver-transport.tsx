@@ -381,11 +381,12 @@ function ReserverTransport() {
             <Field label="Standing">
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" onClick={() => setScoVip(false)} className={pillCls(!scoVip)}>
-                  Standard · {formatFCFA(scoFormule === "simple" ? SCOLAIRE_TARIFS.standard.mensuel_simple : SCOLAIRE_TARIFS.standard.mensuel_ar)}
+                  Standard · {formatFCFA(scoFormule === "simple" ? scoStandardSimple : scoStandardAr)}
                 </button>
                 <button type="button" onClick={() => setScoVip(true)} className={pillCls(scoVip)}>
-                  VIP · {formatFCFA(scoFormule === "simple" ? SCOLAIRE_TARIFS.vip.mensuel_simple : SCOLAIRE_TARIFS.vip.mensuel_ar)}
+                  VIP · {formatFCFA(scoFormule === "simple" ? scoVipSimple : scoVipAr)}
                 </button>
+
               </div>
             </Field>
 
