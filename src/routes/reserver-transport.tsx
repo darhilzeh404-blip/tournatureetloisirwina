@@ -176,10 +176,11 @@ function ReserverTransport() {
   const [evtNom, setEvtNom] = useState("");
   const [evtTel, setEvtTel] = useState("");
 
-  const evtUnit = EVENT_BUS_PRICING[evtStanding][evtFormule];
-  // Tarifs publiés pour 32 places. Réduction proportionnelle indicative pour 14/16/24 places.
-  const evtCapacityFactor = evtCapacity === 32 ? 1 : evtCapacity === 24 ? 0.85 : evtCapacity === 16 ? 0.7 : 0.6;
+  const evtUnit = findEventBus(catalog.eventBusTariffs, evtStanding, evtFormule);
+  // Tarifs publiés pour 32 places. Réduction proportionnelle indicative pour autres capacités.
+  const evtCapacityFactor = findCapacityFactor(catalog.eventBusCapacityFactors, evtCapacity);
   const evtTotal = Math.round(evtUnit * evtCapacityFactor);
+
 
   const submitEvenement = async () => {
     if (!ensureAuth()) return;
