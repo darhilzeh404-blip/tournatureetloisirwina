@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   GraduationCap,
   Bus,
@@ -19,6 +19,12 @@ import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NumberInput } from "@/components/ui/number-input";
+import {
+  usePricingCatalog,
+  findSchoolMonthly,
+  findEventBus,
+  findCapacityFactor,
+} from "@/hooks/use-pricing-catalog";
 
 export const Route = createFileRoute("/reserver-transport")({
   head: () => ({
@@ -34,60 +40,12 @@ export const Route = createFileRoute("/reserver-transport")({
   component: ReserverTransport,
 });
 
-// ─────────── Données catalogue ───────────
+// ─────────── Catalogue statique non-tarifaire ───────────
 const SCOLAIRE_ROUTES = ["Akanda → LBV", "Owendo → LBV", "LBV → Akanda", "LBV → Owendo"] as const;
 const NIVEAUX = ["Maternelle", "Primaire", "Collège", "Lycée"] as const;
-const SCOLAIRE_TARIFS = {
-  standard: { mensuel_simple: 80_000, mensuel_ar: 120_000 },
-  vip: { mensuel_simple: 150_000, mensuel_ar: 220_000 },
-} as const;
+const EVENT_BUS_CAPACITIES = [14, 16, 24, 32] as const;
 
-const EXTRA_ACTIVITIES = [
-  { id: "jardinage", emoji: "🌱", label: "Jardinage fruits & légumes", price: 15_000 },
-  { id: "culinaire", emoji: "👨‍🍳", label: "Art culinaire", price: 18_000 },
-  { id: "nutrition", emoji: "🥗", label: "Nutrition saine", price: 12_000 },
-  { id: "nature", emoji: "🌳", label: "Nature & culture", price: 20_000 },
-  { id: "natation", emoji: "🏊", label: "Natation & danse", price: 25_000 },
-];
 
-const GROUP_BUS_TRIPS = [
-  {
-    id: "parc-akanda",
-    title: "Trajet Parc d’Akanda",
-    gathering: "Parking SANgel",
-    note: "Aller et retour facturés séparément pour les déplacements en groupe.",
-    destinations: ["Cap Santa-Clara", "Cap Estérias", "Cap des Pères", "Cap Caravane", "Boulokoboué", "Malibé 1", "Malibé 2", "Ndossi village", "Akouago-village"],
-    pricing: { type: "direction", aller: 20_000, retour: 20_000 },
-  },
-  {
-    id: "lbv-donguila",
-    title: "LBV - Donguila",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Donguila"],
-    pricing: { type: "daily", byCapacity: { 16: 100_000, 24: 150_000, 32: 200_000 } },
-  },
-  {
-    id: "lbv-meyang",
-    title: "LBV - Meyang",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Meyang"],
-    pricing: { type: "daily", byCapacity: { 16: 100_000, 24: 150_000, 32: 200_000 } },
-  },
-  {
-    id: "cocobeach",
-    title: "LBV - Cocobeach",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Cocobeach"],
-    pricing: { type: "daily", byCapacity: { 16: 192_000, 24: 288_000, 32: 384_000 } },
-  },
-] as const;
-
-// Tarifs Location bus pour événements (urbain / mariage / excursion)
-const EVENT_BUS_PRICING = {
-  standard: { journee: 180_000, demi: 100_000 },
-  vip: { journee: 250_000, demi: 130_000 },
-} as const;
-const EVENT_BUS_CAPACITIES = ["14 places", "16 places", "24 places", "32 places"] as const;
 
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
