@@ -118,11 +118,12 @@ function ReserverTransport() {
   const [extraSelected, setExtraSelected] = useState<string[]>([]);
   const [extraEnfants, setExtraEnfants] = useState(1);
   const [extraDate, setExtraDate] = useState("");
-  const TRANSPORT_FEE = 10_000;
-  const extraActivitiesTotal = EXTRA_ACTIVITIES.filter((a) =>
-    extraSelected.includes(a.id),
-  ).reduce((sum, a) => sum + a.price, 0);
+  const TRANSPORT_FEE = catalog.settings.extra_transport_fee ?? 10_000;
+  const extraActivitiesTotal = catalog.extraActivities
+    .filter((a) => extraSelected.includes(a.code))
+    .reduce((sum, a) => sum + a.price, 0);
   const extraTotal = (extraActivitiesTotal + TRANSPORT_FEE) * extraEnfants;
+
 
   const toggleExtra = (id: string) =>
     setExtraSelected((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
