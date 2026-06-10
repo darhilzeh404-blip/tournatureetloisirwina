@@ -155,55 +155,36 @@ function TarifsPage() {
             </ul>
           </motion.div>
 
-          {/* Akanda-LBV */}
-          <motion.div variants={fadeUp} className="mt-5">
-            <h3 className="mb-3 flex items-center gap-2 text-base font-bold">
-              <MapPin className="h-4 w-4 text-primary" /> Trajet Akanda — Libreville
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <PricingBlock
-                variant="standard"
-                title="Standard"
-                rows={[
-                  ["Aller-retour", 80000],
-                  ["Simple", 50000],
-                ]}
-              />
-              <PricingBlock
-                variant="vip"
-                title="VIP"
-                rows={[
-                  ["Aller-retour", 150000],
-                  ["Simple", 80000],
-                ]}
-              />
+          {catalog.loading ? (
+            <div className="mt-5 flex items-center justify-center rounded-2xl border bg-card p-8 text-sm text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Chargement des tarifs…
             </div>
-          </motion.div>
+          ) : (
+            schoolByRoute.map(({ label, rows }) => {
+              const standardRows = rows.filter(r => r.standing === "standard");
+              const vipRows = rows.filter(r => r.standing === "vip");
+              const fmt = (rs: SchoolTripTariff[]): [string, number][] =>
+                rs
+                  .sort((a, b) => (a.formule === "ar" ? -1 : 1) - (b.formule === "ar" ? -1 : 1))
+                  .map(r => [r.formule === "ar" ? "Aller-retour" : "Simple", r.amount]);
+              return (
+                <motion.div key={label} variants={fadeUp} className="mt-5">
+                  <h3 className="mb-3 flex items-center gap-2 text-base font-bold">
+                    <MapPin className="h-4 w-4 text-primary" /> Trajet {label}
+                  </h3>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {standardRows.length > 0 && (
+                      <PricingBlock variant="standard" title="Standard" rows={fmt(standardRows)} />
+                    )}
+                    {vipRows.length > 0 && (
+                      <PricingBlock variant="vip" title="VIP" rows={fmt(vipRows)} />
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })
+          )}
 
-          {/* Owendo-LBV */}
-          <motion.div variants={fadeUp} className="mt-5">
-            <h3 className="mb-3 flex items-center gap-2 text-base font-bold">
-              <MapPin className="h-4 w-4 text-primary" /> Trajet Owendo — Libreville
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <PricingBlock
-                variant="standard"
-                title="Standard"
-                rows={[
-                  ["Aller-retour", 80000],
-                  ["Simple", 50000],
-                ]}
-              />
-              <PricingBlock
-                variant="vip"
-                title="VIP"
-                rows={[
-                  ["Aller-retour", 150000],
-                  ["Simple", 80000],
-                ]}
-              />
-            </div>
-          </motion.div>
         </motion.section>
 
         {/* TRANSPORT EXTRA SCOLAIRE */}
