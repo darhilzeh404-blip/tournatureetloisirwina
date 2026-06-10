@@ -50,6 +50,7 @@ const EVENT_BUS_CAPACITIES = [14, 16, 24, 32] as const;
 function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const catalog = usePricingCatalog();
   const [tab, setTab] = useState("scolaire");
   const [busSubTab, setBusSubTab] = useState<"groupe" | "evenement">("groupe");
   const [submitting, setSubmitting] = useState(false);
@@ -71,14 +72,15 @@ function ReserverTransport() {
   const [scoVip, setScoVip] = useState(false);
   const [scoDate, setScoDate] = useState("");
 
+  const scoStandardSimple = findSchoolMonthly(catalog.schoolMonthly, "standard", "simple");
+  const scoStandardAr = findSchoolMonthly(catalog.schoolMonthly, "standard", "ar");
+  const scoVipSimple = findSchoolMonthly(catalog.schoolMonthly, "vip", "simple");
+  const scoVipAr = findSchoolMonthly(catalog.schoolMonthly, "vip", "ar");
   const scoUnit = scoVip
-    ? scoFormule === "simple"
-      ? SCOLAIRE_TARIFS.vip.mensuel_simple
-      : SCOLAIRE_TARIFS.vip.mensuel_ar
-    : scoFormule === "simple"
-      ? SCOLAIRE_TARIFS.standard.mensuel_simple
-      : SCOLAIRE_TARIFS.standard.mensuel_ar;
+    ? scoFormule === "simple" ? scoVipSimple : scoVipAr
+    : scoFormule === "simple" ? scoStandardSimple : scoStandardAr;
   const scoTotal = scoUnit * scoEnfants;
+
 
   const submitScolaire = async () => {
     if (!ensureAuth()) return;
