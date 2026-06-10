@@ -57,6 +57,21 @@ const GROUP_BUS_PRICING = [
 function TarifsPage() {
   const { isAuthenticated, isLoading, role } = useAuth();
   const navigate = useNavigate();
+  const catalog = usePricingCatalog();
+
+  // Group school trip tariffs by route_label
+  const schoolByRoute = useMemo(() => {
+    const map = new Map<string, { sort_order: number; rows: SchoolTripTariff[] }>();
+    catalog.schoolTrips.forEach((t) => {
+      const entry = map.get(t.route_label) ?? { sort_order: t.sort_order, rows: [] };
+      entry.rows.push(t);
+      map.set(t.route_label, entry);
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => a[1].sort_order - b[1].sort_order)
+      .map(([label, v]) => ({ label, rows: v.rows }));
+  }, [catalog.schoolTrips]);
+
 
   // Redirection des non-clients (chauffeur/admin/gerant) vers leur espace
   useEffect(() => {
