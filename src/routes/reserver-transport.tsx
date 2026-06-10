@@ -229,7 +229,7 @@ function ReserverTransport() {
   };
 
   // ─────────── Form Bus groupe ───────────
-  const [busTripId, setBusTripId] = useState<string>(GROUP_BUS_TRIPS[0].id);
+  const [busTripCode, setBusTripCode] = useState<string>("");
   const [busDirection, setBusDirection] = useState<"aller" | "retour" | "aller_retour">("aller");
   const [busCapacity, setBusCapacity] = useState<16 | 24 | 32>(16);
   const [busDepartureAt, setBusDepartureAt] = useState("");
@@ -240,15 +240,22 @@ function ReserverTransport() {
   const [busEnfants, setBusEnfants] = useState(0);
   const [busClim, setBusClim] = useState<boolean>(true);
 
-  const selectedBusTrip = GROUP_BUS_TRIPS.find((trip) => trip.id === busTripId)!;
-  const isDirectionalBusTrip = selectedBusTrip.pricing.type === "direction";
-  const busUnit = isDirectionalBusTrip
-    ? busDirection === "aller_retour"
-      ? selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour
-      : selectedBusTrip.pricing[busDirection]
-    : selectedBusTrip.pricing.byCapacity[busCapacity];
+  const selectedBusTrip = useMemo(
+    () => catalog.groupBusTrips.find((t) => t.code === busTripCode) ?? catalog.groupBusTrips[0],
+    [catalog.groupBusTrips, busTripCode],
+  );
+  const isDirectionalBusTrip = selectedBusTrip?.pricing.type === "direction";
+  const busUnit = !selectedBusTrip
+    ? 0
+    : selectedBusTrip.pricing.type === "direction"
+      ? busDirection === "aller_retour"
+        ? selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour
+        : selectedBusTrip.pricing[busDirection]
+      : Number(selectedBusTrip.pricing.byCapacity[String(busCapacity)] ?? 0);
   const busTotal = isDirectionalBusTrip ? busUnit : busUnit * busDays;
-  const dailyBusPrices = selectedBusTrip.pricing.type === "daily" ? selectedBusTrip.pricing.byCapacity : null;
+  const dailyBusPrices =
+    selectedBusTrip?.pricing.type === "daily" ? selectedBusTrip.pricing.byCapacity : null;
+
 
   const submitBus = async () => {
     if (!ensureAuth()) return;
