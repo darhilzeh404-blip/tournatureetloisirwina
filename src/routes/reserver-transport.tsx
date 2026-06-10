@@ -412,13 +412,14 @@ function ReserverTransport() {
             <div>
               <h3 className="mb-2 text-sm font-semibold">Activités</h3>
               <div className="space-y-2">
-                {EXTRA_ACTIVITIES.map((a) => {
-                  const sel = extraSelected.includes(a.id);
+                {catalog.extraActivities.map((a) => {
+                  const sel = extraSelected.includes(a.code);
                   return (
                     <button
-                      key={a.id}
+                      key={a.code}
                       type="button"
-                      onClick={() => toggleExtra(a.id)}
+                      onClick={() => toggleExtra(a.code)}
+
                       className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${sel ? "border-primary bg-primary/10" : "border-border bg-card"}`}
                     >
                       <span className="flex items-center gap-2 text-sm font-medium">
