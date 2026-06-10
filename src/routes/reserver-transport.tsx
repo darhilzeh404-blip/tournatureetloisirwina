@@ -499,9 +499,10 @@ function ReserverTransport() {
                 {catalog.groupBusTrips.map((trip) => {
                   const active = (busTripCode || catalog.groupBusTrips[0]?.code) === trip.code;
                   const isDirectional = trip.pricing.type === "direction";
-                  const priceHint = isDirectional
+                  const priceHint = trip.pricing.type === "direction"
                     ? `Aller ${formatFCFA(trip.pricing.aller)} · Retour ${formatFCFA(trip.pricing.retour)}`
                     : `Dès ${formatFCFA(Number(trip.pricing.byCapacity["16"] ?? 0))}/jour`;
+
                   return (
                     <button
                       key={trip.code}
