@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Bus, GraduationCap, Sparkles, MapPin, Crown, Check, LogIn } from "lucide-react";
+import { Bus, GraduationCap, Sparkles, MapPin, Crown, Check, LogIn, Loader2 } from "lucide-react";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 import { ClientNav } from "@/components/ClientNav";
+import { usePricingCatalog, type SchoolTripTariff, type GroupBusTrip } from "@/hooks/use-pricing-catalog";
 
 export const Route = createFileRoute("/tarifs")({
   head: () => ({
@@ -30,6 +31,7 @@ const stagger = {
 function formatXAF(amount: number) {
   return new Intl.NumberFormat("fr-FR").format(amount) + " XAF";
 }
+
 
 const GROUP_BUS_PRICING = [
   {
