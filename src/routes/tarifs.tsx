@@ -33,26 +33,7 @@ function formatXAF(amount: number) {
 }
 
 
-const GROUP_BUS_PRICING = [
-  {
-    title: "Parc d’Akanda",
-    gathering: "Parking SANgel",
-    destinations: ["Cap Santa-Clara", "Cap Estérias", "Cap des Pères", "Cap Caravane", "Boulokoboué", "Malibé 1", "Malibé 2", "Ndossi village", "Akouago-village"],
-    rows: [["Aller", 20_000], ["Retour", 20_000]] as [string, number][],
-  },
-  {
-    title: "Ntoum-Meyan & Donguila",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Donguila", "LBV - Meyang"],
-    rows: [["Bus 16 places / journée", 100_000], ["Bus 32 places / journée", 200_000]] as [string, number][],
-  },
-  {
-    title: "LBV - Cocobeach",
-    gathering: "ABC Mall des Charbonnages",
-    destinations: ["LBV - Cocobeach"],
-    rows: [["Bus 16 places / journée", 192_000], ["Bus 32 places / journée", 384_000]] as [string, number][],
-  },
-];
+
 
 function TarifsPage() {
   const { isAuthenticated, isLoading, role } = useAuth();
