@@ -496,17 +496,17 @@ function ReserverTransport() {
             {/* Étape 1 — Choix du trajet */}
             <SectionCard step="1" title="Choisir un trajet" icon={<MapPin className="h-4 w-4" />}>
               <div className="space-y-2">
-                {GROUP_BUS_TRIPS.map((trip) => {
-                  const active = busTripId === trip.id;
+                {catalog.groupBusTrips.map((trip) => {
+                  const active = (busTripCode || catalog.groupBusTrips[0]?.code) === trip.code;
                   const isDirectional = trip.pricing.type === "direction";
                   const priceHint = isDirectional
                     ? `Aller ${formatFCFA(trip.pricing.aller)} · Retour ${formatFCFA(trip.pricing.retour)}`
-                    : `Dès ${formatFCFA(trip.pricing.byCapacity[16])}/jour`;
+                    : `Dès ${formatFCFA(Number(trip.pricing.byCapacity["16"] ?? 0))}/jour`;
                   return (
                     <button
-                      key={trip.id}
+                      key={trip.code}
                       type="button"
-                      onClick={() => setBusTripId(trip.id)}
+                      onClick={() => setBusTripCode(trip.code)}
                       className={`relative w-full overflow-hidden rounded-2xl border-2 p-4 text-left transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card hover:border-primary/40 hover:shadow-sm"}`}
                       aria-pressed={active}
                     >
@@ -522,6 +522,7 @@ function ReserverTransport() {
                   );
                 })}
               </div>
+
             </SectionCard>
 
             {/* Étape 2 — Détails du trajet (dépliant) */}
