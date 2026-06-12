@@ -24,6 +24,10 @@ import {
   findSchoolMonthly,
   findEventBus,
   findCapacityFactor,
+  isDirectionPricing,
+  isDailyPricing,
+  getDailyBusPrice,
+  getDirectionBusPrice,
 } from "@/hooks/use-pricing-catalog";
 
 export const Route = createFileRoute("/reserver-transport")({
@@ -244,17 +248,16 @@ function ReserverTransport() {
     () => catalog.groupBusTrips.find((t) => t.code === busTripCode) ?? catalog.groupBusTrips[0],
     [catalog.groupBusTrips, busTripCode],
   );
-  const isDirectionalBusTrip = selectedBusTrip?.pricing.type === "direction";
+  const isDirectionalBusTrip = isDirectionPricing(selectedBusTrip?.pricing);
   const busUnit = !selectedBusTrip
     ? 0
-    : selectedBusTrip.pricing.type === "direction"
-      ? busDirection === "aller_retour"
-        ? selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour
-        : selectedBusTrip.pricing[busDirection]
-      : Number(selectedBusTrip.pricing.byCapacity[String(busCapacity)] ?? 0);
+    : isDirectionPricing(selectedBusTrip.pricing)
+      ? getDirectionBusPrice(selectedBusTrip.pricing, busDirection)
+      : getDailyBusPrice(selectedBusTrip.pricing, busCapacity);
   const busTotal = isDirectionalBusTrip ? busUnit : busUnit * busDays;
-  const dailyBusPrices =
-    selectedBusTrip?.pricing.type === "daily" ? selectedBusTrip.pricing.byCapacity : null;
+  const dailyBusPrices = isDailyPricing(selectedBusTrip?.pricing)
+    ? selectedBusTrip.pricing.byCapacity
+    : null;
 
 
   const submitBus = async () => {
@@ -498,10 +501,10 @@ function ReserverTransport() {
               <div className="space-y-2">
                 {catalog.groupBusTrips.map((trip) => {
                   const active = (busTripCode || catalog.groupBusTrips[0]?.code) === trip.code;
-                  const isDirectional = trip.pricing.type === "direction";
-                  const priceHint = trip.pricing.type === "direction"
+                  const isDirectional = isDirectionPricing(trip.pricing);
+                  const priceHint = isDirectionPricing(trip.pricing)
                     ? `Aller ${formatFCFA(trip.pricing.aller)} · Retour ${formatFCFA(trip.pricing.retour)}`
-                    : `Dès ${formatFCFA(Number(trip.pricing.byCapacity["16"] ?? 0))}/jour`;
+                    : `Dès ${formatFCFA(getDailyBusPrice(trip.pricing, 16))}/jour`;
 
                   return (
                     <button
@@ -556,7 +559,7 @@ function ReserverTransport() {
 
             {/* Étape 3 — Formule */}
             <SectionCard step="3" title={isDirectionalBusTrip ? "Choisir le sens" : "Choisir la capacité"} icon={<Bus className="h-4 w-4" />}>
-              {isDirectionalBusTrip && selectedBusTrip.pricing.type === "direction" ? (
+              {isDirectionPricing(selectedBusTrip?.pricing) ? (
                 <div className="grid grid-cols-3 gap-2">
                   <button type="button" onClick={() => setBusDirection("aller")} className={pillCls(busDirection === "aller")}>
                     <span className="block text-[11px] uppercase">Aller</span>

@@ -4,9 +4,30 @@ import { supabase } from "@/integrations/supabase/client";
 export type SchoolTripTariff = { route_label: string; standing: "standard" | "vip"; formule: "simple" | "ar"; amount: number; sort_order: number };
 export type SchoolMonthlyTariff = { standing: "standard" | "vip"; formule: "simple" | "ar"; amount: number };
 export type ExtraActivity = { id: string; code: string; label: string; emoji: string | null; price: number; sort_order: number };
-export type GroupBusPricing =
-  | { type: "direction"; aller: number; retour: number }
-  | { type: "daily"; byCapacity: Record<string, number> };
+export type DirectionGroupBusPricing = { type: "direction"; aller: number; retour: number };
+export type DailyGroupBusPricing = { type: "daily"; byCapacity: Record<string, number> };
+export type GroupBusPricing = DirectionGroupBusPricing | DailyGroupBusPricing;
+
+export const isDirectionPricing = (p: GroupBusPricing | undefined | null): p is DirectionGroupBusPricing =>
+  !!p && p.type === "direction";
+export const isDailyPricing = (p: GroupBusPricing | undefined | null): p is DailyGroupBusPricing =>
+  !!p && p.type === "daily";
+
+/** Safe lookup for daily bus pricing by capacity. Returns 0 if not daily or missing. */
+export function getDailyBusPrice(pricing: GroupBusPricing | undefined | null, capacity: number | string): number {
+  if (!isDailyPricing(pricing)) return 0;
+  return Number(pricing.byCapacity[String(capacity)] ?? 0);
+}
+
+/** Safe lookup for direction bus pricing (aller / retour / aller_retour). Returns 0 if not directional. */
+export function getDirectionBusPrice(
+  pricing: GroupBusPricing | undefined | null,
+  direction: "aller" | "retour" | "aller_retour",
+): number {
+  if (!isDirectionPricing(pricing)) return 0;
+  if (direction === "aller_retour") return pricing.aller + pricing.retour;
+  return pricing[direction];
+}
 export type GroupBusTrip = {
   id: string;
   code: string;
