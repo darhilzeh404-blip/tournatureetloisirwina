@@ -248,17 +248,16 @@ function ReserverTransport() {
     () => catalog.groupBusTrips.find((t) => t.code === busTripCode) ?? catalog.groupBusTrips[0],
     [catalog.groupBusTrips, busTripCode],
   );
-  const isDirectionalBusTrip = selectedBusTrip?.pricing.type === "direction";
+  const isDirectionalBusTrip = isDirectionPricing(selectedBusTrip?.pricing);
   const busUnit = !selectedBusTrip
     ? 0
-    : selectedBusTrip.pricing.type === "direction"
-      ? busDirection === "aller_retour"
-        ? selectedBusTrip.pricing.aller + selectedBusTrip.pricing.retour
-        : selectedBusTrip.pricing[busDirection]
-      : Number(selectedBusTrip.pricing.byCapacity[String(busCapacity)] ?? 0);
+    : isDirectionPricing(selectedBusTrip.pricing)
+      ? getDirectionBusPrice(selectedBusTrip.pricing, busDirection)
+      : getDailyBusPrice(selectedBusTrip.pricing, busCapacity);
   const busTotal = isDirectionalBusTrip ? busUnit : busUnit * busDays;
-  const dailyBusPrices =
-    selectedBusTrip?.pricing.type === "daily" ? selectedBusTrip.pricing.byCapacity : null;
+  const dailyBusPrices = isDailyPricing(selectedBusTrip?.pricing)
+    ? selectedBusTrip.pricing.byCapacity
+    : null;
 
 
   const submitBus = async () => {
