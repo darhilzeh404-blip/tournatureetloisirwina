@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WinaCoinsRouteImport } from './routes/wina-coins'
+import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as VtcRouteImport } from './routes/vtc'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
 import { Route as TransportPublicRouteImport } from './routes/transport-public'
@@ -52,6 +53,7 @@ import { Route as AdminTripsRouteImport } from './routes/admin/trips'
 import { Route as AdminTransportRouteImport } from './routes/admin/transport'
 import { Route as AdminSuiviRouteImport } from './routes/admin/suivi'
 import { Route as AdminReservationsRouteImport } from './routes/admin/reservations'
+import { Route as AdminRechargesRouteImport } from './routes/admin/recharges'
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
 import { Route as AdminOffresRouteImport } from './routes/admin/offres'
 import { Route as AdminGroupRidesRouteImport } from './routes/admin/group-rides'
@@ -73,6 +75,11 @@ import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.cre
 const WinaCoinsRoute = WinaCoinsRouteImport.update({
   id: '/wina-coins',
   path: '/wina-coins',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VtcRoute = VtcRouteImport.update({
@@ -285,6 +292,11 @@ const AdminReservationsRoute = AdminReservationsRouteImport.update({
   path: '/reservations',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRechargesRoute = AdminRechargesRouteImport.update({
+  id: '/recharges',
+  path: '/recharges',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPaiementsRoute = AdminPaiementsRouteImport.update({
   id: '/paiements',
   path: '/paiements',
@@ -397,6 +409,7 @@ export interface FileRoutesByFullPath {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
+  '/wallet': typeof WalletRoute
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
@@ -409,6 +422,7 @@ export interface FileRoutesByFullPath {
   '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
+  '/admin/recharges': typeof AdminRechargesRoute
   '/admin/reservations': typeof AdminReservationsRoute
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/transport': typeof AdminTransportRoute
@@ -456,6 +470,7 @@ export interface FileRoutesByTo {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
+  '/wallet': typeof WalletRoute
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
@@ -468,6 +483,7 @@ export interface FileRoutesByTo {
   '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
+  '/admin/recharges': typeof AdminRechargesRoute
   '/admin/reservations': typeof AdminReservationsRoute
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/transport': typeof AdminTransportRoute
@@ -519,6 +535,7 @@ export interface FileRoutesById {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
+  '/wallet': typeof WalletRoute
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
@@ -531,6 +548,7 @@ export interface FileRoutesById {
   '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
+  '/admin/recharges': typeof AdminRechargesRoute
   '/admin/reservations': typeof AdminReservationsRoute
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/transport': typeof AdminTransportRoute
@@ -583,6 +601,7 @@ export interface FileRouteTypes {
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
+    | '/wallet'
     | '/wina-coins'
     | '/admin/agences'
     | '/admin/annonces'
@@ -595,6 +614,7 @@ export interface FileRouteTypes {
     | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
+    | '/admin/recharges'
     | '/admin/reservations'
     | '/admin/suivi'
     | '/admin/transport'
@@ -642,6 +662,7 @@ export interface FileRouteTypes {
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
+    | '/wallet'
     | '/wina-coins'
     | '/admin/agences'
     | '/admin/annonces'
@@ -654,6 +675,7 @@ export interface FileRouteTypes {
     | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
+    | '/admin/recharges'
     | '/admin/reservations'
     | '/admin/suivi'
     | '/admin/transport'
@@ -704,6 +726,7 @@ export interface FileRouteTypes {
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
+    | '/wallet'
     | '/wina-coins'
     | '/admin/agences'
     | '/admin/annonces'
@@ -716,6 +739,7 @@ export interface FileRouteTypes {
     | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
+    | '/admin/recharges'
     | '/admin/reservations'
     | '/admin/suivi'
     | '/admin/transport'
@@ -767,6 +791,7 @@ export interface RootRouteChildren {
   TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
   VtcRoute: typeof VtcRouteWithChildren
+  WalletRoute: typeof WalletRoute
   WinaCoinsRoute: typeof WinaCoinsRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
@@ -782,6 +807,13 @@ declare module '@tanstack/react-router' {
       path: '/wina-coins'
       fullPath: '/wina-coins'
       preLoaderRoute: typeof WinaCoinsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/vtc': {
@@ -1078,6 +1110,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReservationsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/recharges': {
+      id: '/admin/recharges'
+      path: '/recharges'
+      fullPath: '/admin/recharges'
+      preLoaderRoute: typeof AdminRechargesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/paiements': {
       id: '/admin/paiements'
       path: '/paiements'
@@ -1212,6 +1251,7 @@ interface AdminRouteChildren {
   AdminGroupRidesRoute: typeof AdminGroupRidesRoute
   AdminOffresRoute: typeof AdminOffresRoute
   AdminPaiementsRoute: typeof AdminPaiementsRoute
+  AdminRechargesRoute: typeof AdminRechargesRoute
   AdminReservationsRoute: typeof AdminReservationsRoute
   AdminSuiviRoute: typeof AdminSuiviRoute
   AdminTransportRoute: typeof AdminTransportRoute
@@ -1234,6 +1274,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminGroupRidesRoute: AdminGroupRidesRoute,
   AdminOffresRoute: AdminOffresRoute,
   AdminPaiementsRoute: AdminPaiementsRoute,
+  AdminRechargesRoute: AdminRechargesRoute,
   AdminReservationsRoute: AdminReservationsRoute,
   AdminSuiviRoute: AdminSuiviRoute,
   AdminTransportRoute: AdminTransportRoute,
@@ -1348,6 +1389,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
   VtcRoute: VtcRouteWithChildren,
+  WalletRoute: WalletRoute,
   WinaCoinsRoute: WinaCoinsRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,

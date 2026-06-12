@@ -30,7 +30,7 @@ export const Route = createFileRoute("/wallet")({
 const QUICK_AMOUNTS = [2000, 5000, 10000, 20000, 50000];
 
 function WalletPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [wallet, setWallet] = useState<VtcWallet | null>(null);
   const [txs, setTxs] = useState<VtcWalletTx[]>([]);
