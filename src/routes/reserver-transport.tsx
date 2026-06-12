@@ -501,10 +501,10 @@ function ReserverTransport() {
               <div className="space-y-2">
                 {catalog.groupBusTrips.map((trip) => {
                   const active = (busTripCode || catalog.groupBusTrips[0]?.code) === trip.code;
-                  const isDirectional = trip.pricing.type === "direction";
-                  const priceHint = trip.pricing.type === "direction"
+                  const isDirectional = isDirectionPricing(trip.pricing);
+                  const priceHint = isDirectionPricing(trip.pricing)
                     ? `Aller ${formatFCFA(trip.pricing.aller)} · Retour ${formatFCFA(trip.pricing.retour)}`
-                    : `Dès ${formatFCFA(Number(trip.pricing.byCapacity["16"] ?? 0))}/jour`;
+                    : `Dès ${formatFCFA(getDailyBusPrice(trip.pricing, 16))}/jour`;
 
                   return (
                     <button
