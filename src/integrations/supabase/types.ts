@@ -290,6 +290,75 @@ export type Database = {
           },
         ]
       }
+      driver_wallet_transactions: {
+        Row: {
+          created_at: string
+          driver_id: string
+          gross_amount: number
+          id: string
+          net_amount: number
+          note: string | null
+          payment_method: string
+          platform_fee: number
+          reservation_id: string | null
+          status: string
+          trip_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          gross_amount: number
+          id?: string
+          net_amount: number
+          note?: string | null
+          payment_method: string
+          platform_fee: number
+          reservation_id?: string | null
+          status?: string
+          trip_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          note?: string | null
+          payment_method?: string
+          platform_fee?: number
+          reservation_id?: string | null
+          status?: string
+          trip_id?: string | null
+        }
+        Relationships: []
+      }
+      driver_wallets: {
+        Row: {
+          balance_earnings: number
+          created_at: string
+          driver_id: string
+          total_commission_paid: number
+          total_earned: number
+          updated_at: string
+        }
+        Insert: {
+          balance_earnings?: number
+          created_at?: string
+          driver_id: string
+          total_commission_paid?: number
+          total_earned?: number
+          updated_at?: string
+        }
+        Update: {
+          balance_earnings?: number
+          created_at?: string
+          driver_id?: string
+          total_commission_paid?: number
+          total_earned?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       drivers: {
         Row: {
           created_at: string
@@ -1648,6 +1717,126 @@ export type Database = {
         }
         Relationships: []
       }
+      vtc_recharge_requests: {
+        Row: {
+          admin_note: string | null
+          agent_code: string | null
+          amount_fcfa: number
+          amount_points: number
+          client_note: string | null
+          created_at: string
+          id: string
+          payment_method: Database["public"]["Enums"]["vtc_recharge_method"]
+          payment_reference: string | null
+          proof_url: string | null
+          status: Database["public"]["Enums"]["vtc_recharge_status"]
+          updated_at: string
+          user_id: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          agent_code?: string | null
+          amount_fcfa: number
+          amount_points: number
+          client_note?: string | null
+          created_at?: string
+          id?: string
+          payment_method: Database["public"]["Enums"]["vtc_recharge_method"]
+          payment_reference?: string | null
+          proof_url?: string | null
+          status?: Database["public"]["Enums"]["vtc_recharge_status"]
+          updated_at?: string
+          user_id: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          agent_code?: string | null
+          amount_fcfa?: number
+          amount_points?: number
+          client_note?: string | null
+          created_at?: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["vtc_recharge_method"]
+          payment_reference?: string | null
+          proof_url?: string | null
+          status?: Database["public"]["Enums"]["vtc_recharge_status"]
+          updated_at?: string
+          user_id?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: []
+      }
+      vtc_wallet_transactions: {
+        Row: {
+          amount_points: number
+          balance_after: number
+          created_at: string
+          id: string
+          note: string | null
+          reference_code: string | null
+          related_id: string | null
+          related_type: string | null
+          type: Database["public"]["Enums"]["vtc_tx_type"]
+          user_id: string
+        }
+        Insert: {
+          amount_points: number
+          balance_after: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          reference_code?: string | null
+          related_id?: string | null
+          related_type?: string | null
+          type: Database["public"]["Enums"]["vtc_tx_type"]
+          user_id: string
+        }
+        Update: {
+          amount_points?: number
+          balance_after?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          reference_code?: string | null
+          related_id?: string | null
+          related_type?: string | null
+          type?: Database["public"]["Enums"]["vtc_tx_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vtc_wallets: {
+        Row: {
+          balance_points: number
+          created_at: string
+          total_recharged: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance_points?: number
+          created_at?: string
+          total_recharged?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance_points?: number
+          created_at?: string
+          total_recharged?: number
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wina_coin_balances: {
         Row: {
           coins_balance: number
@@ -1823,6 +2012,14 @@ export type Database = {
         Args: { _delta: number; _note: string; _user_id: string }
         Returns: number
       }
+      admin_adjust_vtc_wallet: {
+        Args: { _delta: number; _note: string; _user_id: string }
+        Returns: number
+      }
+      admin_validate_vtc_recharge: {
+        Args: { _approve: boolean; _note?: string; _request_id: string }
+        Returns: number
+      }
       archive_trip_and_reservation: {
         Args: { _trip_id: string }
         Returns: undefined
@@ -1872,6 +2069,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      credit_driver_earnings: {
+        Args: {
+          _driver_id: string
+          _gross_amount: number
+          _payment_method?: string
+          _reservation_id: string
+          _trip_id: string
+        }
+        Returns: number
       }
       find_nearby_vtc_drivers: {
         Args: { _pickup_lat: number; _pickup_lng: number; _radius_km?: number }
@@ -1940,6 +2147,16 @@ export type Database = {
         }[]
       }
       recompute_vip_level: { Args: { _user_id: string }; Returns: string }
+      refund_vtc_points: {
+        Args: {
+          _amount: number
+          _note: string
+          _related_id: string
+          _related_type: string
+          _user_id: string
+        }
+        Returns: number
+      }
       refund_wina_coins: {
         Args: { _reservation_id: string }
         Returns: undefined
@@ -1947,6 +2164,26 @@ export type Database = {
       refund_wina_coins_group_payment: {
         Args: { _payment_id: string }
         Returns: undefined
+      }
+      request_vtc_recharge: {
+        Args: {
+          _agent_code: string
+          _amount_points: number
+          _client_note?: string
+          _payment_method: Database["public"]["Enums"]["vtc_recharge_method"]
+          _payment_reference: string
+          _proof_url?: string
+        }
+        Returns: string
+      }
+      spend_vtc_points: {
+        Args: {
+          _amount: number
+          _note?: string
+          _related_id: string
+          _related_type: string
+        }
+        Returns: number
       }
       spend_wina_coins: {
         Args: { _amount: number; _reservation_id: string }
@@ -1974,6 +2211,13 @@ export type Database = {
         | "CIRCUIT_TOURISTIQUE"
         | "VTC"
         | "BILLET"
+      vtc_recharge_method:
+        | "mobile_money"
+        | "cash_agent"
+        | "bank_transfer"
+        | "other"
+      vtc_recharge_status: "pending" | "approved" | "rejected"
+      vtc_tx_type: "recharge" | "trip_payment" | "refund" | "admin_adjust"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2116,6 +2360,14 @@ export const Constants = {
         "VTC",
         "BILLET",
       ],
+      vtc_recharge_method: [
+        "mobile_money",
+        "cash_agent",
+        "bank_transfer",
+        "other",
+      ],
+      vtc_recharge_status: ["pending", "approved", "rejected"],
+      vtc_tx_type: ["recharge", "trip_payment", "refund", "admin_adjust"],
     },
   },
 } as const

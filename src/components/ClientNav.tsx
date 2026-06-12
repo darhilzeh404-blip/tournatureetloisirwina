@@ -1,12 +1,12 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Bus, CalendarCheck, User, CarFront, Coins } from "lucide-react";
+import { Home, Bus, CalendarCheck, User, CarFront, Wallet } from "lucide-react";
 import { useEffect } from "react";
 
 const NAV_ITEMS = [
   { to: "/espace-client", label: "Accueil", icon: Home },
   { to: "/reserver-transport", label: "Transport", icon: Bus },
   { to: "/vtc", label: "VTC", icon: CarFront },
-  { to: "/wina-coins", label: "Coins", icon: Coins },
+  { to: "/wallet", label: "Wallet", icon: Wallet },
   { to: "/mes-reservations", label: "Courses", icon: CalendarCheck },
   { to: "/mon-compte", label: "Profil", icon: User },
 ] as const;
