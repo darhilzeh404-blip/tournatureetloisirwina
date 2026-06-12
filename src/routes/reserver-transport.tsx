@@ -556,7 +556,7 @@ function ReserverTransport() {
 
             {/* Étape 3 — Formule */}
             <SectionCard step="3" title={isDirectionalBusTrip ? "Choisir le sens" : "Choisir la capacité"} icon={<Bus className="h-4 w-4" />}>
-              {isDirectionalBusTrip ? (
+              {isDirectionalBusTrip && selectedBusTrip.pricing.type === "direction" ? (
                 <div className="grid grid-cols-3 gap-2">
                   <button type="button" onClick={() => setBusDirection("aller")} className={pillCls(busDirection === "aller")}>
                     <span className="block text-[11px] uppercase">Aller</span>
@@ -746,7 +746,7 @@ function ReserverTransport() {
                       { v: "demi" as const, l: "Demi-journée" },
                     ]).map((o) => {
                       const active = evtFormule === o.v;
-                      const price = EVENT_BUS_PRICING[evtStanding][o.v];
+                      const price = findEventBus(catalog.eventBusTariffs, evtStanding, o.v);
                       return (
                         <button
                           key={o.v}
