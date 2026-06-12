@@ -559,7 +559,7 @@ function ReserverTransport() {
 
             {/* Étape 3 — Formule */}
             <SectionCard step="3" title={isDirectionalBusTrip ? "Choisir le sens" : "Choisir la capacité"} icon={<Bus className="h-4 w-4" />}>
-              {isDirectionalBusTrip && selectedBusTrip.pricing.type === "direction" ? (
+              {isDirectionPricing(selectedBusTrip?.pricing) ? (
                 <div className="grid grid-cols-3 gap-2">
                   <button type="button" onClick={() => setBusDirection("aller")} className={pillCls(busDirection === "aller")}>
                     <span className="block text-[11px] uppercase">Aller</span>
