@@ -500,7 +500,9 @@ function CourseFlow() {
 
       await requestNotificationPermission();
       await showAppNotification("Demande VTC enregistrée", { tag: `vtc-${data.id}` });
-      toast.success("Course de nuit : payez en espèces au chauffeur à l'arrivée 💵");
+      if (isNight) {
+        toast.success("Course de nuit : payez en espèces au chauffeur à l'arrivée 💵");
+      }
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
 
     } catch (e: any) {
