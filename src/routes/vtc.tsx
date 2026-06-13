@@ -453,12 +453,11 @@ function CourseFlow() {
       if (!isNight) {
         // Débit auto du portefeuille VTC Points (refus si solde insuffisant)
         try {
-          const { payReservationWithWallet, walletErrorMessage } = await import("@/lib/vtc-wallet");
+          const { payReservationWithWallet } = await import("@/lib/vtc-wallet");
           await payReservationWithWallet(data.id);
           toast.success("Course payée depuis votre portefeuille ✅");
         } catch (e) {
           const { walletErrorMessage } = await import("@/lib/vtc-wallet");
-          // Rollback : on supprime la réservation pour ne pas laisser de PENDING
           await supabase.from("reservations").delete().eq("id", data.id);
           toast.error(walletErrorMessage(e));
           return;
