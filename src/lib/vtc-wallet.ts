@@ -124,6 +124,37 @@ export async function adminValidateRecharge(requestId: string, approve: boolean,
   return data;
 }
 
+export async function payReservationWithWallet(reservationId: string): Promise<{ new_balance: number; total_paid: number }> {
+  const { data, error } = await supabase.rpc("pay_reservation_with_wallet" as never, {
+    _reservation_id: reservationId,
+  } as never);
+  if (error) throw error;
+  const row = Array.isArray(data) ? data[0] : data;
+  return { new_balance: Number(row?.new_balance ?? 0), total_paid: Number(row?.total_paid ?? 0) };
+}
+
+export async function completeVtcTrip(tripId: string): Promise<{ driver_net: number; driver_balance: number; paid_via_wallet: boolean }> {
+  const { data, error } = await supabase.rpc("complete_vtc_trip" as never, {
+    _trip_id: tripId,
+  } as never);
+  if (error) throw error;
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    driver_net: Number(row?.driver_net ?? 0),
+    driver_balance: Number(row?.driver_balance ?? 0),
+    paid_via_wallet: Boolean(row?.paid_via_wallet ?? false),
+  };
+}
+
+export function walletErrorMessage(err: unknown): string {
+  const msg = String((err as { message?: string })?.message ?? err ?? "");
+  if (msg.includes("INSUFFICIENT_POINTS")) return "Solde VTC Points insuffisant. Rechargez votre portefeuille.";
+  if (msg.includes("ALREADY_PAID")) return "Cette réservation est déjà payée.";
+  if (msg.includes("NOT_AUTHENTICATED")) return "Session expirée, reconnectez-vous.";
+  if (msg.includes("FORBIDDEN")) return "Action non autorisée.";
+  return msg || "Erreur portefeuille";
+}
+
 export const RECHARGE_METHOD_LABEL: Record<VtcRechargeRequest["payment_method"], string> = {
   mobile_money: "Mobile Money",
   cash_agent: "Cash agent",
