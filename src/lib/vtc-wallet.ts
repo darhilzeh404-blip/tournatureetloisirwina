@@ -129,7 +129,7 @@ export async function payReservationWithWallet(reservationId: string): Promise<{
     _reservation_id: reservationId,
   } as never);
   if (error) throw error;
-  const row = Array.isArray(data) ? data[0] : data;
+  const row = (Array.isArray(data) ? data[0] : data) as { new_balance?: number; total_paid?: number } | null;
   return { new_balance: Number(row?.new_balance ?? 0), total_paid: Number(row?.total_paid ?? 0) };
 }
 
