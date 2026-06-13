@@ -94,7 +94,6 @@ function RootComponent() {
   const location = useLocation();
   const navigate = useNavigate();
   const [splashDone, setSplashDone] = useState(false);
-  const [splashAuth, setSplashAuth] = useState<{ user: { id: string } | null; role: string | null } | null>(null);
 
   const isFullScreenRoute = location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/chauffeur") ||
@@ -108,28 +107,26 @@ function RootComponent() {
   }, []);
 
   const handleSplashComplete = useCallback((session: { user: { id: string } | null; role: string | null } | null) => {
-    setSplashAuth(session);
-    setSplashDone(true);
-  }, []);
+    // Si l'utilisateur est connecté ET sur "/", on redirige AVANT de masquer le splash
+    // pour éviter tout flash de l'écran d'accueil non-connecté.
+    if (session?.user && location.pathname === "/") {
+      const role = session.role;
+      let target: string | null = null;
+      if (role === "client") target = "/espace-client";
+      else if (role === "admin") target = "/admin";
+      else if (role === "gerant") target = "/gerant";
+      else if (role === "chauffeur") target = "/chauffeur";
+      else if (role === "agence") target = "/agence";
 
-  // After splash, handle client-side redirect for authenticated users landing on home
-  useEffect(() => {
-    if (!splashDone || !splashAuth) return;
-
-    // If user is authenticated and on the home page, redirect to their space
-    if (location.pathname === "/") {
-      const role = splashAuth.role;
-      if (role === "client") {
-        navigate({ to: "/espace-client", replace: true });
-      } else if (role === "admin") {
-        navigate({ to: "/admin", replace: true });
-      } else if (role === "gerant") {
-        navigate({ to: "/gerant", replace: true });
-      } else if (role === "chauffeur") {
-        navigate({ to: "/chauffeur", replace: true });
+      if (target) {
+        navigate({ to: target as any, replace: true });
+        // Laisse le routeur monter la nouvelle route avant de retirer le splash
+        setTimeout(() => setSplashDone(true), 150);
+        return;
       }
     }
-  }, [splashDone, splashAuth, location.pathname, navigate]);
+    setSplashDone(true);
+  }, [location.pathname, navigate]);
 
   // Prevent scroll while splash is visible
   useEffect(() => {
