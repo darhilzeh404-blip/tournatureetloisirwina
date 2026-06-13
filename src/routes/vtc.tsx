@@ -451,10 +451,17 @@ function CourseFlow() {
       if (error) throw error;
 
       if (!isNight) {
-        // Paiement obligatoire avant dispatch — le trip sera créé après soumission du paiement.
-        toast.info("Réservation enregistrée — payez le montant total pour lancer la recherche d'un chauffeur.");
-        navigate({ to: "/paiement/$reservationId", params: { reservationId: data.id } });
-        return;
+        // Débit auto du portefeuille VTC Points (refus si solde insuffisant)
+        try {
+          const { payReservationWithWallet } = await import("@/lib/vtc-wallet");
+          await payReservationWithWallet(data.id);
+          toast.success("Course payée depuis votre portefeuille ✅");
+        } catch (e) {
+          const { walletErrorMessage } = await import("@/lib/vtc-wallet");
+          await supabase.from("reservations").delete().eq("id", data.id);
+          toast.error(walletErrorMessage(e));
+          return;
+        }
       }
 
       // Nuit : dispatch immédiat, paiement cash au chauffeur.
@@ -492,7 +499,9 @@ function CourseFlow() {
 
       await requestNotificationPermission();
       await showAppNotification("Demande VTC enregistrée", { tag: `vtc-${data.id}` });
-      toast.success("Course de nuit : payez en espèces au chauffeur à l'arrivée 💵");
+      if (isNight) {
+        toast.success("Course de nuit : payez en espèces au chauffeur à l'arrivée 💵");
+      }
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
 
     } catch (e: any) {

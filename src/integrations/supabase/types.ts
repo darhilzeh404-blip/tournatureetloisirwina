@@ -2016,6 +2016,16 @@ export type Database = {
         Args: { _delta: number; _note: string; _user_id: string }
         Returns: number
       }
+      admin_credit_driver_earnings: {
+        Args: {
+          _driver_id: string
+          _gross_amount: number
+          _payment_method?: string
+          _reservation_id: string
+          _trip_id: string
+        }
+        Returns: number
+      }
       admin_validate_vtc_recharge: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: number
@@ -2069,6 +2079,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      complete_vtc_trip: {
+        Args: { _trip_id: string }
+        Returns: {
+          driver_balance: number
+          driver_net: number
+          paid_via_wallet: boolean
+        }[]
       }
       credit_driver_earnings: {
         Args: {
@@ -2144,6 +2162,13 @@ export type Database = {
         Returns: {
           ride_id: string
           seat_index: number
+        }[]
+      }
+      pay_reservation_with_wallet: {
+        Args: { _reservation_id: string }
+        Returns: {
+          new_balance: number
+          total_paid: number
         }[]
       }
       recompute_vip_level: { Args: { _user_id: string }; Returns: string }

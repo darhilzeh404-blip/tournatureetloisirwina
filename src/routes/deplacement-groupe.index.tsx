@@ -175,6 +175,8 @@ function GroupRidePage() {
             return;
           }
           toast.error("Vous avez déjà une course groupée en cours");
+        } else if (msg.includes("INSUFFICIENT_POINTS")) {
+          toast.error("Solde VTC Points insuffisant. Rechargez votre portefeuille.");
         } else if (msg.includes("NOT_AUTHENTICATED")) {
           toast.error("Session expirée, reconnectez-vous");
           navigate({ to: "/connexion" });
