@@ -138,7 +138,9 @@ export async function completeVtcTrip(tripId: string): Promise<{ driver_net: num
     _trip_id: tripId,
   } as never);
   if (error) throw error;
-  const row = Array.isArray(data) ? data[0] : data;
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | { driver_net?: number; driver_balance?: number; paid_via_wallet?: boolean }
+    | null;
   return {
     driver_net: Number(row?.driver_net ?? 0),
     driver_balance: Number(row?.driver_balance ?? 0),
