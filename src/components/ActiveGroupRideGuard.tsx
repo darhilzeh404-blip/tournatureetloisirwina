@@ -24,14 +24,18 @@ export function ActiveGroupRideGuard() {
     const path = location.pathname;
     // Ne pas rediriger depuis ces zones
     if (
-      path.startsWith("/deplacement-groupe/waiting") ||
+      path.startsWith("/deplacement-groupe") ||
       path.startsWith("/admin") ||
       path.startsWith("/chauffeur") ||
       path.startsWith("/gerant") ||
+      path.startsWith("/agence") ||
       path.startsWith("/connexion") ||
       path.startsWith("/inscription") ||
       path.startsWith("/paiement") ||
-      path.startsWith("/mes-reservations")
+      path.startsWith("/mes-reservations") ||
+      path.startsWith("/vtc") ||
+      path.startsWith("/wallet") ||
+      path.startsWith("/espace-client")
     ) {
       return;
     }
