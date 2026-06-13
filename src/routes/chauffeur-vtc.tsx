@@ -583,26 +583,22 @@ function ChauffeurVtcPage() {
     setConfirmCompleteId(null);
     setBusyId(t.id);
     lastActionAtRef.current[t.id] = Date.now();
-    const { error: updErr } = await supabase
-      .from("trips")
-      .update({ status: "completed", completed_at: new Date().toISOString() })
-      .eq("id", t.id);
-    if (updErr) {
+    try {
+      const { completeVtcTrip, formatPoints } = await import("@/lib/vtc-wallet");
+      const res = await completeVtcTrip(t.id);
+      if (res.paid_via_wallet && res.driver_net > 0) {
+        toast.success(`Course terminée — ${formatPoints(res.driver_net)} pts crédités (80%)`);
+      } else {
+        toast.success("Course terminée");
+      }
+    } catch (e) {
+      const msg = (e as { message?: string })?.message ?? "Erreur";
+      console.error("[VTC] complete_vtc_trip", e);
+      toast.error(`Finalisation : ${msg}`);
+    } finally {
       setBusyId(null);
-      console.error("[VTC] completeTrip update", updErr);
-      toast.error(`Erreur finalisation : ${updErr.message}`);
-      return;
-    }
-    const { error } = await supabase.rpc("archive_trip_and_reservation", { _trip_id: t.id });
-    setBusyId(null);
-    if (error) {
-      console.error("[VTC] archive", error);
-      toast.error(`Course terminée mais archivage impossible : ${error.message}`);
       load();
-      return;
     }
-    toast.success("Course terminée");
-    load();
   };
 
   if (isLoading) return <div className="flex min-h-screen items-center justify-center">Chargement…</div>;
