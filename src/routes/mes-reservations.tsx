@@ -27,6 +27,8 @@ interface Reservation {
   details: Record<string, unknown> | null;
   created_at: string;
   trip_id?: string | null;
+  reference_code?: string | null;
+  agent_code?: string | null;
 }
 
 interface GroupRideRow {
