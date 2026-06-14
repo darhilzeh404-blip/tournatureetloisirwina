@@ -157,7 +157,7 @@ function VtcTrackingPage() {
         license_plate: driver?.license_plate ?? null,
       });
     })();
-  }, [trip?.driver_id]);
+  }, [trip?.driver_id, trip?.id]);
 
   const driverName = driverInfo?.full_name ?? "";
 
