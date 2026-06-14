@@ -143,11 +143,12 @@ function VtcTrackingPage() {
     }
     (async () => {
       const driverId = trip.driver_id;
-      if (!driverId) return;
-      const [{ data: profile }, { data: driver }] = await Promise.all([
+      if (!driverId || !trip?.id) return;
+      const [{ data: profile }, { data: driverRows }] = await Promise.all([
         supabase.from("profiles").select("full_name, phone").eq("user_id", driverId).maybeSingle(),
-        supabase.from("drivers").select("vehicle_type, license_plate, phone, full_name").eq("user_id", driverId).maybeSingle(),
+        supabase.rpc("get_assigned_vtc_driver" as never, { _trip_id: trip.id } as never),
       ]);
+      const driver = Array.isArray(driverRows) ? (driverRows[0] as { full_name?: string; phone?: string; vehicle_type?: string; license_plate?: string } | undefined) : undefined;
 
       setDriverInfo({
         full_name: driver?.full_name || profile?.full_name || null,
