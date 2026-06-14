@@ -1012,6 +1012,7 @@ export type Database = {
       reservations: {
         Row: {
           admin_comment: string | null
+          agent_code: string | null
           archived_at: string | null
           coins_awarded: boolean
           coins_used: number
@@ -1020,6 +1021,7 @@ export type Database = {
           id: string
           paid_amount: number
           paiement_valide: boolean
+          reference_code: string | null
           reservation_date: string
           service_type: Database["public"]["Enums"]["service_type"]
           status: Database["public"]["Enums"]["reservation_status"]
@@ -1029,6 +1031,7 @@ export type Database = {
         }
         Insert: {
           admin_comment?: string | null
+          agent_code?: string | null
           archived_at?: string | null
           coins_awarded?: boolean
           coins_used?: number
@@ -1037,6 +1040,7 @@ export type Database = {
           id?: string
           paid_amount?: number
           paiement_valide?: boolean
+          reference_code?: string | null
           reservation_date: string
           service_type: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["reservation_status"]
@@ -1046,6 +1050,7 @@ export type Database = {
         }
         Update: {
           admin_comment?: string | null
+          agent_code?: string | null
           archived_at?: string | null
           coins_awarded?: boolean
           coins_used?: number
@@ -1054,6 +1059,7 @@ export type Database = {
           id?: string
           paid_amount?: number
           paiement_valide?: boolean
+          reference_code?: string | null
           reservation_date?: string
           service_type?: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["reservation_status"]
