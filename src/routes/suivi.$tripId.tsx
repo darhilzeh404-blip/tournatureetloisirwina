@@ -85,7 +85,7 @@ function TripTrackingPage() {
         if (mounted && profile) setDriverName(profile.full_name);
         // Detecte la catégorie via le RPC sécurisé (driver row n'est plus exposée aux clients)
         const { data: vtcRows } = await supabase.rpc("get_assigned_vtc_driver" as never, { _trip_id: tripId } as never);
-        const hasVtc = Array.isArray(vtcRows) && vtcRows.length > 0;
+        const hasVtc = Array.isArray(vtcRows) && (vtcRows as unknown[]).length > 0;
         if (mounted) setDriverService(hasVtc ? "vtc" : "bus");
       }
       setLoading(false);
