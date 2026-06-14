@@ -496,6 +496,20 @@ function AdminReservations() {
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
                           <td className="p-4 font-medium text-xs">{r.id.slice(0, 8)}…</td>
+                          <td className="p-4">
+                            {r.reference_code || r.agent_code ? (
+                              <div className="flex flex-col gap-0.5 font-mono text-[11px]">
+                                {r.reference_code && (
+                                  <span title="Code client (référence)">REF · <span className="font-bold tracking-wider">{r.reference_code}</span></span>
+                                )}
+                                {r.agent_code && (
+                                  <span className="text-muted-foreground" title="Code agent">AGT · <span className="font-bold tracking-wider">{r.agent_code}</span></span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic text-[11px]">—</span>
+                            )}
+                          </td>
                           <td className="p-4">{p?.full_name ?? "—"}</td>
                           <td className="p-4">{SERVICE_LABELS[r.service_type] ?? r.service_type}</td>
                           <td className="p-4 hidden md:table-cell text-muted-foreground text-xs">{detailsLabel(r)}</td>
