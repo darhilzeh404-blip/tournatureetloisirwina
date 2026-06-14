@@ -431,6 +431,32 @@ function MesReservationsPage() {
                       )}
                     </div>
                   </div>
+                  {res.reference_code && (
+                    <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-primary/80">Code de réservation</p>
+                          <p className="mt-0.5 font-mono text-lg font-bold tracking-[0.2em] text-primary">{res.reference_code}</p>
+                          <p className="mt-1 text-[11px] text-muted-foreground">À présenter à l'agent ou à mentionner lors du paiement.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(res.reference_code!);
+                            toast.success("Code copié");
+                          }}
+                          className="rounded-lg border border-primary/30 bg-background px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+                        >
+                          Copier
+                        </button>
+                      </div>
+                      {res.agent_code && res.status === "CONFIRMED" && (
+                        <p className="mt-2 border-t border-primary/10 pt-2 text-[11px] text-muted-foreground">
+                          Code de confirmation agent : <span className="font-mono font-bold tracking-wider text-foreground">{res.agent_code}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {(canPay || res.trip_id || res.service_type === "VTC") && (
                     <div className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-4">
                       {res.service_type === "VTC" && (
