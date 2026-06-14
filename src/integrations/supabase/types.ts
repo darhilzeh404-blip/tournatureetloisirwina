@@ -2116,6 +2116,15 @@ export type Database = {
         Args: { _name: string; _user_id: string }
         Returns: boolean
       }
+      get_assigned_vtc_driver: {
+        Args: { _trip_id: string }
+        Returns: {
+          full_name: string
+          license_plate: string
+          phone: string
+          vehicle_type: string
+        }[]
+      }
       get_driver_vtc_earnings: {
         Args: { _driver_id: string }
         Returns: {
