@@ -216,9 +216,12 @@ function AdminReservations() {
   const filtered = reservations.filter((r) => {
     const p = profiles.get(r.user_id);
     const clientName = p?.full_name ?? "";
+    const q = search.toLowerCase();
     const matchSearch =
-      clientName.toLowerCase().includes(search.toLowerCase()) ||
-      r.id.toLowerCase().includes(search.toLowerCase());
+      clientName.toLowerCase().includes(q) ||
+      r.id.toLowerCase().includes(q) ||
+      (r.reference_code ?? "").toLowerCase().includes(q) ||
+      (r.agent_code ?? "").toLowerCase().includes(q);
     const isArchived = !!r.archived_at;
     if (tab === "archived") return matchSearch && isArchived;
     if (isArchived) return false;
