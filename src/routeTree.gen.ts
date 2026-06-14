@@ -42,6 +42,7 @@ import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
 import { Route as ChauffeurGroupesRouteImport } from './routes/chauffeur.groupes'
+import { Route as ChauffeurGainsRouteImport } from './routes/chauffeur.gains'
 import { Route as BilletsIdRouteImport } from './routes/billets.$id'
 import { Route as AnnoncesIdRouteImport } from './routes/annonces.$id'
 import { Route as AgenceProfilRouteImport } from './routes/agence.profil'
@@ -235,6 +236,11 @@ const ChauffeurTripsRoute = ChauffeurTripsRouteImport.update({
 const ChauffeurGroupesRoute = ChauffeurGroupesRouteImport.update({
   id: '/groupes',
   path: '/groupes',
+  getParentRoute: () => ChauffeurRoute,
+} as any)
+const ChauffeurGainsRoute = ChauffeurGainsRouteImport.update({
+  id: '/gains',
+  path: '/gains',
   getParentRoute: () => ChauffeurRoute,
 } as any)
 const BilletsIdRoute = BilletsIdRouteImport.update({
@@ -434,6 +440,7 @@ export interface FileRoutesByFullPath {
   '/agence/profil': typeof AgenceProfilRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
+  '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
@@ -495,6 +502,7 @@ export interface FileRoutesByTo {
   '/agence/profil': typeof AgenceProfilRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
+  '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
@@ -560,6 +568,7 @@ export interface FileRoutesById {
   '/agence/profil': typeof AgenceProfilRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
+  '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
@@ -626,6 +635,7 @@ export interface FileRouteTypes {
     | '/agence/profil'
     | '/annonces/$id'
     | '/billets/$id'
+    | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
@@ -687,6 +697,7 @@ export interface FileRouteTypes {
     | '/agence/profil'
     | '/annonces/$id'
     | '/billets/$id'
+    | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
@@ -751,6 +762,7 @@ export interface FileRouteTypes {
     | '/agence/profil'
     | '/annonces/$id'
     | '/billets/$id'
+    | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
@@ -1031,6 +1043,13 @@ declare module '@tanstack/react-router' {
       path: '/groupes'
       fullPath: '/chauffeur/groupes'
       preLoaderRoute: typeof ChauffeurGroupesRouteImport
+      parentRoute: typeof ChauffeurRoute
+    }
+    '/chauffeur/gains': {
+      id: '/chauffeur/gains'
+      path: '/gains'
+      fullPath: '/chauffeur/gains'
+      preLoaderRoute: typeof ChauffeurGainsRouteImport
       parentRoute: typeof ChauffeurRoute
     }
     '/billets/$id': {
@@ -1316,11 +1335,13 @@ const BilletsRouteWithChildren =
   BilletsRoute._addFileChildren(BilletsRouteChildren)
 
 interface ChauffeurRouteChildren {
+  ChauffeurGainsRoute: typeof ChauffeurGainsRoute
   ChauffeurGroupesRoute: typeof ChauffeurGroupesRoute
   ChauffeurTripsRoute: typeof ChauffeurTripsRoute
 }
 
 const ChauffeurRouteChildren: ChauffeurRouteChildren = {
+  ChauffeurGainsRoute: ChauffeurGainsRoute,
   ChauffeurGroupesRoute: ChauffeurGroupesRoute,
   ChauffeurTripsRoute: ChauffeurTripsRoute,
 }

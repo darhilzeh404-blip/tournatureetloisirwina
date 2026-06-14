@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { Bell, Car, Check, Crosshair, Loader2, LocateFixed, LogOut, MapPin, Navigation, RefreshCw, Route as RouteIcon, ShieldAlert, UsersRound, X } from "lucide-react";
+import { Bell, Car, Check, Crosshair, Loader2, LocateFixed, LogOut, MapPin, Navigation, RefreshCw, Route as RouteIcon, ShieldAlert, UsersRound, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -377,7 +377,7 @@ function ChauffeurPage() {
               {refreshing ? "Mise à jour…" : "Rafraîchir"}
             </Button>
           </div>
-          <nav className="mt-3 grid grid-cols-3 gap-2">
+          <nav className="mt-3 grid grid-cols-4 gap-2">
             <Link to="/chauffeur/trips" search={{ tripId: undefined }} className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-2 text-xs font-semibold hover:bg-accent">
               <RouteIcon className="h-4 w-4" /> Courses
             </Link>
@@ -386,6 +386,9 @@ function ChauffeurPage() {
             </Link>
             <Link to="/chauffeur/groupes" className="flex items-center justify-center gap-1 rounded-xl border border-border bg-card px-2 py-2 text-xs font-semibold hover:bg-accent">
               <UsersRound className="h-4 w-4" /> Groupes
+            </Link>
+            <Link to="/chauffeur/gains" className="flex items-center justify-center gap-1 rounded-xl border border-primary/40 bg-primary/10 px-2 py-2 text-xs font-semibold text-primary hover:bg-primary/20">
+              <Wallet className="h-4 w-4" /> Gains
             </Link>
           </nav>
         </header>
