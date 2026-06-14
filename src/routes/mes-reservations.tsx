@@ -529,7 +529,7 @@ function PaymentDialog({
       .from("reservations")
       .update({ paid_amount: newPaid })
       .eq("id", reservation.id)
-      .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at")
+      .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at, reference_code, agent_code")
       .single();
     setSubmitting(false);
     if (resError || !updatedRes) {
