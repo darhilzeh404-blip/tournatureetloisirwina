@@ -30,6 +30,8 @@ interface Reservation {
   created_at: string;
   archived_at: string | null;
   admin_comment: string | null;
+  reference_code: string | null;
+  agent_code: string | null;
 }
 
 interface PaymentRow {
@@ -214,9 +216,12 @@ function AdminReservations() {
   const filtered = reservations.filter((r) => {
     const p = profiles.get(r.user_id);
     const clientName = p?.full_name ?? "";
+    const q = search.toLowerCase();
     const matchSearch =
-      clientName.toLowerCase().includes(search.toLowerCase()) ||
-      r.id.toLowerCase().includes(search.toLowerCase());
+      clientName.toLowerCase().includes(q) ||
+      r.id.toLowerCase().includes(q) ||
+      (r.reference_code ?? "").toLowerCase().includes(q) ||
+      (r.agent_code ?? "").toLowerCase().includes(q);
     const isArchived = !!r.archived_at;
     if (tab === "archived") return matchSearch && isArchived;
     if (isArchived) return false;
@@ -440,7 +445,7 @@ function AdminReservations() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Rechercher par ID ou client…"
+            placeholder="Rechercher par ID, code réf, code agent ou client…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-9 w-full rounded-lg border bg-card pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -467,6 +472,7 @@ function AdminReservations() {
                   <thead>
                     <tr className="border-b text-left text-xs font-medium text-muted-foreground">
                       <th className="p-4">ID</th>
+                      <th className="p-4">Codes</th>
                       <th className="p-4">Client</th>
                       <th className="p-4">Type</th>
                       <th className="p-4 hidden md:table-cell">Détails</th>
@@ -490,6 +496,20 @@ function AdminReservations() {
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
                           <td className="p-4 font-medium text-xs">{r.id.slice(0, 8)}…</td>
+                          <td className="p-4">
+                            {r.reference_code || r.agent_code ? (
+                              <div className="flex flex-col gap-0.5 font-mono text-[11px]">
+                                {r.reference_code && (
+                                  <span title="Code client (référence)">REF · <span className="font-bold tracking-wider">{r.reference_code}</span></span>
+                                )}
+                                {r.agent_code && (
+                                  <span className="text-muted-foreground" title="Code agent">AGT · <span className="font-bold tracking-wider">{r.agent_code}</span></span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic text-[11px]">—</span>
+                            )}
+                          </td>
                           <td className="p-4">{p?.full_name ?? "—"}</td>
                           <td className="p-4">{SERVICE_LABELS[r.service_type] ?? r.service_type}</td>
                           <td className="p-4 hidden md:table-cell text-muted-foreground text-xs">{detailsLabel(r)}</td>
@@ -609,7 +629,7 @@ function AdminReservations() {
                     })}
                     {filtered.length === 0 && (
                       <tr>
-                        <td colSpan={11} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
+                        <td colSpan={12} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
                       </tr>
                     )}
                   </tbody>
