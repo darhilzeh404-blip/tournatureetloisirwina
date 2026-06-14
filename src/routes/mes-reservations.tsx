@@ -143,7 +143,7 @@ function MesReservationsPage() {
     (async () => {
       const { data, error } = await supabase
         .from("reservations")
-        .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at")
+        .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at, reference_code, agent_code")
         .eq("user_id", user.id)
         .is("archived_at", null)
         .order("created_at", { ascending: false });
