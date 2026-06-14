@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { Bell, Car, Check, Crosshair, Loader2, LocateFixed, LogOut, MapPin, Navigation, RefreshCw, Route as RouteIcon, ShieldAlert, UsersRound, X } from "lucide-react";
+import { Bell, Car, Check, Crosshair, Loader2, LocateFixed, LogOut, MapPin, Navigation, RefreshCw, Route as RouteIcon, ShieldAlert, UsersRound, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
