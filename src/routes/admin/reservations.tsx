@@ -472,6 +472,7 @@ function AdminReservations() {
                   <thead>
                     <tr className="border-b text-left text-xs font-medium text-muted-foreground">
                       <th className="p-4">ID</th>
+                      <th className="p-4">Codes</th>
                       <th className="p-4">Client</th>
                       <th className="p-4">Type</th>
                       <th className="p-4 hidden md:table-cell">Détails</th>
