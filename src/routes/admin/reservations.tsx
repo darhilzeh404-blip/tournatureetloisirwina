@@ -30,6 +30,8 @@ interface Reservation {
   created_at: string;
   archived_at: string | null;
   admin_comment: string | null;
+  reference_code: string | null;
+  agent_code: string | null;
 }
 
 interface PaymentRow {
