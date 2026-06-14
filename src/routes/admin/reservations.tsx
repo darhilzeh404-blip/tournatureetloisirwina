@@ -445,7 +445,7 @@ function AdminReservations() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Rechercher par ID ou client…"
+            placeholder="Rechercher par ID, code réf, code agent ou client…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-9 w-full rounded-lg border bg-card pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
