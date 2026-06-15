@@ -21,10 +21,7 @@ function AdminAgences() {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("partner_agencies" as any)
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data } = await (supabase as any).rpc("get_all_partner_agencies_admin");
     setList(((data as any) ?? []) as Agency[]);
     setLoading(false);
   };
