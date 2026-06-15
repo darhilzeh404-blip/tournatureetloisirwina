@@ -23,13 +23,9 @@ function AgenceProfil() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
-        .from("partner_agencies" as any)
-        .select("*")
-        .eq("owner_user_id", user.id)
-        .maybeSingle();
-      if (data) {
-        const a = data as any;
+      const { data } = await (supabase as any).rpc("get_my_partner_agency");
+      const a = Array.isArray(data) && data.length > 0 ? (data[0] as any) : null;
+      if (a) {
         setAgencyId(a.id);
         setForm({
           name: a.name ?? "", phone: a.phone ?? "", email: a.email ?? "",
