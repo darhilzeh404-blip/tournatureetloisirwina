@@ -48,17 +48,32 @@ function SalonPage() {
   useEffect(() => {
     let mounted = true;
 
+    const loadPassengers = async () => {
+      const ownPromise = user
+        ? supabase.from("group_ride_passengers").select("*").eq("ride_id", rideId).eq("user_id", user.id).maybeSingle()
+        : Promise.resolve({ data: null });
+      const coPromise = supabase.rpc("get_group_ride_co_passengers", { _ride_id: rideId });
+      const [{ data: own }, { data: co }] = await Promise.all([ownPromise, coPromise]);
+      const list: any[] = [];
+      const ownId = own?.id ?? null;
+      if (own) list.push({ ...own, _is_me: true });
+      for (const p of (co as any[]) ?? []) {
+        if (p.id === ownId) continue;
+        list.push({ ...p, _is_me: false });
+      }
+      list.sort((a, b) => (a.seat_index ?? 0) - (b.seat_index ?? 0));
+      if (mounted) setPassengers(list);
+    };
+
     const fetchAll = async (reason: string) => {
       try {
-        const [{ data: r, error: rErr }, { data: p, error: pErr }] = await Promise.all([
+        const [{ data: r, error: rErr }] = await Promise.all([
           supabase.from("group_rides").select("*").eq("id", rideId).maybeSingle(),
-          supabase.from("group_ride_passengers").select("*").eq("ride_id", rideId).order("seat_index"),
+          loadPassengers(),
         ]);
         if (!mounted) return;
         if (rErr) { console.error("[salon] ride", rErr); setLoadError("Accès refusé ou trajet introuvable"); }
-        if (pErr) console.error("[salon] passengers", pErr);
         if (r) setRide(r);
-        setPassengers(p ?? []);
       } catch (e: any) {
         console.error("[salon] load exception", e);
         if (mounted && reason === "initial") { setLoadError("Erreur réseau"); toast.error("Réseau indisponible"); }
@@ -69,29 +84,20 @@ function SalonPage() {
 
     fetchAll("initial");
 
-    const refetchPassengers = async () => {
-      const { data } = await supabase
-        .from("group_ride_passengers")
-        .select("*").eq("ride_id", rideId).order("seat_index");
-      if (mounted) setPassengers(data ?? []);
-    };
-
     const channel = supabase
       .channel(`group-ride-${rideId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "group_rides", filter: `id=eq.${rideId}` }, (payload: any) => {
         if (payload.new) setRide(payload.new);
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers", filter: `ride_id=eq.${rideId}` }, (payload: any) => {
-        refetchPassengers();
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers", filter: `ride_id=eq.${rideId}` }, () => {
+        loadPassengers();
       })
       .subscribe((status: string) => {
-        // À chaque (re)connexion réussie au canal, on re-synchronise pour rattraper les évènements manqués.
         if (status === "SUBSCRIBED") {
           fetchAll("subscribed");
         }
       });
 
-    // Resync au retour en avant-plan / reconnexion réseau
     const onVisible = () => {
       if (document.visibilityState === "visible") fetchAll("visibility");
     };
@@ -105,7 +111,7 @@ function SalonPage() {
       window.removeEventListener("online", onOnline);
       supabase.removeChannel(channel);
     };
-  }, [rideId]);
+  }, [rideId, user?.id]);
 
 
   useEffect(() => {
