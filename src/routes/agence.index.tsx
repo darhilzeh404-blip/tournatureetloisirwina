@@ -19,7 +19,7 @@ function AgenceDashboard() {
     (async () => {
       const { data } = await supabase
         .from("partner_agencies" as any)
-        .select("*")
+        .select("id, owner_user_id, name, phone, logo_url, is_verified, is_active, description")
         .eq("owner_user_id", user.id)
         .maybeSingle();
       setAgency(data);
