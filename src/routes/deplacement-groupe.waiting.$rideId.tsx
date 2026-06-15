@@ -396,10 +396,10 @@ function SalonPage() {
                       <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9.5px] font-bold uppercase text-primary">{p.status}</span>
                     </div>
                     <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted-foreground">
-                      <MapPin className="h-3 w-3 shrink-0 text-primary" /> {p.pickup_address}
+                      <MapPin className="h-3 w-3 shrink-0 text-primary" /> {me ? p.pickup_address : (p.commune_pickup ?? "Quartier")}
                     </p>
                     <p className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
-                      <Navigation className="h-3 w-3 shrink-0 text-accent-foreground" /> {p.destination_address}
+                      <Navigation className="h-3 w-3 shrink-0 text-accent-foreground" /> {me ? p.destination_address : (p.commune_destination ?? "Quartier")}
                     </p>
                   </div>
                 </motion.li>
