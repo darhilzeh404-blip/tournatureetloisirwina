@@ -2122,6 +2122,28 @@ export type Database = {
         Args: { _name: string; _user_id: string }
         Returns: boolean
       }
+      get_all_partner_agencies_admin: {
+        Args: never
+        Returns: {
+          created_at: string
+          description: string
+          email: string | null
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          logo_url: string | null
+          name: string
+          owner_user_id: string
+          phone: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "partner_agencies"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_assigned_vtc_driver: {
         Args: { _trip_id: string }
         Returns: {
@@ -2142,6 +2164,39 @@ export type Database = {
           trip_status: string
           validated_at: string
         }[]
+      }
+      get_group_ride_co_passengers: {
+        Args: { _ride_id: string }
+        Returns: {
+          commune_destination: string
+          commune_pickup: string
+          id: string
+          joined_at: string
+          seat_index: number
+          status: string
+        }[]
+      }
+      get_my_partner_agency: {
+        Args: never
+        Returns: {
+          created_at: string
+          description: string
+          email: string | null
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          logo_url: string | null
+          name: string
+          owner_user_id: string
+          phone: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "partner_agencies"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       has_role: {
         Args: {
