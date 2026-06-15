@@ -21,8 +21,8 @@ function AdminAgences() {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await (supabase as any).rpc("get_all_partner_agencies_admin");
-    setList(((data as any) ?? []) as Agency[]);
+    const { data } = await supabase.rpc("get_all_partner_agencies_admin");
+    setList((data ?? []) as Agency[]);
     setLoading(false);
   };
 
@@ -30,7 +30,7 @@ function AdminAgences() {
 
   const toggleVerified = async (a: Agency) => {
     const { error } = await supabase
-      .from("partner_agencies" as any)
+      .from("partner_agencies")
       .update({ is_verified: !a.is_verified })
       .eq("id", a.id);
     if (error) { toast.error(error.message); return; }
@@ -40,7 +40,7 @@ function AdminAgences() {
 
   const toggleActive = async (a: Agency) => {
     const { error } = await supabase
-      .from("partner_agencies" as any)
+      .from("partner_agencies")
       .update({ is_active: !a.is_active })
       .eq("id", a.id);
     if (error) { toast.error(error.message); return; }
@@ -49,7 +49,7 @@ function AdminAgences() {
 
   const grantAgenceRole = async (userId: string) => {
     const { error } = await supabase
-      .from("user_roles" as any)
+      .from("user_roles")
       .insert({ user_id: userId, role: "agence" });
     if (error && !error.message.includes("duplicate")) { toast.error(error.message); return; }
     toast.success("Rôle 'agence' attribué");

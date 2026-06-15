@@ -23,8 +23,8 @@ function AgenceProfil() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await (supabase as any).rpc("get_my_partner_agency");
-      const a = Array.isArray(data) && data.length > 0 ? (data[0] as any) : null;
+      const { data } = await supabase.rpc("get_my_partner_agency");
+      const a = Array.isArray(data) && data.length > 0 ? data[0] : null;
       if (a) {
         setAgencyId(a.id);
         setForm({
@@ -53,8 +53,8 @@ function AgenceProfil() {
     setSaving(true);
     const payload = { ...form, owner_user_id: user.id };
     const { error } = agencyId
-      ? await supabase.from("partner_agencies" as any).update(payload).eq("id", agencyId)
-      : await supabase.from("partner_agencies" as any).insert(payload);
+      ? await supabase.from("partner_agencies").update(payload).eq("id", agencyId)
+      : await supabase.from("partner_agencies").insert(payload);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Profil enregistré");
