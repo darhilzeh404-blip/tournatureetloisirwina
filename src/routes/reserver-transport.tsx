@@ -496,8 +496,14 @@ function ReserverTransport() {
                   </div>
                 </div>
 
+            {!selectedBusTrip ? (
+              <div className="rounded-2xl border bg-card p-6 text-center text-sm text-muted-foreground">
+                {catalog.loading ? "Chargement des trajets…" : "Aucun trajet de groupe disponible pour le moment."}
+              </div>
+            ) : (<>
             {/* Étape 1 — Choix du trajet */}
             <SectionCard step="1" title="Choisir un trajet" icon={<MapPin className="h-4 w-4" />}>
+
               <div className="space-y-2">
                 {catalog.groupBusTrips.map((trip) => {
                   const active = (busTripCode || catalog.groupBusTrips[0]?.code) === trip.code;
@@ -662,8 +668,10 @@ function ReserverTransport() {
             </div>
 
                 <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver le bus" />
+                </>)}
               </div>
             )}
+
 
             {busSubTab === "evenement" && (
               <div className="space-y-4 pb-28">
