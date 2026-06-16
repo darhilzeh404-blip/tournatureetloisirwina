@@ -668,8 +668,10 @@ function ReserverTransport() {
             </div>
 
                 <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver le bus" />
+                </>)}
               </div>
             )}
+
 
             {busSubTab === "evenement" && (
               <div className="space-y-4 pb-28">
