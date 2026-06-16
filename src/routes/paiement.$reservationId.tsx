@@ -16,8 +16,9 @@ import { fetchBalance } from "@/lib/wina-coins";
 import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 
 // Codes agents marchands (à personnaliser depuis l'admin plus tard)
-const CODE_AGENT_MOOV = "074512";
-const CODE_AGENT_AIRTEL = "074512";
+const CODE_AGENT_MOOV = "TRANSPORT";
+const CODE_AGENT_AIRTEL = "BGG94";
+
 
 export const Route = createFileRoute("/paiement/$reservationId")({
   head: () => ({
