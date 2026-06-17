@@ -25,7 +25,7 @@ export interface VtcRechargeRequest {
   user_id: string;
   amount_points: number;
   amount_fcfa: number;
-  payment_method: "mobile_money" | "cash_agent" | "bank_transfer" | "other";
+  payment_method: "mobile_money" | "cash_agent" | "bank_transfer" | "other" | "airtel_money" | "moov_money";
   payment_reference: string | null;
   agent_code: string | null;
   proof_url: string | null;
@@ -158,6 +158,8 @@ export function walletErrorMessage(err: unknown): string {
 }
 
 export const RECHARGE_METHOD_LABEL: Record<VtcRechargeRequest["payment_method"], string> = {
+  airtel_money: "Airtel Money",
+  moov_money: "Moov Money",
   mobile_money: "Mobile Money",
   cash_agent: "Cash agent",
   bank_transfer: "Virement bancaire",

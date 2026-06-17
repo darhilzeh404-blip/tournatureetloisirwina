@@ -38,6 +38,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DeplacementGroupeIndexRouteImport } from './routes/deplacement-groupe.index'
 import { Route as AgenceIndexRouteImport } from './routes/agence.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as WalletRechargerRouteImport } from './routes/wallet.recharger'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
@@ -217,6 +218,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const WalletRechargerRoute = WalletRechargerRouteImport.update({
+  id: '/recharger',
+  path: '/recharger',
+  getParentRoute: () => WalletRoute,
 } as any)
 const SuiviTripIdRoute = SuiviTripIdRouteImport.update({
   id: '/suivi/$tripId',
@@ -415,7 +421,7 @@ export interface FileRoutesByFullPath {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
-  '/wallet': typeof WalletRoute
+  '/wallet': typeof WalletRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
@@ -445,6 +451,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
+  '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
   '/agence/': typeof AgenceIndexRoute
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
@@ -477,7 +484,7 @@ export interface FileRoutesByTo {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
-  '/wallet': typeof WalletRoute
+  '/wallet': typeof WalletRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
@@ -507,6 +514,7 @@ export interface FileRoutesByTo {
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
+  '/wallet/recharger': typeof WalletRechargerRoute
   '/admin': typeof AdminIndexRoute
   '/agence': typeof AgenceIndexRoute
   '/deplacement-groupe': typeof DeplacementGroupeIndexRoute
@@ -543,7 +551,7 @@ export interface FileRoutesById {
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
-  '/wallet': typeof WalletRoute
+  '/wallet': typeof WalletRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
@@ -573,6 +581,7 @@ export interface FileRoutesById {
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
+  '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
   '/agence/': typeof AgenceIndexRoute
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
@@ -640,6 +649,7 @@ export interface FileRouteTypes {
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
+    | '/wallet/recharger'
     | '/admin/'
     | '/agence/'
     | '/deplacement-groupe/'
@@ -702,6 +712,7 @@ export interface FileRouteTypes {
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
+    | '/wallet/recharger'
     | '/admin'
     | '/agence'
     | '/deplacement-groupe'
@@ -767,6 +778,7 @@ export interface FileRouteTypes {
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
+    | '/wallet/recharger'
     | '/admin/'
     | '/agence/'
     | '/deplacement-groupe/'
@@ -803,7 +815,7 @@ export interface RootRouteChildren {
   TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
   VtcRoute: typeof VtcRouteWithChildren
-  WalletRoute: typeof WalletRoute
+  WalletRoute: typeof WalletRouteWithChildren
   WinaCoinsRoute: typeof WinaCoinsRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
@@ -1016,6 +1028,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/wallet/recharger': {
+      id: '/wallet/recharger'
+      path: '/recharger'
+      fullPath: '/wallet/recharger'
+      preLoaderRoute: typeof WalletRechargerRouteImport
+      parentRoute: typeof WalletRoute
     }
     '/suivi/$tripId': {
       id: '/suivi/$tripId'
@@ -1385,6 +1404,17 @@ const VtcRouteChildren: VtcRouteChildren = {
 
 const VtcRouteWithChildren = VtcRoute._addFileChildren(VtcRouteChildren)
 
+interface WalletRouteChildren {
+  WalletRechargerRoute: typeof WalletRechargerRoute
+}
+
+const WalletRouteChildren: WalletRouteChildren = {
+  WalletRechargerRoute: WalletRechargerRoute,
+}
+
+const WalletRouteWithChildren =
+  WalletRoute._addFileChildren(WalletRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivitesRoute: ActivitesRoute,
@@ -1410,7 +1440,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
   VtcRoute: VtcRouteWithChildren,
-  WalletRoute: WalletRoute,
+  WalletRoute: WalletRouteWithChildren,
   WinaCoinsRoute: WinaCoinsRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
