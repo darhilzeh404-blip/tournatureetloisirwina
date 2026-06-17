@@ -105,35 +105,47 @@ function DriverTripsPage() {
   }, [user, loadTrips]);
 
   const startTrip = async (t: Trip) => {
+    if (actionLoading) return;
     setActionLoading(true);
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("trips")
       .update({ status: "active", started_at: new Date().toISOString() })
-      .eq("id", t.id);
+      .eq("id", t.id)
+      .eq("driver_id", user!.id)
+      .in("status", ["pending", "assigned"])
+      .select("id, status");
     setActionLoading(false);
     if (error) {
       console.error("startTrip error", error);
-      toast.error("Impossible de démarrer la course.");
-    } else {
-      toast.success("Course démarrée. Suivi du client activé.");
-      await loadTrips();
+      toast.error(`Impossible de démarrer : ${error.message}`);
+      return;
     }
+    if (!data || data.length === 0) {
+      toast.error("Course déjà démarrée ou statut incompatible.");
+      await loadTrips();
+      return;
+    }
+    toast.success("Course démarrée. Suivi du client activé.");
+    await loadTrips();
   };
 
+
   const completeTrip = async (t: Trip) => {
+    if (actionLoading) return;
     setActionLoading(true);
     const { error } = await supabase.rpc("archive_trip_and_reservation", { _trip_id: t.id });
     setActionLoading(false);
     if (error) {
       console.error("completeTrip error", error);
-      toast.error("Erreur lors de la finalisation.");
-    } else {
-      toast.success("Course terminée.");
-      setActiveTrip(null);
-      setTrips((prev) => prev.filter((x) => x.id !== t.id));
-      await loadTrips();
+      toast.error(`Erreur lors de la finalisation : ${error.message}`);
+      return;
     }
+    toast.success("Course terminée.");
+    setActiveTrip(null);
+    setTrips((prev) => prev.filter((x) => x.id !== t.id));
+    await loadTrips();
   };
+
 
   // Position GPS du chauffeur (local) pour tracer le segment chauffeur → client
   const { position: driverGeo } = useGeolocation({ enabled: Boolean(trip) });
