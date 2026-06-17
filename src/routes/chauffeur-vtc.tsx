@@ -249,20 +249,51 @@ function ChauffeurVtcPage() {
     if (!user) return;
     setLoading(true);
 
-    // Pool: pending VTC trips, unassigned (only fetched when online)
-    let poolData: unknown[] = [];
+    // Pool: pending VTC trips, unassigned (only fetched when online).
+    // Uses a SECURITY DEFINER RPC that returns only the minimum fields
+    // needed to decide whether to accept (no full reservation row / details).
+    let poolData: VtcTrip[] = [];
     if (isOnline) {
-      const { data, error: e0 } = await supabase
-        .from("trips")
-        .select("*, reservations!inner(service_type, total_amount, reservation_date, details)")
-        .is("driver_id", null)
-        .eq("status", "pending")
-        .eq("reservations.service_type", "VTC")
-        .is("archived_at", null)
-        .order("created_at", { ascending: false });
+      const { data, error: e0 } = await supabase.rpc("get_vtc_pending_pool");
       if (e0) console.error("[vtc] pool", e0);
-      poolData = data ?? [];
+      poolData = ((data ?? []) as Array<{
+        trip_id: string;
+        reservation_id: string;
+        created_at: string;
+        origin_address: string;
+        destination_address: string;
+        origin_lat: number | null;
+        origin_lng: number | null;
+        destination_lat: number | null;
+        destination_lng: number | null;
+        total_amount: number;
+        payment_mode: string;
+        reservation_date: string;
+      }>).map((r) => ({
+        id: r.trip_id,
+        client_id: "",
+        driver_id: null,
+        reservation_id: r.reservation_id,
+        origin_address: r.origin_address,
+        origin_lat: r.origin_lat,
+        origin_lng: r.origin_lng,
+        destination_address: r.destination_address,
+        destination_lat: r.destination_lat,
+        destination_lng: r.destination_lng,
+        status: "pending",
+        created_at: r.created_at,
+        started_at: null,
+        completed_at: null,
+        archived_at: null,
+        reservations: {
+          service_type: "VTC",
+          total_amount: r.total_amount,
+          reservation_date: r.reservation_date,
+          details: { payment_mode: r.payment_mode },
+        },
+      })) as VtcTrip[];
     }
+
 
     // Active VTC trips assigned to me
     const { data: act, error: e1 } = await supabase
