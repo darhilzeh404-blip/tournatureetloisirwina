@@ -105,20 +105,30 @@ function DriverTripsPage() {
   }, [user, loadTrips]);
 
   const startTrip = async (t: Trip) => {
+    if (actionLoading) return;
     setActionLoading(true);
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("trips")
       .update({ status: "active", started_at: new Date().toISOString() })
-      .eq("id", t.id);
+      .eq("id", t.id)
+      .eq("driver_id", user!.id)
+      .in("status", ["pending", "assigned"])
+      .select("id, status");
     setActionLoading(false);
     if (error) {
       console.error("startTrip error", error);
-      toast.error("Impossible de démarrer la course.");
-    } else {
-      toast.success("Course démarrée. Suivi du client activé.");
-      await loadTrips();
+      toast.error(`Impossible de démarrer : ${error.message}`);
+      return;
     }
+    if (!data || data.length === 0) {
+      toast.error("Course déjà démarrée ou statut incompatible.");
+      await loadTrips();
+      return;
+    }
+    toast.success("Course démarrée. Suivi du client activé.");
+    await loadTrips();
   };
+
 
   const completeTrip = async (t: Trip) => {
     setActionLoading(true);
