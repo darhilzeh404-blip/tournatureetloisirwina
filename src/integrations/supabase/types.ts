@@ -2176,6 +2176,19 @@ export type Database = {
           status: string
         }[]
       }
+      get_group_ride_passengers_for_driver: {
+        Args: { _ride_id: string }
+        Returns: {
+          commune_destination: string
+          commune_pickup: string
+          id: string
+          joined_at: string
+          ride_id: string
+          seat_index: number
+          status: string
+          user_id: string
+        }[]
+      }
       get_my_partner_agency: {
         Args: never
         Returns: {
@@ -2197,6 +2210,23 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_vtc_pending_pool: {
+        Args: never
+        Returns: {
+          created_at: string
+          destination_address: string
+          destination_lat: number
+          destination_lng: number
+          origin_address: string
+          origin_lat: number
+          origin_lng: number
+          payment_mode: string
+          reservation_date: string
+          reservation_id: string
+          total_amount: number
+          trip_id: string
+        }[]
       }
       has_role: {
         Args: {
