@@ -99,11 +99,12 @@ function WalletPage() {
               </div>
             </div>
 
-            <RechargeDialog open={open} onOpenChange={setOpen} onSuccess={load}>
-              <Button className="mt-5 w-full bg-white text-primary hover:bg-white/90" size="lg">
-                <Plus className="h-4 w-4" /> Recharger mon wallet
-              </Button>
-            </RechargeDialog>
+            <Button asChild className="mt-5 w-full bg-white text-primary hover:bg-white/90" size="lg">
+              <Link to="/wallet/recharger">
+                <Plus className="h-4 w-4" /> Recharger mon portefeuille
+              </Link>
+            </Button>
+
           </CardContent>
         </Card>
 
