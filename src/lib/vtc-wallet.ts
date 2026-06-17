@@ -158,6 +158,8 @@ export function walletErrorMessage(err: unknown): string {
 }
 
 export const RECHARGE_METHOD_LABEL: Record<VtcRechargeRequest["payment_method"], string> = {
+  airtel_money: "Airtel Money",
+  moov_money: "Moov Money",
   mobile_money: "Mobile Money",
   cash_agent: "Cash agent",
   bank_transfer: "Virement bancaire",
