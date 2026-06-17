@@ -93,9 +93,9 @@ function AdminRechargesPage() {
     <div className="space-y-6 p-4 lg:p-8">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Wallet className="h-5 w-5 text-primary" /> Recharges VTC Points
+          <Wallet className="h-5 w-5 text-primary" /> Recharges portefeuille
         </h1>
-        <p className="text-sm text-muted-foreground">Validation des demandes de recharge wallet client.</p>
+        <p className="text-sm text-muted-foreground">Validation des demandes de recharge du portefeuille Wina.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
