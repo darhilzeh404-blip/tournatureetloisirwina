@@ -94,19 +94,22 @@ function ChauffeurGroupesPage() {
 
     const ids = rows.map((r) => r.id);
     if (ids.length > 0) {
-      const { data: pax } = await supabase
-        .from("group_ride_passengers")
-        .select("id, ride_id, user_id, pickup_address, destination_address, commune_pickup, commune_destination, status")
-        .in("ride_id", ids)
-        .neq("status", "cancelled");
+      const results = await Promise.all(
+        ids.map((rid) =>
+          supabase.rpc("get_group_ride_passengers_for_driver", { _ride_id: rid })
+        )
+      );
       const map: Record<string, Passenger[]> = {};
-      ((pax || []) as Passenger[]).forEach((p) => {
-        (map[p.ride_id] ||= []).push(p);
+      results.forEach((res, idx) => {
+        const rid = ids[idx];
+        const data = (res.data || []) as Passenger[];
+        map[rid] = data.filter((p) => p.status !== "cancelled");
       });
       setPassengers(map);
     } else {
       setPassengers({});
     }
+
     setLoading(false);
   }, [user]);
 
