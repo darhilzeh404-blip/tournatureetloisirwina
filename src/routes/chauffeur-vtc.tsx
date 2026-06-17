@@ -317,7 +317,7 @@ function ChauffeurVtcPage() {
 
     if (e1) console.error("[vtc] active", e1);
     if (e2) console.error("[vtc] history", e2);
-    setPool((poolData as unknown as VtcTrip[]) ?? []);
+    setPool(poolData);
     setActive((act as unknown as VtcTrip[]) ?? []);
     setCompleted((done as unknown as VtcTrip[]) ?? []);
 
