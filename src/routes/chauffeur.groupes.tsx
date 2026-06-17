@@ -31,12 +31,11 @@ interface Passenger {
   id: string;
   ride_id: string;
   user_id: string;
-  pickup_address: string;
-  destination_address: string;
   commune_pickup: string;
   commune_destination: string;
   status: string;
 }
+
 
 const NEXT_STATUS: Record<string, { next: string; label: string; icon: typeof Play }> = {
   matched: { next: "driver_arriving", label: "Je suis en route", icon: Car },
