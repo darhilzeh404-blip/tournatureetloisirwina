@@ -33,7 +33,7 @@ function WalletPage() {
   const [recharges, setRecharges] = useState<VtcRechargeRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"tx" | "recharges">("tx");
-  const [open, setOpen] = useState(false);
+  
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/connexion" });
