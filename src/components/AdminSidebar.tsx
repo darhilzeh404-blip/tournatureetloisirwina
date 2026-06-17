@@ -9,7 +9,7 @@ const adminLinks = [
   { to: "/admin/reservations", label: "Réservations", icon: CalendarCheck, exact: false },
   { to: "/admin/bus-reservations", label: "Validation Bus", icon: ClipboardCheck, exact: false },
   { to: "/admin/paiements", label: "Paiements", icon: CreditCard, exact: false },
-  { to: "/admin/recharges", label: "Recharges VTC", icon: Wallet, exact: false },
+  { to: "/admin/recharges", label: "Recharges portefeuille", icon: Wallet, exact: false },
   { to: "/admin/fidelite", label: "Wina Coins", icon: Coins, exact: false },
   { to: "/admin/clients", label: "Clients", icon: Users, exact: false },
   { to: "/admin/bus", label: "Flotte Bus", icon: Bus, exact: false },
