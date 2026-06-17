@@ -131,19 +131,21 @@ function DriverTripsPage() {
 
 
   const completeTrip = async (t: Trip) => {
+    if (actionLoading) return;
     setActionLoading(true);
     const { error } = await supabase.rpc("archive_trip_and_reservation", { _trip_id: t.id });
     setActionLoading(false);
     if (error) {
       console.error("completeTrip error", error);
-      toast.error("Erreur lors de la finalisation.");
-    } else {
-      toast.success("Course terminée.");
-      setActiveTrip(null);
-      setTrips((prev) => prev.filter((x) => x.id !== t.id));
-      await loadTrips();
+      toast.error(`Erreur lors de la finalisation : ${error.message}`);
+      return;
     }
+    toast.success("Course terminée.");
+    setActiveTrip(null);
+    setTrips((prev) => prev.filter((x) => x.id !== t.id));
+    await loadTrips();
   };
+
 
   // Position GPS du chauffeur (local) pour tracer le segment chauffeur → client
   const { position: driverGeo } = useGeolocation({ enabled: Boolean(trip) });
