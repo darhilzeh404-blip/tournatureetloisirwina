@@ -2345,6 +2345,8 @@ export type Database = {
         | "cash_agent"
         | "bank_transfer"
         | "other"
+        | "airtel_money"
+        | "moov_money"
       vtc_recharge_status: "pending" | "approved" | "rejected"
       vtc_tx_type: "recharge" | "trip_payment" | "refund" | "admin_adjust"
     }
@@ -2494,6 +2496,8 @@ export const Constants = {
         "cash_agent",
         "bank_transfer",
         "other",
+        "airtel_money",
+        "moov_money",
       ],
       vtc_recharge_status: ["pending", "approved", "rejected"],
       vtc_tx_type: ["recharge", "trip_payment", "refund", "admin_adjust"],
