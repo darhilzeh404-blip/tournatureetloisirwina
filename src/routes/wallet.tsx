@@ -1,21 +1,17 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle, RefreshCw, Loader2, Sparkles, History, Zap } from "lucide-react";
-import { toast } from "sonner";
+import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle, RefreshCw, Loader2, History, Zap } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  fetchVtcWallet, fetchVtcTransactions, fetchVtcRecharges, requestRecharge,
+  fetchVtcWallet, fetchVtcTransactions, fetchVtcRecharges,
   formatPoints, formatXAF, RECHARGE_METHOD_LABEL,
   type VtcWallet, type VtcWalletTx, type VtcRechargeRequest,
 } from "@/lib/vtc-wallet";
+
 
 export const Route = createFileRoute("/wallet")({
   head: () => ({
