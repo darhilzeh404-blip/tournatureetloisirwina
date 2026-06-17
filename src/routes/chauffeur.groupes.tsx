@@ -31,12 +31,11 @@ interface Passenger {
   id: string;
   ride_id: string;
   user_id: string;
-  pickup_address: string;
-  destination_address: string;
   commune_pickup: string;
   commune_destination: string;
   status: string;
 }
+
 
 const NEXT_STATUS: Record<string, { next: string; label: string; icon: typeof Play }> = {
   matched: { next: "driver_arriving", label: "Je suis en route", icon: Car },
@@ -95,19 +94,22 @@ function ChauffeurGroupesPage() {
 
     const ids = rows.map((r) => r.id);
     if (ids.length > 0) {
-      const { data: pax } = await supabase
-        .from("group_ride_passengers")
-        .select("id, ride_id, user_id, pickup_address, destination_address, commune_pickup, commune_destination, status")
-        .in("ride_id", ids)
-        .neq("status", "cancelled");
+      const results = await Promise.all(
+        ids.map((rid) =>
+          supabase.rpc("get_group_ride_passengers_for_driver", { _ride_id: rid })
+        )
+      );
       const map: Record<string, Passenger[]> = {};
-      ((pax || []) as Passenger[]).forEach((p) => {
-        (map[p.ride_id] ||= []).push(p);
+      results.forEach((res, idx) => {
+        const rid = ids[idx];
+        const data = (res.data || []) as Passenger[];
+        map[rid] = data.filter((p) => p.status !== "cancelled");
       });
       setPassengers(map);
     } else {
       setPassengers({});
     }
+
     setLoading(false);
   }, [user]);
 
@@ -251,12 +253,13 @@ function RideCard({
               <div key={p.id} className="flex items-start gap-2 text-xs">
                 <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">{i + 1}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 text-green-600" /> {p.pickup_address}</p>
-                  <p className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 text-red-600" /> {p.destination_address}</p>
+                  <p className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 text-green-600" /> {p.commune_pickup}</p>
+                  <p className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 text-red-600" /> {p.commune_destination}</p>
                 </div>
               </div>
             ))
           )}
+
         </div>
 
         {onAccept && (
