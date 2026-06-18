@@ -120,11 +120,13 @@ function ChauffeurPage() {
       setLoadingTrips(true);
     }
 
+    // Bus driver dashboard: exclude VTC trips so VTC/Bus ecosystems never cross.
     const { data, error } = await supabase
       .from("trips")
-      .select("id, reservation_id, client_id, driver_id, origin_address, origin_lat, origin_lng, destination_address, destination_lat, destination_lng, status, created_at")
+      .select("id, reservation_id, client_id, driver_id, origin_address, origin_lat, origin_lng, destination_address, destination_lat, destination_lng, status, created_at, reservations!inner(service_type)")
       .eq("driver_id", user.id)
       .in("status", activeStatuses)
+      .in("reservations.service_type", ["TRANSPORT_SCOLAIRE", "LOCATION_BUS"])
       .order("created_at", { ascending: false });
 
     if (error) {
