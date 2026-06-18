@@ -8,6 +8,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "ci": "tsc --noEmit && vite build",
     "lint": "eslint .",
     "cap:init": "cap init",
     "cap:add:android": "cap add android",
