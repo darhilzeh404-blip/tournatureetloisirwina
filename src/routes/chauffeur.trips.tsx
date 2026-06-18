@@ -105,14 +105,14 @@ function DriverTripsPage() {
   }, [user, loadTrips]);
 
   const startTrip = async (t: Trip) => {
-    if (actionLoading) return;
+    if (actionLoading || !user) return;
     setActionLoading(true);
     const { data, error } = await supabase
       .from("trips")
       .update({ status: "active", started_at: new Date().toISOString() })
       .eq("id", t.id)
-      .eq("driver_id", user!.id)
-      .in("status", ["pending", "assigned"])
+      .eq("driver_id", user.id)
+      .not("status", "in", "(active,completed,cancelled)")
       .select("id, status");
     setActionLoading(false);
     if (error) {
@@ -121,7 +121,7 @@ function DriverTripsPage() {
       return;
     }
     if (!data || data.length === 0) {
-      toast.error("Course déjà démarrée ou statut incompatible.");
+      // Probably already active — refresh quietly.
       await loadTrips();
       return;
     }

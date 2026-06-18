@@ -574,13 +574,14 @@ function ChauffeurVtcPage() {
     if (now - last < 1500 || busyId === t.id) return;
     lastActionAtRef.current[t.id] = now;
 
+    if (!user) return;
     setBusyId(t.id);
     const { data, error } = await supabase
       .from("trips")
       .update({ status: "active", started_at: new Date().toISOString() })
       .eq("id", t.id)
-      .eq("driver_id", t.driver_id ?? "")
-      .in("status", ["assigned", "pending"])
+      .eq("driver_id", user.id)
+      .not("status", "in", "(active,completed,cancelled)")
       .select("id, status");
     if (error) {
       setBusyId(null);
@@ -589,13 +590,11 @@ function ChauffeurVtcPage() {
       return;
     }
     if (!data || data.length === 0) {
+      // Already started — silently refresh instead of alarming the driver.
       setBusyId(null);
-      toast.error("La course n'a pas pu être démarrée (statut incompatible).");
       load();
       return;
     }
-    // Keep the button locked for a short moment so the realtime UPDATE has time
-    // to morph the card to "Terminer" without a stray tap on the same area.
     setTimeout(() => setBusyId(null), 800);
     toast.success("Course démarrée");
     load();
