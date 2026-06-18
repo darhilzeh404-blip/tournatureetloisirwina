@@ -1,11 +1,19 @@
-import { StartClient } from "@tanstack/start";
 import { createRoot } from "react-dom/client";
-import router from "./router";
+import { RouterProvider } from "@tanstack/react-router";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { getRouter } from "./router";
+import "./styles.css";
 
-const routerInstance = router;
+const router = getRouter();
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 30_000 } },
+});
 
-const app = new StartClient({ router: routerInstance });
+const container = document.getElementById("app") ?? document.getElementById("root");
+if (!container) throw new Error("Root container introuvable (#app ou #root)");
 
-const root = createRoot(document.getElementById("app")!);
-
-root.render(app);
+createRoot(container).render(
+  <QueryClientProvider client={queryClient}>
+    <RouterProvider router={router} />
+  </QueryClientProvider>,
+);
