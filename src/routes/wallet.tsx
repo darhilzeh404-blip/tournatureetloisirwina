@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle, RefreshCw, Loader2, History, Zap } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
