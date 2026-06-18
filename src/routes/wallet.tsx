@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle, RefreshCw, Loader2, History, Zap } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
@@ -99,10 +99,13 @@ function WalletPage() {
               </div>
             </div>
 
-            <Button asChild className="mt-5 w-full bg-white text-primary hover:bg-white/90" size="lg">
-              <Link to="/wallet/recharger">
-                <Plus className="h-4 w-4" /> Recharger mon portefeuille
-              </Link>
+            <Button
+              type="button"
+              className="mt-5 w-full bg-white text-primary hover:bg-white/90"
+              size="lg"
+              onClick={() => navigate({ to: "/wallet/recharger" })}
+            >
+              <Plus className="h-4 w-4" /> Recharger mon portefeuille
             </Button>
 
           </CardContent>

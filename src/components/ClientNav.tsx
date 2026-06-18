@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { to: "/reserver-transport", label: "Transport", icon: Bus },
   { to: "/vtc", label: "VTC", icon: CarFront },
   { to: "/wallet", label: "Wallet", icon: Wallet },
-  { to: "/mes-reservations", label: "Courses", icon: CalendarCheck },
+  { to: "/mes-reservations", label: "Réservations", icon: CalendarCheck },
   { to: "/mon-compte", label: "Profil", icon: User },
 ] as const;
 

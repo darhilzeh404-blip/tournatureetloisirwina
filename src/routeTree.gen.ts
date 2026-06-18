@@ -26,6 +26,7 @@ import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as GerantRouteImport } from './routes/gerant'
 import { Route as EspaceClientRouteImport } from './routes/espace-client'
 import { Route as DeplacementGroupeRouteImport } from './routes/deplacement-groupe'
+import { Route as CourseRouteImport } from './routes/course'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
@@ -157,6 +158,11 @@ const EspaceClientRoute = EspaceClientRouteImport.update({
 const DeplacementGroupeRoute = DeplacementGroupeRouteImport.update({
   id: '/deplacement-groupe',
   path: '/deplacement-groupe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CourseRoute = CourseRouteImport.update({
+  id: '/course',
+  path: '/course',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnexionRoute = ConnexionRouteImport.update({
@@ -406,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/course': typeof CourseRoute
   '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
@@ -470,6 +477,7 @@ export interface FileRoutesByTo {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/course': typeof CourseRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -536,6 +544,7 @@ export interface FileRoutesById {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/connexion': typeof ConnexionRoute
+  '/course': typeof CourseRoute
   '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
@@ -604,6 +613,7 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
+    | '/course'
     | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
@@ -668,6 +678,7 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
+    | '/course'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -733,6 +744,7 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/connexion'
+    | '/course'
     | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
@@ -800,6 +812,7 @@ export interface RootRouteChildren {
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
+  CourseRoute: typeof CourseRoute
   DeplacementGroupeRoute: typeof DeplacementGroupeRouteWithChildren
   EspaceClientRoute: typeof EspaceClientRoute
   GerantRoute: typeof GerantRoute
@@ -943,6 +956,13 @@ declare module '@tanstack/react-router' {
       path: '/deplacement-groupe'
       fullPath: '/deplacement-groupe'
       preLoaderRoute: typeof DeplacementGroupeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/course': {
+      id: '/course'
+      path: '/course'
+      fullPath: '/course'
+      preLoaderRoute: typeof CourseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connexion': {
@@ -1425,6 +1445,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
+  CourseRoute: CourseRoute,
   DeplacementGroupeRoute: DeplacementGroupeRouteWithChildren,
   EspaceClientRoute: EspaceClientRoute,
   GerantRoute: GerantRoute,
@@ -1451,12 +1472,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
