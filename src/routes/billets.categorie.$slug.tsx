@@ -21,7 +21,7 @@ type Ticket = {
   seats_available: number;
   description: string;
   image_url: string | null;
-  agency: { id: string; name: string; logo_url: string | null; phone: string | null; email: string | null } | null;
+  agency: { id: string; name: string; logo_url: string | null } | null;
 };
 
 function CategoryPage() {
@@ -48,7 +48,7 @@ function CategoryPage() {
       setCategoryName((cat as any).name);
       const { data } = await supabase
         .from("partner_tickets" as any)
-        .select("id, title, origin, destination, departure_at, price, seats_available, description, image_url, agency:partner_agencies(id, name, logo_url, phone)")
+        .select("id, title, origin, destination, departure_at, price, seats_available, description, image_url, agency:partner_agencies_public(id, name, logo_url)")
         .eq("category_id", (cat as any).id)
         .eq("is_active", true)
         .order("departure_at", { ascending: true, nullsFirst: false });
@@ -137,11 +137,6 @@ function CategoryPage() {
                   {t.description && <p className="line-clamp-2 text-xs text-muted-foreground">{t.description}</p>}
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-sm font-extrabold text-primary">{fmt(t.price)}</span>
-                    {t.agency?.phone && (
-                      <a href={`tel:${t.agency.phone}`} className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
-                        Contacter
-                      </a>
-                    )}
                   </div>
                 </div>
               </article>
