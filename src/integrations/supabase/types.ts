@@ -912,6 +912,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "partner_tickets_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "partner_tickets_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -1922,6 +1929,27 @@ export type Database = {
       }
     }
     Views: {
+      partner_agencies_public: {
+        Row: {
+          id: string | null
+          is_active: boolean | null
+          logo_url: string | null
+          name: string | null
+        }
+        Insert: {
+          id?: string | null
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string | null
+        }
+        Update: {
+          id?: string | null
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string | null
+        }
+        Relationships: []
+      }
       rides_gerant: {
         Row: {
           created_at: string | null
@@ -2151,6 +2179,54 @@ export type Database = {
           license_plate: string
           phone: string
           vehicle_type: string
+        }[]
+      }
+      get_chauffeur_vtc_active_trips: {
+        Args: never
+        Returns: {
+          archived_at: string
+          client_id: string
+          completed_at: string
+          created_at: string
+          destination_address: string
+          destination_lat: number
+          destination_lng: number
+          driver_id: string
+          eta_minutes: number
+          id: string
+          origin_address: string
+          origin_lat: number
+          origin_lng: number
+          payment_mode: string
+          reservation_date: string
+          reservation_id: string
+          reservation_total_amount: number
+          started_at: string
+          status: string
+        }[]
+      }
+      get_chauffeur_vtc_completed_trips: {
+        Args: { _limit?: number }
+        Returns: {
+          archived_at: string
+          client_id: string
+          completed_at: string
+          created_at: string
+          destination_address: string
+          destination_lat: number
+          destination_lng: number
+          driver_id: string
+          eta_minutes: number
+          id: string
+          origin_address: string
+          origin_lat: number
+          origin_lng: number
+          payment_mode: string
+          reservation_date: string
+          reservation_id: string
+          reservation_total_amount: number
+          started_at: string
+          status: string
         }[]
       }
       get_driver_vtc_earnings: {
