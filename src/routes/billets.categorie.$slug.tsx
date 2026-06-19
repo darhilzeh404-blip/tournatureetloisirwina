@@ -137,11 +137,6 @@ function CategoryPage() {
                   {t.description && <p className="line-clamp-2 text-xs text-muted-foreground">{t.description}</p>}
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-sm font-extrabold text-primary">{fmt(t.price)}</span>
-                    {t.agency?.phone && (
-                      <a href={`tel:${t.agency.phone}`} className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
-                        Contacter
-                      </a>
-                    )}
                   </div>
                 </div>
               </article>
