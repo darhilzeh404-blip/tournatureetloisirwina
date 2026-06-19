@@ -34,9 +34,17 @@ export function useDriverPosition(driverId: string | null | undefined) {
       .eq("driver_id", driverId)
       .is("archived_at", null)
       .maybeSingle()
-      .then(({ data }) => {
-        if (mounted && data) setPosition(data as DriverPosition);
-      });
+      .then(
+        ({ data, error }) => {
+          if (mounted) {
+            if (error) console.error("[useDriverPosition] initial fetch error:", error);
+            else if (data) setPosition(data as DriverPosition);
+          }
+        },
+        (err) => {
+          if (mounted) console.error("[useDriverPosition] fetch exception:", err);
+        }
+      );
 
     const channel = supabase
       .channel(`driver-pos-${driverId}`)

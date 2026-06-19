@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle, RefreshCw, Loader2, History, Zap } from "lucide-react";
 import { ClientNav } from "@/components/ClientNav";
@@ -28,6 +28,7 @@ const QUICK_AMOUNTS = [2000, 5000, 10000, 20000, 50000];
 function WalletPage() {
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [wallet, setWallet] = useState<VtcWallet | null>(null);
   const [txs, setTxs] = useState<VtcWalletTx[]>([]);
   const [recharges, setRecharges] = useState<VtcRechargeRequest[]>([]);
@@ -61,6 +62,10 @@ function WalletPage() {
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
+  }
+
+  if (location.pathname.startsWith("/wallet/recharger")) {
+    return <Outlet />;
   }
 
   return (

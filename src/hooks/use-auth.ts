@@ -22,13 +22,22 @@ export function useAuth() {
   });
 
   const fetchRole = useCallback(async (userId: string): Promise<AppRole | null> => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .limit(1)
-      .single();
-    return (data?.role as AppRole) ?? null;
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .limit(1)
+        .single();
+      if (error) {
+        console.error("[useAuth] fetchRole error:", error);
+        return null;
+      }
+      return (data?.role as AppRole) ?? null;
+    } catch (err) {
+      console.error("[useAuth] fetchRole exception:", err);
+      return null;
+    }
   }, []);
 
   useEffect(() => {
@@ -46,6 +55,9 @@ export function useAuth() {
       } else {
         setState(s => ({ ...s, isLoading: false }));
       }
+    }).catch((err) => {
+      console.error("[useAuth] getSession error:", err);
+      setState(s => ({ ...s, isLoading: false }));
     });
 
     // 2. Listen for auth changes — DO NOT await inside callback (causes deadlock)

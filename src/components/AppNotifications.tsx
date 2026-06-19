@@ -13,8 +13,14 @@ export function AppNotifications() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setPermission("Notification" in window ? Notification.permission : "unsupported");
-    setDismissed(localStorage.getItem(DISMISSED_KEY) === "true");
+    try {
+      setPermission("Notification" in window ? Notification.permission : "unsupported");
+      setDismissed(localStorage.getItem(DISMISSED_KEY) === "true");
+    } catch (err) {
+      console.error("[AppNotifications] localStorage access error:", err);
+      setPermission("unsupported");
+      setDismissed(true);
+    }
   }, []);
 
   const enable = async () => {
@@ -32,7 +38,11 @@ export function AppNotifications() {
   };
 
   const dismiss = () => {
-    localStorage.setItem(DISMISSED_KEY, "true");
+    try {
+      localStorage.setItem(DISMISSED_KEY, "true");
+    } catch (err) {
+      console.error("[AppNotifications] localStorage set error:", err);
+    }
     setDismissed(true);
   };
 

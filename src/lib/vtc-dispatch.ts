@@ -51,28 +51,35 @@ export async function triggerDriverSearch(
   pickupLat: number,
   pickupLng: number,
 ): Promise<DispatchResult> {
-  // 1. Read the nearby drivers list (server-side haversine, respects RLS via SECURITY DEFINER).
-  const { data: drivers, error: searchErr } = await supabase.rpc(
-    "find_nearby_vtc_drivers",
-    { _pickup_lat: pickupLat, _pickup_lng: pickupLng, _radius_km: 5 },
-  );
-  if (searchErr) {
-    console.error("[vtc-dispatch] find_nearby_vtc_drivers", searchErr);
-  }
+  try {
+    // 1. Read the nearby drivers list (server-side haversine, respects RLS via SECURITY DEFINER).
+    const { data: drivers, error: searchErr } = await supabase.rpc(
+      "find_nearby_vtc_drivers",
+      { _pickup_lat: pickupLat, _pickup_lng: pickupLng, _radius_km: 5 },
+    );
+    if (searchErr) {
+      console.error("[vtc-dispatch] find_nearby_vtc_drivers", searchErr);
+      throw searchErr;
+    }
 
-  // 2. Dispatch: lets the server mark `no_driver_found` atomically when empty.
-  const { data: dispatchData, error: dispatchErr } = await supabase.rpc(
-    "trigger_driver_search",
-    { _trip_id: tripId },
-  );
-  if (dispatchErr) {
-    console.error("[vtc-dispatch] trigger_driver_search", dispatchErr);
-  }
+    // 2. Dispatch: lets the server mark `no_driver_found` atomically when empty.
+    const { data: dispatchData, error: dispatchErr } = await supabase.rpc(
+      "trigger_driver_search",
+      { _trip_id: tripId },
+    );
+    if (dispatchErr) {
+      console.error("[vtc-dispatch] trigger_driver_search", dispatchErr);
+      throw dispatchErr;
+    }
 
-  const row = Array.isArray(dispatchData) ? dispatchData[0] : dispatchData;
-  return {
-    nearbyCount: Number(row?.nearby_count ?? drivers?.length ?? 0),
-    drivers: (drivers ?? []) as NearbyDriver[],
-    status: (row?.status ?? "pending") as string,
-  };
+    const row = Array.isArray(dispatchData) ? dispatchData[0] : dispatchData;
+    return {
+      nearbyCount: Number(row?.nearby_count ?? drivers?.length ?? 0),
+      drivers: (drivers ?? []) as NearbyDriver[],
+      status: (row?.status ?? "pending") as string,
+    };
+  } catch (err) {
+    console.error("[vtc-dispatch] triggerDriverSearch exception:", err);
+    throw err;
+  }
 }

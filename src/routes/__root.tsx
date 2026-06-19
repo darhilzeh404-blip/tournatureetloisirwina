@@ -9,6 +9,7 @@ import { IosInstallBanner } from "@/components/IosInstallBanner";
 import { AppNotifications } from "@/components/AppNotifications";
 import { SplashScreen } from "@/components/SplashScreen";
 import { ActiveGroupRideGuard } from "@/components/ActiveGroupRideGuard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { registerServiceWorker } from "@/lib/pwa";
 
 import appCss from "../styles.css?url";
@@ -141,24 +142,26 @@ function RootComponent() {
   }, [splashDone]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
-      {isFullScreenRoute ? (
-        <Outlet />
-      ) : (
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-          <Footer />
-        </div>
-      )}
-      <InstallPrompt />
-      <IosInstallBanner />
-      <AppNotifications />
-      <ActiveGroupRideGuard />
-      <Toaster position="top-right" richColors />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+        {isFullScreenRoute ? (
+          <Outlet />
+        ) : (
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">
+              <Outlet />
+            </main>
+            <Footer />
+          </div>
+        )}
+        <InstallPrompt />
+        <IosInstallBanner />
+        <AppNotifications />
+        <ActiveGroupRideGuard />
+        <Toaster position="top-right" richColors />
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

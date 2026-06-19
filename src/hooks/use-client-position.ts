@@ -74,12 +74,24 @@ export function useClientPosition(clientId: string | null | undefined) {
       .select("*")
       .eq("client_id", clientId)
       .maybeSingle()
-      .then(({ data }) => {
-        if (!mounted) return;
-        setPosition((data as ClientPosition) ?? null);
-        setLoading(false);
-        setFetched(true);
-      });
+      .then(
+        ({ data, error }) => {
+          if (!mounted) return;
+          if (error) {
+            console.error("[useClientPosition] initial fetch error:", error);
+          }
+          setPosition((data as ClientPosition) ?? null);
+          setLoading(false);
+          setFetched(true);
+        },
+        (err) => {
+          if (mounted) {
+            console.error("[useClientPosition] fetch exception:", err);
+            setLoading(false);
+            setFetched(true);
+          }
+        }
+      );
 
     const channel = supabase
       .channel(`client-pos-${clientId}`)

@@ -52,11 +52,15 @@ export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
     }
 
     const nav = navigator as Navigator & { permissions?: { query: (d: { name: PermissionName }) => Promise<PermissionStatus> } };
-    nav.permissions?.query({ name: "geolocation" as PermissionName }).then((status) => {
-      if (status.state === "denied") {
-        setError({ code: "permission_denied", message: "Autorisation GPS refusée. Activez la localisation dans les réglages du navigateur." });
-      }
-    }).catch(() => { /* permissions API indispo */ });
+    nav.permissions?.query({ name: "geolocation" as PermissionName })
+      .then((status) => {
+        if (status.state === "denied") {
+          setError({ code: "permission_denied", message: "Autorisation GPS refusée. Activez la localisation dans les réglages du navigateur." });
+        }
+      })
+      .catch((err) => {
+        console.error("[useGeolocation] permissions.query error:", err);
+      });
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {

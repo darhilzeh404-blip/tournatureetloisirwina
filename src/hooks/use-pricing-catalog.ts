@@ -63,30 +63,37 @@ export function usePricingCatalog(): PricingCatalog {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [t, m, a, g, e, c, s] = await Promise.all([
-        supabase.from("school_trip_tariffs").select("*").order("sort_order"),
-        supabase.from("school_monthly_tariffs").select("*"),
-        supabase.from("extra_activities").select("*").eq("is_active", true).order("sort_order"),
-        supabase.from("group_bus_trips").select("*").eq("is_active", true).order("sort_order"),
-        supabase.from("event_bus_tariffs").select("*"),
-        supabase.from("event_bus_capacity_factors").select("*").order("capacity"),
-        supabase.from("transport_misc_settings").select("*"),
-      ]);
-      if (cancelled) return;
-      const settings: Record<string, number> = {};
-      (s.data ?? []).forEach((r: any) => { settings[r.key] = Number(r.value_int); });
-      const err = t.error || m.error || a.error || g.error || e.error || c.error || s.error;
-      setState({
-        schoolTrips: (t.data ?? []) as any,
-        schoolMonthly: (m.data ?? []) as any,
-        extraActivities: (a.data ?? []) as any,
-        groupBusTrips: (g.data ?? []).map((r: any) => ({ ...r, destinations: r.destinations ?? [] })) as any,
-        eventBusTariffs: (e.data ?? []) as any,
-        eventBusCapacityFactors: (c.data ?? []).map((r: any) => ({ capacity: Number(r.capacity), factor: Number(r.factor) })) as any,
-        settings,
-        loading: false,
-        error: err ? err.message : null,
-      });
+      try {
+        const [t, m, a, g, e, c, s] = await Promise.all([
+          supabase.from("school_trip_tariffs").select("*").order("sort_order"),
+          supabase.from("school_monthly_tariffs").select("*"),
+          supabase.from("extra_activities").select("*").eq("is_active", true).order("sort_order"),
+          supabase.from("group_bus_trips").select("*").eq("is_active", true).order("sort_order"),
+          supabase.from("event_bus_tariffs").select("*"),
+          supabase.from("event_bus_capacity_factors").select("*").order("capacity"),
+          supabase.from("transport_misc_settings").select("*"),
+        ]);
+        if (cancelled) return;
+        const settings: Record<string, number> = {};
+        (s.data ?? []).forEach((r: any) => { settings[r.key] = Number(r.value_int); });
+        const err = t.error || m.error || a.error || g.error || e.error || c.error || s.error;
+        setState({
+          schoolTrips: (t.data ?? []) as any,
+          schoolMonthly: (m.data ?? []) as any,
+          extraActivities: (a.data ?? []) as any,
+          groupBusTrips: (g.data ?? []).map((r: any) => ({ ...r, destinations: r.destinations ?? [] })) as any,
+          eventBusTariffs: (e.data ?? []) as any,
+          eventBusCapacityFactors: (c.data ?? []).map((r: any) => ({ capacity: Number(r.capacity), factor: Number(r.factor) })) as any,
+          settings,
+          loading: false,
+          error: err ? err.message : null,
+        });
+      } catch (err) {
+        if (!cancelled) {
+          console.error("[usePricingCatalog] fetch error:", err);
+          setState(prev => ({ ...prev, loading: false, error: "Erreur lors du chargement des tarifs" }));
+        }
+      }
     })();
     return () => { cancelled = true; };
   }, []);
