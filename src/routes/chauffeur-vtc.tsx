@@ -295,31 +295,42 @@ function ChauffeurVtcPage() {
     }
 
 
-    // Active VTC trips assigned to me
-    const { data: act, error: e1 } = await supabase
-      .from("trips")
-      .select("*, reservations!inner(service_type, total_amount, reservation_date, details)")
-      .eq("driver_id", user.id)
-      .eq("reservations.service_type", "VTC")
-      .in("status", ["assigned", "active"])
-      .is("archived_at", null)
-      .order("created_at", { ascending: false });
+    // Active VTC trips assigned to me (via SECURITY DEFINER RPC, no direct reservations read)
+    const { data: act, error: e1 } = await supabase.rpc("get_chauffeur_vtc_active_trips");
 
-    // Completed VTC trips (history)
-    const { data: done, error: e2 } = await supabase
-      .from("trips")
-      .select("*, reservations!inner(service_type, total_amount, reservation_date, details)")
-      .eq("driver_id", user.id)
-      .eq("reservations.service_type", "VTC")
-      .eq("status", "completed")
-      .order("completed_at", { ascending: false, nullsFirst: false })
-      .limit(100);
+    // Completed VTC trips (history) — also via RPC
+    const { data: done, error: e2 } = await supabase.rpc("get_chauffeur_vtc_completed_trips", { _limit: 100 });
 
     if (e1) console.error("[vtc] active", e1);
     if (e2) console.error("[vtc] history", e2);
+
+    const mapRpcRow = (r: Record<string, unknown>): VtcTrip => ({
+      id: r.id as string,
+      reservation_id: r.reservation_id as string,
+      client_id: r.client_id as string,
+      driver_id: (r.driver_id as string) ?? null,
+      origin_address: (r.origin_address as string) ?? "",
+      origin_lat: (r.origin_lat as number) ?? null,
+      origin_lng: (r.origin_lng as number) ?? null,
+      destination_address: (r.destination_address as string) ?? "",
+      destination_lat: (r.destination_lat as number) ?? null,
+      destination_lng: (r.destination_lng as number) ?? null,
+      status: r.status as string,
+      created_at: r.created_at as string,
+      started_at: (r.started_at as string) ?? null,
+      completed_at: (r.completed_at as string) ?? null,
+      archived_at: (r.archived_at as string) ?? null,
+      reservations: {
+        service_type: "VTC",
+        total_amount: (r.reservation_total_amount as number) ?? 0,
+        reservation_date: (r.reservation_date as string) ?? "",
+        details: { payment_mode: (r.payment_mode as string) ?? "mobile_money" },
+      },
+    });
+
     setPool(poolData);
-    setActive((act as unknown as VtcTrip[]) ?? []);
-    setCompleted((done as unknown as VtcTrip[]) ?? []);
+    setActive(((act ?? []) as Record<string, unknown>[]).map(mapRpcRow));
+    setCompleted(((done ?? []) as Record<string, unknown>[]).map(mapRpcRow));
 
     // Gains : paiements validés par l'admin pour les courses VTC de ce chauffeur
     const { data: earn, error: e3 } = await supabase.rpc("get_driver_vtc_earnings", { _driver_id: user.id });
