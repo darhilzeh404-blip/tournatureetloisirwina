@@ -21,7 +21,7 @@ type Ticket = {
   seats_available: number;
   description: string;
   image_url: string | null;
-  agency: { id: string; name: string; logo_url: string | null; phone: string | null; email: string | null } | null;
+  agency: { id: string; name: string; logo_url: string | null } | null;
 };
 
 function CategoryPage() {
