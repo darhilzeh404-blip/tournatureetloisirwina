@@ -70,7 +70,6 @@ import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-res
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as AdminBilletsRouteImport } from './routes/admin/billets'
 import { Route as AdminAnnoncesRouteImport } from './routes/admin/annonces'
-import { Route as AdminAgenciesRouteImport } from './routes/admin/agencies'
 import { Route as AdminAgencesRouteImport } from './routes/admin.agences'
 import { Route as AdminLayoutRouteImport } from './routes/admin/_layout'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
@@ -385,11 +384,6 @@ const AdminAnnoncesRoute = AdminAnnoncesRouteImport.update({
   path: '/admin/annonces',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminAgenciesRoute = AdminAgenciesRouteImport.update({
-  id: '/admin/agencies',
-  path: '/admin/agencies',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminAgencesRoute = AdminAgencesRouteImport.update({
   id: '/admin/agences',
   path: '/admin/agences',
@@ -463,7 +457,6 @@ export interface FileRoutesByFullPath {
   '/wina-coins': typeof WinaCoinsRoute
   '/admin': typeof AdminLayoutRoute
   '/admin/agences': typeof AdminAgencesRoute
-  '/admin/agencies': typeof AdminAgenciesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -533,7 +526,6 @@ export interface FileRoutesByTo {
   '/wina-coins': typeof WinaCoinsRoute
   '/admin': typeof AdminIndexRoute
   '/admin/agences': typeof AdminAgencesRoute
-  '/admin/agencies': typeof AdminAgenciesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -605,7 +597,6 @@ export interface FileRoutesById {
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/_layout': typeof AdminLayoutRoute
   '/admin/agences': typeof AdminAgencesRoute
-  '/admin/agencies': typeof AdminAgenciesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
@@ -679,7 +670,6 @@ export interface FileRouteTypes {
     | '/wina-coins'
     | '/admin'
     | '/admin/agences'
-    | '/admin/agencies'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -749,7 +739,6 @@ export interface FileRouteTypes {
     | '/wina-coins'
     | '/admin'
     | '/admin/agences'
-    | '/admin/agencies'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -820,7 +809,6 @@ export interface FileRouteTypes {
     | '/wina-coins'
     | '/admin/_layout'
     | '/admin/agences'
-    | '/admin/agencies'
     | '/admin/annonces'
     | '/admin/billets'
     | '/admin/bus'
@@ -893,7 +881,6 @@ export interface RootRouteChildren {
   WinaCoinsRoute: typeof WinaCoinsRoute
   AdminLayoutRoute: typeof AdminLayoutRoute
   AdminAgencesRoute: typeof AdminAgencesRoute
-  AdminAgenciesRoute: typeof AdminAgenciesRoute
   AdminAnnoncesRoute: typeof AdminAnnoncesRoute
   AdminBilletsRoute: typeof AdminBilletsRoute
   AdminBusRoute: typeof AdminBusRoute
@@ -1351,13 +1338,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnnoncesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/agencies': {
-      id: '/admin/agencies'
-      path: '/admin/agencies'
-      fullPath: '/admin/agencies'
-      preLoaderRoute: typeof AdminAgenciesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/agences': {
       id: '/admin/agences'
       path: '/admin/agences'
@@ -1538,7 +1518,6 @@ const rootRouteChildren: RootRouteChildren = {
   WinaCoinsRoute: WinaCoinsRoute,
   AdminLayoutRoute: AdminLayoutRoute,
   AdminAgencesRoute: AdminAgencesRoute,
-  AdminAgenciesRoute: AdminAgenciesRoute,
   AdminAnnoncesRoute: AdminAnnoncesRoute,
   AdminBilletsRoute: AdminBilletsRoute,
   AdminBusRoute: AdminBusRoute,
@@ -1569,12 +1548,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

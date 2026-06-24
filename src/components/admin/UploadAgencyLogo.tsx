@@ -20,6 +20,8 @@ const UploadAgencyLogo: FC<UploadAgencyLogoProps> = ({ onLogoUploaded }) => {
     }
   };
 
+  
+
   const onCropComplete = (_crop: any, croppedAreaPixelsValue: any) => {
     setCroppedAreaPixels(croppedAreaPixelsValue);
   };
@@ -120,3 +122,5 @@ const UploadAgencyLogo: FC<UploadAgencyLogoProps> = ({ onLogoUploaded }) => {
     </div>
   );
 }
+
+    export default UploadAgencyLogo;

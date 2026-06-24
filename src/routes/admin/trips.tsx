@@ -143,7 +143,8 @@ function AdminTripsPage() {
     if (!target || !driverId || !origin || !destination) return;
     setSubmitting(true);
     const [originGeo, destGeo] = await Promise.all([geocode(origin), geocode(destination)]);
-    const { error } = await supabase.from("trips").insert({
+    const { error } = await supabase.fro
+    ("trips").insert({
       reservation_id: target.id,
       client_id: target.user_id,
       driver_id: driverId,
