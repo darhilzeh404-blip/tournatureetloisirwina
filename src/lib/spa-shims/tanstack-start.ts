@@ -36,8 +36,8 @@ export function createServerFn(_opts?: { method?: string }): ServerFnBuilder {
         const data = validator ? validator(raw) : raw;
         return h({ data: data as never, context: {} });
       };
-      (callable as { __spaShim: true }).__spaShim = true;
-      return callable as ReturnType<ServerFnBuilder["handler"]>;
+      (callable as unknown as { __spaShim: true }).__spaShim = true;
+      return callable as unknown as ReturnType<ServerFnBuilder["handler"]>;
     },
   };
   return builder;

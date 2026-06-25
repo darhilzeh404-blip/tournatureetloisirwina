@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
+import path from 'node:path';
 
 /**
  * Build cible :
@@ -28,23 +29,34 @@ export default isSpa
         }),
         react(),
       ],
+      resolve: {
+        alias: {
+          // Stubs SPA pour remplacer le runtime serveur TanStack Start
+          '@tanstack/react-start/server': path.resolve(
+            __dirname,
+            'src/lib/spa-shims/tanstack-start.ts',
+          ),
+          '@tanstack/react-start': path.resolve(
+            __dirname,
+            'src/lib/spa-shims/tanstack-start.ts',
+          ),
+          '@/integrations/supabase/client.server': path.resolve(
+            __dirname,
+            'src/lib/spa-shims/supabase-server.ts',
+          ),
+        },
+      },
       build: {
         outDir: 'dist',
         emptyOutDir: true,
         sourcemap: false,
         target: 'es2020',
         rollupOptions: {
-          // Les routes API serveur ne servent à rien dans une app native/SPA
           external: [/^\/src\/routes\/api\//],
         },
       },
-      server: {
-        host: '::',
-        port: 8080,
-      },
-      preview: {
-        host: '::',
-        port: 8080,
-      },
+      server: { host: '::', port: 8080 },
+      preview: { host: '::', port: 8080 },
     })
   : defineLovableConfig({});
+
