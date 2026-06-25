@@ -7,6 +7,8 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:spa": "cross-env BUILD_TARGET=spa vite build",
+    "build:native": "cross-env BUILD_TARGET=spa vite build && cap sync",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "ci": "tsc --noEmit && vite build",
@@ -17,7 +19,7 @@
     "cap:sync": "cap sync",
     "cap:open:android": "cap open android",
     "cap:open:ios": "cap open ios",
-    "cap:build": "npm run build && cap sync"
+    "cap:build": "npm run build:spa && cap sync"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.0",
@@ -97,6 +99,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
+    "cross-env": "^10.1.0",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
