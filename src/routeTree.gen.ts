@@ -63,7 +63,6 @@ import { Route as AdminOffresRouteImport } from './routes/admin/offres'
 import { Route as AdminGroupRidesRouteImport } from './routes/admin/group-rides'
 import { Route as AdminFideliteRouteImport } from './routes/admin/fidelite'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
-import { Route as AdminCreateAgencyFullRouteImport } from './routes/admin/create-agency-full'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-reservations'
@@ -349,11 +348,6 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/admin/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminCreateAgencyFullRoute = AdminCreateAgencyFullRouteImport.update({
-  id: '/admin/create-agency-full',
-  path: '/admin/create-agency-full',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminClientsRoute = AdminClientsRouteImport.update({
   id: '/admin/clients',
   path: '/admin/clients',
@@ -463,7 +457,6 @@ export interface FileRoutesByFullPath {
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
-  '/admin/create-agency-full': typeof AdminCreateAgencyFullRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
@@ -532,7 +525,6 @@ export interface FileRoutesByTo {
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
-  '/admin/create-agency-full': typeof AdminCreateAgencyFullRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
@@ -603,7 +595,6 @@ export interface FileRoutesById {
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
-  '/admin/create-agency-full': typeof AdminCreateAgencyFullRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
@@ -676,7 +667,6 @@ export interface FileRouteTypes {
     | '/admin/bus-reservations'
     | '/admin/circuits'
     | '/admin/clients'
-    | '/admin/create-agency-full'
     | '/admin/dashboard'
     | '/admin/fidelite'
     | '/admin/group-rides'
@@ -745,7 +735,6 @@ export interface FileRouteTypes {
     | '/admin/bus-reservations'
     | '/admin/circuits'
     | '/admin/clients'
-    | '/admin/create-agency-full'
     | '/admin/dashboard'
     | '/admin/fidelite'
     | '/admin/group-rides'
@@ -815,7 +804,6 @@ export interface FileRouteTypes {
     | '/admin/bus-reservations'
     | '/admin/circuits'
     | '/admin/clients'
-    | '/admin/create-agency-full'
     | '/admin/dashboard'
     | '/admin/fidelite'
     | '/admin/group-rides'
@@ -887,7 +875,6 @@ export interface RootRouteChildren {
   AdminBusReservationsRoute: typeof AdminBusReservationsRoute
   AdminCircuitsRoute: typeof AdminCircuitsRoute
   AdminClientsRoute: typeof AdminClientsRoute
-  AdminCreateAgencyFullRoute: typeof AdminCreateAgencyFullRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminFideliteRoute: typeof AdminFideliteRoute
   AdminGroupRidesRoute: typeof AdminGroupRidesRoute
@@ -1289,13 +1276,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/create-agency-full': {
-      id: '/admin/create-agency-full'
-      path: '/admin/create-agency-full'
-      fullPath: '/admin/create-agency-full'
-      preLoaderRoute: typeof AdminCreateAgencyFullRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/clients': {
       id: '/admin/clients'
       path: '/admin/clients'
@@ -1524,7 +1504,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminBusReservationsRoute: AdminBusReservationsRoute,
   AdminCircuitsRoute: AdminCircuitsRoute,
   AdminClientsRoute: AdminClientsRoute,
-  AdminCreateAgencyFullRoute: AdminCreateAgencyFullRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminFideliteRoute: AdminFideliteRoute,
   AdminGroupRidesRoute: AdminGroupRidesRoute,
