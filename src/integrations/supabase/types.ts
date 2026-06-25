@@ -14,6 +14,67 @@ export type Database = {
   }
   public: {
     Tables: {
+      agency_notifications: {
+        Row: {
+          agency_id: string
+          booking_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string | null
+          payload: Json
+          read_at: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          agency_id: string
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          payload?: Json
+          read_at?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          agency_id?: string
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          payload?: Json
+          read_at?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_notifications_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_notifications_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "partner_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcements: {
         Row: {
           created_at: string
@@ -52,6 +113,92 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          agency_id: string | null
+          created_at: string
+          id: string
+          payload: Json
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          agency_id?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          agency_id?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_status_history: {
+        Row: {
+          actor_id: string | null
+          booking_id: string
+          created_at: string
+          from_status: string | null
+          id: string
+          note: string | null
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          booking_id: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          booking_id?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_status_history_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "partner_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       buses: {
         Row: {
@@ -178,6 +325,63 @@ export type Database = {
           slug?: string
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      client_error_logs: {
+        Row: {
+          component_stack: string | null
+          created_at: string
+          fingerprint: string
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          message: string
+          occurrences: number
+          resolved: boolean
+          role: string | null
+          scope: string
+          source: string
+          stack: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component_stack?: string | null
+          created_at?: string
+          fingerprint: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          message: string
+          occurrences?: number
+          resolved?: boolean
+          role?: string | null
+          scope?: string
+          source?: string
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component_stack?: string | null
+          created_at?: string
+          fingerprint?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          message?: string
+          occurrences?: number
+          resolved?: boolean
+          role?: string | null
+          scope?: string
+          source?: string
+          stack?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -854,10 +1058,162 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_bookings: {
+        Row: {
+          agency_id: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          details: Json
+          id: string
+          passenger_email: string | null
+          passenger_name: string
+          passenger_phone: string | null
+          reference_code: string | null
+          seats: number
+          status: string
+          ticket_id: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          agency_id: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          passenger_email?: string | null
+          passenger_name: string
+          passenger_phone?: string | null
+          reference_code?: string | null
+          seats?: number
+          status?: string
+          ticket_id?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          agency_id?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          passenger_email?: string | null
+          passenger_name?: string
+          passenger_phone?: string | null
+          reference_code?: string | null
+          seats?: number
+          status?: string
+          ticket_id?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_bookings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_bookings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_bookings_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "partner_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_ticket_codes: {
+        Row: {
+          agency_id: string
+          booking_id: string
+          code: string
+          created_at: string
+          id: string
+          is_void: boolean
+          issued_at: string
+          issued_by: string | null
+          qr_url: string
+          seat_index: number
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          agency_id: string
+          booking_id: string
+          code: string
+          created_at?: string
+          id?: string
+          is_void?: boolean
+          issued_at?: string
+          issued_by?: string | null
+          qr_url: string
+          seat_index?: number
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          agency_id?: string
+          booking_id?: string
+          code?: string
+          created_at?: string
+          id?: string
+          is_void?: boolean
+          issued_at?: string
+          issued_by?: string | null
+          qr_url?: string
+          seat_index?: number
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_ticket_codes_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_ticket_codes_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_ticket_codes_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "partner_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_tickets: {
         Row: {
           agency_id: string
-          category_id: string
+          category_id: string | null
           created_at: string
           departure_at: string | null
           description: string
@@ -867,13 +1223,19 @@ export type Database = {
           is_active: boolean
           origin: string | null
           price: number
+          return_departure_at: string | null
+          return_destination: string | null
+          return_origin: string | null
           seats_available: number
+          seats_total: number | null
           title: string
+          transport_mode: string | null
           updated_at: string
+          vehicle_kind: string | null
         }
         Insert: {
           agency_id: string
-          category_id: string
+          category_id?: string | null
           created_at?: string
           departure_at?: string | null
           description?: string
@@ -883,13 +1245,19 @@ export type Database = {
           is_active?: boolean
           origin?: string | null
           price?: number
+          return_departure_at?: string | null
+          return_destination?: string | null
+          return_origin?: string | null
           seats_available?: number
+          seats_total?: number | null
           title: string
+          transport_mode?: string | null
           updated_at?: string
+          vehicle_kind?: string | null
         }
         Update: {
           agency_id?: string
-          category_id?: string
+          category_id?: string | null
           created_at?: string
           departure_at?: string | null
           description?: string
@@ -899,9 +1267,15 @@ export type Database = {
           is_active?: boolean
           origin?: string | null
           price?: number
+          return_departure_at?: string | null
+          return_destination?: string | null
+          return_origin?: string | null
           seats_available?: number
+          seats_total?: number | null
           title?: string
+          transport_mode?: string | null
           updated_at?: string
+          vehicle_kind?: string | null
         }
         Relationships: [
           {
@@ -1927,24 +2301,212 @@ export type Database = {
         }
         Relationships: []
       }
+      wina_gift_redemptions: {
+        Row: {
+          admin_note: string | null
+          coins_spent: number
+          created_at: string
+          gift_id: string
+          id: string
+          status: Database["public"]["Enums"]["gift_redemption_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          coins_spent: number
+          created_at?: string
+          gift_id: string
+          id?: string
+          status?: Database["public"]["Enums"]["gift_redemption_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          coins_spent?: number
+          created_at?: string
+          gift_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["gift_redemption_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wina_gift_redemptions_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "wina_gifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wina_gifts: {
+        Row: {
+          coins_cost: number
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          min_vip_level_id: string | null
+          name: string
+          sort_order: number
+          stock: number | null
+          updated_at: string
+        }
+        Insert: {
+          coins_cost: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          min_vip_level_id?: string | null
+          name: string
+          sort_order?: number
+          stock?: number | null
+          updated_at?: string
+        }
+        Update: {
+          coins_cost?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          min_vip_level_id?: string | null
+          name?: string
+          sort_order?: number
+          stock?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wina_gifts_min_vip_level_id_fkey"
+            columns: ["min_vip_level_id"]
+            isOneToOne: false
+            referencedRelation: "vip_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wina_lotteries: {
+        Row: {
+          created_at: string
+          description: string | null
+          draw_date: string
+          entry_cost_coins: number
+          id: string
+          image_url: string | null
+          max_entries_per_user: number
+          min_vip_level_id: string | null
+          name: string
+          prize_label: string
+          status: Database["public"]["Enums"]["lottery_status"]
+          updated_at: string
+          winner_drawn_at: string | null
+          winner_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          draw_date: string
+          entry_cost_coins?: number
+          id?: string
+          image_url?: string | null
+          max_entries_per_user?: number
+          min_vip_level_id?: string | null
+          name: string
+          prize_label: string
+          status?: Database["public"]["Enums"]["lottery_status"]
+          updated_at?: string
+          winner_drawn_at?: string | null
+          winner_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          draw_date?: string
+          entry_cost_coins?: number
+          id?: string
+          image_url?: string | null
+          max_entries_per_user?: number
+          min_vip_level_id?: string | null
+          name?: string
+          prize_label?: string
+          status?: Database["public"]["Enums"]["lottery_status"]
+          updated_at?: string
+          winner_drawn_at?: string | null
+          winner_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wina_lotteries_min_vip_level_id_fkey"
+            columns: ["min_vip_level_id"]
+            isOneToOne: false
+            referencedRelation: "vip_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wina_lottery_entries: {
+        Row: {
+          coins_spent: number
+          created_at: string
+          id: string
+          lottery_id: string
+          user_id: string
+        }
+        Insert: {
+          coins_spent?: number
+          created_at?: string
+          id?: string
+          lottery_id: string
+          user_id: string
+        }
+        Update: {
+          coins_spent?: number
+          created_at?: string
+          id?: string
+          lottery_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wina_lottery_entries_lottery_id_fkey"
+            columns: ["lottery_id"]
+            isOneToOne: false
+            referencedRelation: "wina_lotteries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       partner_agencies_public: {
         Row: {
+          description: string | null
           id: string | null
           is_active: boolean | null
+          is_verified: boolean | null
           logo_url: string | null
           name: string | null
         }
         Insert: {
+          description?: string | null
           id?: string | null
           is_active?: boolean | null
+          is_verified?: boolean | null
           logo_url?: string | null
           name?: string | null
         }
         Update: {
+          description?: string | null
           id?: string | null
           is_active?: boolean | null
+          is_verified?: boolean | null
           logo_url?: string | null
           name?: string | null
         }
@@ -2060,9 +2622,80 @@ export type Database = {
         }
         Returns: number
       }
+      admin_draw_lottery: { Args: { _lottery_id: string }; Returns: string }
       admin_validate_vtc_recharge: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: number
+      }
+      agency_cancel_booking: {
+        Args: { _booking_id: string; _reason: string }
+        Returns: {
+          agency_id: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          details: Json
+          id: string
+          passenger_email: string | null
+          passenger_name: string
+          passenger_phone: string | null
+          reference_code: string | null
+          seats: number
+          status: string
+          ticket_id: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "partner_bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      agency_issue_tickets: {
+        Args: { _booking_id: string; _public_base_url?: string }
+        Returns: {
+          agency_id: string
+          booking_id: string
+          code: string
+          created_at: string
+          id: string
+          is_void: boolean
+          issued_at: string
+          issued_by: string | null
+          qr_url: string
+          seat_index: number
+          validated_at: string | null
+          validated_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "partner_ticket_codes"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      agency_validate_ticket_code: {
+        Args: { _code: string }
+        Returns: {
+          agency_id: string
+          booking_id: string
+          code: string
+          departure_at: string
+          destination: string
+          is_void: boolean
+          just_validated: boolean
+          origin: string
+          passenger_name: string
+          passenger_phone: string
+          seat_index: number
+          status: string
+          validated_at: string
+        }[]
       }
       archive_trip_and_reservation: {
         Args: { _trip_id: string }
@@ -2130,6 +2763,10 @@ export type Database = {
           _reservation_id: string
           _trip_id: string
         }
+        Returns: number
+      }
+      enter_wina_lottery: {
+        Args: { _lottery_id: string; _quantity?: number }
         Returns: number
       }
       find_nearby_vtc_drivers: {
@@ -2311,6 +2948,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_agency_owner: {
+        Args: { _agency_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_group_ride_driver: {
         Args: { _ride_id: string; _user_id: string }
         Returns: boolean
@@ -2352,6 +2993,7 @@ export type Database = {
         }[]
       }
       recompute_vip_level: { Args: { _user_id: string }; Returns: string }
+      redeem_wina_gift: { Args: { _gift_id: string }; Returns: string }
       refund_vtc_points: {
         Args: {
           _amount: number
@@ -2368,6 +3010,20 @@ export type Database = {
       }
       refund_wina_coins_group_payment: {
         Args: { _payment_id: string }
+        Returns: undefined
+      }
+      report_client_error: {
+        Args: {
+          _component_stack: string
+          _fingerprint: string
+          _message: string
+          _role: string
+          _scope: string
+          _source: string
+          _stack: string
+          _url: string
+          _user_agent: string
+        }
         Returns: undefined
       }
       request_vtc_recharge: {
@@ -2401,9 +3057,27 @@ export type Database = {
           status: string
         }[]
       }
+      verify_ticket_code_public: {
+        Args: { _code: string }
+        Returns: {
+          agency_logo: string
+          agency_name: string
+          code: string
+          departure_at: string
+          destination: string
+          is_void: boolean
+          origin: string
+          passenger_name: string
+          seat_index: number
+          status: string
+          validated_at: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "gerant" | "chauffeur" | "client" | "agence"
+      gift_redemption_status: "pending" | "delivered" | "cancelled"
+      lottery_status: "draft" | "open" | "closed" | "drawn"
       payment_status: "PENDING" | "VALIDATED" | "REJECTED"
       reservation_status:
         | "PENDING_PAYMENT"
@@ -2553,6 +3227,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "gerant", "chauffeur", "client", "agence"],
+      gift_redemption_status: ["pending", "delivered", "cancelled"],
+      lottery_status: ["draft", "open", "closed", "drawn"],
       payment_status: ["PENDING", "VALIDATED", "REJECTED"],
       reservation_status: [
         "PENDING_PAYMENT",
