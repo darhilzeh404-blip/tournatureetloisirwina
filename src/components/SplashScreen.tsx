@@ -6,14 +6,19 @@ interface SplashScreenProps {
   onComplete: (session: { user: { id: string } | null; role: string | null } | null) => void;
 }
 
-const MIN_SPLASH_MS = 1800;
-const MAX_SPLASH_MS = 3200;
+// Splash visible uniquement à la toute première ouverture dans l'onglet.
+// Les actualisations suivantes le sautent (sessionStorage) pour ne pas masquer le preview.
+const SPLASH_SEEN_KEY = "wina_splash_seen";
+const alreadySeen = typeof window !== "undefined" && window.sessionStorage?.getItem(SPLASH_SEEN_KEY) === "1";
+const MIN_SPLASH_MS = alreadySeen ? 0 : 900;
+const MAX_SPLASH_MS = alreadySeen ? 100 : 2000;
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [phase, setPhase] = useState<"enter" | "hold" | "exit">("enter");
 
   useEffect(() => {
     const startTime = performance.now();
+    try { window.sessionStorage?.setItem(SPLASH_SEEN_KEY, "1"); } catch {}
 
     let cancelled = false;
 
