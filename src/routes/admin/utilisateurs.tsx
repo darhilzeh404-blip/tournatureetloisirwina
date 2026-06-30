@@ -83,25 +83,17 @@ function AdminUtilisateurs() {
     }
     setCreating(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) throw new Error("Session admin introuvable");
-
-      const res = await fetch("/api/admin/create-user", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: {
           email: newUser.email,
           password: newUser.password,
           full_name: newUser.full_name,
           role: newUser.role,
-        }),
+        },
       });
-      const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || "Erreur");
+      if (error) throw new Error(error.message || "Erreur");
+      if (!data?.success) throw new Error(data?.error || "Erreur");
+
 
       toast.success("Utilisateur créé");
       setShowCreate(false);

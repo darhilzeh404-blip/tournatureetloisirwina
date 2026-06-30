@@ -313,22 +313,18 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
     if (existing.some((d) => d.phone && normalizePhone(d.phone) === canonicalPhone)) { toast.error("Téléphone déjà utilisé"); return; }
     setBusy(true);
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      if (!token) throw new Error("Session admin manquante");
-      const res = await fetch("/api/admin/create-driver", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
+      const { data: j, error: invErr } = await supabase.functions.invoke("admin-create-driver", {
+        body: {
           ...form,
           license_plate: canonicalPlate,
           phone: canonicalPhone,
           email,
           password,
-        }),
+        },
       });
-      const j = await res.json();
-      if (!res.ok || !j.success) throw new Error(j.error || "Erreur");
+      if (invErr) throw new Error(invErr.message || "Erreur");
+      if (!j?.success) throw new Error(j?.error || "Erreur");
+
       toast.success("Chauffeur créé");
       onCreated();
     } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
