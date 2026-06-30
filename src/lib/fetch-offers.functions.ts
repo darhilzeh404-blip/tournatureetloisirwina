@@ -10,8 +10,13 @@ export const fetchOffersByType = createServerFn({ method: "GET" })
     return input;
   })
   .handler(async ({ data: serviceType }): Promise<Offer[]> => {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+    const hasProc = typeof process !== "undefined" && !!(process as any).env;
+    const url =
+      (import.meta as any).env?.VITE_SUPABASE_URL ||
+      (hasProc ? (process as any).env.SUPABASE_URL : undefined);
+    const key =
+      (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY ||
+      (hasProc ? (process as any).env.SUPABASE_PUBLISHABLE_KEY : undefined);
 
     if (!url || !key) {
       console.error("Missing server Supabase env vars (SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY)");
