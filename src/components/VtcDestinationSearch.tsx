@@ -88,6 +88,13 @@ export function VtcDestinationSearch({
       setLoading(false);
       return;
     }
+    const key = normKey(query);
+    const cached = cacheGet(key);
+    if (cached) {
+      setSuggestions(cached);
+      setLoading(false);
+      return;
+    }
     const controller = new AbortController();
     debounceRef.current = window.setTimeout(async () => {
       setLoading(true);
@@ -103,6 +110,7 @@ export function VtcDestinationSearch({
         });
         if (!res.ok) throw new Error("net");
         const data = (await res.json()) as Suggestion[];
+        cacheSet(key, data);
         setSuggestions(data);
       } catch {
         setSuggestions([]);
@@ -110,7 +118,7 @@ export function VtcDestinationSearch({
         window.clearTimeout(timeoutId);
         setLoading(false);
       }
-    }, 350);
+    }, 400);
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
       controller.abort();
