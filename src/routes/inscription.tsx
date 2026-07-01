@@ -5,6 +5,7 @@ import { Mail, Lock, User, UserPlus, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/inscription")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Inscription — Agence Wina" },

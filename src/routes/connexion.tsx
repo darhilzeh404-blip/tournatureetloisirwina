@@ -5,6 +5,7 @@ import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/connexion")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Connexion — Agence Wina" },
@@ -106,7 +107,7 @@ function ConnexionPage() {
 
           <button
             type="submit"
-            disabled={loading || isLoading}
+            disabled={loading}
             className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
             {loading ? "Connexion en cours..." : "Se connecter"}
