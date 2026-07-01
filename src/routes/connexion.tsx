@@ -49,15 +49,6 @@ function ConnexionPage() {
     }
   };
 
-  // Show loading while auth state initializes
-  if (isLoading) {
-    return (
-      <section className="flex min-h-[80vh] items-center justify-center">
-        <p className="text-muted-foreground">Chargement...</p>
-      </section>
-    );
-  }
-
   return (
     <section className="flex min-h-[80vh] items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
