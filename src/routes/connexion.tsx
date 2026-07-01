@@ -1,10 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import type { AppRole } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/connexion")({
   head: () => ({
@@ -17,7 +15,7 @@ export const Route = createFileRoute("/connexion")({
 });
 
 function ConnexionPage() {
-  const { isAuthenticated, role, isLoading } = useAuth();
+  const { isAuthenticated, role, isLoading, signIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,32 +35,11 @@ function ConnexionPage() {
     setLoading(true);
 
     try {
-      // Step 1: Sign in
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) throw error;
-
-      // Step 2: Confirm session is available
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-      if (sessionError || !sessionData.session) {
-        throw new Error("Impossible de récupérer la session");
-      }
-
-      // Step 3: Fetch role
-      const userId = sessionData.session.user.id;
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .limit(1)
-        .single();
-
-      const userRole = (roleData?.role as AppRole) ?? "client";
+      const auth = await signIn(email, password);
+      const userRole = auth.role ?? "client";
 
       toast.success("Connexion réussie !");
 
-      // Step 4: Navigate
       const redirectPath = getRoleRedirectPath(userRole);
       navigate({ to: redirectPath as any });
     } catch (err: any) {
