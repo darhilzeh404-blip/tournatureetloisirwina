@@ -38,7 +38,7 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Pro
   return Promise.race([
     Promise.resolve(promise),
     new Promise<T>((_, reject) => {
-      window.setTimeout(() => reject(new Error(`${label} trop lente. Réessayez dans quelques secondes.`)), ms);
+      globalThis.setTimeout(() => reject(new Error(`${label} trop lente. Réessayez dans quelques secondes.`)), ms);
     }),
   ]);
 }
