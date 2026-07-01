@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { IosInstallBanner } from "@/components/IosInstallBanner";
+import { ConsentBanner } from "@/components/ConsentBanner";
 import { AppNotifications } from "@/components/AppNotifications";
 import { SplashScreen } from "@/components/SplashScreen";
 import { ActiveGroupRideGuard } from "@/components/ActiveGroupRideGuard";
