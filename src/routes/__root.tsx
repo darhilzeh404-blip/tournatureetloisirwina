@@ -106,6 +106,7 @@ function RootComponent() {
     location.pathname.startsWith("/activites");
 
   useEffect(() => {
+    installDynamicImportRecovery();
     registerServiceWorker();
   }, []);
 
