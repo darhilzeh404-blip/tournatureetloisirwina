@@ -66,11 +66,13 @@ async function fetchRole(userId: string): Promise<AppRole | null> {
   }
 }
 
+let readyPromise: Promise<AuthState> | null = null;
+
 function initAuth() {
   if (initialized) return;
   initialized = true;
 
-  supabase.auth
+  readyPromise = supabase.auth
     .getSession()
     .then(async ({ data: { session } }) => {
       if (session?.user) {
@@ -85,10 +87,15 @@ function initAuth() {
       } else {
         setState({ ...currentState, isLoading: false });
       }
+      return currentState;
     })
     .catch((err) => {
       console.error("[useAuth] getSession error:", err);
+      // Refresh-token failures (400 "refresh_token_not_found") leave a bad
+      // token in storage; clear it so subsequent calls stop hammering /token.
+      try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
       setState({ ...currentState, isLoading: false });
+      return currentState;
     });
 
   supabase.auth.onAuthStateChange((_event, session) => {
@@ -115,6 +122,17 @@ function initAuth() {
     }
   });
 }
+
+/**
+ * For non-React callers (route `beforeLoad`). Resolves with the first
+ * ready snapshot and reuses the same in-flight request across the app.
+ */
+export async function waitForAuth(): Promise<AuthState> {
+  initAuth();
+  if (!currentState.isLoading) return currentState;
+  return readyPromise ?? currentState;
+}
+
 
 function subscribe(listener: () => void) {
   listeners.add(listener);

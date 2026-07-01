@@ -1,16 +1,13 @@
 import { createFileRoute, Outlet, Link, Navigate, useLocation, redirect } from "@tanstack/react-router";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, waitForAuth } from "@/hooks/use-auth";
 import { LayoutDashboard, Ticket, UserCog, LogOut } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/agence")({
   ssr: false,
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) throw redirect({ to: "/connexion" });
-    const { data: roleRow } = await supabase
-      .from("user_roles").select("role").eq("user_id", session.user.id).limit(1).single();
-    if (roleRow?.role !== "agence" && roleRow?.role !== "admin") throw redirect({ to: "/" });
+    const { isAuthenticated, role } = await waitForAuth();
+    if (!isAuthenticated) throw redirect({ to: "/connexion" });
+    if (role !== "agence" && role !== "admin") throw redirect({ to: "/" });
   },
   component: AgenceLayout,
 });

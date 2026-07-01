@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import type { MapMarker } from "@/components/LiveMap";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, waitForAuth } from "@/hooks/use-auth";
 import { useClientPosition, type ClientPosition } from "@/hooks/use-client-position";
 
 import { redirect } from "@tanstack/react-router";
@@ -15,11 +15,9 @@ import { redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/chauffeur")({
   ssr: false,
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) throw redirect({ to: "/connexion" });
-    const { data: roleRow } = await supabase
-      .from("user_roles").select("role").eq("user_id", session.user.id).limit(1).single();
-    if (roleRow?.role !== "chauffeur" && roleRow?.role !== "admin") throw redirect({ to: "/" });
+    const { isAuthenticated, role } = await waitForAuth();
+    if (!isAuthenticated) throw redirect({ to: "/connexion" });
+    if (role !== "chauffeur" && role !== "admin") throw redirect({ to: "/" });
   },
   head: () => ({
     meta: [

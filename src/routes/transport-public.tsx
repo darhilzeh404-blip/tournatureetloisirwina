@@ -2,22 +2,17 @@ import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-ro
 import { motion } from "framer-motion";
 import { Bus, Zap, CalendarClock, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
 import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
+import { useAuth, getRoleRedirectPath, waitForAuth } from "@/hooks/use-auth";
 import heroImg from "@/assets/hero-transport.jpg";
 
 export const Route = createFileRoute("/transport-public")({
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      const { data: roleRow } = await supabase
-        .from("user_roles").select("role").eq("user_id", session.user.id).limit(1).single();
-      const role = roleRow?.role;
-      if (role === "client") throw redirect({ to: "/espace-client" });
-      if (role === "admin") throw redirect({ to: "/admin" });
-      if (role === "gerant") throw redirect({ to: "/gerant" });
-      if (role === "chauffeur") throw redirect({ to: "/chauffeur" });
-    }
+    const { isAuthenticated, role } = await waitForAuth();
+    if (!isAuthenticated) return;
+    if (role === "client") throw redirect({ to: "/espace-client" });
+    if (role === "admin") throw redirect({ to: "/admin" });
+    if (role === "gerant") throw redirect({ to: "/gerant" });
+    if (role === "chauffeur") throw redirect({ to: "/chauffeur" });
   },
   head: () => ({
     meta: [
