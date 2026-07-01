@@ -31,6 +31,31 @@ let currentState: AuthState = {
   isAuthenticated: false,
 };
 
+const AUTH_TIMEOUT_MS = 7_000;
+const ROLE_TIMEOUT_MS = 4_000;
+
+function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(`${label} trop lente. Réessayez dans quelques secondes.`)), ms);
+    }),
+  ]);
+}
+
+function clearBrokenAuthStorage() {
+  try {
+    Object.keys(window.localStorage)
+      .filter((key) => key === "supabase.auth.token" || (key.startsWith("sb-") && key.endsWith("-auth-token")))
+      .forEach((key) => window.localStorage.removeItem(key));
+  } catch {}
+}
+
+function isRefreshTokenFailure(err: unknown) {
+  const message = err instanceof Error ? err.message : String(err ?? "");
+  return /refresh.*token|refresh_token_not_found|Invalid Refresh Token/i.test(message);
+}
+
 const listeners = new Set<() => void>();
 let initialized = false;
 let roleCache: Record<string, AppRole | null> = {};
@@ -47,12 +72,16 @@ function setState(next: AuthState) {
 async function fetchRole(userId: string): Promise<AppRole | null> {
   if (userId in roleCache) return roleCache[userId];
   try {
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .limit(1)
-      .maybeSingle();
+    const { data, error } = await withTimeout(
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle(),
+      ROLE_TIMEOUT_MS,
+      "Lecture du rôle utilisateur",
+    );
     if (error) {
       console.error("[useAuth] fetchRole error:", error);
       return null;
@@ -72,8 +101,7 @@ function initAuth() {
   if (initialized) return;
   initialized = true;
 
-  readyPromise = supabase.auth
-    .getSession()
+  readyPromise = withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT_MS, "Initialisation de session")
     .then(async ({ data: { session } }) => {
       if (session?.user) {
         const role = await fetchRole(session.user.id);
@@ -93,6 +121,7 @@ function initAuth() {
       console.error("[useAuth] getSession error:", err);
       // Refresh-token failures (400 "refresh_token_not_found") leave a bad
       // token in storage; clear it so subsequent calls stop hammering /token.
+      if (isRefreshTokenFailure(err)) clearBrokenAuthStorage();
       try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
       setState({ ...currentState, isLoading: false });
       return currentState;
@@ -153,22 +182,47 @@ export function useAuth() {
 
   const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const signIn = useCallback(async (email: string, password: string): Promise<AuthState> => {
+    const { data, error } = await withTimeout(
+      supabase.auth.signInWithPassword({ email, password }),
+      AUTH_TIMEOUT_MS,
+      "Connexion",
+    );
     if (error) throw error;
+
+    if (data.session?.user) {
+      const role = await fetchRole(data.session.user.id);
+      const nextState = {
+        user: data.session.user,
+        session: data.session,
+        role,
+        isLoading: false,
+        isAuthenticated: true,
+      };
+      setState(nextState);
+      return nextState;
+    }
+
+    const nextState = { ...currentState, isLoading: false };
+    setState(nextState);
+    return nextState;
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } },
-    });
+    const { error } = await withTimeout(
+      supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } },
+      }),
+      AUTH_TIMEOUT_MS,
+      "Création du compte",
+    );
     if (error) throw error;
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    await withTimeout(supabase.auth.signOut(), AUTH_TIMEOUT_MS, "Déconnexion");
   }, []);
 
   return { ...state, signIn, signUp, signOut };
