@@ -39,6 +39,7 @@ import { Route as BookingRouteImport } from './routes/booking'
 import { Route as BilletsRouteImport } from './routes/billets'
 import { Route as AgenceRouteImport } from './routes/agence'
 import { Route as ActivitesRouteImport } from './routes/activites'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DeplacementGroupeIndexRouteImport } from './routes/deplacement-groupe.index'
 import { Route as AgenceIndexRouteImport } from './routes/agence.index'
@@ -72,8 +73,7 @@ import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-res
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as AdminBilletsRouteImport } from './routes/admin/billets'
 import { Route as AdminAnnoncesRouteImport } from './routes/admin/annonces'
-import { Route as AdminAgencesRouteImport } from './routes/admin.agences'
-import { Route as AdminLayoutRouteImport } from './routes/admin/_layout'
+import { Route as AdminAgencesRouteImport } from './routes/admin/agences'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
 import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/deplacement-groupe.waiting.$rideId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
@@ -231,6 +231,11 @@ const ActivitesRoute = ActivitesRouteImport.update({
   path: '/activites',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -247,9 +252,9 @@ const AgenceIndexRoute = AgenceIndexRouteImport.update({
   getParentRoute: () => AgenceRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const WalletRechargerRoute = WalletRechargerRouteImport.update({
   id: '/recharger',
@@ -302,109 +307,104 @@ const AgenceBilletsRoute = AgenceBilletsRouteImport.update({
   getParentRoute: () => AgenceRoute,
 } as any)
 const AdminVtcChauffeursRoute = AdminVtcChauffeursRouteImport.update({
-  id: '/admin/vtc-chauffeurs',
-  path: '/admin/vtc-chauffeurs',
-  getParentRoute: () => rootRouteImport,
+  id: '/vtc-chauffeurs',
+  path: '/vtc-chauffeurs',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminVehiculeTypesRoute = AdminVehiculeTypesRouteImport.update({
-  id: '/admin/vehicule-types',
-  path: '/admin/vehicule-types',
-  getParentRoute: () => rootRouteImport,
+  id: '/vehicule-types',
+  path: '/vehicule-types',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminUtilisateursRoute = AdminUtilisateursRouteImport.update({
-  id: '/admin/utilisateurs',
-  path: '/admin/utilisateurs',
-  getParentRoute: () => rootRouteImport,
+  id: '/utilisateurs',
+  path: '/utilisateurs',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminTripsRoute = AdminTripsRouteImport.update({
-  id: '/admin/trips',
-  path: '/admin/trips',
-  getParentRoute: () => rootRouteImport,
+  id: '/trips',
+  path: '/trips',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminTransportRoute = AdminTransportRouteImport.update({
-  id: '/admin/transport',
-  path: '/admin/transport',
-  getParentRoute: () => rootRouteImport,
+  id: '/transport',
+  path: '/transport',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminSuiviRoute = AdminSuiviRouteImport.update({
-  id: '/admin/suivi',
-  path: '/admin/suivi',
-  getParentRoute: () => rootRouteImport,
+  id: '/suivi',
+  path: '/suivi',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminReservationsRoute = AdminReservationsRouteImport.update({
-  id: '/admin/reservations',
-  path: '/admin/reservations',
-  getParentRoute: () => rootRouteImport,
+  id: '/reservations',
+  path: '/reservations',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminRechargesRoute = AdminRechargesRouteImport.update({
-  id: '/admin/recharges',
-  path: '/admin/recharges',
-  getParentRoute: () => rootRouteImport,
+  id: '/recharges',
+  path: '/recharges',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminPaiementsRoute = AdminPaiementsRouteImport.update({
-  id: '/admin/paiements',
-  path: '/admin/paiements',
-  getParentRoute: () => rootRouteImport,
+  id: '/paiements',
+  path: '/paiements',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminOffresRoute = AdminOffresRouteImport.update({
-  id: '/admin/offres',
-  path: '/admin/offres',
-  getParentRoute: () => rootRouteImport,
+  id: '/offres',
+  path: '/offres',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminGroupRidesRoute = AdminGroupRidesRouteImport.update({
-  id: '/admin/group-rides',
-  path: '/admin/group-rides',
-  getParentRoute: () => rootRouteImport,
+  id: '/group-rides',
+  path: '/group-rides',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminFideliteRoute = AdminFideliteRouteImport.update({
-  id: '/admin/fidelite',
-  path: '/admin/fidelite',
-  getParentRoute: () => rootRouteImport,
+  id: '/fidelite',
+  path: '/fidelite',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
-  id: '/admin/dashboard',
-  path: '/admin/dashboard',
-  getParentRoute: () => rootRouteImport,
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminClientsRoute = AdminClientsRouteImport.update({
-  id: '/admin/clients',
-  path: '/admin/clients',
-  getParentRoute: () => rootRouteImport,
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCircuitsRoute = AdminCircuitsRouteImport.update({
-  id: '/admin/circuits',
-  path: '/admin/circuits',
-  getParentRoute: () => rootRouteImport,
+  id: '/circuits',
+  path: '/circuits',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminBusReservationsRoute = AdminBusReservationsRouteImport.update({
-  id: '/admin/bus-reservations',
-  path: '/admin/bus-reservations',
-  getParentRoute: () => rootRouteImport,
+  id: '/bus-reservations',
+  path: '/bus-reservations',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminBusRoute = AdminBusRouteImport.update({
-  id: '/admin/bus',
-  path: '/admin/bus',
-  getParentRoute: () => rootRouteImport,
+  id: '/bus',
+  path: '/bus',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminBilletsRoute = AdminBilletsRouteImport.update({
-  id: '/admin/billets',
-  path: '/admin/billets',
-  getParentRoute: () => rootRouteImport,
+  id: '/billets',
+  path: '/billets',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminAnnoncesRoute = AdminAnnoncesRouteImport.update({
-  id: '/admin/annonces',
-  path: '/admin/annonces',
-  getParentRoute: () => rootRouteImport,
+  id: '/annonces',
+  path: '/annonces',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminAgencesRoute = AdminAgencesRouteImport.update({
-  id: '/admin/agences',
-  path: '/admin/agences',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminLayoutRoute = AdminLayoutRouteImport.update({
-  id: '/admin/_layout',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
+  id: '/agences',
+  path: '/agences',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const VtcSuiviReservationIdRoute = VtcSuiviReservationIdRouteImport.update({
   id: '/suivi/$reservationId',
@@ -440,6 +440,7 @@ const ApiAdminCreateDriverRoute = ApiAdminCreateDriverRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/activites': typeof ActivitesRoute
   '/agence': typeof AgenceRouteWithChildren
   '/billets': typeof BilletsRouteWithChildren
@@ -470,7 +471,6 @@ export interface FileRoutesByFullPath {
   '/vtc': typeof VtcRouteWithChildren
   '/wallet': typeof WalletRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
-  '/admin': typeof AdminLayoutRoute
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
@@ -541,7 +541,6 @@ export interface FileRoutesByTo {
   '/vtc': typeof VtcRouteWithChildren
   '/wallet': typeof WalletRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
-  '/admin': typeof AdminIndexRoute
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
@@ -572,6 +571,7 @@ export interface FileRoutesByTo {
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
+  '/admin': typeof AdminIndexRoute
   '/agence': typeof AgenceIndexRoute
   '/deplacement-groupe': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
@@ -584,6 +584,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/activites': typeof ActivitesRoute
   '/agence': typeof AgenceRouteWithChildren
   '/billets': typeof BilletsRouteWithChildren
@@ -614,7 +615,6 @@ export interface FileRoutesById {
   '/vtc': typeof VtcRouteWithChildren
   '/wallet': typeof WalletRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
-  '/admin/_layout': typeof AdminLayoutRoute
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
@@ -659,6 +659,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/activites'
     | '/agence'
     | '/billets'
@@ -689,7 +690,6 @@ export interface FileRouteTypes {
     | '/vtc'
     | '/wallet'
     | '/wina-coins'
-    | '/admin'
     | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
@@ -760,7 +760,6 @@ export interface FileRouteTypes {
     | '/vtc'
     | '/wallet'
     | '/wina-coins'
-    | '/admin'
     | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
@@ -791,6 +790,7 @@ export interface FileRouteTypes {
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/wallet/recharger'
+    | '/admin'
     | '/agence'
     | '/deplacement-groupe'
     | '/api/admin/create-driver'
@@ -802,6 +802,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/activites'
     | '/agence'
     | '/billets'
@@ -832,7 +833,6 @@ export interface FileRouteTypes {
     | '/vtc'
     | '/wallet'
     | '/wina-coins'
-    | '/admin/_layout'
     | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
@@ -876,6 +876,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   ActivitesRoute: typeof ActivitesRoute
   AgenceRoute: typeof AgenceRouteWithChildren
   BilletsRoute: typeof BilletsRouteWithChildren
@@ -906,31 +907,9 @@ export interface RootRouteChildren {
   VtcRoute: typeof VtcRouteWithChildren
   WalletRoute: typeof WalletRouteWithChildren
   WinaCoinsRoute: typeof WinaCoinsRoute
-  AdminLayoutRoute: typeof AdminLayoutRoute
-  AdminAgencesRoute: typeof AdminAgencesRoute
-  AdminAnnoncesRoute: typeof AdminAnnoncesRoute
-  AdminBilletsRoute: typeof AdminBilletsRoute
-  AdminBusRoute: typeof AdminBusRoute
-  AdminBusReservationsRoute: typeof AdminBusReservationsRoute
-  AdminCircuitsRoute: typeof AdminCircuitsRoute
-  AdminClientsRoute: typeof AdminClientsRoute
-  AdminDashboardRoute: typeof AdminDashboardRoute
-  AdminFideliteRoute: typeof AdminFideliteRoute
-  AdminGroupRidesRoute: typeof AdminGroupRidesRoute
-  AdminOffresRoute: typeof AdminOffresRoute
-  AdminPaiementsRoute: typeof AdminPaiementsRoute
-  AdminRechargesRoute: typeof AdminRechargesRoute
-  AdminReservationsRoute: typeof AdminReservationsRoute
-  AdminSuiviRoute: typeof AdminSuiviRoute
-  AdminTransportRoute: typeof AdminTransportRoute
-  AdminTripsRoute: typeof AdminTripsRoute
-  AdminUtilisateursRoute: typeof AdminUtilisateursRoute
-  AdminVehiculeTypesRoute: typeof AdminVehiculeTypesRoute
-  AdminVtcChauffeursRoute: typeof AdminVtcChauffeursRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
-  AdminIndexRoute: typeof AdminIndexRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
 }
@@ -1147,6 +1126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActivitesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -1170,10 +1156,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/': {
       id: '/admin/'
-      path: '/admin'
+      path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/wallet/recharger': {
       id: '/wallet/recharger'
@@ -1247,150 +1233,143 @@ declare module '@tanstack/react-router' {
     }
     '/admin/vtc-chauffeurs': {
       id: '/admin/vtc-chauffeurs'
-      path: '/admin/vtc-chauffeurs'
+      path: '/vtc-chauffeurs'
       fullPath: '/admin/vtc-chauffeurs'
       preLoaderRoute: typeof AdminVtcChauffeursRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/vehicule-types': {
       id: '/admin/vehicule-types'
-      path: '/admin/vehicule-types'
+      path: '/vehicule-types'
       fullPath: '/admin/vehicule-types'
       preLoaderRoute: typeof AdminVehiculeTypesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/utilisateurs': {
       id: '/admin/utilisateurs'
-      path: '/admin/utilisateurs'
+      path: '/utilisateurs'
       fullPath: '/admin/utilisateurs'
       preLoaderRoute: typeof AdminUtilisateursRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/trips': {
       id: '/admin/trips'
-      path: '/admin/trips'
+      path: '/trips'
       fullPath: '/admin/trips'
       preLoaderRoute: typeof AdminTripsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/transport': {
       id: '/admin/transport'
-      path: '/admin/transport'
+      path: '/transport'
       fullPath: '/admin/transport'
       preLoaderRoute: typeof AdminTransportRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/suivi': {
       id: '/admin/suivi'
-      path: '/admin/suivi'
+      path: '/suivi'
       fullPath: '/admin/suivi'
       preLoaderRoute: typeof AdminSuiviRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/reservations': {
       id: '/admin/reservations'
-      path: '/admin/reservations'
+      path: '/reservations'
       fullPath: '/admin/reservations'
       preLoaderRoute: typeof AdminReservationsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/recharges': {
       id: '/admin/recharges'
-      path: '/admin/recharges'
+      path: '/recharges'
       fullPath: '/admin/recharges'
       preLoaderRoute: typeof AdminRechargesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/paiements': {
       id: '/admin/paiements'
-      path: '/admin/paiements'
+      path: '/paiements'
       fullPath: '/admin/paiements'
       preLoaderRoute: typeof AdminPaiementsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/offres': {
       id: '/admin/offres'
-      path: '/admin/offres'
+      path: '/offres'
       fullPath: '/admin/offres'
       preLoaderRoute: typeof AdminOffresRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/group-rides': {
       id: '/admin/group-rides'
-      path: '/admin/group-rides'
+      path: '/group-rides'
       fullPath: '/admin/group-rides'
       preLoaderRoute: typeof AdminGroupRidesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/fidelite': {
       id: '/admin/fidelite'
-      path: '/admin/fidelite'
+      path: '/fidelite'
       fullPath: '/admin/fidelite'
       preLoaderRoute: typeof AdminFideliteRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/dashboard': {
       id: '/admin/dashboard'
-      path: '/admin/dashboard'
+      path: '/dashboard'
       fullPath: '/admin/dashboard'
       preLoaderRoute: typeof AdminDashboardRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/clients': {
       id: '/admin/clients'
-      path: '/admin/clients'
+      path: '/clients'
       fullPath: '/admin/clients'
       preLoaderRoute: typeof AdminClientsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/circuits': {
       id: '/admin/circuits'
-      path: '/admin/circuits'
+      path: '/circuits'
       fullPath: '/admin/circuits'
       preLoaderRoute: typeof AdminCircuitsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/bus-reservations': {
       id: '/admin/bus-reservations'
-      path: '/admin/bus-reservations'
+      path: '/bus-reservations'
       fullPath: '/admin/bus-reservations'
       preLoaderRoute: typeof AdminBusReservationsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/bus': {
       id: '/admin/bus'
-      path: '/admin/bus'
+      path: '/bus'
       fullPath: '/admin/bus'
       preLoaderRoute: typeof AdminBusRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/billets': {
       id: '/admin/billets'
-      path: '/admin/billets'
+      path: '/billets'
       fullPath: '/admin/billets'
       preLoaderRoute: typeof AdminBilletsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/annonces': {
       id: '/admin/annonces'
-      path: '/admin/annonces'
+      path: '/annonces'
       fullPath: '/admin/annonces'
       preLoaderRoute: typeof AdminAnnoncesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/agences': {
       id: '/admin/agences'
-      path: '/admin/agences'
+      path: '/agences'
       fullPath: '/admin/agences'
       preLoaderRoute: typeof AdminAgencesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/_layout': {
-      id: '/admin/_layout'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminLayoutRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/vtc/suivi/$reservationId': {
       id: '/vtc/suivi/$reservationId'
@@ -1436,6 +1415,58 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdminRouteRouteChildren {
+  AdminAgencesRoute: typeof AdminAgencesRoute
+  AdminAnnoncesRoute: typeof AdminAnnoncesRoute
+  AdminBilletsRoute: typeof AdminBilletsRoute
+  AdminBusRoute: typeof AdminBusRoute
+  AdminBusReservationsRoute: typeof AdminBusReservationsRoute
+  AdminCircuitsRoute: typeof AdminCircuitsRoute
+  AdminClientsRoute: typeof AdminClientsRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminFideliteRoute: typeof AdminFideliteRoute
+  AdminGroupRidesRoute: typeof AdminGroupRidesRoute
+  AdminOffresRoute: typeof AdminOffresRoute
+  AdminPaiementsRoute: typeof AdminPaiementsRoute
+  AdminRechargesRoute: typeof AdminRechargesRoute
+  AdminReservationsRoute: typeof AdminReservationsRoute
+  AdminSuiviRoute: typeof AdminSuiviRoute
+  AdminTransportRoute: typeof AdminTransportRoute
+  AdminTripsRoute: typeof AdminTripsRoute
+  AdminUtilisateursRoute: typeof AdminUtilisateursRoute
+  AdminVehiculeTypesRoute: typeof AdminVehiculeTypesRoute
+  AdminVtcChauffeursRoute: typeof AdminVtcChauffeursRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminAgencesRoute: AdminAgencesRoute,
+  AdminAnnoncesRoute: AdminAnnoncesRoute,
+  AdminBilletsRoute: AdminBilletsRoute,
+  AdminBusRoute: AdminBusRoute,
+  AdminBusReservationsRoute: AdminBusReservationsRoute,
+  AdminCircuitsRoute: AdminCircuitsRoute,
+  AdminClientsRoute: AdminClientsRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminFideliteRoute: AdminFideliteRoute,
+  AdminGroupRidesRoute: AdminGroupRidesRoute,
+  AdminOffresRoute: AdminOffresRoute,
+  AdminPaiementsRoute: AdminPaiementsRoute,
+  AdminRechargesRoute: AdminRechargesRoute,
+  AdminReservationsRoute: AdminReservationsRoute,
+  AdminSuiviRoute: AdminSuiviRoute,
+  AdminTransportRoute: AdminTransportRoute,
+  AdminTripsRoute: AdminTripsRoute,
+  AdminUtilisateursRoute: AdminUtilisateursRoute,
+  AdminVehiculeTypesRoute: AdminVehiculeTypesRoute,
+  AdminVtcChauffeursRoute: AdminVtcChauffeursRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
 
 interface AgenceRouteChildren {
   AgenceBilletsRoute: typeof AgenceBilletsRoute
@@ -1529,6 +1560,7 @@ const WalletRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   ActivitesRoute: ActivitesRoute,
   AgenceRoute: AgenceRouteWithChildren,
   BilletsRoute: BilletsRouteWithChildren,
@@ -1559,31 +1591,9 @@ const rootRouteChildren: RootRouteChildren = {
   VtcRoute: VtcRouteWithChildren,
   WalletRoute: WalletRouteWithChildren,
   WinaCoinsRoute: WinaCoinsRoute,
-  AdminLayoutRoute: AdminLayoutRoute,
-  AdminAgencesRoute: AdminAgencesRoute,
-  AdminAnnoncesRoute: AdminAnnoncesRoute,
-  AdminBilletsRoute: AdminBilletsRoute,
-  AdminBusRoute: AdminBusRoute,
-  AdminBusReservationsRoute: AdminBusReservationsRoute,
-  AdminCircuitsRoute: AdminCircuitsRoute,
-  AdminClientsRoute: AdminClientsRoute,
-  AdminDashboardRoute: AdminDashboardRoute,
-  AdminFideliteRoute: AdminFideliteRoute,
-  AdminGroupRidesRoute: AdminGroupRidesRoute,
-  AdminOffresRoute: AdminOffresRoute,
-  AdminPaiementsRoute: AdminPaiementsRoute,
-  AdminRechargesRoute: AdminRechargesRoute,
-  AdminReservationsRoute: AdminReservationsRoute,
-  AdminSuiviRoute: AdminSuiviRoute,
-  AdminTransportRoute: AdminTransportRoute,
-  AdminTripsRoute: AdminTripsRoute,
-  AdminUtilisateursRoute: AdminUtilisateursRoute,
-  AdminVehiculeTypesRoute: AdminVehiculeTypesRoute,
-  AdminVtcChauffeursRoute: AdminVtcChauffeursRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
-  AdminIndexRoute: AdminIndexRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
 }
