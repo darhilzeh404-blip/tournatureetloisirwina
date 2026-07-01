@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -9,6 +9,7 @@ const adminLinks = [
   { to: "/admin/reservations", label: "Réservations", icon: CalendarCheck, exact: false },
   { to: "/admin/bus-reservations", label: "Validation Bus", icon: ClipboardCheck, exact: false },
   { to: "/admin/paiements", label: "Paiements", icon: CreditCard, exact: false },
+  { to: "/admin/frais", label: "Frais application", icon: Percent, exact: false },
   { to: "/admin/recharges", label: "Recharges portefeuille", icon: Wallet, exact: false },
   { to: "/admin/fidelite", label: "Wina Coins", icon: Coins, exact: false },
   { to: "/admin/clients", label: "Clients", icon: Users, exact: false },

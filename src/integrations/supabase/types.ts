@@ -114,6 +114,45 @@ export type Database = {
         }
         Relationships: []
       }
+      application_fees: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          fee_type: string
+          id: string
+          is_active: boolean
+          name: string
+          service_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fee_type: string
+          id?: string
+          is_active?: boolean
+          name: string
+          service_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fee_type?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          service_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
