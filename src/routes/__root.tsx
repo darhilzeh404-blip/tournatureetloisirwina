@@ -12,6 +12,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { ActiveGroupRideGuard } from "@/components/ActiveGroupRideGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { registerServiceWorker } from "@/lib/pwa";
+import { installDynamicImportRecovery } from "@/lib/dynamic-import-recovery";
 
 import appCss from "../styles.css?url";
 
