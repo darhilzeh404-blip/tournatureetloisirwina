@@ -159,6 +159,7 @@ function RootComponent() {
         )}
         <InstallPrompt />
         <IosInstallBanner />
+        <ConsentBanner />
         <AppNotifications />
         <ActiveGroupRideGuard />
         <Toaster position="top-right" richColors />
