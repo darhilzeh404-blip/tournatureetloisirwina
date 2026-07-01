@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { waitForAuth } from "@/hooks/use-auth";
 
 interface SplashScreenProps {
   onComplete: (session: { user: { id: string } | null; role: string | null } | null) => void;
@@ -23,22 +23,9 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     let cancelled = false;
 
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      let role: string | null = null;
-      if (session?.user) {
-        const { data: roleRow } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .limit(1)
-          .single();
-        role = roleRow?.role ?? null;
-      }
-
+      const auth = await waitForAuth();
       const elapsed = performance.now() - startTime;
       const remainingMin = Math.max(0, MIN_SPLASH_MS - elapsed);
-      const remainingMax = Math.max(0, MAX_SPLASH_MS - elapsed);
 
       // Wait at least the minimum splash time
       await new Promise((r) => setTimeout(r, remainingMin));
@@ -51,7 +38,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       // After exit animation (600ms), notify parent
       setTimeout(() => {
         if (!cancelled) {
-          onComplete(session?.user ? { user: session.user, role } : null);
+          onComplete(auth.user ? { user: auth.user, role: auth.role } : null);
         }
       }, 600);
     };
