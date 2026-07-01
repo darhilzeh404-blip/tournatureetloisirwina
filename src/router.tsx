@@ -131,8 +131,10 @@ function DefaultPendingComponent() {
   );
 }
 
-// Init push notifications quand le module charge
-initPushNotifications();
+// Init push notifications only on native platform, and only in browser context
+if (isNative) {
+  initPushNotifications();
+}
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
