@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
+import { useEffect, useCallback, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -167,9 +167,4 @@ export function getRoleRedirectPath(role: AppRole | null): string {
   }
 }
 
-// Kept for backwards compat with any code still importing this name.
-export { useAuth as default };
-// Silence unused-state warning under noUnusedLocals in some tsconfigs.
 export type { AuthState };
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _unused = useState;
