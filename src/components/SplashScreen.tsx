@@ -9,7 +9,16 @@ interface SplashScreenProps {
 // Splash visible uniquement à la toute première ouverture dans l'onglet.
 // Les actualisations suivantes le sautent (sessionStorage) pour ne pas masquer le preview.
 const SPLASH_SEEN_KEY = "wina_splash_seen";
-const alreadySeen = typeof window !== "undefined" && window.sessionStorage?.getItem(SPLASH_SEEN_KEY) === "1";
+function hasSeenSplash() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage?.getItem(SPLASH_SEEN_KEY) === "1";
+  } catch {
+    return true;
+  }
+}
+
+const alreadySeen = hasSeenSplash();
 const MIN_SPLASH_MS = alreadySeen ? 0 : 900;
 const MAX_SPLASH_MS = alreadySeen ? 100 : 2000;
 
