@@ -65,6 +65,7 @@ import { Route as AdminRechargesRouteImport } from './routes/admin/recharges'
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
 import { Route as AdminOffresRouteImport } from './routes/admin/offres'
 import { Route as AdminGroupRidesRouteImport } from './routes/admin/group-rides'
+import { Route as AdminFraisRouteImport } from './routes/admin/frais'
 import { Route as AdminFideliteRouteImport } from './routes/admin/fidelite'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
@@ -361,6 +362,11 @@ const AdminGroupRidesRoute = AdminGroupRidesRouteImport.update({
   path: '/group-rides',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminFraisRoute = AdminFraisRouteImport.update({
+  id: '/frais',
+  path: '/frais',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminFideliteRoute = AdminFideliteRouteImport.update({
   id: '/fidelite',
   path: '/fidelite',
@@ -480,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/fidelite': typeof AdminFideliteRoute
+  '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
@@ -550,6 +557,7 @@ export interface FileRoutesByTo {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/fidelite': typeof AdminFideliteRoute
+  '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
@@ -624,6 +632,7 @@ export interface FileRoutesById {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/fidelite': typeof AdminFideliteRoute
+  '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
@@ -699,6 +708,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/dashboard'
     | '/admin/fidelite'
+    | '/admin/frais'
     | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
@@ -769,6 +779,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/dashboard'
     | '/admin/fidelite'
+    | '/admin/frais'
     | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
@@ -842,6 +853,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/dashboard'
     | '/admin/fidelite'
+    | '/admin/frais'
     | '/admin/group-rides'
     | '/admin/offres'
     | '/admin/paiements'
@@ -1308,6 +1320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminGroupRidesRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/frais': {
+      id: '/admin/frais'
+      path: '/frais'
+      fullPath: '/admin/frais'
+      preLoaderRoute: typeof AdminFraisRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/fidelite': {
       id: '/admin/fidelite'
       path: '/fidelite'
@@ -1426,6 +1445,7 @@ interface AdminRouteRouteChildren {
   AdminClientsRoute: typeof AdminClientsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminFideliteRoute: typeof AdminFideliteRoute
+  AdminFraisRoute: typeof AdminFraisRoute
   AdminGroupRidesRoute: typeof AdminGroupRidesRoute
   AdminOffresRoute: typeof AdminOffresRoute
   AdminPaiementsRoute: typeof AdminPaiementsRoute
@@ -1450,6 +1470,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminClientsRoute: AdminClientsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminFideliteRoute: AdminFideliteRoute,
+  AdminFraisRoute: AdminFraisRoute,
   AdminGroupRidesRoute: AdminGroupRidesRoute,
   AdminOffresRoute: AdminOffresRoute,
   AdminPaiementsRoute: AdminPaiementsRoute,
