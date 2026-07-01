@@ -12,6 +12,14 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
+const INITIAL_AUTH_STATE: AuthState = {
+  user: null,
+  session: null,
+  role: null,
+  isLoading: true,
+  isAuthenticated: false,
+};
+
 /**
  * Shared module-level auth store.
  *
@@ -23,13 +31,7 @@ interface AuthState {
  * We now do the work ONCE per tab and let every hook consumer subscribe to
  * the same snapshot.
  */
-let currentState: AuthState = {
-  user: null,
-  session: null,
-  role: null,
-  isLoading: true,
-  isAuthenticated: false,
-};
+let currentState: AuthState = INITIAL_AUTH_STATE;
 
 const AUTH_TIMEOUT_MS = 7_000;
 const ROLE_TIMEOUT_MS = 4_000;
@@ -44,6 +46,7 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Pro
 }
 
 function clearBrokenAuthStorage() {
+  if (typeof window === "undefined") return;
   try {
     Object.keys(window.localStorage)
       .filter((key) => key === "supabase.auth.token" || (key.startsWith("sb-") && key.endsWith("-auth-token")))
@@ -98,6 +101,9 @@ async function fetchRole(userId: string): Promise<AppRole | null> {
 let readyPromise: Promise<AuthState> | null = null;
 
 function initAuth() {
+  // Auth is browser-only. Running it during SSR mutates module-level state
+  // across requests and creates hydration mismatches/freezes on mobile WebView.
+  if (typeof window === "undefined") return;
   if (initialized) return;
   initialized = true;
 
@@ -157,6 +163,9 @@ function initAuth() {
  * ready snapshot and reuses the same in-flight request across the app.
  */
 export async function waitForAuth(): Promise<AuthState> {
+  if (typeof window === "undefined") {
+    return { ...INITIAL_AUTH_STATE, isLoading: false };
+  }
   initAuth();
   if (!currentState.isLoading) return currentState;
   return readyPromise ?? currentState;
@@ -174,13 +183,17 @@ function getSnapshot(): AuthState {
   return currentState;
 }
 
+function getServerSnapshot(): AuthState {
+  return INITIAL_AUTH_STATE;
+}
+
 export function useAuth() {
   // Kick off the shared init on the first mount, once per tab.
   useEffect(() => {
     initAuth();
   }, []);
 
-  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const signIn = useCallback(async (email: string, password: string): Promise<AuthState> => {
     const { data, error } = await withTimeout(
