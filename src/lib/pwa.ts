@@ -1,40 +1,24 @@
-// Service worker registration with strict guards for Lovable preview/iframe.
-// Only registers in production, on the published domain, outside iframes.
+// Service worker cleanup only.
+// The old app-shell service worker could keep stale chunks/assets and cause
+// repeated 404s after deploys. Keep home-screen manifest support, but do not
+// register an offline cache worker unless offline mode is explicitly rebuilt.
 export function registerServiceWorker() {
   if (typeof window === "undefined") return;
   if (!("serviceWorker" in navigator)) return;
 
-  const isInIframe = (() => {
-    try {
-      return window.self !== window.top;
-    } catch {
-      return true;
-    }
-  })();
-
-  const host = window.location.hostname;
-  const isPreviewHost =
-    host.includes("id-preview--") ||
-    host.includes("lovableproject.com") ||
-    host.includes("lovable.app") && host.startsWith("id-preview--");
-  const isLocalhost = host === "localhost" || host === "127.0.0.1";
-
-  // In preview/iframe/dev, proactively unregister any stale SW + clear caches
-  // to prevent serving stale builds from a previous session.
-  if (isInIframe || isPreviewHost || isLocalhost || !import.meta.env.PROD) {
-    navigator.serviceWorker.getRegistrations().then((regs) => {
-      regs.forEach((r) => r.unregister());
-    });
-    if ("caches" in window) {
-      caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
-    }
-    return;
-  }
-
-  // Production, top-level window: register
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch((err) => {
-      console.warn("[PWA] SW registration failed:", err);
+    navigator.serviceWorker.getRegistrations().then((regs) => {
+      regs
+        .filter((registration) => registration.active?.scriptURL.endsWith("/sw.js"))
+        .forEach((registration) => registration.unregister());
     });
+
+    if ("caches" in window) {
+      caches.keys().then((keys) => {
+        keys
+          .filter((key) => key.startsWith("tw-static-") || key.startsWith("tw-runtime-") || key.startsWith("tw-fonts-"))
+          .forEach((key) => caches.delete(key));
+      });
+    }
   });
 }
