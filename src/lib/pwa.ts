@@ -1,9 +1,12 @@
+import { isCapacitorNative } from "./platform";
+
 // Service worker cleanup only.
 // The old app-shell service worker could keep stale chunks/assets and cause
 // repeated 404s after deploys. Keep home-screen manifest support, but do not
 // register an offline cache worker unless offline mode is explicitly rebuilt.
 export function registerServiceWorker() {
   if (typeof window === "undefined") return;
+  if (isCapacitorNative()) return;
   if (!("serviceWorker" in navigator)) return;
 
   window.addEventListener("load", () => {

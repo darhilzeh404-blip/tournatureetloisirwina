@@ -23,7 +23,7 @@
     "cap:build": "npm run build:spa && cap sync"
   },
   "dependencies": {
-    "@capacitor/android": "^8.4.0",
+    "@capacitor/android": "^6.2.1",
     "@capacitor/app": "^6.0.1",
     "@capacitor/core": "^6.0.1",
     "@capacitor/push-notifications": "^6.0.5",
