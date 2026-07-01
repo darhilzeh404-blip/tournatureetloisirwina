@@ -73,7 +73,7 @@ import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-res
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as AdminBilletsRouteImport } from './routes/admin/billets'
 import { Route as AdminAnnoncesRouteImport } from './routes/admin/annonces'
-import { Route as AdminAgencesRouteImport } from './routes/admin.agences'
+import { Route as AdminAgencesRouteImport } from './routes/admin/agences'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
 import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/deplacement-groupe.waiting.$rideId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
