@@ -5,7 +5,6 @@ import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/connexion")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Connexion — Agence Wina" },
