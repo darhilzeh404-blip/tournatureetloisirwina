@@ -22,6 +22,31 @@ interface Props {
 // Nominatim viewbox: left,top,right,bottom (lng,lat)
 const VIEWBOX = "9.20,0.70,9.65,0.20";
 
+// Cache mémoire partagé entre montages (LRU simple, max 50 entrées, TTL 10 min)
+const CACHE_TTL_MS = 10 * 60 * 1000;
+const CACHE_MAX = 50;
+const suggestionCache = new Map<string, { at: number; data: Suggestion[] }>();
+const normKey = (q: string) => q.trim().toLowerCase().replace(/\s+/g, " ");
+function cacheGet(key: string): Suggestion[] | null {
+  const hit = suggestionCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.at > CACHE_TTL_MS) {
+    suggestionCache.delete(key);
+    return null;
+  }
+  // refresh recency
+  suggestionCache.delete(key);
+  suggestionCache.set(key, hit);
+  return hit.data;
+}
+function cacheSet(key: string, data: Suggestion[]) {
+  suggestionCache.set(key, { at: Date.now(), data });
+  if (suggestionCache.size > CACHE_MAX) {
+    const oldest = suggestionCache.keys().next().value;
+    if (oldest) suggestionCache.delete(oldest);
+  }
+}
+
 export function VtcDestinationSearch({
   placeholder,
   value,
@@ -63,6 +88,13 @@ export function VtcDestinationSearch({
       setLoading(false);
       return;
     }
+    const key = normKey(query);
+    const cached = cacheGet(key);
+    if (cached) {
+      setSuggestions(cached);
+      setLoading(false);
+      return;
+    }
     const controller = new AbortController();
     debounceRef.current = window.setTimeout(async () => {
       setLoading(true);
@@ -78,6 +110,7 @@ export function VtcDestinationSearch({
         });
         if (!res.ok) throw new Error("net");
         const data = (await res.json()) as Suggestion[];
+        cacheSet(key, data);
         setSuggestions(data);
       } catch {
         setSuggestions([]);
@@ -85,7 +118,7 @@ export function VtcDestinationSearch({
         window.clearTimeout(timeoutId);
         setLoading(false);
       }
-    }, 350);
+    }, 400);
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
       controller.abort();
