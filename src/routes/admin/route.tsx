@@ -3,7 +3,7 @@ import { Outlet, Link, createFileRoute } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { AdminSidebar } from '@/components/AdminSidebar';
 
-export const Route = createFileRoute('/admin/_layout')({
+export const Route = createFileRoute('/admin')({
   component: AdminLayout,
 });
 
