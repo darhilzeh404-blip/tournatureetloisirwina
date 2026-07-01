@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, waitForAuth } from "@/hooks/use-auth";
 import { MapIcon, LogOut, Menu, CalendarCheck, Users, Eye, Phone, Mail, X, Navigation, Heart, UserCheck, BedDouble, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,11 +14,9 @@ import { redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/gerant")({
   ssr: false,
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) throw redirect({ to: "/connexion" });
-    const { data: roleRow } = await supabase
-      .from("user_roles").select("role").eq("user_id", session.user.id).limit(1).single();
-    if (roleRow?.role !== "gerant" && roleRow?.role !== "admin") throw redirect({ to: "/" });
+    const { isAuthenticated, role } = await waitForAuth();
+    if (!isAuthenticated) throw redirect({ to: "/connexion" });
+    if (role !== "gerant" && role !== "admin") throw redirect({ to: "/" });
   },
   head: () => ({
     meta: [
