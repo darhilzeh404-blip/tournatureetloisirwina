@@ -8,13 +8,7 @@ const isNative = typeof window !== 'undefined' && 'Capacitor' in window;
 
 // Fonction push notifications
 async function initPushNotifications() {
-  console.log('🔥 initPushNotifications called!');
-  console.log('🔍 isNative:', isNative);
-  
-  if (!isNative) {
-    console.log('⚠️ Browser mode - push notifications inactive');
-    return;
-  }
+  if (!isNative) return;
 
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
@@ -131,8 +125,10 @@ function DefaultPendingComponent() {
   );
 }
 
-// Init push notifications quand le module charge
-initPushNotifications();
+// Init push notifications only on native platform, and only in browser context
+if (isNative) {
+  initPushNotifications();
+}
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
