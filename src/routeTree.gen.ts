@@ -21,6 +21,7 @@ import { Route as ReserverTransportRouteImport } from './routes/reserver-transpo
 import { Route as PromosRouteImport } from './routes/promos'
 import { Route as MonCompteRouteImport } from './routes/mon-compte'
 import { Route as MesReservationsRouteImport } from './routes/mes-reservations'
+import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
 import { Route as LocationBusRouteImport } from './routes/location-bus'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as GerantRouteImport } from './routes/gerant'
@@ -28,6 +29,8 @@ import { Route as EspaceClientRouteImport } from './routes/espace-client'
 import { Route as DeplacementGroupeRouteImport } from './routes/deplacement-groupe'
 import { Route as CourseRouteImport } from './routes/course'
 import { Route as ConnexionRouteImport } from './routes/connexion'
+import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
+import { Route as ConditionsRouteImport } from './routes/conditions'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
@@ -138,6 +141,11 @@ const MesReservationsRoute = MesReservationsRouteImport.update({
   path: '/mes-reservations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MentionsLegalesRoute = MentionsLegalesRouteImport.update({
+  id: '/mentions-legales',
+  path: '/mentions-legales',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocationBusRoute = LocationBusRouteImport.update({
   id: '/location-bus',
   path: '/location-bus',
@@ -171,6 +179,16 @@ const CourseRoute = CourseRouteImport.update({
 const ConnexionRoute = ConnexionRouteImport.update({
   id: '/connexion',
   path: '/connexion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
+  id: '/confidentialite',
+  path: '/confidentialite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConditionsRoute = ConditionsRouteImport.update({
+  id: '/conditions',
+  path: '/conditions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -430,6 +448,8 @@ export interface FileRoutesByFullPath {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/compare': typeof CompareRoute
+  '/conditions': typeof ConditionsRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
   '/course': typeof CourseRoute
   '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
@@ -437,6 +457,7 @@ export interface FileRoutesByFullPath {
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
   '/location-bus': typeof LocationBusRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/promos': typeof PromosRoute
@@ -499,12 +520,15 @@ export interface FileRoutesByTo {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/compare': typeof CompareRoute
+  '/conditions': typeof ConditionsRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
   '/course': typeof CourseRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
   '/location-bus': typeof LocationBusRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/promos': typeof PromosRoute
@@ -568,6 +592,8 @@ export interface FileRoutesById {
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
   '/compare': typeof CompareRoute
+  '/conditions': typeof ConditionsRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
   '/course': typeof CourseRoute
   '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
@@ -575,6 +601,7 @@ export interface FileRoutesById {
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
   '/location-bus': typeof LocationBusRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
   '/promos': typeof PromosRoute
@@ -640,6 +667,8 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/compare'
+    | '/conditions'
+    | '/confidentialite'
     | '/connexion'
     | '/course'
     | '/deplacement-groupe'
@@ -647,6 +676,7 @@ export interface FileRouteTypes {
     | '/gerant'
     | '/inscription'
     | '/location-bus'
+    | '/mentions-legales'
     | '/mes-reservations'
     | '/mon-compte'
     | '/promos'
@@ -709,12 +739,15 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/compare'
+    | '/conditions'
+    | '/confidentialite'
     | '/connexion'
     | '/course'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
     | '/location-bus'
+    | '/mentions-legales'
     | '/mes-reservations'
     | '/mon-compte'
     | '/promos'
@@ -777,6 +810,8 @@ export interface FileRouteTypes {
     | '/chauffeur-vtc'
     | '/circuits'
     | '/compare'
+    | '/conditions'
+    | '/confidentialite'
     | '/connexion'
     | '/course'
     | '/deplacement-groupe'
@@ -784,6 +819,7 @@ export interface FileRouteTypes {
     | '/gerant'
     | '/inscription'
     | '/location-bus'
+    | '/mentions-legales'
     | '/mes-reservations'
     | '/mon-compte'
     | '/promos'
@@ -848,6 +884,8 @@ export interface RootRouteChildren {
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
   CompareRoute: typeof CompareRoute
+  ConditionsRoute: typeof ConditionsRoute
+  ConfidentialiteRoute: typeof ConfidentialiteRoute
   ConnexionRoute: typeof ConnexionRoute
   CourseRoute: typeof CourseRoute
   DeplacementGroupeRoute: typeof DeplacementGroupeRouteWithChildren
@@ -855,6 +893,7 @@ export interface RootRouteChildren {
   GerantRoute: typeof GerantRoute
   InscriptionRoute: typeof InscriptionRoute
   LocationBusRoute: typeof LocationBusRoute
+  MentionsLegalesRoute: typeof MentionsLegalesRoute
   MesReservationsRoute: typeof MesReservationsRoute
   MonCompteRoute: typeof MonCompteRoute
   PromosRoute: typeof PromosRoute
@@ -982,6 +1021,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MesReservationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mentions-legales': {
+      id: '/mentions-legales'
+      path: '/mentions-legales'
+      fullPath: '/mentions-legales'
+      preLoaderRoute: typeof MentionsLegalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/location-bus': {
       id: '/location-bus'
       path: '/location-bus'
@@ -1029,6 +1075,20 @@ declare module '@tanstack/react-router' {
       path: '/connexion'
       fullPath: '/connexion'
       preLoaderRoute: typeof ConnexionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confidentialite': {
+      id: '/confidentialite'
+      path: '/confidentialite'
+      fullPath: '/confidentialite'
+      preLoaderRoute: typeof ConfidentialiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conditions': {
+      id: '/conditions'
+      path: '/conditions'
+      fullPath: '/conditions'
+      preLoaderRoute: typeof ConditionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -1477,6 +1537,8 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
   CompareRoute: CompareRoute,
+  ConditionsRoute: ConditionsRoute,
+  ConfidentialiteRoute: ConfidentialiteRoute,
   ConnexionRoute: ConnexionRoute,
   CourseRoute: CourseRoute,
   DeplacementGroupeRoute: DeplacementGroupeRouteWithChildren,
@@ -1484,6 +1546,7 @@ const rootRouteChildren: RootRouteChildren = {
   GerantRoute: GerantRoute,
   InscriptionRoute: InscriptionRoute,
   LocationBusRoute: LocationBusRoute,
+  MentionsLegalesRoute: MentionsLegalesRoute,
   MesReservationsRoute: MesReservationsRoute,
   MonCompteRoute: MonCompteRoute,
   PromosRoute: PromosRoute,
@@ -1527,12 +1590,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
