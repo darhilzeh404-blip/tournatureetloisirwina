@@ -64,42 +64,51 @@ export function BookingDialog({
       return;
     }
     let mounted = true;
+    // Safety: never keep the dialog stuck on the spinner
+    const safety = window.setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 4000);
     (async () => {
-      let row: CircuitRow | null = null;
-      if (target.id) {
-        const { data } = await supabase
-          .from("circuits")
-          .select("id, nom, base_price, includes_lodging, includes_guide, lodging_price, guide_price")
-          .eq("id", target.id)
-          .maybeSingle();
-        row = (data as CircuitRow) ?? null;
-      } else if (target.slug) {
-        const { data } = await supabase
-          .from("circuits")
-          .select("id, nom, base_price, includes_lodging, includes_guide, lodging_price, guide_price")
-          .eq("slug", target.slug)
-          .maybeSingle();
-        row = (data as CircuitRow) ?? null;
-      }
-      if (!mounted) return;
-      setCircuit(row);
-      if (row) {
-        setWantsLodging(row.includes_lodging);
-        setWantsGuide(row.includes_guide);
-        const { data: acts } = await supabase
-          .from("circuit_activities")
-          .select("id, name, price, is_default")
-          .eq("circuit_id", row.id)
-          .order("sort_order");
+      try {
+        let row: CircuitRow | null = null;
+        if (target.id) {
+          const { data } = await supabase
+            .from("circuits")
+            .select("id, nom, base_price, includes_lodging, includes_guide, lodging_price, guide_price")
+            .eq("id", target.id)
+            .maybeSingle();
+          row = (data as CircuitRow) ?? null;
+        } else if (target.slug) {
+          const { data } = await supabase
+            .from("circuits")
+            .select("id, nom, base_price, includes_lodging, includes_guide, lodging_price, guide_price")
+            .eq("slug", target.slug)
+            .maybeSingle();
+          row = (data as CircuitRow) ?? null;
+        }
         if (!mounted) return;
-        const list = (acts as CircuitActivity[]) ?? [];
-        setExtras(list);
-        setSelectedExtras(new Set(list.filter((a) => a.is_default).map((a) => a.id)));
+        setCircuit(row);
+        setLoading(false);
+        if (row) {
+          setWantsLodging(row.includes_lodging);
+          setWantsGuide(row.includes_guide);
+          const { data: acts } = await supabase
+            .from("circuit_activities")
+            .select("id, name, price, is_default")
+            .eq("circuit_id", row.id)
+            .order("sort_order");
+          if (!mounted) return;
+          const list = (acts as CircuitActivity[]) ?? [];
+          setExtras(list);
+          setSelectedExtras(new Set(list.filter((a) => a.is_default).map((a) => a.id)));
+        }
+      } catch {
+        if (mounted) setLoading(false);
       }
-      setLoading(false);
     })();
     return () => {
       mounted = false;
+      window.clearTimeout(safety);
     };
   }, [target.id, target.slug, target.kind]);
 

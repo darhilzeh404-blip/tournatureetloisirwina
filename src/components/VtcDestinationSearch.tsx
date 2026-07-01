@@ -49,31 +49,46 @@ export function VtcDestinationSearch({
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  const pickedRef = useRef(false);
+
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
-    if (!query || query.trim().length < 3) {
-      setSuggestions([]);
+    if (pickedRef.current) {
+      // Skip fetch triggered by our own setQuery(label) after picking
+      pickedRef.current = false;
       return;
     }
+    if (!query || query.trim().length < 3) {
+      setSuggestions([]);
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
     debounceRef.current = window.setTimeout(async () => {
       setLoading(true);
+      const timeoutId = window.setTimeout(() => controller.abort(), 6000);
       try {
         const url =
           `https://nominatim.openstreetmap.org/search?format=json&limit=6` +
           `&countrycodes=ga&viewbox=${VIEWBOX}&bounded=1` +
           `&q=${encodeURIComponent(query)}`;
-        const res = await fetch(url, { headers: { "Accept-Language": "fr" } });
+        const res = await fetch(url, {
+          headers: { "Accept-Language": "fr" },
+          signal: controller.signal,
+        });
         if (!res.ok) throw new Error("net");
         const data = (await res.json()) as Suggestion[];
         setSuggestions(data);
       } catch {
         setSuggestions([]);
       } finally {
+        window.clearTimeout(timeoutId);
         setLoading(false);
       }
     }, 350);
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
+      controller.abort();
     };
   }, [query]);
 
@@ -82,9 +97,13 @@ export function VtcDestinationSearch({
     const lng = parseFloat(s.lon);
     const zone = detectZone(lat, lng);
     const label = s.display_name.split(",").slice(0, 2).join(",").trim();
-    onSelect({ lat, lng, label, inZone: !!zone });
+    pickedRef.current = true;
     setQuery(label);
+    setSuggestions([]);
     setOpen(false);
+    setLoading(false);
+    // Defer parent update to next tick so the dropdown closes before any heavy re-render
+    setTimeout(() => onSelect({ lat, lng, label, inZone: !!zone }), 0);
   };
 
   return (
