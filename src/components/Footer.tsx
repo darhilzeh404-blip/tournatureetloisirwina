@@ -47,8 +47,17 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground" suppressHydrationWarning>
-          © {new Date().getFullYear()} Agence Wina. Tous droits réservés.
+        <div className="mt-8 flex flex-col items-center gap-3 border-t pt-6 text-center text-sm text-muted-foreground">
+          <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
+            <Link to="/confidentialite" className="hover:text-foreground">Confidentialité</Link>
+            <span aria-hidden>·</span>
+            <Link to="/conditions" className="hover:text-foreground">CGU</Link>
+            <span aria-hidden>·</span>
+            <Link to="/mentions-legales" className="hover:text-foreground">Mentions légales</Link>
+            <span aria-hidden>·</span>
+            <Link to="/support" className="hover:text-foreground">Support</Link>
+          </nav>
+          <div suppressHydrationWarning>© {new Date().getFullYear()} Agence Wina. Tous droits réservés.</div>
         </div>
       </div>
     </footer>
