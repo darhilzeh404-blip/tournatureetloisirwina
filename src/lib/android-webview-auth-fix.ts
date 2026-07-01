@@ -22,7 +22,7 @@ export function installAndroidWebViewAuthStability() {
 
   window.__winaAndroidAuthLocksPatched = true;
 
-  const nav = globalThis.navigator as Navigator & { locks?: LockManager };
+  const nav = globalThis.navigator as Navigator & { locks?: unknown };
   if (!nav?.locks) return;
 
   const hideLocks = (target: object) => {
