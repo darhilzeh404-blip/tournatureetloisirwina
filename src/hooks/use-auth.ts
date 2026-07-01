@@ -97,18 +97,6 @@ function initAuth() {
       setState({ ...currentState, isLoading: false });
       return currentState;
     });
-}
-
-/**
- * For non-React callers (route `beforeLoad`). Resolves with the first
- * ready snapshot and reuses the same in-flight request across the app.
- */
-export async function waitForAuth(): Promise<AuthState> {
-  initAuth();
-  if (!currentState.isLoading) return currentState;
-  return readyPromise ?? currentState;
-}
-
 
   supabase.auth.onAuthStateChange((_event, session) => {
     if (session?.user) {
@@ -134,6 +122,17 @@ export async function waitForAuth(): Promise<AuthState> {
     }
   });
 }
+
+/**
+ * For non-React callers (route `beforeLoad`). Resolves with the first
+ * ready snapshot and reuses the same in-flight request across the app.
+ */
+export async function waitForAuth(): Promise<AuthState> {
+  initAuth();
+  if (!currentState.isLoading) return currentState;
+  return readyPromise ?? currentState;
+}
+
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
