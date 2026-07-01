@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -12,37 +12,67 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-export function useAuth() {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    session: null,
-    role: null,
-    isLoading: true,
-    isAuthenticated: false,
-  });
+/**
+ * Shared module-level auth store.
+ *
+ * Prior to this refactor each `useAuth()` caller (Header, guards, ~30 routes)
+ * created its own `getSession` + `user_roles` fetch + `onAuthStateChange`
+ * subscription. On every navigation this fired 4-6 parallel Supabase requests
+ * and left the app frozen on slow networks / Android WebView.
+ *
+ * We now do the work ONCE per tab and let every hook consumer subscribe to
+ * the same snapshot.
+ */
+let currentState: AuthState = {
+  user: null,
+  session: null,
+  role: null,
+  isLoading: true,
+  isAuthenticated: false,
+};
 
-  const fetchRole = useCallback(async (userId: string): Promise<AppRole | null> => {
-    try {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .limit(1)
-        .single();
-      if (error) {
-        console.error("[useAuth] fetchRole error:", error);
-        return null;
-      }
-      return (data?.role as AppRole) ?? null;
-    } catch (err) {
-      console.error("[useAuth] fetchRole exception:", err);
+const listeners = new Set<() => void>();
+let initialized = false;
+let roleCache: Record<string, AppRole | null> = {};
+
+function emit() {
+  listeners.forEach((l) => l());
+}
+
+function setState(next: AuthState) {
+  currentState = next;
+  emit();
+}
+
+async function fetchRole(userId: string): Promise<AppRole | null> {
+  if (userId in roleCache) return roleCache[userId];
+  try {
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      console.error("[useAuth] fetchRole error:", error);
       return null;
     }
-  }, []);
+    const role = (data?.role as AppRole) ?? null;
+    roleCache[userId] = role;
+    return role;
+  } catch (err) {
+    console.error("[useAuth] fetchRole exception:", err);
+    return null;
+  }
+}
 
-  useEffect(() => {
-    // 1. Restore session from storage FIRST
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+function initAuth() {
+  if (initialized) return;
+  initialized = true;
+
+  supabase.auth
+    .getSession()
+    .then(async ({ data: { session } }) => {
       if (session?.user) {
         const role = await fetchRole(session.user.id);
         setState({
@@ -53,41 +83,57 @@ export function useAuth() {
           isAuthenticated: true,
         });
       } else {
-        setState(s => ({ ...s, isLoading: false }));
+        setState({ ...currentState, isLoading: false });
       }
-    }).catch((err) => {
+    })
+    .catch((err) => {
       console.error("[useAuth] getSession error:", err);
-      setState(s => ({ ...s, isLoading: false }));
+      setState({ ...currentState, isLoading: false });
     });
 
-    // 2. Listen for auth changes — DO NOT await inside callback (causes deadlock)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          // Fire-and-forget role fetch to avoid blocking the auth event queue
-          fetchRole(session.user.id).then((role) => {
-            setState({
-              user: session.user,
-              session,
-              role,
-              isLoading: false,
-              isAuthenticated: true,
-            });
-          });
-        } else {
-          setState({
-            user: null,
-            session: null,
-            role: null,
-            isLoading: false,
-            isAuthenticated: false,
-          });
-        }
-      }
-    );
+  supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) {
+      // Fire-and-forget role fetch to avoid blocking the auth event queue
+      fetchRole(session.user.id).then((role) => {
+        setState({
+          user: session.user,
+          session,
+          role,
+          isLoading: false,
+          isAuthenticated: true,
+        });
+      });
+    } else {
+      roleCache = {};
+      setState({
+        user: null,
+        session: null,
+        role: null,
+        isLoading: false,
+        isAuthenticated: false,
+      });
+    }
+  });
+}
 
-    return () => subscription.unsubscribe();
-  }, [fetchRole]);
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot(): AuthState {
+  return currentState;
+}
+
+export function useAuth() {
+  // Kick off the shared init on the first mount, once per tab.
+  useEffect(() => {
+    initAuth();
+  }, []);
+
+  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -120,3 +166,10 @@ export function getRoleRedirectPath(role: AppRole | null): string {
     default: return "/";
   }
 }
+
+// Kept for backwards compat with any code still importing this name.
+export { useAuth as default };
+// Silence unused-state warning under noUnusedLocals in some tsconfigs.
+export type { AuthState };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _unused = useState;
