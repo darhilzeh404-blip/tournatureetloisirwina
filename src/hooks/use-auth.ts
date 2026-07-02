@@ -37,6 +37,7 @@ let currentState: AuthState = INITIAL_AUTH_STATE;
 const AUTH_TIMEOUT_MS = typeof window !== "undefined" && isAndroidWebViewRuntime() ? 3_500 : 5_000;
 const ROLE_TIMEOUT_MS = typeof window !== "undefined" && isAndroidWebViewRuntime() ? 2_500 : 4_000;
 const AUTH_EVENT_ROLE_TIMEOUT_MS = 2_500;
+const IS_ANDROID_WEBVIEW = typeof window !== "undefined" && isAndroidWebViewRuntime();
 
 function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
@@ -174,7 +175,9 @@ function initAuth() {
       // Refresh-token failures (400 "refresh_token_not_found") leave a bad
       // token in storage; clear it so subsequent calls stop hammering /token.
       if (isRefreshTokenFailure(err)) clearBrokenAuthStorage();
-      try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+      if (!IS_ANDROID_WEBVIEW) {
+        try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+      }
       setState({ ...currentState, isLoading: false });
       return currentState;
     })
@@ -195,7 +198,9 @@ export function resetAuthRuntime() {
 export function recoverAndroidAuthFreeze() {
   if (typeof window === "undefined") return;
   clearBrokenAuthStorage();
-  try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+  if (!IS_ANDROID_WEBVIEW) {
+    try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+  }
   resetAuthRuntime();
 }
 
