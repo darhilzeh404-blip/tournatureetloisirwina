@@ -53,7 +53,7 @@ export function ActiveGroupRideGuard() {
 
     (async () => {
       try {
-        const { data, error } = await withTimeout(
+        const { data, error } = await withTimeout<{ data: any[] | null; error: unknown }>(
           supabase
             .from("group_ride_passengers")
             .select("ride_id, group_rides!inner(status, archived_at)")
