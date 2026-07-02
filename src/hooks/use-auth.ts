@@ -190,26 +190,6 @@ export function recoverAndroidAuthFreeze() {
   try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
   resetAuthRuntime();
 }
-        setState({
-          user: session.user,
-          session,
-          role,
-          isLoading: false,
-          isAuthenticated: true,
-        });
-      });
-    } else {
-      roleCache = {};
-      setState({
-        user: null,
-        session: null,
-        role: null,
-        isLoading: false,
-        isAuthenticated: false,
-      });
-    }
-  });
-}
 
 /**
  * For non-React callers (route `beforeLoad`). Resolves with the first
