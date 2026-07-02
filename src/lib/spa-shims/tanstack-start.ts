@@ -1,6 +1,6 @@
 /**
  * SPA shim for @tanstack/react-start.
- * En build natif (Capacitor) / SPA pur, il n'y a pas de runtime serveur.
+ * En build SPA pur, il n'y a pas de runtime serveur.
  * Les server functions sont remplacées par des appels Supabase directs côté client
  * lorsque c'est nécessaire ; sinon elles deviennent des no-ops sûrs.
  */

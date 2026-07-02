@@ -1,6 +1,5 @@
 import { useEffect, useCallback, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { isAndroidWebViewRuntime } from "@/lib/platform";
 import type { User, Session } from "@supabase/supabase-js";
 
 export type AppRole = "admin" | "gerant" | "chauffeur" | "client" | "agence";
@@ -26,18 +25,17 @@ const INITIAL_AUTH_STATE: AuthState = {
  *
  * Prior to this refactor each `useAuth()` caller (Header, guards, ~30 routes)
  * created its own `getSession` + `user_roles` fetch + `onAuthStateChange`
- * subscription. On every navigation this fired 4-6 parallel Supabase requests
- * and left the app frozen on slow networks / Android WebView.
+ * subscription. On every navigation this fired 4-6 parallel backend requests
+ * and left the app frozen on slow mobile networks.
  *
  * We now do the work ONCE per tab and let every hook consumer subscribe to
  * the same snapshot.
  */
 let currentState: AuthState = INITIAL_AUTH_STATE;
 
-const AUTH_TIMEOUT_MS = typeof window !== "undefined" && isAndroidWebViewRuntime() ? 3_500 : 5_000;
-const ROLE_TIMEOUT_MS = typeof window !== "undefined" && isAndroidWebViewRuntime() ? 2_500 : 4_000;
+const AUTH_TIMEOUT_MS = 5_000;
+const ROLE_TIMEOUT_MS = 4_000;
 const AUTH_EVENT_ROLE_TIMEOUT_MS = 2_500;
-const IS_ANDROID_WEBVIEW = typeof window !== "undefined" && isAndroidWebViewRuntime();
 
 function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
@@ -117,8 +115,7 @@ function subscribeAuthStateChanges() {
         isAuthenticated: true,
       });
 
-      // Defer role lookup outside the auth callback. Calling async auth/db work
-      // directly inside the callback can deadlock auth-js on Android WebView.
+      // Defer role lookup outside the auth callback to keep mobile navigation responsive.
       window.setTimeout(() => {
         withTimeout(fetchRole(session.user.id), AUTH_EVENT_ROLE_TIMEOUT_MS, "Lecture du rôle utilisateur")
           .then((role) => {
@@ -149,7 +146,7 @@ function subscribeAuthStateChanges() {
 
 function initAuth() {
   // Auth is browser-only. Running it during SSR mutates module-level state
-  // across requests and creates hydration mismatches/freezes on mobile WebView.
+  // across requests and creates hydration mismatches/freezes on mobile browsers.
   if (typeof window === "undefined") return;
   if (initialized) return;
   initialized = true;
@@ -175,9 +172,7 @@ function initAuth() {
       // Refresh-token failures (400 "refresh_token_not_found") leave a bad
       // token in storage; clear it so subsequent calls stop hammering /token.
       if (isRefreshTokenFailure(err)) clearBrokenAuthStorage();
-      if (!IS_ANDROID_WEBVIEW) {
-        try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
-      }
+      try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
       setState({ ...currentState, isLoading: false });
       return currentState;
     })
@@ -193,15 +188,6 @@ export function resetAuthRuntime() {
   readyPromise = null;
   roleCache = {};
   setState({ ...INITIAL_AUTH_STATE, isLoading: false });
-}
-
-export function recoverAndroidAuthFreeze() {
-  if (typeof window === "undefined") return;
-  clearBrokenAuthStorage();
-  if (!IS_ANDROID_WEBVIEW) {
-    try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
-  }
-  resetAuthRuntime();
 }
 
 /**

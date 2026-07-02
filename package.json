@@ -9,18 +9,10 @@
     "build:dev": "cross-env BUILD_TARGET=spa vite build --mode development",
     "build:ssr": "vite build",
     "build:spa": "cross-env BUILD_TARGET=spa vite build",
-    "build:native": "cross-env BUILD_TARGET=spa vite build && cap sync",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "ci": "tsc --noEmit && vite build",
-    "lint": "eslint .",
-    "cap:init": "cap init",
-    "cap:add:android": "cap add android",
-    "cap:add:ios": "cap add ios",
-    "cap:sync": "cap sync",
-    "cap:open:android": "cap open android",
-    "cap:open:ios": "cap open ios",
-    "cap:build": "npm run build:spa && cap sync"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.42.3",

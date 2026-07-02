@@ -96,7 +96,7 @@ export function InstallPrompt() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground">Installer Tour Wina</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Accédez à vos réservations en un clic, même hors ligne.
+              Accédez à vos réservations en un clic depuis l’écran d’accueil.
             </p>
             <div className="mt-3 flex gap-2">
               <button

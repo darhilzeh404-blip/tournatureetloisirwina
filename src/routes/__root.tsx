@@ -14,7 +14,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StuckRouteRecovery } from "@/components/StuckRouteRecovery";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installDynamicImportRecovery } from "@/lib/dynamic-import-recovery";
-import { isCapacitorNative } from "@/lib/platform";
 
 import appCss from "../styles.css?url";
 
@@ -99,7 +98,6 @@ function RootComponent() {
   const location = useLocation();
   const navigate = useNavigate();
   const [splashDone, setSplashDone] = useState(false);
-  const isNativeApp = typeof window !== "undefined" && isCapacitorNative();
 
   const isFullScreenRoute = location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/chauffeur") ||
@@ -110,8 +108,8 @@ function RootComponent() {
 
   useEffect(() => {
     installDynamicImportRecovery();
-    if (!isNativeApp) registerServiceWorker();
-  }, [isNativeApp]);
+    registerServiceWorker();
+  }, []);
 
   const handleSplashComplete = useCallback((session: { user: { id: string } | null; role: string | null } | null) => {
     // Si l'utilisateur est connecté ET sur "/", on redirige AVANT de masquer le splash
@@ -163,11 +161,11 @@ function RootComponent() {
             <Footer />
           </div>
         )}
-        {!isNativeApp && <InstallPrompt />}
-        {!isNativeApp && <IosInstallBanner />}
-        {!isNativeApp && <ConsentBanner />}
-        {!isNativeApp && <AppNotifications />}
-        {!isNativeApp && <ActiveGroupRideGuard />}
+        <InstallPrompt />
+        <IosInstallBanner />
+        <ConsentBanner />
+        <AppNotifications />
+        <ActiveGroupRideGuard />
         <Toaster position="top-right" richColors />
       </QueryClientProvider>
     </ErrorBoundary>
