@@ -4,6 +4,11 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { setupDeepLinks } from "./lib/capacitor-deep-links";
+import { installRecoveryErrorLogging, logRecovery } from "./lib/recovery-log";
+if (typeof window !== "undefined") {
+  installRecoveryErrorLogging();
+  logRecovery("info", "app.boot", { ua: navigator.userAgent });
+}
 if (typeof window !== "undefined") setupDeepLinks();
 
 const rootElement = document.getElementById('root');
