@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isAndroidWebViewRuntime } from "@/lib/platform";
 import type { User, Session } from "@supabase/supabase-js";
 
 export type AppRole = "admin" | "gerant" | "chauffeur" | "client" | "agence";
@@ -33,8 +34,8 @@ const INITIAL_AUTH_STATE: AuthState = {
  */
 let currentState: AuthState = INITIAL_AUTH_STATE;
 
-const AUTH_TIMEOUT_MS = 5_000;
-const ROLE_TIMEOUT_MS = 4_000;
+const AUTH_TIMEOUT_MS = typeof window !== "undefined" && isAndroidWebViewRuntime() ? 3_500 : 5_000;
+const ROLE_TIMEOUT_MS = typeof window !== "undefined" && isAndroidWebViewRuntime() ? 2_500 : 4_000;
 const AUTH_EVENT_ROLE_TIMEOUT_MS = 2_500;
 
 function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> {
@@ -102,38 +103,8 @@ async function fetchRole(userId: string): Promise<AppRole | null> {
 let readyPromise: Promise<AuthState> | null = null;
 let authSubscription: { unsubscribe: () => void } | null = null;
 
-function initAuth() {
-  // Auth is browser-only. Running it during SSR mutates module-level state
-  // across requests and creates hydration mismatches/freezes on mobile WebView.
-  if (typeof window === "undefined") return;
-  if (initialized) return;
-  initialized = true;
-
-  readyPromise = withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT_MS, "Initialisation de session")
-    .then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const role = await fetchRole(session.user.id);
-        setState({
-          user: session.user,
-          session,
-          role,
-          isLoading: false,
-          isAuthenticated: true,
-        });
-      } else {
-        setState({ ...currentState, isLoading: false });
-      }
-      return currentState;
-    })
-    .catch((err) => {
-      console.warn("[useAuth] getSession took too long or failed:", err);
-      // Refresh-token failures (400 "refresh_token_not_found") leave a bad
-      // token in storage; clear it so subsequent calls stop hammering /token.
-      if (isRefreshTokenFailure(err)) clearBrokenAuthStorage();
-      try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
-      setState({ ...currentState, isLoading: false });
-      return currentState;
-    });
+function subscribeAuthStateChanges() {
+  if (authSubscription) return;
 
   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
     if (session?.user) {
@@ -173,6 +144,43 @@ function initAuth() {
     }
   });
   authSubscription = subscription;
+}
+
+function initAuth() {
+  // Auth is browser-only. Running it during SSR mutates module-level state
+  // across requests and creates hydration mismatches/freezes on mobile WebView.
+  if (typeof window === "undefined") return;
+  if (initialized) return;
+  initialized = true;
+
+  readyPromise = withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT_MS, "Initialisation de session")
+    .then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const role = await fetchRole(session.user.id);
+        setState({
+          user: session.user,
+          session,
+          role,
+          isLoading: false,
+          isAuthenticated: true,
+        });
+      } else {
+        setState({ ...currentState, isLoading: false });
+      }
+      return currentState;
+    })
+    .catch((err) => {
+      console.warn("[useAuth] getSession took too long or failed:", err);
+      // Refresh-token failures (400 "refresh_token_not_found") leave a bad
+      // token in storage; clear it so subsequent calls stop hammering /token.
+      if (isRefreshTokenFailure(err)) clearBrokenAuthStorage();
+      try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+      setState({ ...currentState, isLoading: false });
+      return currentState;
+    })
+    .finally(() => {
+      if (initialized) subscribeAuthStateChanges();
+    });
 }
 
 export function resetAuthRuntime() {
