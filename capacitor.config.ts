@@ -4,12 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.winatour.app',
   appName: 'WINA TOUR',
   webDir: 'dist',
-  // CRITICAL: utilise le schéma https sur Android, sinon les requêtes
-  // Supabase (auth/storage) sont traitées comme "mixed content" / origine
-  // non sécurisée et certaines API (localStorage, fetch POST) se figent.
+  // Android auth stability: keep a secure https WebView origin, but avoid
+  // optional native plugins/deep-link bridges while diagnosing WebView freezes.
   android: {
     allowMixedContent: false,
-    webContentsDebuggingEnabled: true,
+    webContentsDebuggingEnabled: false,
   },
   server: {
     androidScheme: 'https',

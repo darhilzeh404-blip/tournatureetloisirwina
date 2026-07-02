@@ -3,5 +3,4 @@
     <string name="app_name">WINA TOUR</string>
     <string name="title_activity_main">WINA TOUR</string>
     <string name="package_name">com.winatour.app</string>
-    <string name="custom_url_scheme">com.winatour.app</string>
 </resources>
