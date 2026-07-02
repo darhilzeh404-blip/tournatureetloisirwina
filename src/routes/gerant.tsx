@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useAuth, waitForAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { MapIcon, LogOut, Menu, CalendarCheck, Users, Eye, Phone, Mail, X, Navigation, Heart, UserCheck, BedDouble, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,15 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CircuitGridSkeleton, ReservationListSkeleton } from "@/components/skeletons";
 import { toast } from "sonner";
 
-import { redirect } from "@tanstack/react-router";
-
 export const Route = createFileRoute("/gerant")({
   ssr: false,
-  beforeLoad: async () => {
-    const { isAuthenticated, role } = await waitForAuth();
-    if (!isAuthenticated) throw redirect({ to: "/connexion" });
-    if (role !== "gerant" && role !== "admin") throw redirect({ to: "/" });
-  },
   head: () => ({
     meta: [
       { title: "Espace Gérant — Agence Wina" },

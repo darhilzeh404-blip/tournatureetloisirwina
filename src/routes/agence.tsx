@@ -1,14 +1,9 @@
-import { createFileRoute, Outlet, Link, Navigate, useLocation, redirect } from "@tanstack/react-router";
-import { useAuth, waitForAuth } from "@/hooks/use-auth";
+import { createFileRoute, Outlet, Link, Navigate, useLocation } from "@tanstack/react-router";
+import { useAuth } from "@/hooks/use-auth";
 import { LayoutDashboard, Ticket, UserCog, LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/agence")({
   ssr: false,
-  beforeLoad: async () => {
-    const { isAuthenticated, role } = await waitForAuth();
-    if (!isAuthenticated) throw redirect({ to: "/connexion" });
-    if (role !== "agence" && role !== "admin") throw redirect({ to: "/" });
-  },
   component: AgenceLayout,
 });
 

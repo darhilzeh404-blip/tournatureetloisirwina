@@ -1,18 +1,13 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Wallet, TrendingUp, Receipt, Loader2, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth, waitForAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/chauffeur/gains")({
   ssr: false,
-  beforeLoad: async () => {
-    const { isAuthenticated, role } = await waitForAuth();
-    if (!isAuthenticated) throw redirect({ to: "/connexion" });
-    if (role !== "chauffeur" && role !== "admin") throw redirect({ to: "/" });
-  },
   head: () => ({
     meta: [
       { title: "Mes gains — Chauffeur" },
@@ -43,7 +38,8 @@ interface Tx {
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
 
 function ChauffeurGainsPage() {
-  const { user } = useAuth();
+  const { user, isLoading, role } = useAuth();
+  const navigate = useNavigate();
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [txs, setTxs] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +50,12 @@ function ChauffeurGainsPage() {
     root.classList.add("dark");
     return () => { if (!had) root.classList.remove("dark"); };
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && (!user || (role !== "chauffeur" && role !== "admin"))) {
+      navigate({ to: "/connexion" });
+    }
+  }, [isLoading, user, role, navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -91,6 +93,11 @@ function ChauffeurGainsPage() {
       .subscribe();
     return () => { cancelled = true; supabase.removeChannel(ch); };
   }, [user]);
+
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-background pb-20">
