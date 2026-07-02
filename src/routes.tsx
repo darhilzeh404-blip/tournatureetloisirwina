@@ -19,7 +19,7 @@ function RouteErrorFallback({ error, reset }: ErrorComponentProps) {
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
           Une erreur a interrompu l'affichage. Rechargez la page ou revenez à l'accueil.
         </p>
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.DEV && (
           <p className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-left font-mono text-xs text-destructive">
             {message}
           </p>
