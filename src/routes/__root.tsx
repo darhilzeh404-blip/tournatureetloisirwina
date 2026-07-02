@@ -11,6 +11,7 @@ import { AppNotifications } from "@/components/AppNotifications";
 import { SplashScreen } from "@/components/SplashScreen";
 import { ActiveGroupRideGuard } from "@/components/ActiveGroupRideGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { StuckRouteRecovery } from "@/components/StuckRouteRecovery";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installDynamicImportRecovery } from "@/lib/dynamic-import-recovery";
 import { isCapacitorNative } from "@/lib/platform";
@@ -149,6 +150,7 @@ function RootComponent() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        <StuckRouteRecovery />
         {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
         {isFullScreenRoute ? (
           <Outlet />
