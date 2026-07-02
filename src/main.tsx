@@ -1,7 +1,9 @@
 import React from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
+import { setupDeepLinks } from "./lib/capacitor-deep-links";
 import './lib/android-webview-auth-fix';
+if (typeof window !== "undefined") setupDeepLinks();
 import { router } from './routes';
 
 const rootElement = document.getElementById('root');

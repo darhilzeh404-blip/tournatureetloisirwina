@@ -26,7 +26,6 @@
     "@capacitor/android": "^6.2.1",
     "@capacitor/app": "^6.0.1",
     "@capacitor/core": "^6.0.1",
-    "@capacitor/push-notifications": "^6.0.5",
     "@cloudflare/vite-plugin": "^1.42.3",
     "@hookform/resolvers": "^5.2.2",
     "@playwright/test": "^1.59.1",
