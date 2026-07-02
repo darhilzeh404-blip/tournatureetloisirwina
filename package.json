@@ -23,8 +23,6 @@
     "cap:build": "npm run build:spa && cap sync"
   },
   "dependencies": {
-    "@capacitor/android": "^6.2.1",
-    "@capacitor/core": "^6.0.1",
     "@cloudflare/vite-plugin": "^1.42.3",
     "@hookform/resolvers": "^5.2.2",
     "@playwright/test": "^1.59.1",
@@ -91,7 +89,6 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.0.1",
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.3.2",
     "@types/node": "^22.16.5",
