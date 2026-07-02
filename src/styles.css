@@ -241,6 +241,38 @@
   .splash-dots > div { animation: splash-dot 1.2s ease-in-out infinite; }
   .splash-tagline { opacity: 0.35; animation: splash-fade-in 0.8s 1s ease both; }
 
+  @keyframes splash-ring {
+    0% { transform: translate(-50%, -50%) scale(0.55); opacity: 0; }
+    35% { opacity: 0.08; }
+    100% { transform: translate(-50%, -50%) scale(1.7); opacity: 0; }
+  }
+
+  @keyframes splash-logo-enter {
+    0% { transform: scale(0.6); opacity: 0; }
+    72% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes splash-logo-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.035); }
+  }
+
+  @keyframes splash-fade-up {
+    0% { transform: translateY(12px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes splash-fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes splash-dot {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.4); opacity: 1; }
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
