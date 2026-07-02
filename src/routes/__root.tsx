@@ -163,7 +163,7 @@ function RootComponent() {
         )}
         {!isNativeApp && <InstallPrompt />}
         {!isNativeApp && <IosInstallBanner />}
-        <ConsentBanner />
+        {!isNativeApp && <ConsentBanner />}
         {!isNativeApp && <AppNotifications />}
         {!isNativeApp && <ActiveGroupRideGuard />}
         <Toaster position="top-right" richColors />
