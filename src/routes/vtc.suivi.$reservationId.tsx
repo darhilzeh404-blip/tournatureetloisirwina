@@ -4,7 +4,7 @@ import { isNightHoursNow, requestNotificationPermission, showAppNotification } f
 import { ArrowLeft, CalendarClock, CarFront, CheckCircle2, Clock, Loader2, MapPin, Navigation, Phone, RefreshCw, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import { LazyLiveMap, type MapMarker } from "@/components/LazyLiveMap";
 import { useDriverPosition } from "@/hooks/use-driver-position";
 import { useShareClientPosition } from "@/hooks/use-client-position";
 import { distanceKm, estimateEtaMinutes } from "@/hooks/use-geolocation";
@@ -533,7 +533,7 @@ function VtcTrackingPage() {
 
         <section className="relative min-h-[420px] flex-1">
           {markers.length > 0 ? (
-            <LiveMap markers={markers} showRoute followMarkerId={driverPos ? "driver" : undefined} height="100%" />
+            <LazyLiveMap markers={markers} showRoute followMarkerId={driverPos ? "driver" : undefined} height="100%" />
           ) : (
             <div className="flex h-full min-h-[420px] items-center justify-center p-6 text-center text-muted-foreground">
               <div><MapPin className="mx-auto h-12 w-12 opacity-40" /><p className="mt-2">Carte disponible dès que les coordonnées ou le chauffeur sont assignés.</p></div>

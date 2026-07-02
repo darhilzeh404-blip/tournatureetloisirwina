@@ -457,11 +457,6 @@ function ChauffeurVtcPage() {
 
   // Live driver position for the dashboard map + realtime upsert to driver_positions
   // (used by clients to see the car and by the 5 km dispatch filter).
-  const isOnlineRef = useRef(isOnline);
-  useEffect(() => {
-    isOnlineRef.current = isOnline;
-  }, [isOnline]);
-
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     let lastPushAt = 0;
