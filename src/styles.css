@@ -219,6 +219,28 @@
     border-radius: 6px;
   }
 
+  .splash-ring {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    height: 16rem;
+    width: 16rem;
+    border-radius: 9999px;
+    transform: translate(-50%, -50%) scale(0.6);
+    animation: splash-ring 2.8s ease-out infinite;
+    opacity: 0;
+  }
+
+  .splash-ring-1 { border: 1px solid oklch(1 0 0 / 0.20); }
+  .splash-ring-2 { border: 1px solid oklch(1 0 0 / 0.10); animation-delay: 0.6s; }
+
+  .splash-logo-enter { animation: splash-logo-enter 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .splash-logo-pulse { animation: splash-logo-pulse 2s ease-in-out infinite; }
+  .splash-fade-up { animation: splash-fade-up 0.5s 0.25s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .splash-dots { animation: splash-fade-in 0.3s 0.6s ease both; }
+  .splash-dots > div { animation: splash-dot 1.2s ease-in-out infinite; }
+  .splash-tagline { opacity: 0.35; animation: splash-fade-in 0.8s 1s ease both; }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
