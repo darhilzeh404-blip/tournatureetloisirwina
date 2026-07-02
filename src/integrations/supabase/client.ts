@@ -5,7 +5,7 @@ import type { Database } from './types';
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement).
   // Fall back to process.env ONLY on SSR (Node) — never assume `process` exists
-  // in the browser/WebView (Capacitor Android crashes with ReferenceError otherwise).
+  // in the browser because mobile browsers do not expose it.
   const hasProcessEnv = typeof process !== 'undefined' && !!(process as any).env;
   const SUPABASE_URL =
     import.meta.env.VITE_SUPABASE_URL ||

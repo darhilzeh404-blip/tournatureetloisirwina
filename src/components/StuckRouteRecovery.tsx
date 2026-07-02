@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { isAndroidWebViewRuntime } from "@/lib/platform";
 import { logRecovery } from "@/lib/recovery-log";
 
 const ROUTE_STUCK_RELOAD_KEY = "wina_route_stuck_reloaded";
-const ROUTE_STUCK_DELAY_MS = typeof window !== "undefined" && isAndroidWebViewRuntime() ? 7_000 : 10_000;
+const ROUTE_STUCK_DELAY_MS = 10_000;
 const ROUTE_STUCK_RESET_MS = 12_000;
 const RECOVERY_SUCCESS_KEY = "wina_route_recovery_pending";
 
@@ -113,7 +112,6 @@ export function StuckRouteRecovery() {
         isTransitioning,
         elapsedMs,
         attempt: count + 1,
-        android: isAndroidWebViewRuntime(),
       });
 
       toast.warning("Chargement bloqué détecté", {

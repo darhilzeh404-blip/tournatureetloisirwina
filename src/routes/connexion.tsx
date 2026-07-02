@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { useAuth, getRoleRedirectPath, recoverAndroidAuthFreeze } from "@/hooks/use-auth";
-import { isAndroidWebViewRuntime } from "@/lib/platform";
+import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,7 +44,6 @@ function ConnexionPage() {
       navigate({ to: redirectPath as any });
     } catch (err: any) {
       console.error("[LOGIN] Error:", err);
-      if (isAndroidWebViewRuntime()) recoverAndroidAuthFreeze();
       toast.error(err.message || "Erreur de connexion");
       setLoading(false);
     }
