@@ -7,39 +7,40 @@ declare global {
 }
 
 /**
- * Android WebView stability guard.
- *
- * Current auth-js versions can use the browser Web Locks API when
- * `navigator.locks` exists. On Android WebView the lock can remain orphaned
- * after process backgrounding/reload, which makes getSession/signIn wait until
- * the UI feels frozen. Native Android runs in a single WebView, so cross-tab
- * auth locking is unnecessary; hiding the API before the backend client is
- * created makes auth use the no-op in-process lock path instead.
+ * Android WebView stability guard for Supabase Auth.
+ * 
+ * Prevents deadlocks in the Web Locks API which is often broken in Android WebViews,
+ * causing getSession/signIn to hang indefinitely and freeze the UI.
  */
 export function installAndroidWebViewAuthStability() {
   if (typeof window === "undefined" || window.__winaAndroidAuthLocksPatched) return;
-  if (!isAndroidWebViewRuntime()) return;
+  
+  // Aggressive detection: check UA directly if the bridge isn't ready yet
+  const ua = navigator.userAgent || "";
+  const isAndroid = /Android/i.test(ua);
+  const isWebView = /wv|Version\/.*Chrome\//i.test(ua) || (window as any).Capacitor?.platform === 'android';
+
+  if (!isAndroid || !isWebView) return;
 
   window.__winaAndroidAuthLocksPatched = true;
+  console.log("[AuthFix] Patching navigator.locks to prevent Android WebView deadlocks");
 
-  const nav = globalThis.navigator as Navigator & { locks?: unknown };
-  if (!nav?.locks) return;
-
-  const hideLocks = (target: object) => {
-    Object.defineProperty(target, "locks", {
-      configurable: true,
-      get: () => undefined,
-    });
+  const patch = (obj: any) => {
+    try {
+      if (obj && "locks" in obj) {
+        Object.defineProperty(obj, "locks", {
+          configurable: true,
+          get: () => undefined,
+        });
+      }
+    } catch (e) {
+      console.warn("[AuthFix] Failed to patch locks on", obj, e);
+    }
   };
 
-  try {
-    hideLocks(nav);
-  } catch {
-    try {
-      const proto = Object.getPrototypeOf(nav);
-      if (proto) hideLocks(proto);
-    } catch {}
-  }
+  patch(navigator);
+  patch(Object.getPrototypeOf(navigator));
 }
 
+// Execute immediately upon import
 installAndroidWebViewAuthStability();

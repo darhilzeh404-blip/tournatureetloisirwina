@@ -1,57 +1,6 @@
-import { useEffect } from 'react';
 import { createRouter, useRouter } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
-
-// Vérification Capacitor (mobile seulement)
-const isNative = typeof window !== 'undefined' && 'Capacitor' in window;
-
-// Fonction push notifications
-async function initPushNotifications() {
-  if (!isNative) return;
-
-  try {
-    const { PushNotifications } = await import('@capacitor/push-notifications');
-    
-    const permission = await PushNotifications.requestPermissions();
-    
-    if (permission.receive === 'granted') {
-      await PushNotifications.register();
-      console.log('✅ Push notifications registered!');
-    } else {
-      console.log('❌ Permission denied');
-    }
-
-    PushNotifications.addListener('registration', (token) => {
-      console.log('🔑 FCM Token:', token.value);
-      sendTokenToServer(token.value);
-    });
-
-    PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      console.log('📬 Notification:', notification.title, notification.body);
-      showNotification(notification);
-    });
-
-    PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
-      console.log('👆 Tapped:', action.notification.data);
-      handleNotificationTap(action.notification);
-    });
-  } catch (error) {
-    console.error('❌ Push error:', error);
-  }
-}
-
-async function sendTokenToServer(token: string) {
-  console.log('📤 Sending token to server:', token);
-}
-
-function showNotification(notification: any) {
-  console.log('🖼️ Showing notification:', notification.title, notification.body);
-}
-
-function handleNotificationTap(notification: any) {
-  console.log('🎯 Navigation:', notification.data);
-}
 
 function DefaultErrorComponent({
   error,
@@ -123,11 +72,6 @@ function DefaultPendingComponent() {
       </div>
     </div>
   );
-}
-
-// Init push notifications only on native platform, and only in browser context
-if (isNative) {
-  initPushNotifications();
 }
 
 export const getRouter = () => {

@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isAndroidWebViewRuntime } from "@/lib/platform";
 import type { User, Session } from "@supabase/supabase-js";
 
 export type AppRole = "admin" | "gerant" | "chauffeur" | "client" | "agence";
@@ -33,8 +34,10 @@ const INITIAL_AUTH_STATE: AuthState = {
  */
 let currentState: AuthState = INITIAL_AUTH_STATE;
 
-const AUTH_TIMEOUT_MS = 7_000;
-const ROLE_TIMEOUT_MS = 4_000;
+const AUTH_TIMEOUT_MS = typeof window !== "undefined" && isAndroidWebViewRuntime() ? 3_500 : 5_000;
+const ROLE_TIMEOUT_MS = typeof window !== "undefined" && isAndroidWebViewRuntime() ? 2_500 : 4_000;
+const AUTH_EVENT_ROLE_TIMEOUT_MS = 2_500;
+const IS_ANDROID_WEBVIEW = typeof window !== "undefined" && isAndroidWebViewRuntime();
 
 function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
@@ -99,6 +102,50 @@ async function fetchRole(userId: string): Promise<AppRole | null> {
 }
 
 let readyPromise: Promise<AuthState> | null = null;
+let authSubscription: { unsubscribe: () => void } | null = null;
+
+function subscribeAuthStateChanges() {
+  if (authSubscription) return;
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) {
+      setState({
+        user: session.user,
+        session,
+        role: roleCache[session.user.id] ?? currentState.role,
+        isLoading: false,
+        isAuthenticated: true,
+      });
+
+      // Defer role lookup outside the auth callback. Calling async auth/db work
+      // directly inside the callback can deadlock auth-js on Android WebView.
+      window.setTimeout(() => {
+        withTimeout(fetchRole(session.user.id), AUTH_EVENT_ROLE_TIMEOUT_MS, "Lecture du rôle utilisateur")
+          .then((role) => {
+            if (currentState.user?.id !== session.user.id) return;
+            setState({
+              user: session.user,
+              session,
+              role,
+              isLoading: false,
+              isAuthenticated: true,
+            });
+          })
+          .catch((err) => console.warn("[useAuth] deferred role lookup skipped:", err));
+      }, 0);
+    } else {
+      roleCache = {};
+      setState({
+        user: null,
+        session: null,
+        role: null,
+        isLoading: false,
+        isAuthenticated: false,
+      });
+    }
+  });
+  authSubscription = subscription;
+}
 
 function initAuth() {
   // Auth is browser-only. Running it during SSR mutates module-level state
@@ -124,38 +171,37 @@ function initAuth() {
       return currentState;
     })
     .catch((err) => {
-      console.error("[useAuth] getSession error:", err);
+      console.warn("[useAuth] getSession took too long or failed:", err);
       // Refresh-token failures (400 "refresh_token_not_found") leave a bad
       // token in storage; clear it so subsequent calls stop hammering /token.
       if (isRefreshTokenFailure(err)) clearBrokenAuthStorage();
-      try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+      if (!IS_ANDROID_WEBVIEW) {
+        try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+      }
       setState({ ...currentState, isLoading: false });
       return currentState;
+    })
+    .finally(() => {
+      if (initialized) subscribeAuthStateChanges();
     });
+}
 
-  supabase.auth.onAuthStateChange((_event, session) => {
-    if (session?.user) {
-      // Fire-and-forget role fetch to avoid blocking the auth event queue
-      fetchRole(session.user.id).then((role) => {
-        setState({
-          user: session.user,
-          session,
-          role,
-          isLoading: false,
-          isAuthenticated: true,
-        });
-      });
-    } else {
-      roleCache = {};
-      setState({
-        user: null,
-        session: null,
-        role: null,
-        isLoading: false,
-        isAuthenticated: false,
-      });
-    }
-  });
+export function resetAuthRuntime() {
+  try { authSubscription?.unsubscribe(); } catch {}
+  authSubscription = null;
+  initialized = false;
+  readyPromise = null;
+  roleCache = {};
+  setState({ ...INITIAL_AUTH_STATE, isLoading: false });
+}
+
+export function recoverAndroidAuthFreeze() {
+  if (typeof window === "undefined") return;
+  clearBrokenAuthStorage();
+  if (!IS_ANDROID_WEBVIEW) {
+    try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+  }
+  resetAuthRuntime();
 }
 
 /**

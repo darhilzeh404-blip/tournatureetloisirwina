@@ -1,8 +1,22 @@
+import { isCapacitorNative } from "./platform";
+
 export async function requestNotificationPermission() {
+  // Android Capacitor WebView can freeze when Web Notification permission is
+  // requested from regular app flows. Native push must be initialized only from
+  // an explicit settings screen, not while auth/booking screens are mounting.
+  if (isCapacitorNative()) return "unsupported" as const;
   if (typeof window === "undefined" || !("Notification" in window)) return "unsupported" as const;
   if (Notification.permission === "granted") return "granted" as const;
   if (Notification.permission === "denied") return "denied" as const;
-  return Notification.requestPermission();
+  try {
+    const permission = await Promise.race([
+      Notification.requestPermission(),
+      new Promise<NotificationPermission>((resolve) => window.setTimeout(() => resolve("default"), 2500)),
+    ]);
+    return permission;
+  } catch {
+    return "unsupported" as const;
+  }
 }
 
 /**
@@ -21,6 +35,7 @@ export interface AppNotificationOptions extends NotificationOptions {
 }
 
 export async function showAppNotification(title: string, options?: AppNotificationOptions) {
+  if (isCapacitorNative()) return false;
   if (typeof window === "undefined" || !("Notification" in window)) return false;
   if (Notification.permission !== "granted") return false;
 
