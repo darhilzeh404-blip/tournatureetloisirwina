@@ -33,7 +33,7 @@ const INITIAL_AUTH_STATE: AuthState = {
  */
 let currentState: AuthState = INITIAL_AUTH_STATE;
 
-const AUTH_TIMEOUT_MS = 7_000;
+const AUTH_TIMEOUT_MS = 5_000;
 const ROLE_TIMEOUT_MS = 4_000;
 const AUTH_EVENT_ROLE_TIMEOUT_MS = 2_500;
 
@@ -126,7 +126,7 @@ function initAuth() {
       return currentState;
     })
     .catch((err) => {
-      console.error("[useAuth] getSession error:", err);
+      console.warn("[useAuth] getSession took too long or failed:", err);
       // Refresh-token failures (400 "refresh_token_not_found") leave a bad
       // token in storage; clear it so subsequent calls stop hammering /token.
       if (isRefreshTokenFailure(err)) clearBrokenAuthStorage();
