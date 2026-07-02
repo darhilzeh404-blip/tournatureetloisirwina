@@ -7,14 +7,15 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import path from 'node:path';
 
 /**
- * Build cible :
- *  - défaut (Lovable / Cloudflare)   : `vite build`
- *  - SPA statique (VS Code / natif)  : `BUILD_TARGET=spa vite build`
+ * L'application doit tourner comme une PWA/SPA pure sur Android, iPhone,
+ * preview et production. Le runtime SSR TanStack Start provoquait des erreurs
+ * "Internal Server Error" en preview quand une route ou un import serveur
+ * échouait avant l'hydratation.
  *
- * Le mode SPA produit un `dist/` statique consommable par Capacitor
- * (webDir: 'dist') et déployable sur n'importe quel hébergeur statique.
+ * On garde un opt-in explicite pour diagnostiquer SSR localement uniquement :
+ * `BUILD_TARGET=ssr vite build`.
  */
-const isSpa = process.env.BUILD_TARGET === 'spa' || process.env.CAPACITOR === 'true';
+const isSpa = process.env.BUILD_TARGET !== 'ssr';
 
 export default isSpa
   ? defineConfig({
