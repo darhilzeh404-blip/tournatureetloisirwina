@@ -2,34 +2,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-type AuthLock = <R>(name: string, acquireTimeout: number, fn: () => Promise<R>) => Promise<R>;
-
-let authQueue: Promise<unknown> = Promise.resolve();
-
-// Android WebView exposes navigator.locks on some devices, but the Web Locks
-// implementation can orphan the auth lock and make getSession/signIn hang.
-// Force a local in-process queue so auth never depends on the native WebView lock.
-const androidSafeAuthLock: AuthLock = async (_name, _acquireTimeout, fn) => {
-  const previous = authQueue.catch(() => undefined);
-  const run = previous.then(fn);
-  authQueue = run.then(() => undefined, () => undefined);
-  return run;
-};
-
-const safeBrowserStorage = typeof window !== 'undefined'
-  ? {
-      getItem: (key: string) => {
-        try { return window.localStorage.getItem(key); } catch { return null; }
-      },
-      setItem: (key: string, value: string) => {
-        try { window.localStorage.setItem(key, value); } catch {}
-      },
-      removeItem: (key: string) => {
-        try { window.localStorage.removeItem(key); } catch {}
-      },
-    }
-  : undefined;
-
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement).
   // Fall back to process.env ONLY on SSR (Node) — never assume `process` exists
@@ -50,11 +22,9 @@ function createSupabaseClient() {
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
-      storage: safeBrowserStorage,
+      storage: typeof window !== 'undefined' ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
-      lock: androidSafeAuthLock,
-      lockAcquireTimeout: 1500,
     }
   });
 }
