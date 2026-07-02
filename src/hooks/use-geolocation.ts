@@ -51,9 +51,11 @@ export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
       return;
     }
 
+    let mounted = true;
     const nav = navigator as Navigator & { permissions?: { query: (d: { name: PermissionName }) => Promise<PermissionStatus> } };
     nav.permissions?.query({ name: "geolocation" as PermissionName })
       .then((status) => {
+        if (!mounted) return;
         if (status.state === "denied") {
           setError({ code: "permission_denied", message: "Autorisation GPS refusée. Activez la localisation dans les réglages du navigateur." });
         }
@@ -64,6 +66,7 @@ export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
+        if (!mounted) return;
         const next: GeoPosition = {
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
@@ -77,6 +80,7 @@ export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
         onUpdateRef.current?.(next);
       },
       (err) => {
+        if (!mounted) return;
         const code: GeoErrorCode =
           err.code === err.PERMISSION_DENIED ? "permission_denied"
           : err.code === err.POSITION_UNAVAILABLE ? "unavailable"
@@ -93,6 +97,7 @@ export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
     );
 
     return () => {
+      mounted = false;
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;

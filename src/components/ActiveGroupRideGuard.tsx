@@ -7,6 +7,13 @@ const supabase = supabaseTyped as any;
 
 const ACTIVE_RIDE_STATUSES = ["searching", "matched", "driver_arriving", "active"];
 
+function withTimeout<T>(promise: PromiseLike<T>, ms = 3500): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) => window.setTimeout(() => reject(new Error("timeout")), ms)),
+  ]);
+}
+
 /**
  * Au chargement (et à chaque changement de session), vérifie si l'utilisateur
  * a une course groupée active et le redirige vers la salle d'attente.
@@ -46,13 +53,15 @@ export function ActiveGroupRideGuard() {
 
     (async () => {
       try {
-        const { data, error } = await supabase
-          .from("group_ride_passengers")
-          .select("ride_id, group_rides!inner(status, archived_at)")
-          .eq("user_id", user.id)
-          .neq("status", "cancelled")
-          .order("joined_at", { ascending: false })
-          .limit(5);
+        const { data, error } = await withTimeout<{ data: any[] | null; error: unknown }>(
+          supabase
+            .from("group_ride_passengers")
+            .select("ride_id, group_rides!inner(status, archived_at)")
+            .eq("user_id", user.id)
+            .neq("status", "cancelled")
+            .order("joined_at", { ascending: false })
+            .limit(5),
+        );
 
         if (error) {
           console.error("[ActiveGroupRideGuard]", error);

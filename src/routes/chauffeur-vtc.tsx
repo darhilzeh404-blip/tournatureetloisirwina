@@ -467,7 +467,7 @@ function ChauffeurVtcPage() {
         const lat = p.coords.latitude;
         const lng = p.coords.longitude;
         setDriverPos({ lat, lng });
-        if (!user || !isOnline) return;
+        if (!user || !isOnlineRef.current) return;
         // Throttle: push at most every 5 s OR when the driver has moved >= 20 m.
         const now = Date.now();
         const movedFar =
@@ -496,7 +496,7 @@ function ChauffeurVtcPage() {
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
     );
     return () => navigator.geolocation.clearWatch(id);
-  }, [user, isOnline]);
+  }, [user]);
 
   // Only show pool trips within 5 km of the driver's current position.
   // If GPS is not yet available, show everything so we don't hide work.

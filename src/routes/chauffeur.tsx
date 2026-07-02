@@ -7,18 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import type { MapMarker } from "@/components/LiveMap";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth, waitForAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { useClientPosition, type ClientPosition } from "@/hooks/use-client-position";
-
-import { redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/chauffeur")({
   ssr: false,
-  beforeLoad: async () => {
-    const { isAuthenticated, role } = await waitForAuth();
-    if (!isAuthenticated) throw redirect({ to: "/connexion" });
-    if (role !== "chauffeur" && role !== "admin") throw redirect({ to: "/" });
-  },
   head: () => ({
     meta: [
       { title: "Chauffeur — Trips actifs" },

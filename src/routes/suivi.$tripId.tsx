@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useDriverPosition } from "@/hooks/use-driver-position";
-import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import { LazyLiveMap, type MapMarker } from "@/components/LazyLiveMap";
 import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -184,7 +184,7 @@ function TripTrackingPage() {
 
       <div className="flex-1 relative">
         {markers.length > 0 ? (
-          <LiveMap
+          <LazyLiveMap
             markers={markers}
             showRoute
             routePath={osrmRoute?.geometry}

@@ -4,14 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useClientPosition } from "@/hooks/use-client-position";
 import { useGeolocation } from "@/hooks/use-geolocation";
-import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import { LazyLiveMap, type MapMarker } from "@/components/LazyLiveMap";
 import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Truck, ArrowLeft, MapPin, Navigation, Play, Flag, CheckCircle, Radio, RadioTower, AlertTriangle, Loader2, MapPinOff, Route as RouteIcon } from "lucide-react";
 import { toast } from "sonner";
-import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 
 export const Route = createFileRoute("/chauffeur/trips")({
   head: () => ({ meta: [{ title: "Mes courses — Chauffeur" }] }),
@@ -222,15 +221,13 @@ function DriverTripsPage() {
 
       <div className="flex-1 relative min-h-0">
         {markers.length > 0 ? (
-          <MapErrorBoundary>
-            <LiveMap
+            <LazyLiveMap
               markers={markers}
               showRoute
               routePath={combinedGeometry}
               followMarkerId={tracking ? "client" : undefined}
               height="100%"
             />
-          </MapErrorBoundary>
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground p-6 text-center">
             <div>

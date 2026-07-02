@@ -15,8 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { ClientNav } from "@/components/ClientNav";
-import { LiveMap, type MapMarker } from "@/components/LiveMap";
-import { MapErrorBoundary } from "@/components/MapErrorBoundary";
+import { LazyLiveMap, type MapMarker } from "@/components/LazyLiveMap";
 import { useAuth } from "@/hooks/use-auth";
 import { useDriverPosition } from "@/hooks/use-driver-position";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
@@ -355,14 +354,12 @@ function SalonPage() {
                 <span className="text-[10px] font-semibold text-primary">{driverPos ? "Position chauffeur · live" : "En attente du chauffeur"}</span>
               </div>
               <div className="mt-2 h-[220px] w-full">
-                <MapErrorBoundary>
-                  <LiveMap
-                    markers={mapMarkers}
-                    showRoute
-                    followMarkerId={driverPos ? "driver" : undefined}
-                    height="100%"
-                  />
-                </MapErrorBoundary>
+                <LazyLiveMap
+                  markers={mapMarkers}
+                  showRoute
+                  followMarkerId={driverPos ? "driver" : undefined}
+                  height="100%"
+                />
               </div>
             </div>
           </>

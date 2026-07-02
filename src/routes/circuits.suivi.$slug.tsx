@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bike, Car, CarFront, CheckCircle2, Clock, ExternalLink, Footprints, LocateFixed, MapPin, Navigation, Play, Route as RouteIcon, Volume2, VolumeX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import { LazyLiveMap, type MapMarker } from "@/components/LazyLiveMap";
 import { distanceKm, estimateEtaMinutes, useGeolocation } from "@/hooks/use-geolocation";
 import { useOsrmRoute, type OsrmProfile } from "@/hooks/use-osrm-route";
 
@@ -121,7 +121,7 @@ function CircuitGpsPage() {
       </header>
 
       <main className="relative flex-1">
-        <LiveMap
+        <LazyLiveMap
           markers={markers}
           showRoute
           routePath={route?.geometry}

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAllDriverPositions } from "@/hooks/use-driver-position";
-import { LiveMap, type MapMarker } from "@/components/LiveMap";
+import { LazyLiveMap, type MapMarker } from "@/components/LazyLiveMap";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -131,7 +131,7 @@ function AdminTrackingPage() {
 
       <div className="flex-1 grid lg:grid-cols-[1fr_320px] gap-4 min-h-0">
         <div className="min-h-[400px]">
-          <LiveMap markers={markers} followMarkerId={selectedDriver ?? undefined} height="100%" />
+          <LazyLiveMap markers={markers} followMarkerId={selectedDriver ?? undefined} height="100%" />
         </div>
 
         <div className="flex flex-col gap-3 min-h-0">

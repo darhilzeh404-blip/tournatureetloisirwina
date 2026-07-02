@@ -1,19 +1,11 @@
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Bus, Zap, CalendarClock, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
 import { useEffect } from "react";
-import { useAuth, getRoleRedirectPath, waitForAuth } from "@/hooks/use-auth";
+import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
 import heroImg from "@/assets/hero-transport.jpg";
 
 export const Route = createFileRoute("/transport-public")({
-  beforeLoad: async () => {
-    const { isAuthenticated, role } = await waitForAuth();
-    if (!isAuthenticated) return;
-    if (role === "client") throw redirect({ to: "/espace-client" });
-    if (role === "admin") throw redirect({ to: "/admin" });
-    if (role === "gerant") throw redirect({ to: "/gerant" });
-    if (role === "chauffeur") throw redirect({ to: "/chauffeur" });
-  },
   head: () => ({
     meta: [
       { title: "Transport — Agence Wina" },

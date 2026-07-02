@@ -46,9 +46,12 @@ interface Profile {
 }
 
 async function geocode(address: string): Promise<{ lat: number; lng: number } | null> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 6000);
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address + ", Gabon")}`
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address + ", Gabon")}`,
+      { signal: controller.signal }
     );
     const data = await res.json();
     if (Array.isArray(data) && data[0]) {
@@ -56,6 +59,8 @@ async function geocode(address: string): Promise<{ lat: number; lng: number } | 
     }
   } catch {
     /* noop */
+  } finally {
+    window.clearTimeout(timeoutId);
   }
   return null;
 }
