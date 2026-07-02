@@ -7,6 +7,7 @@ if (typeof window !== "undefined") setupDeepLinks();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
+const root = rootElement;
 
 async function startApp() {
   // Keep this dynamic: Android auth stability must run before any route/module
@@ -14,10 +15,10 @@ async function startApp() {
   const { router } = await import('./routes');
   const app = <RouterProvider router={router} />;
 
-  if (rootElement.hasChildNodes()) {
-    hydrateRoot(rootElement, app);
+  if (root.hasChildNodes()) {
+    hydrateRoot(root, app);
   } else {
-    createRoot(rootElement).render(app);
+    createRoot(root).render(app);
   }
 }
 
