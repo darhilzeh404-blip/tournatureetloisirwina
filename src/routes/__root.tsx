@@ -87,9 +87,24 @@ function RootComponent() {
   const isFullScreenRoute = location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/chauffeur") ||
     location.pathname.startsWith("/gerant") ||
+    location.pathname.startsWith("/agence") ||
     location.pathname.startsWith("/espace-client") ||
     location.pathname.startsWith("/reserver-transport") ||
-    location.pathname.startsWith("/activites");
+    location.pathname.startsWith("/activites") ||
+    location.pathname.startsWith("/mes-reservations") ||
+    location.pathname.startsWith("/mon-compte") ||
+    location.pathname.startsWith("/wallet") ||
+    location.pathname.startsWith("/wina-coins") ||
+    location.pathname.startsWith("/vtc") ||
+    location.pathname.startsWith("/circuits") ||
+    location.pathname.startsWith("/billets") ||
+    location.pathname.startsWith("/deplacement-groupe") ||
+    location.pathname.startsWith("/transport-scolaire") ||
+    location.pathname.startsWith("/transport-extra-scolaire") ||
+    location.pathname.startsWith("/location-bus") ||
+    location.pathname.startsWith("/tarifs") ||
+    location.pathname.startsWith("/paiement") ||
+    location.pathname.startsWith("/suivi");
 
   useEffect(() => {
     installDynamicImportRecovery();
