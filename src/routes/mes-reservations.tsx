@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useShareClientPosition } from "@/hooks/use-client-position";
 import { ReservationListSkeleton } from "@/components/skeletons";
 import { TripEtaInline } from "@/components/TripEtaInline";
+import { ClientNav } from "@/components/ClientNav";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -293,7 +294,7 @@ function MesReservationsPage() {
   };
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-10 lg:px-8">
+    <section className="mx-auto max-w-4xl px-4 py-10 pb-28 lg:px-8">
       <h1 className="text-2xl font-bold">Mes Réservations</h1>
       <p className="mt-1 text-sm text-muted-foreground">Suivez le statut de toutes vos réservations.</p>
 
@@ -501,6 +502,7 @@ function MesReservationsPage() {
         onClose={() => setPayTarget(null)}
         onSuccess={handlePaymentSubmitted}
       />
+      <ClientNav />
     </section>
   );
 }
