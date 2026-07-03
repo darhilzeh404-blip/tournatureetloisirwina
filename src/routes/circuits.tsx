@@ -166,12 +166,13 @@ function CircuitsPage() {
           <p className="py-10 text-center text-sm text-muted-foreground">Aucun circuit disponible pour le moment.</p>
         )}
 
-        <p className="mt-8 text-center text-sm text-muted-foreground">
+        <p className="mt-8 pb-20 text-center text-sm text-muted-foreground">
           Paiement total requis à la réservation. Réservation min. 48h à l'avance.
         </p>
       </section>
 
       {target && <BookingDialog target={target} onClose={() => setTarget(null)} />}
+      <ClientNav />
     </>
   );
 }
