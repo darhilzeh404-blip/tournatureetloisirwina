@@ -4,6 +4,7 @@ import { Globe, ArrowRight, CarFront, Navigation, MapPin } from "lucide-react";
 import { fetchOffersByType, type Offer } from "@/lib/fetch-offers.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
+import { ClientNav } from "@/components/ClientNav";
 import { formatFCFA } from "@/lib/destinations";
 import circuitsImg from "@/assets/circuits-hero.jpg";
 
