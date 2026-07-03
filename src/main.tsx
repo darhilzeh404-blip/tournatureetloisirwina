@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import './styles.css';
 import { installRecoveryErrorLogging, logRecovery } from "./lib/recovery-log";
 if (typeof window !== "undefined") {
   installRecoveryErrorLogging();
