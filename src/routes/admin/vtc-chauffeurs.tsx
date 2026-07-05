@@ -419,10 +419,23 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
 /* ===== Edit Modal ===== */
 function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose: () => void; onSaved: () => void }) {
   const vehicleTypes = useVehicleTypes();
-  const [form, setForm] = useState({ full_name: driver.full_name, vehicle_type: driver.vehicle_type, license_plate: driver.license_plate, phone: driver.phone ?? "", status: driver.status });
+  const [form, setForm] = useState<{ full_name: string; vehicle_type: string; category: VtcCategory; license_plate: string; phone: string; status: string }>({
+    full_name: driver.full_name,
+    vehicle_type: driver.vehicle_type,
+    category: (driver.category ?? "STANDARD") as VtcCategory,
+    license_plate: driver.license_plate,
+    phone: driver.phone ?? "",
+    status: driver.status,
+  });
   const [busy, setBusy] = useState(false);
   const plateErr = validatePlate(form.license_plate);
   const phoneErr = validatePhone(form.phone);
+  const typeNames = vehicleTypes.map((v) => v.name);
+
+  const onPickVehicleType = (name: string) => {
+    const row = vehicleTypes.find((v) => v.name === name);
+    setForm((f) => ({ ...f, vehicle_type: name, category: row?.category ?? f.category }));
+  };
 
   const save = async () => {
     if (plateErr) { toast.error(`Immatriculation: ${plateErr}`); return; }
@@ -441,11 +454,11 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" onClick={onClose}>
-      <Card className="bg-zinc-900 border-zinc-800 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+      <Card className="bg-zinc-900 border-zinc-800 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardContent className="p-4 space-y-3">
           <div className="flex justify-between items-center">
-            <h2 className="font-bold text-lg">Modifier le chauffeur</h2>
-            <Button size="icon" variant="ghost" onClick={onClose}><X className="h-4 w-4" /></Button>
+            <h2 className="font-bold text-lg text-zinc-100">Modifier le chauffeur</h2>
+            <Button size="icon" variant="ghost" onClick={onClose} className="text-zinc-100 hover:text-zinc-100"><X className="h-4 w-4" /></Button>
           </div>
           <p className="text-xs text-zinc-500 -mt-1">{driver.email}</p>
           <div className="space-y-1">
@@ -454,10 +467,27 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Type de véhicule</label>
-            <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
-              {!vehicleTypes.includes(form.vehicle_type) && form.vehicle_type && <option value={form.vehicle_type}>{form.vehicle_type}</option>}
-              {vehicleTypes.map((v) => <option key={v}>{v}</option>)}
+            <select value={form.vehicle_type} onChange={(e) => onPickVehicleType(e.target.value)} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm text-zinc-100">
+              {!typeNames.includes(form.vehicle_type) && form.vehicle_type && <option value={form.vehicle_type}>{form.vehicle_type}</option>}
+              {vehicleTypes.map((v) => <option key={v.name} value={v.name}>{v.name} · {v.category}</option>)}
             </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Catégorie tarifaire</label>
+            <div className="grid grid-cols-3 gap-1">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setForm({ ...form, category: c })}
+                  className={`h-9 rounded-md border text-xs font-semibold transition ${
+                    form.category === c ? CAT_COLORS[c] + " ring-2 ring-primary/60" : "border-zinc-800 bg-zinc-950 text-zinc-300 hover:bg-zinc-800"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Immatriculation</label>
@@ -471,12 +501,12 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Statut</label>
-            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
+            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm text-zinc-100">
               <option value="actif">Actif</option><option value="inactif">Inactif</option>
             </select>
           </div>
           <div className="flex gap-2 pt-1">
-            <Button variant="outline" onClick={onClose} className="flex-1 border-zinc-700 bg-zinc-950">Annuler</Button>
+            <Button variant="outline" onClick={onClose} className="flex-1 border-zinc-700 bg-zinc-950 text-zinc-100">Annuler</Button>
             <Button onClick={save} disabled={busy || !form.full_name || !form.license_plate || !!plateErr || !!phoneErr || !form.phone} className="flex-1">{busy ? "…" : "Enregistrer"}</Button>
           </div>
         </CardContent>
