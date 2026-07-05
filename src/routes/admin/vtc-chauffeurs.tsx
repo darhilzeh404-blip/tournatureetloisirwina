@@ -244,6 +244,7 @@ function AdminVtcChauffeurs() {
                     <tr>
                       <th className="text-left px-3 py-2">Nom</th>
                       <th className="text-left px-3 py-2">Véhicule</th>
+                      <th className="text-left px-3 py-2">Catégorie</th>
                       <th className="text-left px-3 py-2">Immat.</th>
                       <th className="text-left px-3 py-2">Téléphone</th>
                       <th className="text-left px-3 py-2">Email</th>
@@ -261,6 +262,9 @@ function AdminVtcChauffeurs() {
                         <tr key={d.id} className="border-t border-zinc-800 hover:bg-zinc-950/50">
                           <td className="px-3 py-2 font-medium">{d.full_name}</td>
                           <td className="px-3 py-2 text-zinc-400">{d.vehicle_type}</td>
+                          <td className="px-3 py-2">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${CAT_COLORS[(d.category ?? "STANDARD") as VtcCategory]}`}>{d.category ?? "STANDARD"}</span>
+                          </td>
                           <td className="px-3 py-2 font-mono text-xs">{d.license_plate}</td>
                           <td className="px-3 py-2 text-zinc-400">{d.phone || "—"}</td>
                           <td className="px-3 py-2 text-zinc-400 text-xs">{d.email}</td>
