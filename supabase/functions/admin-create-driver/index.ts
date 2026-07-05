@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
   await admin.from("user_roles").insert({ user_id: uid, role: "chauffeur" });
 
   const { error: dErr } = await admin.from("drivers").insert({
-    user_id: uid, full_name, vehicle_type, license_plate, phone, email, status: "actif",
+    user_id: uid, full_name, vehicle_type, category, license_plate, phone, email, status: "actif",
   });
   if (dErr) {
     const msg = dErr.message || "";
