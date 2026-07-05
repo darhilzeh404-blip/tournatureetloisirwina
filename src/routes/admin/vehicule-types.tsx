@@ -103,13 +103,21 @@ function AdminVehicleTypesPage() {
       </header>
 
       <Card>
-        <CardContent className="p-4 flex gap-2">
+        <CardContent className="p-4 flex flex-col sm:flex-row gap-2">
           <Input
-            placeholder="Ajouter un type (ex: Luxe, Minibus...)"
+            placeholder="Ajouter un type (ex: Berline, Minibus...)"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && add()}
+            className="flex-1"
           />
+          <select
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value as VtcCategory)}
+            className="h-10 rounded-md border border-input bg-background text-foreground px-3 text-sm"
+          >
+            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
           <Button onClick={add} disabled={adding}><Plus className="h-4 w-4 mr-1" /> Ajouter</Button>
         </CardContent>
       </Card>
@@ -123,25 +131,33 @@ function AdminVehicleTypesPage() {
           ) : (
             <ul className="divide-y">
               {list.map((v) => (
-                <li key={v.id} className="flex items-center gap-3 p-3">
+                <li key={v.id} className="flex flex-wrap items-center gap-3 p-3">
                   {editingId === v.id ? (
                     <>
                       <Input
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
-                        className="flex-1"
+                        className="flex-1 min-w-[180px]"
                         autoFocus
                         onKeyDown={(e) => { if (e.key === "Enter") saveEdit(v); if (e.key === "Escape") setEditingId(null); }}
                       />
+                      <select
+                        value={editingCategory}
+                        onChange={(e) => setEditingCategory(e.target.value as VtcCategory)}
+                        className="h-9 rounded-md border border-input bg-background text-foreground px-2 text-sm"
+                      >
+                        {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
                       <Button size="icon" variant="ghost" onClick={() => saveEdit(v)}><Check className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => setEditingId(null)}><X className="h-4 w-4" /></Button>
                     </>
                   ) : (
                     <>
                       <span className="flex-1 font-medium">{v.name}</span>
+                      <span className={`px-2 py-0.5 rounded text-xs border ${CAT_COLORS[v.category ?? "STANDARD"]}`}>{v.category ?? "STANDARD"}</span>
                       <Badge variant={v.is_active ? "default" : "secondary"}>{v.is_active ? "Actif" : "Inactif"}</Badge>
                       <Switch checked={v.is_active} onCheckedChange={() => toggle(v)} />
-                      <Button size="icon" variant="ghost" onClick={() => { setEditingId(v.id); setEditingName(v.name); }}><Pencil className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => { setEditingId(v.id); setEditingName(v.name); setEditingCategory(v.category ?? "STANDARD"); }}><Pencil className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setToDelete(v)}><Trash2 className="h-4 w-4" /></Button>
                     </>
                   )}
