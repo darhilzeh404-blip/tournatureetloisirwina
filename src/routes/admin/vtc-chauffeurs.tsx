@@ -216,7 +216,10 @@ function AdminVtcChauffeurs() {
                           <p className="font-semibold">{d.full_name}</p>
                           <p className="text-xs text-zinc-400">{d.vehicle_type} · {d.license_plate}</p>
                         </div>
-                        <Badge className={d.status === "actif" ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-700 text-zinc-300"}>{d.status}</Badge>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${CAT_COLORS[(d.category ?? "STANDARD") as VtcCategory]}`}>{d.category ?? "STANDARD"}</span>
+                          <Badge className={d.status === "actif" ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-700 text-zinc-300"}>{d.status}</Badge>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="bg-zinc-950 rounded p-2"><p className="text-zinc-500">Courses/j</p><p className="font-bold text-base">{s.trips}</p></div>
