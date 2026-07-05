@@ -24,17 +24,27 @@ export const Route = createFileRoute("/admin/vtc-chauffeurs")({
 const COMMISSION = 0.2;
 const FCFA = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
 
+type VtcCategory = "STANDARD" | "CONFORT" | "VIP";
+const CATEGORIES: VtcCategory[] = ["STANDARD", "CONFORT", "VIP"];
+const CAT_COLORS: Record<VtcCategory, string> = {
+  STANDARD: "bg-slate-500/20 text-slate-200 border-slate-500/40",
+  CONFORT: "bg-blue-500/20 text-blue-200 border-blue-500/40",
+  VIP: "bg-amber-500/20 text-amber-200 border-amber-500/40",
+};
+
+type VehicleTypeRow = { name: string; category: VtcCategory };
+
 function useVehicleTypes() {
-  const [types, setTypes] = useState<string[]>([]);
+  const [types, setTypes] = useState<VehicleTypeRow[]>([]);
   useEffect(() => {
     supabase
       .from("vehicle_types" as any)
-      .select("name")
+      .select("name, category")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true })
       .then(({ data }) => {
-        setTypes(((data as any) ?? []).map((v: any) => v.name));
+        setTypes(((data as any) ?? []).map((v: any) => ({ name: v.name, category: (v.category ?? "STANDARD") as VtcCategory })));
       });
   }, []);
   return types;
@@ -45,6 +55,7 @@ type Driver = {
   user_id: string;
   full_name: string;
   vehicle_type: string;
+  category: VtcCategory;
   license_plate: string;
   phone: string | null;
   email: string | null;
