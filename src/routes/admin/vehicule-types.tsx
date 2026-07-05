@@ -18,11 +18,20 @@ export const Route = createFileRoute("/admin/vehicule-types")({
   component: AdminVehicleTypesPage,
 });
 
+type VtcCategory = "STANDARD" | "CONFORT" | "VIP";
+const CATEGORIES: VtcCategory[] = ["STANDARD", "CONFORT", "VIP"];
+const CAT_COLORS: Record<VtcCategory, string> = {
+  STANDARD: "bg-slate-500/20 text-slate-200 border-slate-500/40",
+  CONFORT: "bg-blue-500/20 text-blue-200 border-blue-500/40",
+  VIP: "bg-amber-500/20 text-amber-200 border-amber-500/40",
+};
+
 type VehicleType = {
   id: string;
   name: string;
   is_active: boolean;
   sort_order: number;
+  category: VtcCategory;
 };
 
 function AdminVehicleTypesPage() {
