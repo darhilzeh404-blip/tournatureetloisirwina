@@ -46,6 +46,8 @@ Deno.serve(async (req) => {
 
   const full_name = String(body?.full_name ?? "").trim();
   const vehicle_type = String(body?.vehicle_type ?? "Sedan").trim();
+  const category_raw = String(body?.category ?? "STANDARD").toUpperCase();
+  const category = ["STANDARD", "CONFORT", "VIP"].includes(category_raw) ? category_raw : "STANDARD";
   const license_plate = normalizePlate(String(body?.license_plate ?? ""));
   const phone = normalizePhone(String(body?.phone ?? ""));
   const email = String(body?.email ?? "").trim().toLowerCase();
@@ -80,7 +82,7 @@ Deno.serve(async (req) => {
   await admin.from("user_roles").insert({ user_id: uid, role: "chauffeur" });
 
   const { error: dErr } = await admin.from("drivers").insert({
-    user_id: uid, full_name, vehicle_type, license_plate, phone, email, status: "actif",
+    user_id: uid, full_name, vehicle_type, category, license_plate, phone, email, status: "actif",
   });
   if (dErr) {
     const msg = dErr.message || "";

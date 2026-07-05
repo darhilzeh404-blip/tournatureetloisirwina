@@ -31,6 +31,8 @@ export const Route = createFileRoute("/api/admin/create-driver")({
 
         const full_name = String(body?.full_name ?? "").trim();
         const vehicle_type = String(body?.vehicle_type ?? "Sedan").trim();
+        const _cat = String(body?.category ?? "STANDARD").toUpperCase();
+        const category = ["STANDARD", "CONFORT", "VIP"].includes(_cat) ? _cat : "STANDARD";
         const license_plate = normalizePlate(String(body?.license_plate ?? ""));
         const phone = normalizePhone(String(body?.phone ?? ""));
         const email = String(body?.email ?? "").trim().toLowerCase();
@@ -68,7 +70,7 @@ export const Route = createFileRoute("/api/admin/create-driver")({
         await admin.from("user_roles").insert({ user_id: uid, role: "chauffeur" });
 
         const { error: dErr } = await admin.from("drivers").insert({
-          user_id: uid, full_name, vehicle_type, license_plate, phone, email, status: "actif",
+          user_id: uid, full_name, vehicle_type, category: category as "STANDARD" | "CONFORT" | "VIP", license_plate, phone, email, status: "actif",
         });
         if (dErr) {
           const msg = dErr.message || "";

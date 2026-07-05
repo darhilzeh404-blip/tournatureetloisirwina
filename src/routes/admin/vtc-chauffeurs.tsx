@@ -24,17 +24,27 @@ export const Route = createFileRoute("/admin/vtc-chauffeurs")({
 const COMMISSION = 0.2;
 const FCFA = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
 
+type VtcCategory = "STANDARD" | "CONFORT" | "VIP";
+const CATEGORIES: VtcCategory[] = ["STANDARD", "CONFORT", "VIP"];
+const CAT_COLORS: Record<VtcCategory, string> = {
+  STANDARD: "bg-slate-500/20 text-slate-200 border-slate-500/40",
+  CONFORT: "bg-blue-500/20 text-blue-200 border-blue-500/40",
+  VIP: "bg-amber-500/20 text-amber-200 border-amber-500/40",
+};
+
+type VehicleTypeRow = { name: string; category: VtcCategory };
+
 function useVehicleTypes() {
-  const [types, setTypes] = useState<string[]>([]);
+  const [types, setTypes] = useState<VehicleTypeRow[]>([]);
   useEffect(() => {
     supabase
       .from("vehicle_types" as any)
-      .select("name")
+      .select("name, category")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true })
       .then(({ data }) => {
-        setTypes(((data as any) ?? []).map((v: any) => v.name));
+        setTypes(((data as any) ?? []).map((v: any) => ({ name: v.name, category: (v.category ?? "STANDARD") as VtcCategory })));
       });
   }, []);
   return types;
@@ -45,6 +55,7 @@ type Driver = {
   user_id: string;
   full_name: string;
   vehicle_type: string;
+  category: VtcCategory;
   license_plate: string;
   phone: string | null;
   email: string | null;
@@ -177,7 +188,7 @@ function AdminVtcChauffeurs() {
               <Search className="h-4 w-4 absolute left-3 top-2.5 text-zinc-500" />
               <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom, immat, email..." className="pl-9 bg-zinc-950 border-zinc-800 text-zinc-100" />
             </div>
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)} className="h-9 rounded-md bg-zinc-950 border border-zinc-800 px-2 text-sm">
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)} className="h-9 rounded-md bg-zinc-950 border border-zinc-800 px-2 text-sm text-zinc-100">
               <option value="all">Tous statuts</option><option value="actif">Actif</option><option value="inactif">Inactif</option>
             </select>
             <label className="flex items-center gap-2 text-sm px-2">
@@ -205,7 +216,10 @@ function AdminVtcChauffeurs() {
                           <p className="font-semibold">{d.full_name}</p>
                           <p className="text-xs text-zinc-400">{d.vehicle_type} · {d.license_plate}</p>
                         </div>
-                        <Badge className={d.status === "actif" ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-700 text-zinc-300"}>{d.status}</Badge>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${CAT_COLORS[(d.category ?? "STANDARD") as VtcCategory]}`}>{d.category ?? "STANDARD"}</span>
+                          <Badge className={d.status === "actif" ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-700 text-zinc-300"}>{d.status}</Badge>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="bg-zinc-950 rounded p-2"><p className="text-zinc-500">Courses/j</p><p className="font-bold text-base">{s.trips}</p></div>
@@ -230,6 +244,7 @@ function AdminVtcChauffeurs() {
                     <tr>
                       <th className="text-left px-3 py-2">Nom</th>
                       <th className="text-left px-3 py-2">Véhicule</th>
+                      <th className="text-left px-3 py-2">Catégorie</th>
                       <th className="text-left px-3 py-2">Immat.</th>
                       <th className="text-left px-3 py-2">Téléphone</th>
                       <th className="text-left px-3 py-2">Email</th>
@@ -247,6 +262,9 @@ function AdminVtcChauffeurs() {
                         <tr key={d.id} className="border-t border-zinc-800 hover:bg-zinc-950/50">
                           <td className="px-3 py-2 font-medium">{d.full_name}</td>
                           <td className="px-3 py-2 text-zinc-400">{d.vehicle_type}</td>
+                          <td className="px-3 py-2">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${CAT_COLORS[(d.category ?? "STANDARD") as VtcCategory]}`}>{d.category ?? "STANDARD"}</span>
+                          </td>
                           <td className="px-3 py-2 font-mono text-xs">{d.license_plate}</td>
                           <td className="px-3 py-2 text-zinc-400">{d.phone || "—"}</td>
                           <td className="px-3 py-2 text-zinc-400 text-xs">{d.email}</td>
@@ -286,9 +304,14 @@ function AdminVtcChauffeurs() {
 /* ===== Create Modal ===== */
 function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => void; onCreated: () => void; existing: Driver[] }) {
   const vehicleTypes = useVehicleTypes();
-  const [form, setForm] = useState({ full_name: "", vehicle_type: "", license_plate: "", phone: "" });
+  const [form, setForm] = useState<{ full_name: string; vehicle_type: string; category: VtcCategory; license_plate: string; phone: string }>({
+    full_name: "", vehicle_type: "", category: "STANDARD", license_plate: "", phone: "",
+  });
   useEffect(() => {
-    if (!form.vehicle_type && vehicleTypes.length) setForm((f) => ({ ...f, vehicle_type: vehicleTypes[0] }));
+    if (!form.vehicle_type && vehicleTypes.length) {
+      const first = vehicleTypes[0];
+      setForm((f) => ({ ...f, vehicle_type: first.name, category: first.category }));
+    }
   }, [vehicleTypes, form.vehicle_type]);
   const [password, setPassword] = useState(genPassword());
   const [showPwd, setShowPwd] = useState(false);
@@ -301,6 +324,11 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
 
   const plateErr = form.license_plate ? validatePlate(form.license_plate) : "";
   const phoneErr = validatePhone(form.phone);
+
+  const onPickVehicleType = (name: string) => {
+    const row = vehicleTypes.find((v) => v.name === name);
+    setForm((f) => ({ ...f, vehicle_type: name, category: row?.category ?? f.category }));
+  };
 
   const submit = async () => {
     if (!form.full_name || !form.license_plate) { toast.error("Nom et immatriculation requis"); return; }
@@ -335,20 +363,45 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
       <Card className="bg-zinc-900 border-zinc-800 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardContent className="p-4 space-y-3">
           <div className="flex justify-between items-center">
-            <h2 className="font-bold text-lg">Nouveau chauffeur VTC</h2>
-            <Button size="icon" variant="ghost" onClick={onClose}><X className="h-4 w-4" /></Button>
+            <h2 className="font-bold text-lg text-zinc-100">Nouveau chauffeur VTC</h2>
+            <Button size="icon" variant="ghost" onClick={onClose} className="text-zinc-100 hover:text-zinc-100"><X className="h-4 w-4" /></Button>
           </div>
-          <Input placeholder="Nom complet" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800 text-zinc-100" />
-          <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
-            {vehicleTypes.length === 0 && <option value="">Aucun type — ajoutez-en via "Types de véhicules"</option>}
-            {vehicleTypes.map((v) => <option key={v}>{v}</option>)}
-          </select>
-          <div>
-            <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono text-zinc-100 ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Nom complet</label>
+            <Input placeholder="Nom complet" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-500" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Type de véhicule</label>
+            <select value={form.vehicle_type} onChange={(e) => onPickVehicleType(e.target.value)} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm text-zinc-100">
+              {vehicleTypes.length === 0 && <option value="">Aucun type — ajoutez-en via "Types de véhicules"</option>}
+              {vehicleTypes.map((v) => <option key={v.name} value={v.name}>{v.name} · {v.category}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Catégorie tarifaire</label>
+            <div className="grid grid-cols-3 gap-1">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setForm({ ...form, category: c })}
+                  className={`h-9 rounded-md border text-xs font-semibold transition ${
+                    form.category === c ? CAT_COLORS[c] + " ring-2 ring-primary/60" : "border-zinc-800 bg-zinc-950 text-zinc-300 hover:bg-zinc-800"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Immatriculation</label>
+            <Input placeholder="Immatriculation (ex: AB 123 GA)" value={form.license_plate} onChange={(e) => setForm({ ...form, license_plate: sanitizePlateInput(e.target.value) })} maxLength={12} className={`bg-zinc-950 font-mono text-zinc-100 placeholder:text-zinc-500 ${plateErr ? "border-red-500" : "border-zinc-800"}`} />
             {plateErr && <p className="text-xs text-red-400 mt-1">{plateErr}</p>}
           </div>
-          <div>
-            <Input placeholder="Téléphone (+241XXXXXXXX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 text-zinc-100 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Téléphone</label>
+            <Input placeholder="Téléphone (+241XXXXXXXX)" value={form.phone} onChange={(e) => setForm({ ...form, phone: sanitizePhoneInput(e.target.value) })} maxLength={13} inputMode="tel" className={`bg-zinc-950 text-zinc-100 placeholder:text-zinc-500 ${phoneErr ? "border-red-500" : "border-zinc-800"}`} />
             {phoneErr && <p className="text-xs text-red-400 mt-1">{phoneErr}</p>}
           </div>
           <div>
@@ -359,8 +412,8 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
             <p className="text-xs text-zinc-400 mb-1">Mot de passe</p>
             <div className="flex gap-1">
               <Input type={showPwd ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="bg-zinc-950 border-zinc-800 text-zinc-100 font-mono" />
-              <Button size="icon" variant="outline" className="border-zinc-700 bg-zinc-950" onClick={() => setShowPwd(!showPwd)}>{showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</Button>
-              <Button size="icon" variant="outline" className="border-zinc-700 bg-zinc-950" onClick={() => setPassword(genPassword())}><RefreshCw className="h-4 w-4" /></Button>
+              <Button size="icon" variant="outline" className="border-zinc-700 bg-zinc-950 text-zinc-100" onClick={() => setShowPwd(!showPwd)}>{showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</Button>
+              <Button size="icon" variant="outline" className="border-zinc-700 bg-zinc-950 text-zinc-100" onClick={() => setPassword(genPassword())}><RefreshCw className="h-4 w-4" /></Button>
             </div>
           </div>
           <Button onClick={submit} disabled={busy || !email || !!plateErr || !!phoneErr || !form.phone} className="w-full">{busy ? "Création…" : "Créer le chauffeur"}</Button>
@@ -373,10 +426,23 @@ function CreateDriverModal({ onClose, onCreated, existing }: { onClose: () => vo
 /* ===== Edit Modal ===== */
 function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose: () => void; onSaved: () => void }) {
   const vehicleTypes = useVehicleTypes();
-  const [form, setForm] = useState({ full_name: driver.full_name, vehicle_type: driver.vehicle_type, license_plate: driver.license_plate, phone: driver.phone ?? "", status: driver.status });
+  const [form, setForm] = useState<{ full_name: string; vehicle_type: string; category: VtcCategory; license_plate: string; phone: string; status: string }>({
+    full_name: driver.full_name,
+    vehicle_type: driver.vehicle_type,
+    category: (driver.category ?? "STANDARD") as VtcCategory,
+    license_plate: driver.license_plate,
+    phone: driver.phone ?? "",
+    status: driver.status,
+  });
   const [busy, setBusy] = useState(false);
   const plateErr = validatePlate(form.license_plate);
   const phoneErr = validatePhone(form.phone);
+  const typeNames = vehicleTypes.map((v) => v.name);
+
+  const onPickVehicleType = (name: string) => {
+    const row = vehicleTypes.find((v) => v.name === name);
+    setForm((f) => ({ ...f, vehicle_type: name, category: row?.category ?? f.category }));
+  };
 
   const save = async () => {
     if (plateErr) { toast.error(`Immatriculation: ${plateErr}`); return; }
@@ -395,11 +461,11 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3" onClick={onClose}>
-      <Card className="bg-zinc-900 border-zinc-800 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+      <Card className="bg-zinc-900 border-zinc-800 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardContent className="p-4 space-y-3">
           <div className="flex justify-between items-center">
-            <h2 className="font-bold text-lg">Modifier le chauffeur</h2>
-            <Button size="icon" variant="ghost" onClick={onClose}><X className="h-4 w-4" /></Button>
+            <h2 className="font-bold text-lg text-zinc-100">Modifier le chauffeur</h2>
+            <Button size="icon" variant="ghost" onClick={onClose} className="text-zinc-100 hover:text-zinc-100"><X className="h-4 w-4" /></Button>
           </div>
           <p className="text-xs text-zinc-500 -mt-1">{driver.email}</p>
           <div className="space-y-1">
@@ -408,10 +474,27 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Type de véhicule</label>
-            <select value={form.vehicle_type} onChange={(e) => setForm({ ...form, vehicle_type: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
-              {!vehicleTypes.includes(form.vehicle_type) && form.vehicle_type && <option value={form.vehicle_type}>{form.vehicle_type}</option>}
-              {vehicleTypes.map((v) => <option key={v}>{v}</option>)}
+            <select value={form.vehicle_type} onChange={(e) => onPickVehicleType(e.target.value)} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm text-zinc-100">
+              {!typeNames.includes(form.vehicle_type) && form.vehicle_type && <option value={form.vehicle_type}>{form.vehicle_type}</option>}
+              {vehicleTypes.map((v) => <option key={v.name} value={v.name}>{v.name} · {v.category}</option>)}
             </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-400">Catégorie tarifaire</label>
+            <div className="grid grid-cols-3 gap-1">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setForm({ ...form, category: c })}
+                  className={`h-9 rounded-md border text-xs font-semibold transition ${
+                    form.category === c ? CAT_COLORS[c] + " ring-2 ring-primary/60" : "border-zinc-800 bg-zinc-950 text-zinc-300 hover:bg-zinc-800"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Immatriculation</label>
@@ -425,12 +508,12 @@ function EditDriverModal({ driver, onClose, onSaved }: { driver: Driver; onClose
           </div>
           <div className="space-y-1">
             <label className="text-xs text-zinc-400">Statut</label>
-            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm">
+            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full h-9 rounded-md bg-zinc-950 border border-zinc-800 px-3 text-sm text-zinc-100">
               <option value="actif">Actif</option><option value="inactif">Inactif</option>
             </select>
           </div>
           <div className="flex gap-2 pt-1">
-            <Button variant="outline" onClick={onClose} className="flex-1 border-zinc-700 bg-zinc-950">Annuler</Button>
+            <Button variant="outline" onClick={onClose} className="flex-1 border-zinc-700 bg-zinc-950 text-zinc-100">Annuler</Button>
             <Button onClick={save} disabled={busy || !form.full_name || !form.license_plate || !!plateErr || !!phoneErr || !form.phone} className="flex-1">{busy ? "…" : "Enregistrer"}</Button>
           </div>
         </CardContent>

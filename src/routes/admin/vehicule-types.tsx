@@ -18,20 +18,31 @@ export const Route = createFileRoute("/admin/vehicule-types")({
   component: AdminVehicleTypesPage,
 });
 
+type VtcCategory = "STANDARD" | "CONFORT" | "VIP";
+const CATEGORIES: VtcCategory[] = ["STANDARD", "CONFORT", "VIP"];
+const CAT_COLORS: Record<VtcCategory, string> = {
+  STANDARD: "bg-slate-500/20 text-slate-200 border-slate-500/40",
+  CONFORT: "bg-blue-500/20 text-blue-200 border-blue-500/40",
+  VIP: "bg-amber-500/20 text-amber-200 border-amber-500/40",
+};
+
 type VehicleType = {
   id: string;
   name: string;
   is_active: boolean;
   sort_order: number;
+  category: VtcCategory;
 };
 
 function AdminVehicleTypesPage() {
   const [list, setList] = useState<VehicleType[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
+  const [newCategory, setNewCategory] = useState<VtcCategory>("STANDARD");
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingCategory, setEditingCategory] = useState<VtcCategory>("STANDARD");
   const [toDelete, setToDelete] = useState<VehicleType | null>(null);
 
   const load = async () => {
@@ -52,11 +63,12 @@ function AdminVehicleTypesPage() {
     const name = newName.trim();
     if (!name) { toast.error("Nom requis"); return; }
     setAdding(true);
-    const { error } = await supabase.from("vehicle_types" as any).insert({ name, sort_order: list.length + 1 });
+    const { error } = await supabase.from("vehicle_types" as any).insert({ name, category: newCategory, sort_order: list.length + 1 });
     setAdding(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(`"${name}" ajouté`);
+    toast.success(`"${name}" ajouté (${newCategory})`);
     setNewName("");
+    setNewCategory("STANDARD");
     load();
   };
 
@@ -69,7 +81,7 @@ function AdminVehicleTypesPage() {
   const saveEdit = async (v: VehicleType) => {
     const name = editingName.trim();
     if (!name) { toast.error("Nom requis"); return; }
-    const { error } = await supabase.from("vehicle_types" as any).update({ name }).eq("id", v.id);
+    const { error } = await supabase.from("vehicle_types" as any).update({ name, category: editingCategory }).eq("id", v.id);
     if (error) { toast.error(error.message); return; }
     setEditingId(null);
     load();
@@ -91,13 +103,21 @@ function AdminVehicleTypesPage() {
       </header>
 
       <Card>
-        <CardContent className="p-4 flex gap-2">
+        <CardContent className="p-4 flex flex-col sm:flex-row gap-2">
           <Input
-            placeholder="Ajouter un type (ex: Luxe, Minibus...)"
+            placeholder="Ajouter un type (ex: Berline, Minibus...)"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && add()}
+            className="flex-1"
           />
+          <select
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value as VtcCategory)}
+            className="h-10 rounded-md border border-input bg-background text-foreground px-3 text-sm"
+          >
+            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
           <Button onClick={add} disabled={adding}><Plus className="h-4 w-4 mr-1" /> Ajouter</Button>
         </CardContent>
       </Card>
@@ -111,25 +131,33 @@ function AdminVehicleTypesPage() {
           ) : (
             <ul className="divide-y">
               {list.map((v) => (
-                <li key={v.id} className="flex items-center gap-3 p-3">
+                <li key={v.id} className="flex flex-wrap items-center gap-3 p-3">
                   {editingId === v.id ? (
                     <>
                       <Input
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
-                        className="flex-1"
+                        className="flex-1 min-w-[180px]"
                         autoFocus
                         onKeyDown={(e) => { if (e.key === "Enter") saveEdit(v); if (e.key === "Escape") setEditingId(null); }}
                       />
+                      <select
+                        value={editingCategory}
+                        onChange={(e) => setEditingCategory(e.target.value as VtcCategory)}
+                        className="h-9 rounded-md border border-input bg-background text-foreground px-2 text-sm"
+                      >
+                        {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
                       <Button size="icon" variant="ghost" onClick={() => saveEdit(v)}><Check className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => setEditingId(null)}><X className="h-4 w-4" /></Button>
                     </>
                   ) : (
                     <>
                       <span className="flex-1 font-medium">{v.name}</span>
+                      <span className={`px-2 py-0.5 rounded text-xs border ${CAT_COLORS[v.category ?? "STANDARD"]}`}>{v.category ?? "STANDARD"}</span>
                       <Badge variant={v.is_active ? "default" : "secondary"}>{v.is_active ? "Actif" : "Inactif"}</Badge>
                       <Switch checked={v.is_active} onCheckedChange={() => toggle(v)} />
-                      <Button size="icon" variant="ghost" onClick={() => { setEditingId(v.id); setEditingName(v.name); }}><Pencil className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => { setEditingId(v.id); setEditingName(v.name); setEditingCategory(v.category ?? "STANDARD"); }}><Pencil className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setToDelete(v)}><Trash2 className="h-4 w-4" /></Button>
                     </>
                   )}
