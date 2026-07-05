@@ -604,6 +604,7 @@ export type Database = {
       }
       drivers: {
         Row: {
+          category: Database["public"]["Enums"]["vtc_category"]
           created_at: string
           email: string | null
           full_name: string
@@ -616,6 +617,7 @@ export type Database = {
           vehicle_type: string
         }
         Insert: {
+          category?: Database["public"]["Enums"]["vtc_category"]
           created_at?: string
           email?: string | null
           full_name?: string
@@ -628,6 +630,7 @@ export type Database = {
           vehicle_type?: string
         }
         Update: {
+          category?: Database["public"]["Enums"]["vtc_category"]
           created_at?: string
           email?: string | null
           full_name?: string
@@ -2082,6 +2085,7 @@ export type Database = {
       }
       vehicle_types: {
         Row: {
+          category: Database["public"]["Enums"]["vtc_category"]
           created_at: string
           id: string
           is_active: boolean
@@ -2090,6 +2094,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: Database["public"]["Enums"]["vtc_category"]
           created_at?: string
           id?: string
           is_active?: boolean
@@ -2098,6 +2103,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: Database["public"]["Enums"]["vtc_category"]
           created_at?: string
           id?: string
           is_active?: boolean
@@ -3129,6 +3135,7 @@ export type Database = {
         | "CIRCUIT_TOURISTIQUE"
         | "VTC"
         | "BILLET"
+      vtc_category: "STANDARD" | "CONFORT" | "VIP"
       vtc_recharge_method:
         | "mobile_money"
         | "cash_agent"
@@ -3282,6 +3289,7 @@ export const Constants = {
         "VTC",
         "BILLET",
       ],
+      vtc_category: ["STANDARD", "CONFORT", "VIP"],
       vtc_recharge_method: [
         "mobile_money",
         "cash_agent",
