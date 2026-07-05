@@ -188,7 +188,7 @@ function AdminVtcChauffeurs() {
               <Search className="h-4 w-4 absolute left-3 top-2.5 text-zinc-500" />
               <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom, immat, email..." className="pl-9 bg-zinc-950 border-zinc-800 text-zinc-100" />
             </div>
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)} className="h-9 rounded-md bg-zinc-950 border border-zinc-800 px-2 text-sm">
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)} className="h-9 rounded-md bg-zinc-950 border border-zinc-800 px-2 text-sm text-zinc-100">
               <option value="all">Tous statuts</option><option value="actif">Actif</option><option value="inactif">Inactif</option>
             </select>
             <label className="flex items-center gap-2 text-sm px-2">
