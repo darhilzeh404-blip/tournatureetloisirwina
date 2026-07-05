@@ -38,9 +38,11 @@ function AdminVehicleTypesPage() {
   const [list, setList] = useState<VehicleType[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
+  const [newCategory, setNewCategory] = useState<VtcCategory>("STANDARD");
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingCategory, setEditingCategory] = useState<VtcCategory>("STANDARD");
   const [toDelete, setToDelete] = useState<VehicleType | null>(null);
 
   const load = async () => {
@@ -61,11 +63,12 @@ function AdminVehicleTypesPage() {
     const name = newName.trim();
     if (!name) { toast.error("Nom requis"); return; }
     setAdding(true);
-    const { error } = await supabase.from("vehicle_types" as any).insert({ name, sort_order: list.length + 1 });
+    const { error } = await supabase.from("vehicle_types" as any).insert({ name, category: newCategory, sort_order: list.length + 1 });
     setAdding(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(`"${name}" ajouté`);
+    toast.success(`"${name}" ajouté (${newCategory})`);
     setNewName("");
+    setNewCategory("STANDARD");
     load();
   };
 
