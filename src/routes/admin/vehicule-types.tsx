@@ -81,7 +81,7 @@ function AdminVehicleTypesPage() {
   const saveEdit = async (v: VehicleType) => {
     const name = editingName.trim();
     if (!name) { toast.error("Nom requis"); return; }
-    const { error } = await supabase.from("vehicle_types" as any).update({ name }).eq("id", v.id);
+    const { error } = await supabase.from("vehicle_types" as any).update({ name, category: editingCategory }).eq("id", v.id);
     if (error) { toast.error(error.message); return; }
     setEditingId(null);
     load();
