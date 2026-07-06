@@ -86,18 +86,30 @@ function ChauffeurVtcPage() {
   const [isOnline, setIsOnline] = useState(false);
   const [togglingOnline, setTogglingOnline] = useState(false);
   const [confirmCompleteId, setConfirmCompleteId] = useState<string | null>(null);
+  const [driverCategory, setDriverCategory] = useState<"STANDARD" | "CONFORT" | "VIP" | null>(null);
 
-  // Refs mirroring state so we can read latest values inside long-lived
-  // effects (realtime subscription, heartbeat) WITHOUT re-subscribing
-  // every time GPS or online status changes. This is what stops the
-  // infinite reload loop.
   const driverPosRef = useRef<{ lat: number; lng: number } | null>(null);
   const isOnlineRef = useRef(false);
-  // Lock to debounce Démarrer/Terminer taps so a click cannot land on the
-  // freshly-mounted "Terminer" button right after Démarrer succeeds.
+  const driverCategoryRef = useRef<"STANDARD" | "CONFORT" | "VIP" | null>(null);
   const lastActionAtRef = useRef<Record<string, number>>({});
   useEffect(() => { driverPosRef.current = driverPos; }, [driverPos]);
   useEffect(() => { isOnlineRef.current = isOnline; }, [isOnline]);
+  useEffect(() => { driverCategoryRef.current = driverCategory; }, [driverCategory]);
+
+  // Load driver's category (used to filter incoming trip notifications)
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("drivers")
+      .select("category")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const c = (data as { category?: string } | null)?.category;
+        if (c === "STANDARD" || c === "CONFORT" || c === "VIP") setDriverCategory(c);
+      });
+  }, [user]);
+
 
   // Load current online status
   useEffect(() => {
@@ -364,14 +376,21 @@ function ChauffeurVtcPage() {
             origin_lng?: number | null;
             origin_address?: string | null;
             destination_address?: string | null;
+            category?: string | null;
           };
           if (isOnlineRef.current && t?.status === "pending" && !t.driver_id && t.id) {
+            const myCat = driverCategoryRef.current;
+            const tripCat = t.category ?? null;
+            // Filtre strict par catégorie : un chauffeur ne reçoit que les
+            // courses de sa propre catégorie (STANDARD / CONFORT / VIP).
+            if (myCat && tripCat && tripCat !== myCat) return;
             const pos = driverPosRef.current;
             let km: number | null = null;
             if (pos && t.origin_lat != null && t.origin_lng != null) {
               km = haversineKm(pos.lat, pos.lng, Number(t.origin_lat), Number(t.origin_lng));
             }
             const withinRange = km == null || km <= 5;
+
             if (withinRange) {
               const distLabel = km != null ? ` · ${km.toFixed(1)} km` : "";
               const body = `${t.origin_address ?? "Course"}${t.destination_address ? ` → ${t.destination_address}` : ""}${distLabel}`;

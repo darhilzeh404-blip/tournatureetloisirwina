@@ -315,7 +315,9 @@ function CourseFlow() {
       try {
         const { data: drs } = await supabase
           .from("drivers")
-          .select("user_id, full_name, vehicle_type, license_plate");
+          .select("user_id, full_name, vehicle_type, license_plate, category")
+          .eq("category", category.toUpperCase() as "STANDARD" | "CONFORT" | "VIP");
+
         const rows = drs ?? [];
         const ids = rows.map((d) => d.user_id).filter(Boolean) as string[];
         if (ids.length === 0) { if (!cancelled) { setAvailableDrivers([]); setDriverInfos({}); } return; }
@@ -347,7 +349,7 @@ function CourseFlow() {
     load();
     const t = window.setInterval(load, 15000);
     return () => { cancelled = true; window.clearInterval(t); };
-  }, [pickup]);
+  }, [pickup, category]);
 
   // Distance haversine pour chaque chauffeur, triés du plus proche au plus loin
   const driversWithDistance = useMemo(() => {

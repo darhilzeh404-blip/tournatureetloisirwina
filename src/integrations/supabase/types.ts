@@ -1968,6 +1968,7 @@ export type Database = {
       trips: {
         Row: {
           archived_at: string | null
+          category: Database["public"]["Enums"]["vtc_category"] | null
           client_id: string
           completed_at: string | null
           created_at: string
@@ -1988,6 +1989,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          category?: Database["public"]["Enums"]["vtc_category"] | null
           client_id: string
           completed_at?: string | null
           created_at?: string
@@ -2008,6 +2010,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          category?: Database["public"]["Enums"]["vtc_category"] | null
           client_id?: string
           completed_at?: string | null
           created_at?: string
@@ -2624,6 +2627,7 @@ export type Database = {
         Args: { _trip_id: string }
         Returns: {
           archived_at: string | null
+          category: Database["public"]["Enums"]["vtc_category"] | null
           client_id: string
           completed_at: string | null
           created_at: string
@@ -2815,7 +2819,12 @@ export type Database = {
         Returns: number
       }
       find_nearby_vtc_drivers: {
-        Args: { _pickup_lat: number; _pickup_lng: number; _radius_km?: number }
+        Args: {
+          _category?: Database["public"]["Enums"]["vtc_category"]
+          _pickup_lat: number
+          _pickup_lng: number
+          _radius_km?: number
+        }
         Returns: {
           distance_km: number
           driver_id: string
@@ -2972,6 +2981,7 @@ export type Database = {
       get_vtc_pending_pool: {
         Args: never
         Returns: {
+          category: string
           created_at: string
           destination_address: string
           destination_lat: number
