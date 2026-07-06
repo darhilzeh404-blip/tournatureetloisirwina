@@ -376,14 +376,21 @@ function ChauffeurVtcPage() {
             origin_lng?: number | null;
             origin_address?: string | null;
             destination_address?: string | null;
+            category?: string | null;
           };
           if (isOnlineRef.current && t?.status === "pending" && !t.driver_id && t.id) {
+            const myCat = driverCategoryRef.current;
+            const tripCat = t.category ?? null;
+            // Filtre strict par catégorie : un chauffeur ne reçoit que les
+            // courses de sa propre catégorie (STANDARD / CONFORT / VIP).
+            if (myCat && tripCat && tripCat !== myCat) return;
             const pos = driverPosRef.current;
             let km: number | null = null;
             if (pos && t.origin_lat != null && t.origin_lng != null) {
               km = haversineKm(pos.lat, pos.lng, Number(t.origin_lat), Number(t.origin_lng));
             }
             const withinRange = km == null || km <= 5;
+
             if (withinRange) {
               const distLabel = km != null ? ` · ${km.toFixed(1)} km` : "";
               const body = `${t.origin_address ?? "Course"}${t.destination_address ? ` → ${t.destination_address}` : ""}${distLabel}`;
