@@ -349,7 +349,7 @@ function CourseFlow() {
     load();
     const t = window.setInterval(load, 15000);
     return () => { cancelled = true; window.clearInterval(t); };
-  }, [pickup]);
+  }, [pickup, category]);
 
   // Distance haversine pour chaque chauffeur, triés du plus proche au plus loin
   const driversWithDistance = useMemo(() => {
