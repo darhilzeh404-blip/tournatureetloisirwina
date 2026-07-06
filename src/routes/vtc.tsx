@@ -315,7 +315,9 @@ function CourseFlow() {
       try {
         const { data: drs } = await supabase
           .from("drivers")
-          .select("user_id, full_name, vehicle_type, license_plate");
+          .select("user_id, full_name, vehicle_type, license_plate, category")
+          .eq("category", category.toUpperCase());
+
         const rows = drs ?? [];
         const ids = rows.map((d) => d.user_id).filter(Boolean) as string[];
         if (ids.length === 0) { if (!cancelled) { setAvailableDrivers([]); setDriverInfos({}); } return; }
