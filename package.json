@@ -12,7 +12,9 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "ci": "tsc --noEmit && vite build",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.42.3",
