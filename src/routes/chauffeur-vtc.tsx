@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { showAppNotification, requestNotificationPermission } from "@/lib/notifications";
 import { EtaBadge } from "@/components/EtaBadge";
+import { shouldDispatchTripToDriver } from "@/lib/vtc-category-filter";
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 6371;
@@ -379,11 +380,10 @@ function ChauffeurVtcPage() {
             category?: string | null;
           };
           if (isOnlineRef.current && t?.status === "pending" && !t.driver_id && t.id) {
-            const myCat = driverCategoryRef.current;
-            const tripCat = t.category ?? null;
             // Filtre strict par catégorie : un chauffeur ne reçoit que les
             // courses de sa propre catégorie (STANDARD / CONFORT / VIP).
-            if (myCat && tripCat && tripCat !== myCat) return;
+            // Cf. src/lib/vtc-category-filter.ts (couvert par tests unitaires).
+            if (!shouldDispatchTripToDriver(driverCategoryRef.current, t.category ?? null)) return;
             const pos = driverPosRef.current;
             let km: number | null = null;
             if (pos && t.origin_lat != null && t.origin_lng != null) {
