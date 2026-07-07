@@ -24,7 +24,11 @@ export default isSpa
         tailwindcss(),
         tanstackRouter({
           target: 'react',
-          autoCodeSplitting: true,
+          // The preview was intermittently serving stale split route modules
+          // ("Failed to fetch dynamically imported module ...?tsr-split=component"),
+          // leaving users stuck on the router error screen. Keep route modules
+          // bundled with the app so preview/production load reliably.
+          autoCodeSplitting: false,
           routesDirectory: 'src/routes',
           generatedRouteTree: 'src/routeTree.gen.ts',
         }),
