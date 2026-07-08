@@ -11,6 +11,7 @@ const adminLinks = [
   { to: "/admin/paiements", label: "Paiements", icon: CreditCard, exact: false },
   { to: "/admin/frais", label: "Frais application", icon: Percent, exact: false },
   { to: "/admin/recharges", label: "Recharges portefeuille", icon: Wallet, exact: false },
+  { to: "/admin/vtc-wallets", label: "Portefeuilles VTC", icon: Wallet, exact: false },
   { to: "/admin/fidelite", label: "Wina Coins", icon: Coins, exact: false },
   { to: "/admin/clients", label: "Clients", icon: Users, exact: false },
   { to: "/admin/bus", label: "Flotte Bus", icon: Bus, exact: false },
