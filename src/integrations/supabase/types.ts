@@ -2122,6 +2122,7 @@ export type Database = {
           benefits: Json
           bonus_percentage: number
           created_at: string
+          description: string | null
           id: string
           level_name: string
           min_coins: number
@@ -2133,6 +2134,7 @@ export type Database = {
           benefits?: Json
           bonus_percentage?: number
           created_at?: string
+          description?: string | null
           id?: string
           level_name: string
           min_coins?: number
@@ -2144,6 +2146,7 @@ export type Database = {
           benefits?: Json
           bonus_percentage?: number
           created_at?: string
+          description?: string | null
           id?: string
           level_name?: string
           min_coins?: number
