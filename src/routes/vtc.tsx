@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -114,6 +114,15 @@ function VtcPage() {
               );
             })}
           </div>
+
+          <Link
+            to="/deplacement-groupe"
+            className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-[11.5px] font-semibold text-primary-foreground ring-1 ring-primary-foreground/25 backdrop-blur-md transition hover:bg-primary-foreground/25"
+          >
+            <Users className="h-3.5 w-3.5" />
+            Covoiturage · Voyager en groupe
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         </div>
       </section>
 
