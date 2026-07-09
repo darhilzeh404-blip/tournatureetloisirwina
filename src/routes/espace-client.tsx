@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Tag, Headphones, Users } from "lucide-react";
+import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Tag, Headphones, Mountain } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -110,10 +110,10 @@ function EspaceClient() {
           className="relative px-5 pb-8 pt-12"
         >
           <motion.p variants={fadeUp} className="text-sm font-medium text-primary-foreground/80">
-            Bonjour 👋
+            Bonjour {firstName} 👋
           </motion.p>
           <motion.h1 variants={fadeUp} className="mt-1 text-2xl font-bold text-primary-foreground">
-            {firstName}, où allez-vous ?
+            Voyage, transport et tourism
           </motion.h1>
 
           <motion.div variants={stagger} className="mt-6 grid grid-cols-2 gap-3">
@@ -124,23 +124,23 @@ function EspaceClient() {
               >
                 <Bus className="h-6 w-6 shrink-0" />
                 <div>
-                  <div className="text-sm font-bold">Transport</div>
+                  <div className="text-sm font-bold">Navette bus</div>
                   <div className="text-[10px] opacity-80">Réserver un trajet</div>
                 </div>
               </Link>
             </motion.div>
-            <motion.a
-              variants={fadeUp}
-              whileTap={{ scale: 0.96 }}
-              href="/activites"
-              className="flex items-center gap-3 rounded-2xl bg-accent/90 px-4 py-4 text-accent-foreground backdrop-blur-sm"
-            >
-              <Palmtree className="h-6 w-6 shrink-0" />
-              <div>
-                <div className="text-sm font-bold">Activités</div>
-                <div className="text-[10px] opacity-80">Explorer le Gabon</div>
-              </div>
-            </motion.a>
+            <motion.div variants={fadeUp} whileTap={{ scale: 0.96 }}>
+              <Link
+                to="/sites-touristiques"
+                className="flex items-center gap-3 rounded-2xl bg-accent/90 px-4 py-4 text-accent-foreground backdrop-blur-sm"
+              >
+                <Mountain className="h-6 w-6 shrink-0" />
+                <div>
+                  <div className="text-sm font-bold">Sites touristique</div>
+                  <div className="text-[10px] opacity-80">Explorer le Gabon</div>
+                </div>
+              </Link>
+            </motion.div>
           </motion.div>
         </motion.div>
       </section>
@@ -159,11 +159,11 @@ function EspaceClient() {
         </motion.div>
         <motion.div variants={stagger} className="mt-4 grid grid-cols-3 gap-3">
           {[
-            { to: "/reserver-transport", label: "Transport", desc: "Bus & trajets", Icon: Bus, tint: "from-primary/20 to-primary/5", iconColor: "text-primary" },
-            { to: "/activites", label: "Activités", desc: "Explorer", Icon: Palmtree, tint: "from-accent/25 to-accent/5", iconColor: "text-accent-foreground" },
+            { to: "/reserver-transport", label: "Navette bus", desc: "Bus & trajets", Icon: Bus, tint: "from-primary/20 to-primary/5", iconColor: "text-primary" },
+            { to: "/activites", label: "Circuits touristique", desc: "Explorer", Icon: Palmtree, tint: "from-accent/25 to-accent/5", iconColor: "text-accent-foreground" },
             { to: "/vtc", label: "VTC", desc: "Course privée", Icon: CarFront, tint: "from-primary/15 to-accent/10", iconColor: "text-primary" },
-            { to: "/deplacement-groupe", label: "Groupé", desc: "Covoiturage", Icon: Users, tint: "from-accent/20 to-primary/10", iconColor: "text-accent-foreground" },
-            { to: "/billets", label: "Billets", desc: "Événements", Icon: Ticket, tint: "from-accent/20 to-primary/10", iconColor: "text-accent-foreground" },
+            { to: "/sites-touristiques", label: "Sites touristique", desc: "À découvrir", Icon: Mountain, tint: "from-accent/20 to-primary/10", iconColor: "text-accent-foreground" },
+            { to: "/billets", label: "Billetterie", desc: "Événements", Icon: Ticket, tint: "from-accent/20 to-primary/10", iconColor: "text-accent-foreground" },
             { to: "/promos", label: "Promos", desc: "Offres", Icon: Tag, tint: "from-primary/15 to-primary/5", iconColor: "text-primary" },
             { to: "/support", label: "Support", desc: "24/7", Icon: Headphones, tint: "from-accent/15 to-accent/5", iconColor: "text-accent-foreground" },
           ].map((srv) => (

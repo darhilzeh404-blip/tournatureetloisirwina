@@ -8,6 +8,7 @@ export interface VipLevel {
   badge_icon: string;
   benefits: string[];
   sort_order: number;
+  description?: string | null;
 }
 
 export interface CoinsBalance {

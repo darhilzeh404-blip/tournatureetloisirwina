@@ -1,0 +1,1 @@
+ALTER TABLE public.vip_levels ADD COLUMN IF NOT EXISTS description text;

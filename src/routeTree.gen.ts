@@ -17,6 +17,7 @@ import { Route as TransportPublicRouteImport } from './routes/transport-public'
 import { Route as TransportExtraScolaireRouteImport } from './routes/transport-extra-scolaire'
 import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as SitesTouristiquesRouteImport } from './routes/sites-touristiques'
 import { Route as ReserverTransportRouteImport } from './routes/reserver-transport'
 import { Route as PromosRouteImport } from './routes/promos'
 import { Route as MonCompteRouteImport } from './routes/mon-compte'
@@ -121,6 +122,11 @@ const TarifsRoute = TarifsRouteImport.update({
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitesTouristiquesRoute = SitesTouristiquesRouteImport.update({
+  id: '/sites-touristiques',
+  path: '/sites-touristiques',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReserverTransportRoute = ReserverTransportRouteImport.update({
@@ -475,6 +481,7 @@ export interface FileRoutesByFullPath {
   '/mon-compte': typeof MonCompteRoute
   '/promos': typeof PromosRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/sites-touristiques': typeof SitesTouristiquesRoute
   '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
@@ -547,6 +554,7 @@ export interface FileRoutesByTo {
   '/mon-compte': typeof MonCompteRoute
   '/promos': typeof PromosRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/sites-touristiques': typeof SitesTouristiquesRoute
   '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
@@ -623,6 +631,7 @@ export interface FileRoutesById {
   '/mon-compte': typeof MonCompteRoute
   '/promos': typeof PromosRoute
   '/reserver-transport': typeof ReserverTransportRoute
+  '/sites-touristiques': typeof SitesTouristiquesRoute
   '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
@@ -700,6 +709,7 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/promos'
     | '/reserver-transport'
+    | '/sites-touristiques'
     | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
@@ -772,6 +782,7 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/promos'
     | '/reserver-transport'
+    | '/sites-touristiques'
     | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
@@ -847,6 +858,7 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/promos'
     | '/reserver-transport'
+    | '/sites-touristiques'
     | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
@@ -923,6 +935,7 @@ export interface RootRouteChildren {
   MonCompteRoute: typeof MonCompteRoute
   PromosRoute: typeof PromosRoute
   ReserverTransportRoute: typeof ReserverTransportRoute
+  SitesTouristiquesRoute: typeof SitesTouristiquesRoute
   SupportRoute: typeof SupportRoute
   TarifsRoute: typeof TarifsRoute
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
@@ -994,6 +1007,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sites-touristiques': {
+      id: '/sites-touristiques'
+      path: '/sites-touristiques'
+      fullPath: '/sites-touristiques'
+      preLoaderRoute: typeof SitesTouristiquesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reserver-transport': {
@@ -1625,6 +1645,7 @@ const rootRouteChildren: RootRouteChildren = {
   MonCompteRoute: MonCompteRoute,
   PromosRoute: PromosRoute,
   ReserverTransportRoute: ReserverTransportRoute,
+  SitesTouristiquesRoute: SitesTouristiquesRoute,
   SupportRoute: SupportRoute,
   TarifsRoute: TarifsRoute,
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
