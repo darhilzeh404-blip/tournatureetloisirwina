@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Tag, Headphones, Mountain } from "lucide-react";
+import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Mountain } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -8,7 +8,15 @@ import { ClientNav } from "@/components/ClientNav";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { DESTINATIONS, formatFCFA } from "@/lib/destinations";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
-import heroImg from "@/assets/client-hero.jpg";
+import heroImg from "@/assets/client-hero.png";
+import bus3d from "@/assets/icons/bus-3d.jpg";
+import navetteBus3d from "@/assets/icons/Navette bus-3d.webp";
+import circuit3d from "@/assets/icons/circuit-3d.webp";
+import vtc3d from "@/assets/icons/vtc-3d.ico";
+import site3d from "@/assets/icons/site-3d.webp";
+import billetterie3d from "@/assets/icons/billeterie 3d.webp";
+import promo3d from "@/assets/icons/Promos 3d.webp";
+import support3d from "@/assets/icons/Support 3d.jpg";
 
 // Mapping destination id (destinations.ts) -> slug du circuit en BDD
 const DESTINATION_SLUG: Record<string, string> = {
@@ -94,8 +102,8 @@ function EspaceClient() {
             src={heroImg}
             alt="Transport Libreville"
             className="h-full w-full object-cover"
-            width={1200}
-            height={600}
+            width={1080}
+            height={1024}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent" />
         </div>
@@ -104,7 +112,10 @@ function EspaceClient() {
           animate="show"
           variants={stagger}
           className="relative px-5 pb-8 pt-12"
-        >
+        ><motion.p variants={fadeUp}>
+  Bonjour {firstName} 👋
+</motion.p>
+
           <motion.h1 variants={fadeUp} className="mt-1 text-2xl font-bold text-primary-foreground">
   Voyage, Transport et Tourism
 </motion.h1>
@@ -114,7 +125,7 @@ function EspaceClient() {
 
 
       {/* Dashboard Nos Services */}
-      <motion.section
+        <motion.section
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.2 }}
@@ -126,32 +137,87 @@ function EspaceClient() {
           <span className="text-[11px] font-medium text-muted-foreground">Accès rapide</span>
         </motion.div>
         <motion.div variants={stagger} className="mt-4 grid grid-cols-3 gap-3">
-          {[
-            { to: "/reserver-transport", label: "Navette bus", desc: "Bus & trajets", Icon: Bus, tint: "from-primary/20 to-primary/5", iconColor: "text-primary" },
-            { to: "/activites", label: "Circuits touristique", desc: "Explorer", Icon: Palmtree, tint: "from-accent/25 to-accent/5", iconColor: "text-accent-foreground" },
-            { to: "/vtc", label: "VTC", desc: "Course privée", Icon: CarFront, tint: "from-primary/15 to-accent/10", iconColor: "text-primary" },
-            { to: "/sites-touristiques", label: "Sites touristique", desc: "À découvrir", Icon: Mountain, tint: "from-accent/20 to-primary/10", iconColor: "text-accent-foreground" },
-            { to: "/billets", label: "Billetterie", desc: "Événements", Icon: Ticket, tint: "from-accent/20 to-primary/10", iconColor: "text-accent-foreground" },
-            { to: "/promos", label: "Promos", desc: "Offres", Icon: Tag, tint: "from-primary/15 to-primary/5", iconColor: "text-primary" },
-            { to: "/support", label: "Support", desc: "24/7", Icon: Headphones, tint: "from-accent/15 to-accent/5", iconColor: "text-accent-foreground" },
-          ].map((srv) => (
-            <motion.div key={srv.to} variants={fadeUp} whileHover={{ y: -4, scale: 1.03 }} whileTap={{ scale: 0.96 }}>
-              <Link
-                to={srv.to}
-                className={`relative flex h-full flex-col items-start gap-2 overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${srv.tint} p-3 shadow-sm backdrop-blur-md transition-shadow hover:shadow-lg`}
-              >
-                <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-background/70 ${srv.iconColor} shadow-sm`}>
-                  <srv.Icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-sm font-bold leading-tight">{srv.label}</div>
-                  <div className="text-[10px] text-muted-foreground">{srv.desc}</div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
-      </motion.section>
+  {[
+    {
+      to: "/reserver-transport",
+      label: "Navette bus",
+      desc: "Bus & trajets",
+      image: navetteBus3d,
+      tint: "from-primary/20 to-primary/5"
+    },
+    {
+      to: "/activites",
+      label: "Circuits touristique",
+      desc: "Explorer",
+      image: circuit3d,
+      tint: "from-accent/25 to-accent/5"
+    },
+    {
+      to: "/vtc",
+      label: "VTC",
+      desc: "Course privée",
+      image: vtc3d,
+      tint: "from-primary/15 to-accent/10"
+    },
+    {
+      to: "/sites-touristiques",
+      label: "Sites touristique",
+      desc: "À découvrir",
+      image: site3d,
+      tint: "from-accent/20 to-primary/10"
+    },
+    {
+      to: "/billets",
+      label: "Billetterie",
+      desc: "Événements",
+      image: billetterie3d,
+      tint: "from-accent/20 to-primary/10"
+    },
+   {  
+  to: "/promos",
+  label: "Promos",
+  desc: "Offres",
+  image: promo3d,
+  tint: "from-primary/15 to-primary/5"
+},
+{
+  to: "/support",
+  label: "Support",
+  desc: "24/7",
+  image: support3d,
+  tint: "from-accent/15 to-accent/5"
+},
+
+  ].map((srv) => (
+    <motion.div
+      key={srv.to}
+      variants={fadeUp}
+      whileHover={{ y: -4, scale: 1.03 }}
+      whileTap={{ scale: 0.96 }}
+    >
+      <Link
+        to={srv.to}
+        className={`relative flex h-full flex-col items-center gap-2 overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${srv.tint} p-3 shadow-sm`}
+      >
+        <img
+          src={srv.image}
+          alt={srv.label}
+          className="h-12 w-12 object-contain"
+        />
+
+        <div className="text-center">
+          <div className="text-sm font-bold leading-tight">
+            {srv.label}
+          </div>
+          <div className="text-[10px] text-muted-foreground">
+            {srv.desc}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  ))}
+</motion.div>
+</motion.section>
 
       {/* Popular destinations */}
       <motion.section
