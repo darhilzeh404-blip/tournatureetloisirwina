@@ -24,11 +24,14 @@ type Ticket = {
   agency: { id: string; name: string; logo_url: string | null } | null;
 };
 
+type AgencyRow = { id: string; name: string; logo_url: string | null; description: string | null; category: string | null };
+
 function CategoryPage() {
   const { slug } = Route.useParams();
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState<string>("");
   const [list, setList] = useState<Ticket[]>([]);
+  const [categoryAgencies, setCategoryAgencies] = useState<AgencyRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [agencyFilter, setAgencyFilter] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -46,13 +49,20 @@ function CategoryPage() {
       if (!cat) { setLoading(false); return; }
       setCategoryId((cat as any).id);
       setCategoryName((cat as any).name);
-      const { data } = await supabase
-        .from("partner_tickets" as any)
-        .select("id, title, origin, destination, departure_at, price, seats_available, description, image_url, agency:partner_agencies_public(id, name, logo_url)")
-        .eq("category_id", (cat as any).id)
-        .eq("is_active", true)
-        .order("departure_at", { ascending: true, nullsFirst: false });
-      setList(((data as any) ?? []) as Ticket[]);
+      const [ticketsRes, agenciesRes] = await Promise.all([
+        supabase
+          .from("partner_tickets" as any)
+          .select("id, title, origin, destination, departure_at, price, seats_available, description, image_url, agency:partner_agencies_public(id, name, logo_url)")
+          .eq("category_id", (cat as any).id)
+          .eq("is_active", true)
+          .order("departure_at", { ascending: true, nullsFirst: false }),
+        supabase
+          .from("partner_agencies_public" as any)
+          .select("id, name, logo_url, description, category")
+          .eq("category", slug),
+      ]);
+      setList(((ticketsRes.data as any) ?? []) as Ticket[]);
+      setCategoryAgencies(((agenciesRes.data as any) ?? []) as AgencyRow[]);
       setLoading(false);
     })();
   }, [slug]);
