@@ -22,7 +22,7 @@ type Announcement = {
 const TYPE_STYLES: Record<Announcement["type"], { bg: string; icon: typeof Tag; label: string }> = {
   promo: { bg: "from-emerald-600 to-emerald-500", icon: Tag, label: "Promo" },
   event: { bg: "from-blue-600 to-indigo-500", icon: Megaphone, label: "Événement" },
-  alert: { bg: "from-red-600 to-orange-500", icon: AlertTriangle, label: "Alerte" },
+  alert: { bg: "from-red-600 to-green-500", icon: AlertTriangle, label: "Alerte" },
 };
 
 function formatDate(d: string) {

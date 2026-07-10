@@ -74,22 +74,22 @@
   --secondary-foreground: oklch(0.25 0.05 250);
   --muted: oklch(0.96 0.008 250);
   --muted-foreground: oklch(0.5 0.03 250);
-  --accent: oklch(0.65 0.18 55);
+  --accent: oklch(83.955% 0.28149 142.345);
   --accent-foreground: oklch(0.15 0.03 55);
   --destructive: oklch(0.58 0.24 27);
   --destructive-foreground: oklch(0.99 0.002 27);
   --success: oklch(0.55 0.17 155);
   --success-foreground: oklch(0.99 0.002 155);
-  --warning: oklch(0.75 0.15 75);
+  --warning: oklch(61.337% 0.24841 28.93);
   --warning-foreground: oklch(0.25 0.05 75);
   --border: oklch(0.92 0.01 250);
   --input: oklch(0.92 0.01 250);
   --ring: oklch(0.55 0.17 250);
   --chart-1: oklch(0.55 0.17 250);
   --chart-2: oklch(0.55 0.17 155);
-  --chart-3: oklch(0.65 0.15 75);
+  --chart-3: oklch(83.364% 0.2786 142.899);
   --chart-4: oklch(0.6 0.2 300);
-  --chart-5: oklch(0.7 0.19 50);
+  --chart-5: oklch(84.696% 0.28613 142.203);
   --sidebar: oklch(0.99 0.002 240);
   --sidebar-foreground: oklch(0.16 0.03 250);
   --sidebar-primary: oklch(0.55 0.17 250);
@@ -98,7 +98,7 @@
   --sidebar-accent-foreground: oklch(0.25 0.05 250);
   --sidebar-border: oklch(0.92 0.01 250);
   --sidebar-ring: oklch(0.55 0.17 250);
-  --warm-orange: oklch(0.65 0.18 55);
+  --warm-green: oklch(82.666% 0.26865 143.805);
   --warm-green: oklch(0.55 0.17 155);
 
   /* Harmonized radius scale — use these semantic tokens instead of raw rounded-* */
@@ -113,7 +113,7 @@
 
   /* Premium CTA gradient */
   --gradient-primary: linear-gradient(135deg, oklch(0.55 0.17 250), oklch(0.45 0.18 260));
-  --gradient-warm: linear-gradient(135deg, oklch(0.65 0.18 55), oklch(0.6 0.2 40));
+  --gradient-warm: linear-gradient(135deg, oklch(85.837% 0.28711 142.109), oklch(85.956% 0.28866 142.679));
 
   /* Wina Coins — premium VIP tokens */
   --wina-royal-blue: #1e3a8a;
@@ -308,7 +308,7 @@
   }
 
   .warm-gradient {
-    background: linear-gradient(135deg, oklch(0.65 0.18 55) 0%, oklch(0.6 0.2 40) 100%);
+    background: linear-gradient(135deg, oklch(80.437% 0.27281 142.474) 0%, oklch(82.018% 0.27784 142.481) 100%);
   }
 
   .card-hover {
@@ -721,11 +721,11 @@
 }
 
 .stat-card.reserved .stat-icon {
-  background: #f59e0b;
+  background: #09fa19;
 }
 
 .stat-card.reserved .stat-value {
-  color: #f59e0b;
+  color: #0bf50b;
 }
 
 .stat-card.paid .stat-icon {

@@ -16,7 +16,7 @@ type Announcement = {
 const TYPE_STYLES: Record<Announcement["type"], { bg: string; icon: typeof Tag; label: string }> = {
   promo: { bg: "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white", icon: Tag, label: "Promo" },
   event: { bg: "bg-gradient-to-r from-blue-600 to-indigo-500 text-white", icon: Megaphone, label: "Événement" },
-  alert: { bg: "bg-gradient-to-r from-red-600 to-orange-500 text-white", icon: AlertTriangle, label: "Alerte" },
+  alert: { bg: "bg-gradient-to-r from-red-600 to-green-500 text-white", icon: AlertTriangle, label: "Alerte" },
 };
 
 function formatRange(start: string, end: string) {

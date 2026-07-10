@@ -76,10 +76,6 @@ function EspaceClient() {
     }
   }, [isLoading, isAuthenticated, navigate]);
 
-  const openCircuitNavigation = (slug: string) => {
-    navigate({ to: "/circuits/suivi/$slug", params: { slug } });
-  };
-
   if (isLoading || !isAuthenticated) {
     return <EspaceClientSkeleton />;
   }
@@ -109,41 +105,13 @@ function EspaceClient() {
           variants={stagger}
           className="relative px-5 pb-8 pt-12"
         >
-          <motion.p variants={fadeUp} className="text-sm font-medium text-primary-foreground/80">
-            Bonjour {firstName} 👋
-          </motion.p>
           <motion.h1 variants={fadeUp} className="mt-1 text-2xl font-bold text-primary-foreground">
-            Voyage, transport et tourism
-          </motion.h1>
+  Voyage, Transport et Tourism
+</motion.h1>
 
-          <motion.div variants={stagger} className="mt-6 grid grid-cols-2 gap-3">
-            <motion.div variants={fadeUp} whileTap={{ scale: 0.96 }}>
-              <Link
-                to="/reserver-transport"
-                className="flex items-center gap-3 rounded-2xl bg-primary/90 px-4 py-4 text-primary-foreground backdrop-blur-sm"
-              >
-                <Bus className="h-6 w-6 shrink-0" />
-                <div>
-                  <div className="text-sm font-bold">Navette bus</div>
-                  <div className="text-[10px] opacity-80">Réserver un trajet</div>
-                </div>
-              </Link>
-            </motion.div>
-            <motion.div variants={fadeUp} whileTap={{ scale: 0.96 }}>
-              <Link
-                to="/sites-touristiques"
-                className="flex items-center gap-3 rounded-2xl bg-accent/90 px-4 py-4 text-accent-foreground backdrop-blur-sm"
-              >
-                <Mountain className="h-6 w-6 shrink-0" />
-                <div>
-                  <div className="text-sm font-bold">Sites touristique</div>
-                  <div className="text-[10px] opacity-80">Explorer le Gabon</div>
-                </div>
-              </Link>
-            </motion.div>
-          </motion.div>
         </motion.div>
       </section>
+
 
       {/* Dashboard Nos Services */}
       <motion.section
@@ -209,13 +177,13 @@ function EspaceClient() {
               aria-label={`Naviguer vers le circuit ${dest.name}`}
               onClick={(event) => {
                 if (isInteractiveTarget(event.target)) return;
-                openCircuitNavigation(DESTINATION_SLUG[dest.id] ?? gpsSlug(dest.name));
+               
               }}
               onKeyDown={(event) => {
                 if (isInteractiveTarget(event.target)) return;
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
-                  openCircuitNavigation(DESTINATION_SLUG[dest.id] ?? gpsSlug(dest.name));
+
                 }
               }}
               variants={fadeUp}
