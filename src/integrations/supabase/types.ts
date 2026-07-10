@@ -2583,28 +2583,37 @@ export type Database = {
     Views: {
       partner_agencies_public: {
         Row: {
+          category: Database["public"]["Enums"]["agency_category"] | null
           description: string | null
+          email: string | null
           id: string | null
           is_active: boolean | null
           is_verified: boolean | null
           logo_url: string | null
           name: string | null
+          phone: string | null
         }
         Insert: {
+          category?: Database["public"]["Enums"]["agency_category"] | null
           description?: string | null
+          email?: string | null
           id?: string | null
           is_active?: boolean | null
           is_verified?: boolean | null
           logo_url?: string | null
           name?: string | null
+          phone?: string | null
         }
         Update: {
+          category?: Database["public"]["Enums"]["agency_category"] | null
           description?: string | null
+          email?: string | null
           id?: string | null
           is_active?: boolean | null
           is_verified?: boolean | null
           logo_url?: string | null
           name?: string | null
+          phone?: string | null
         }
         Relationships: []
       }
