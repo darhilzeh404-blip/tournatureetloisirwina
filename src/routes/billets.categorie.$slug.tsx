@@ -24,11 +24,14 @@ type Ticket = {
   agency: { id: string; name: string; logo_url: string | null } | null;
 };
 
+type AgencyRow = { id: string; name: string; logo_url: string | null; description: string | null; category: string | null };
+
 function CategoryPage() {
   const { slug } = Route.useParams();
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState<string>("");
   const [list, setList] = useState<Ticket[]>([]);
+  const [categoryAgencies, setCategoryAgencies] = useState<AgencyRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [agencyFilter, setAgencyFilter] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -46,13 +49,20 @@ function CategoryPage() {
       if (!cat) { setLoading(false); return; }
       setCategoryId((cat as any).id);
       setCategoryName((cat as any).name);
-      const { data } = await supabase
-        .from("partner_tickets" as any)
-        .select("id, title, origin, destination, departure_at, price, seats_available, description, image_url, agency:partner_agencies_public(id, name, logo_url)")
-        .eq("category_id", (cat as any).id)
-        .eq("is_active", true)
-        .order("departure_at", { ascending: true, nullsFirst: false });
-      setList(((data as any) ?? []) as Ticket[]);
+      const [ticketsRes, agenciesRes] = await Promise.all([
+        supabase
+          .from("partner_tickets" as any)
+          .select("id, title, origin, destination, departure_at, price, seats_available, description, image_url, agency:partner_agencies_public(id, name, logo_url)")
+          .eq("category_id", (cat as any).id)
+          .eq("is_active", true)
+          .order("departure_at", { ascending: true, nullsFirst: false }),
+        supabase
+          .from("partner_agencies_public" as any)
+          .select("id, name, logo_url, description, category")
+          .eq("category", slug),
+      ]);
+      setList(((ticketsRes.data as any) ?? []) as Ticket[]);
+      setCategoryAgencies(((agenciesRes.data as any) ?? []) as AgencyRow[]);
       setLoading(false);
     })();
   }, [slug]);
@@ -89,6 +99,27 @@ function CategoryPage() {
             <p className="text-sm text-muted-foreground">{filtered.length} billet{filtered.length > 1 ? "s" : ""} disponible{filtered.length > 1 ? "s" : ""}</p>
           </div>
         </header>
+
+        {categoryAgencies.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold text-muted-foreground">Agences {CATEGORY_LABELS[slug as TicketCategorySlug] ?? categoryName}</h2>
+            <div className="mt-3 flex gap-3 overflow-x-auto pb-2">
+              {categoryAgencies.map((a) => (
+                <div key={a.id} className="flex min-w-[180px] shrink-0 items-center gap-2 rounded-xl border bg-card p-3">
+                  {a.logo_url ? (
+                    <img src={a.logo_url} alt="" className="h-10 w-10 rounded-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-primary/10" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{a.name}</p>
+                    {a.description && <p className="truncate text-[10px] text-muted-foreground">{a.description}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="mt-5 grid gap-2 sm:grid-cols-4">
           <select className="h-10 rounded-md border bg-background px-3 text-sm" value={agencyFilter} onChange={(e) => setAgencyFilter(e.target.value)}>

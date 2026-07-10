@@ -62,6 +62,7 @@ import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateu
 import { Route as AdminTripsRouteImport } from './routes/admin/trips'
 import { Route as AdminTransportRouteImport } from './routes/admin/transport'
 import { Route as AdminSuiviRouteImport } from './routes/admin/suivi'
+import { Route as AdminSitesTouristiquesRouteImport } from './routes/admin/sites-touristiques'
 import { Route as AdminReservationsRouteImport } from './routes/admin/reservations'
 import { Route as AdminRechargesRouteImport } from './routes/admin/recharges'
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
@@ -349,6 +350,11 @@ const AdminSuiviRoute = AdminSuiviRouteImport.update({
   path: '/suivi',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminSitesTouristiquesRoute = AdminSitesTouristiquesRouteImport.update({
+  id: '/sites-touristiques',
+  path: '/sites-touristiques',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminReservationsRoute = AdminReservationsRouteImport.update({
   id: '/reservations',
   path: '/reservations',
@@ -505,6 +511,7 @@ export interface FileRoutesByFullPath {
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/sites-touristiques': typeof AdminSitesTouristiquesRoute
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
@@ -578,6 +585,7 @@ export interface FileRoutesByTo {
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/sites-touristiques': typeof AdminSitesTouristiquesRoute
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
@@ -655,6 +663,7 @@ export interface FileRoutesById {
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/sites-touristiques': typeof AdminSitesTouristiquesRoute
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
@@ -733,6 +742,7 @@ export interface FileRouteTypes {
     | '/admin/paiements'
     | '/admin/recharges'
     | '/admin/reservations'
+    | '/admin/sites-touristiques'
     | '/admin/suivi'
     | '/admin/transport'
     | '/admin/trips'
@@ -806,6 +816,7 @@ export interface FileRouteTypes {
     | '/admin/paiements'
     | '/admin/recharges'
     | '/admin/reservations'
+    | '/admin/sites-touristiques'
     | '/admin/suivi'
     | '/admin/transport'
     | '/admin/trips'
@@ -882,6 +893,7 @@ export interface FileRouteTypes {
     | '/admin/paiements'
     | '/admin/recharges'
     | '/admin/reservations'
+    | '/admin/sites-touristiques'
     | '/admin/suivi'
     | '/admin/transport'
     | '/admin/trips'
@@ -1324,6 +1336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSuiviRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/sites-touristiques': {
+      id: '/admin/sites-touristiques'
+      path: '/sites-touristiques'
+      fullPath: '/admin/sites-touristiques'
+      preLoaderRoute: typeof AdminSitesTouristiquesRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/reservations': {
       id: '/admin/reservations'
       path: '/reservations'
@@ -1490,6 +1509,7 @@ interface AdminRouteRouteChildren {
   AdminPaiementsRoute: typeof AdminPaiementsRoute
   AdminRechargesRoute: typeof AdminRechargesRoute
   AdminReservationsRoute: typeof AdminReservationsRoute
+  AdminSitesTouristiquesRoute: typeof AdminSitesTouristiquesRoute
   AdminSuiviRoute: typeof AdminSuiviRoute
   AdminTransportRoute: typeof AdminTransportRoute
   AdminTripsRoute: typeof AdminTripsRoute
@@ -1516,6 +1536,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminPaiementsRoute: AdminPaiementsRoute,
   AdminRechargesRoute: AdminRechargesRoute,
   AdminReservationsRoute: AdminReservationsRoute,
+  AdminSitesTouristiquesRoute: AdminSitesTouristiquesRoute,
   AdminSuiviRoute: AdminSuiviRoute,
   AdminTransportRoute: AdminTransportRoute,
   AdminTripsRoute: AdminTripsRoute,
