@@ -1060,6 +1060,7 @@ export type Database = {
       }
       partner_agencies: {
         Row: {
+          category: Database["public"]["Enums"]["agency_category"] | null
           created_at: string
           description: string
           email: string | null
@@ -1073,6 +1074,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: Database["public"]["Enums"]["agency_category"] | null
           created_at?: string
           description?: string
           email?: string | null
@@ -1086,6 +1088,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: Database["public"]["Enums"]["agency_category"] | null
           created_at?: string
           description?: string
           email?: string | null
@@ -1656,6 +1659,48 @@ export type Database = {
           price?: number
           sort_order?: number
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tourist_sites: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          images: string[]
+          is_active: boolean
+          location: string | null
+          name: string
+          price: number
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          images?: string[]
+          is_active?: boolean
+          location?: string | null
+          name: string
+          price?: number
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          images?: string[]
+          is_active?: boolean
+          location?: string | null
+          name?: string
+          price?: number
+          slug?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -2847,6 +2892,7 @@ export type Database = {
       get_all_partner_agencies_admin: {
         Args: never
         Returns: {
+          category: Database["public"]["Enums"]["agency_category"] | null
           created_at: string
           description: string
           email: string | null
@@ -2962,6 +3008,7 @@ export type Database = {
       get_my_partner_agency: {
         Args: never
         Returns: {
+          category: Database["public"]["Enums"]["agency_category"] | null
           created_at: string
           description: string
           email: string | null
@@ -3133,6 +3180,7 @@ export type Database = {
       }
     }
     Enums: {
+      agency_category: "bus" | "train" | "avion" | "bateau"
       app_role: "admin" | "user" | "gerant" | "chauffeur" | "client" | "agence"
       gift_redemption_status: "pending" | "delivered" | "cancelled"
       lottery_status: "draft" | "open" | "closed" | "drawn"
@@ -3285,6 +3333,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agency_category: ["bus", "train", "avion", "bateau"],
       app_role: ["admin", "user", "gerant", "chauffeur", "client", "agence"],
       gift_redemption_status: ["pending", "delivered", "cancelled"],
       lottery_status: ["draft", "open", "closed", "drawn"],
