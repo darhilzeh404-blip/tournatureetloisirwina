@@ -8,7 +8,7 @@ import { Plus, Pencil, Trash2, Upload, X, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/sites-touristiques")({
-  component: AdminSitesTouristiques;
+  component: AdminSitesTouristiques,
 });
 
 type Site = {
