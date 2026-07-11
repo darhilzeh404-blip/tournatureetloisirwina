@@ -34,8 +34,10 @@ function HomePage() {
     }
   }, [isLoading, isAuthenticated, role, navigate]);
 
-  // Pendant la redirection, on ne flash pas la landing
-  if (isAuthenticated) return null;
+  // Pendant la restauration de session (Median/PWA/WebView natives où
+  // localStorage met parfois >2s à hydrater) ET pendant la redirection,
+  // on ne flash JAMAIS la landing non-connectée.
+  if (isLoading || isAuthenticated) return null;
 
   return (
     <main className="relative min-h-screen overflow-hidden">
