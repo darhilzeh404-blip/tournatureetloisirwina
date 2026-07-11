@@ -23,7 +23,7 @@ export function ClientNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-lg safe-area-bottom md:hidden">
-      <div className="mx-auto flex max-w-lg items-center justify-around px-1 py-1.5">
+      <div className="mx-auto flex max-w-lg items-center justify-around px-0.5 py-1.5">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => {
           const active = location.pathname === to;
           return (
