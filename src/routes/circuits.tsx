@@ -225,14 +225,15 @@ function CircuitCard({
       }}
       className="group card-hover cursor-pointer overflow-hidden rounded-[var(--radius-card)] border bg-card shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-fade-in"
     >
-      <div className="relative h-32 w-full overflow-hidden sm:h-36 lg:h-44">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         <img
           src={image}
           alt={title}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          decoding="async"
+          className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
         <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between gap-2 text-white">
           <div className="min-w-0">
             <h3 className="truncate text-sm font-bold leading-tight drop-shadow-md sm:text-base">{title}</h3>

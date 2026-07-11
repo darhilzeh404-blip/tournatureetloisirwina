@@ -74,9 +74,15 @@ function SitesTouristiques() {
             {list.map((s) => (
               <article key={s.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm transition-shadow hover:shadow-lg">
                 <button type="button" onClick={() => setSelected(s)} className="block w-full text-left">
-                  <div className="relative h-40 w-full overflow-hidden bg-muted">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                     {s.images[0] ? (
-                      <img src={s.images[0]} alt={s.name} className="h-full w-full object-cover" loading="lazy" />
+                      <img
+                        src={s.images[0]}
+                        alt={s.name}
+                        className="h-full w-full object-contain"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                         <Mountain className="h-8 w-8" />
@@ -121,9 +127,17 @@ function SitesTouristiques() {
               <h3 className="text-lg font-bold">{selected.name}</h3>
               <button type="button" onClick={() => setSelected(null)} className="rounded-full p-1 hover:bg-muted">✕</button>
             </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="mt-3 grid gap-2">
               {selected.images.map((url, i) => (
-                <img key={i} src={url} alt={`${selected.name} ${i + 1}`} className="h-56 w-full rounded-lg object-cover" loading="lazy" />
+                <div key={i} className="flex w-full items-center justify-center rounded-lg bg-black/5">
+                  <img
+                    src={url}
+                    alt={`${selected.name} ${i + 1}`}
+                    className="max-h-[75vh] w-full rounded-lg object-contain"
+                    loading={i === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                  />
+                </div>
               ))}
             </div>
             {selected.description && <p className="mt-4 text-sm text-muted-foreground">{selected.description}</p>}

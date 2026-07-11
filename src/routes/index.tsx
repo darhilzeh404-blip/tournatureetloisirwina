@@ -1,8 +1,8 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Compass, Bus, ArrowRight, Sparkles } from "lucide-react";
 import { useEffect } from "react";
-import { useAuth, getRoleRedirectPath } from "@/hooks/use-auth";
+import { useAuth, getRoleRedirectPath, waitForAuth } from "@/hooks/use-auth";
 import heroImg from "@/assets/hero-transport.jpg";
 
 export const Route = createFileRoute("/")({
@@ -19,6 +19,16 @@ export const Route = createFileRoute("/")({
       { name: "twitter:image", content: heroImg },
     ],
   }),
+  // Bloque le rendu de la landing tant qu'on ne sait pas si l'utilisateur est connecté.
+  // Évite le flash de la page publique dans Median/PWA quand la session est déjà en localStorage.
+  beforeLoad: async () => {
+    if (typeof window === "undefined") return;
+    const auth = await waitForAuth();
+    if (auth.isAuthenticated && auth.role) {
+      const path = auth.role === "client" ? "/espace-client" : getRoleRedirectPath(auth.role);
+      if (path !== "/") throw redirect({ to: path, replace: true });
+    }
+  },
   component: HomePage,
 });
 
