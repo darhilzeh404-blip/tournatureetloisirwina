@@ -36,19 +36,54 @@ type CatMeta = {
   subtitle: string;
   models: string[];
   usage: string;
-  icon: typeof CarFront;
+  icon: string;
 };
 
 const CATEGORIES: CatMeta[] = [
-  { id: "standard", title: "VTC Standard", subtitle: "Citadines & Compactes",
-    models: ["Toyota Yaris","Toyota Starlet","Suzuki Swift","Suzuki Baleno","Kia Picanto","Kia Morning"],
-    usage: "Courses urbaines rapides et trajets express.", icon: CarFront },
-  { id: "confort", title: "VTC Confort", subtitle: "Berlines & Familiales",
-    models: ["Toyota Corolla","Hyundai Sonata","Hyundai Advance","Hyundai i30","Hyundai i40","Kia K3","Kia K5"],
-    usage: "Trajets plus longs et confort accru. (+30 % vs Standard)", icon: Sparkles },
-  { id: "vip", title: "VTC VIP", subtitle: "Luxe & Prestige",
-    models: ["Kia K7","Berlines de haut standing"],
-    usage: "Mariages, événements VIP, clientèle d'affaires.", icon: Gem },
+  {
+    id: "standard",
+    title: "VTC Standard",
+    subtitle: "Citadines & Compactes",
+    models: [
+      "Toyota Yaris",
+      "Toyota Starlet",
+      "Suzuki Swift",
+      "Suzuki Baleno",
+      "Kia Picanto",
+      "Kia Morning"
+    ],
+    usage: "Courses urbaines rapides et trajets express.",
+    icon: "/icons/standard-3d.png"
+  },
+
+  {
+    id: "confort",
+    title: "VTC Confort",
+    subtitle: "Berlines & Familiales",
+    models: [
+      "Toyota Corolla",
+      "Hyundai Sonata",
+      "Hyundai Advance",
+      "Hyundai i30",
+      "Hyundai i40",
+      "Kia K3",
+      "Kia K5"
+    ],
+    usage: "Trajets plus longs et confort accru. (+30 % vs Standard)",
+    icon: "/icons/confort-3d.jpg"
+  },
+
+  {
+    id: "vip",
+    title: "VTC VIP",
+    subtitle: "Luxe & Prestige",
+    models: [
+      "Kia K7",
+      "Berlines de haut standing"
+    ],
+    usage: "Mariages, événements VIP, clientèle d'affaires.",
+    icon: "/icons/vip-3d.jpg"
+  }
 ];
 
 const WEDDING_FARES = {
@@ -532,16 +567,20 @@ function CourseFlow() {
       >
         <div className="grid gap-2 sm:grid-cols-3">
           {CATEGORIES.map((c) => {
-            const Icon = c.icon; const active = category === c.id;
+            const active = category === c.id;
             return (
               <button key={c.id} type="button" onClick={() => setCategory(c.id)}
                 className={`relative overflow-hidden rounded-2xl border-2 p-3 text-left transition-all active:scale-[0.98] ${active ? "border-primary bg-primary/5 shadow-md shadow-primary/10" : "border-border bg-card hover:border-primary/40"}`}
               >
                 {active && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />}
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-4 w-4 text-primary" />
-                  </div>
+                  <div className="flex h-14 w-14 items-center justify-center">
+  <img
+    src={c.icon}
+    alt={c.title}
+    className="h-12 w-12 object-contain drop-shadow-lg"
+  />
+</div>
                   <div className="min-w-0">
                     <p className="text-[13px] font-bold text-foreground">{c.title}</p>
                     <p className="truncate text-[11px] text-muted-foreground">{c.subtitle}</p>
@@ -1093,9 +1132,9 @@ function PremiumRangesSection({ onCourse: _onCourse }: { onCourse: () => void })
   const { user, isAuthenticated } = useAuth();
   const [active, setActive] = useState<RangeKey>("berline");
   const [subscribing, setSubscribing] = useState<RangeKey | null>(null);
-  const tabs: { id: RangeKey; label: string; icon: typeof CarFront }[] = [
-    { id: "berline", label: "Berline Simple", icon: CarFront },
-    { id: "vip",     label: "Berline VIP",    icon: Crown },
+  const tabs: { id: RangeKey; label: string; icon: string }[] = [
+   { id: "berline", label: "Berline Simple", icon: "/icons/berline-3d.png" },
+{ id: "vip", label: "Berline VIP", icon: "/icons/vip-3d.png" },
   ];
 
   const subscribe = async (plan: "berline_simple" | "berline_vip", amount: number, label: string) => {
@@ -1182,8 +1221,11 @@ function PremiumRangesSection({ onCourse: _onCourse }: { onCourse: () => void })
                   />
                 )}
                 {!isActive && <span className="absolute inset-0 -z-10 rounded-full border border-border/60 bg-card" />}
-                <Icon className="h-3.5 w-3.5" />
-                {t.label}
+                <img
+  src={t.icon}
+  className="h-5 w-5 object-contain"
+  alt={t.label}
+/>
               </span>
             </button>
           );
@@ -1204,7 +1246,7 @@ function PremiumRangesSection({ onCourse: _onCourse }: { onCourse: () => void })
               <RangeCard
                 badge="Abonnement"
                 badgeTone="primary"
-                icon={CarFront}
+                icon="/icons/berline-3d.jpg"
                 title="Abonnement Berline Simple"
                 price="150.000 XAF"
                 priceSuffix="/mois"
@@ -1219,7 +1261,7 @@ function PremiumRangesSection({ onCourse: _onCourse }: { onCourse: () => void })
               <RangeCard
                 badge="Prestige"
                 badgeTone="accent"
-                icon={Crown}
+                icon="/icons/vip-3d.jpg"
                 title="Abonnement Berline VIP"
                 price="250.000 XAF"
                 priceSuffix="/mois"
@@ -1242,7 +1284,7 @@ function RangeCard({
 }: {
   badge: string;
   badgeTone: "primary" | "accent";
-  icon: typeof CarFront;
+  icon: string;
   title: string;
   price: string;
   priceSuffix?: string;
@@ -1260,9 +1302,13 @@ function RangeCard({
     <article className="relative overflow-hidden rounded-3xl border border-border/50 bg-card p-5 shadow-md shadow-foreground/5">
       <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br from-primary/15 to-accent/10 blur-2xl" aria-hidden />
       <div className="relative flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
-          <Icon className="h-5 w-5" />
-        </div>
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/15">
+  <img
+    src={Icon}
+    alt={title}
+    className="h-9 w-9 object-contain drop-shadow-lg"
+  />
+</div>
         <div className="min-w-0 flex-1">
           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${toneClasses}`}>
             <Sparkles className="h-2.5 w-2.5" /> {badge}
