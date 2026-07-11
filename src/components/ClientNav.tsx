@@ -30,7 +30,7 @@ export function ClientNav() {
             <Link
               key={to}
               to={to}
-              className={`flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium transition-colors ${
+              className={`flex flex-col items-center gap-0.5 rounded-lg px-1.5 py-1.5 text-[9px] font-medium transition-colors ${
                 active
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
