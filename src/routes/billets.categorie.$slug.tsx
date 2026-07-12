@@ -214,8 +214,16 @@ function CategoryPage() {
                     <Users className="h-3 w-3" /> {t.seats_available} place{t.seats_available > 1 ? "s" : ""}
                   </p>
                   {t.description && <p className="line-clamp-2 text-xs text-muted-foreground">{t.description}</p>}
-                  <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center justify-between gap-2 pt-1">
                     <span className="text-sm font-extrabold text-primary">{fmt(t.price)}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setBooking(t); setQty(1); }}
+                      disabled={t.seats_available <= 0}
+                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                    >
+                      {t.seats_available <= 0 ? "Complet" : "Réserver"}
+                    </button>
                   </div>
                 </div>
               </article>
@@ -223,6 +231,55 @@ function CategoryPage() {
           </div>
         )}
       </div>
+
+      {booking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => !submitting && setBooking(null)}>
+          <div className="w-full max-w-md rounded-2xl bg-card p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold">{booking.title}</h3>
+            <p className="mt-1 text-xs text-muted-foreground">{booking.agency?.name ?? "Agence"}</p>
+            {(booking.origin || booking.destination) && (
+              <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3" /> {booking.origin ?? "—"} → {booking.destination ?? "—"}
+              </p>
+            )}
+            {booking.departure_at && (
+              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3" /> {new Date(booking.departure_at).toLocaleString("fr-FR")}
+              </p>
+            )}
+
+            <div className="mt-4 rounded-xl border bg-background p-3">
+              <div className="flex items-center gap-4">
+                <span className="text-xs font-semibold text-muted-foreground">Quantité</span>
+                <div className="ml-auto flex items-center gap-3">
+                  <button type="button" onClick={() => setQty(Math.max(1, qty - 1))} className="flex h-9 w-9 items-center justify-center rounded-lg border" disabled={qty <= 1}>
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span className="w-8 text-center text-lg font-extrabold">{qty}</span>
+                  <button type="button" onClick={() => setQty(Math.min(booking.seats_available, qty + 1))} className="flex h-9 w-9 items-center justify-center rounded-lg border" disabled={qty >= booking.seats_available}>
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between border-t pt-3 text-sm">
+                <span className="text-muted-foreground">Total</span>
+                <span className="text-base font-extrabold text-primary">{fmt(booking.price * qty)}</span>
+              </div>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <button type="button" onClick={() => setBooking(null)} disabled={submitting} className="flex-1 rounded-xl border py-2.5 text-sm font-semibold">
+                Annuler
+              </button>
+              <button type="button" onClick={confirmBooking} disabled={submitting} className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                Payer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
+
