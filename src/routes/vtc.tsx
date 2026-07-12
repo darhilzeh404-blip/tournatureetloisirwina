@@ -18,6 +18,8 @@ import {
   computeFare, detectZone, formatXAF, zoneLabel, ZONES,
   type RideMode, type VehicleCategory, type ZoneId,
 } from "@/lib/vtc-zones";
+import kiaK7Bg from "@/assets/kia-k7-vtc.jpg";
+
 
 export const Route = createFileRoute("/vtc")({
   head: () => ({
