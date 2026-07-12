@@ -31,6 +31,8 @@ type AgencyRow = { id: string; name: string; logo_url: string | null; descriptio
 
 function CategoryPage() {
   const { slug } = Route.useParams();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState<string>("");
   const [list, setList] = useState<Ticket[]>([]);
@@ -40,6 +42,49 @@ function CategoryPage() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [booking, setBooking] = useState<Ticket | null>(null);
+  const [qty, setQty] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+
+  const confirmBooking = async () => {
+    if (!booking) return;
+    if (!isAuthenticated || !user) {
+      toast.error("Connectez-vous pour réserver un billet");
+      navigate({ to: "/connexion" });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const total = booking.price * qty;
+      const { data, error } = await supabase.from("reservations").insert({
+        user_id: user.id,
+        service_type: "BILLET",
+        reservation_date: new Date().toISOString().split("T")[0],
+        total_amount: total,
+        paid_amount: 0,
+        details: {
+          partner_ticket_id: booking.id,
+          title: booking.title,
+          agency: booking.agency?.name ?? null,
+          origin: booking.origin,
+          destination: booking.destination,
+          departure_at: booking.departure_at,
+          unit_price: booking.price,
+          quantity: qty,
+          quote: [{ label: `${booking.title} × ${qty}`, amount: total }],
+        },
+      }).select("id").single();
+      if (error) throw error;
+      toast.success("Billet réservé ! Procédez au paiement.");
+      navigate({ to: "/paiement/$reservationId", params: { reservationId: data.id } });
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la réservation");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+
 
   useEffect(() => {
     (async () => {
