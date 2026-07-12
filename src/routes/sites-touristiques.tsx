@@ -134,7 +134,7 @@ function SitesTouristiques() {
               {selected.images.map((url, i) => (
                 <div key={i} className="flex w-full items-center justify-center rounded-lg bg-black/5">
                   <img
-                    src={url}
+                    {...hdImg(url, "(max-width: 1024px) 100vw, 1200px")}
                     alt={`${selected.name} ${i + 1}`}
                     className="max-h-[75vh] w-full rounded-lg object-contain"
                     loading={i === 0 ? "eager" : "lazy"}
@@ -142,6 +142,7 @@ function SitesTouristiques() {
                   />
                 </div>
               ))}
+
             </div>
             {selected.description && <p className="mt-4 text-sm text-muted-foreground">{selected.description}</p>}
             <div className="mt-4 flex items-center justify-between">
