@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, MapPin, Mountain } from "lucide-react";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
 import { ClientNav } from "@/components/ClientNav";
+import { hdImg } from "@/lib/supabase-image";
+
 
 export const Route = createFileRoute("/sites-touristiques")({
   head: () => ({
