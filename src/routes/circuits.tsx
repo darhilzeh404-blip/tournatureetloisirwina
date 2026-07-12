@@ -7,6 +7,8 @@ import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
 import { ClientNav } from "@/components/ClientNav";
 import { formatFCFA } from "@/lib/destinations";
 import circuitsImg from "@/assets/circuits-hero.jpg";
+import { hdImg } from "@/lib/supabase-image";
+
 
 type Circuit = {
   id: string;
