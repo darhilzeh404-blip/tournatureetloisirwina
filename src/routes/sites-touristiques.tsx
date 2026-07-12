@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, MapPin, Mountain } from "lucide-react";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
 import { ClientNav } from "@/components/ClientNav";
+import { hdImg } from "@/lib/supabase-image";
+
 
 export const Route = createFileRoute("/sites-touristiques")({
   head: () => ({
@@ -77,13 +79,14 @@ function SitesTouristiques() {
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                     {s.images[0] ? (
                       <img
-                        src={s.images[0]}
+                        {...hdImg(s.images[0], "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw")}
                         alt={s.name}
                         className="h-full w-full object-contain"
                         loading="lazy"
                         decoding="async"
                       />
                     ) : (
+
                       <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                         <Mountain className="h-8 w-8" />
                       </div>
@@ -131,7 +134,7 @@ function SitesTouristiques() {
               {selected.images.map((url, i) => (
                 <div key={i} className="flex w-full items-center justify-center rounded-lg bg-black/5">
                   <img
-                    src={url}
+                    {...hdImg(url, "(max-width: 1024px) 100vw, 1200px")}
                     alt={`${selected.name} ${i + 1}`}
                     className="max-h-[75vh] w-full rounded-lg object-contain"
                     loading={i === 0 ? "eager" : "lazy"}
@@ -139,6 +142,7 @@ function SitesTouristiques() {
                   />
                 </div>
               ))}
+
             </div>
             {selected.description && <p className="mt-4 text-sm text-muted-foreground">{selected.description}</p>}
             <div className="mt-4 flex items-center justify-between">

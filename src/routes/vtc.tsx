@@ -18,6 +18,8 @@ import {
   computeFare, detectZone, formatXAF, zoneLabel, ZONES,
   type RideMode, type VehicleCategory, type ZoneId,
 } from "@/lib/vtc-zones";
+import kiaK7Bg from "@/assets/kia-k7-vtc.jpg";
+
 
 export const Route = createFileRoute("/vtc")({
   head: () => ({
@@ -101,11 +103,21 @@ function VtcPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
       {/* Header premium compact, glass, coins inférieurs arrondis */}
-      <section className="relative overflow-hidden rounded-b-[28px] bg-gradient-to-br from-primary via-primary to-primary/85 px-5 pb-6 pt-7 shadow-lg shadow-primary/20">
+      <section className="relative overflow-hidden rounded-b-[28px] px-5 pb-6 pt-7 shadow-lg shadow-primary/20">
+        <img
+          src={kiaK7Bg}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+          loading="eager"
+          decoding="async"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/70 to-black/70" aria-hidden />
         <div className="pointer-events-none absolute inset-0 opacity-20" aria-hidden>
           <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-primary-foreground blur-3xl" />
           <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-accent/60 blur-3xl" />
         </div>
+
         <div className="relative mx-auto max-w-3xl">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-foreground/15 backdrop-blur-md ring-1 ring-primary-foreground/25">
