@@ -229,12 +229,13 @@ function CircuitCard({
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         <img
-          src={image}
+          {...hdImg(image, "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw")}
           alt={title}
           loading="lazy"
           decoding="async"
           className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
         />
+
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
         <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between gap-2 text-white">
           <div className="min-w-0">
