@@ -79,13 +79,14 @@ function SitesTouristiques() {
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                     {s.images[0] ? (
                       <img
-                        src={s.images[0]}
+                        {...hdImg(s.images[0], "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw")}
                         alt={s.name}
                         className="h-full w-full object-contain"
                         loading="lazy"
                         decoding="async"
                       />
                     ) : (
+
                       <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                         <Mountain className="h-8 w-8" />
                       </div>
