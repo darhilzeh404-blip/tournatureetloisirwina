@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain, LayoutGrid, Eye } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { setClientPreview } from "@/lib/admin-preview";
 
 const adminLinks = [
   { to: "/admin", label: "Tableau de bord", icon: LayoutDashboard, exact: true },
@@ -22,6 +23,7 @@ const adminLinks = [
   { to: "/admin/group-rides", label: "Courses Groupées", icon: UsersRound, exact: false },
   { to: "/admin/vtc-chauffeurs", label: "VTC Chauffeurs", icon: Car, exact: false },
   { to: "/admin/vehicule-types", label: "Types véhicules", icon: Settings2, exact: false },
+  { to: "/admin/catalogue", label: "Catalogue véhicules", icon: LayoutGrid, exact: false },
   { to: "/admin/billets", label: "Billets", icon: Ticket, exact: false },
   { to: "/admin/agences", label: "Agences partenaires", icon: Building2, exact: false },
   { to: "/admin/sites-touristiques", label: "Sites touristiques", icon: Mountain, exact: false },
@@ -90,6 +92,17 @@ export function AdminSidebar() {
         <div className="flex-1 overflow-y-auto p-3">{nav}</div>
 
         <div className="border-t p-3 space-y-1">
+          <button
+            onClick={() => {
+              setClientPreview(true);
+              setOpen(false);
+              navigate({ to: "/espace-client" });
+            }}
+            className="flex w-full items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20"
+          >
+            <Eye className="h-4 w-4" />
+            Voir comme client
+          </button>
           <Link
             to="/"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"

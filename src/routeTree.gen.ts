@@ -36,6 +36,7 @@ import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
 import { Route as ChauffeurRouteImport } from './routes/chauffeur'
+import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as BilletsRouteImport } from './routes/billets'
 import { Route as AgenceRouteImport } from './routes/agence'
@@ -73,6 +74,7 @@ import { Route as AdminFideliteRouteImport } from './routes/admin/fidelite'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
+import { Route as AdminCatalogueRouteImport } from './routes/admin/catalogue'
 import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-reservations'
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
 import { Route as AdminBilletsRouteImport } from './routes/admin/billets'
@@ -218,6 +220,11 @@ const ChauffeurVtcRoute = ChauffeurVtcRouteImport.update({
 const ChauffeurRoute = ChauffeurRouteImport.update({
   id: '/chauffeur',
   path: '/chauffeur',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogueRoute = CatalogueRouteImport.update({
+  id: '/catalogue',
+  path: '/catalogue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookingRoute = BookingRouteImport.update({
@@ -405,6 +412,11 @@ const AdminCircuitsRoute = AdminCircuitsRouteImport.update({
   path: '/circuits',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminCatalogueRoute = AdminCatalogueRouteImport.update({
+  id: '/catalogue',
+  path: '/catalogue',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminBusReservationsRoute = AdminBusReservationsRouteImport.update({
   id: '/bus-reservations',
   path: '/bus-reservations',
@@ -469,6 +481,7 @@ export interface FileRoutesByFullPath {
   '/agence': typeof AgenceRouteWithChildren
   '/billets': typeof BilletsRouteWithChildren
   '/booking': typeof BookingRoute
+  '/catalogue': typeof CatalogueRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
@@ -501,6 +514,7 @@ export interface FileRoutesByFullPath {
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
+  '/admin/catalogue': typeof AdminCatalogueRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -544,6 +558,7 @@ export interface FileRoutesByTo {
   '/activites': typeof ActivitesRoute
   '/billets': typeof BilletsRouteWithChildren
   '/booking': typeof BookingRoute
+  '/catalogue': typeof CatalogueRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
@@ -575,6 +590,7 @@ export interface FileRoutesByTo {
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
+  '/admin/catalogue': typeof AdminCatalogueRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -621,6 +637,7 @@ export interface FileRoutesById {
   '/agence': typeof AgenceRouteWithChildren
   '/billets': typeof BilletsRouteWithChildren
   '/booking': typeof BookingRoute
+  '/catalogue': typeof CatalogueRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
@@ -653,6 +670,7 @@ export interface FileRoutesById {
   '/admin/billets': typeof AdminBilletsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
+  '/admin/catalogue': typeof AdminCatalogueRoute
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
@@ -700,6 +718,7 @@ export interface FileRouteTypes {
     | '/agence'
     | '/billets'
     | '/booking'
+    | '/catalogue'
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
@@ -732,6 +751,7 @@ export interface FileRouteTypes {
     | '/admin/billets'
     | '/admin/bus'
     | '/admin/bus-reservations'
+    | '/admin/catalogue'
     | '/admin/circuits'
     | '/admin/clients'
     | '/admin/dashboard'
@@ -775,6 +795,7 @@ export interface FileRouteTypes {
     | '/activites'
     | '/billets'
     | '/booking'
+    | '/catalogue'
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
@@ -806,6 +827,7 @@ export interface FileRouteTypes {
     | '/admin/billets'
     | '/admin/bus'
     | '/admin/bus-reservations'
+    | '/admin/catalogue'
     | '/admin/circuits'
     | '/admin/clients'
     | '/admin/dashboard'
@@ -851,6 +873,7 @@ export interface FileRouteTypes {
     | '/agence'
     | '/billets'
     | '/booking'
+    | '/catalogue'
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
@@ -883,6 +906,7 @@ export interface FileRouteTypes {
     | '/admin/billets'
     | '/admin/bus'
     | '/admin/bus-reservations'
+    | '/admin/catalogue'
     | '/admin/circuits'
     | '/admin/clients'
     | '/admin/dashboard'
@@ -929,6 +953,7 @@ export interface RootRouteChildren {
   AgenceRoute: typeof AgenceRouteWithChildren
   BilletsRoute: typeof BilletsRouteWithChildren
   BookingRoute: typeof BookingRoute
+  CatalogueRoute: typeof CatalogueRoute
   ChauffeurRoute: typeof ChauffeurRouteWithChildren
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
@@ -1152,6 +1177,13 @@ declare module '@tanstack/react-router' {
       path: '/chauffeur'
       fullPath: '/chauffeur'
       preLoaderRoute: typeof ChauffeurRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalogue': {
+      id: '/catalogue'
+      path: '/catalogue'
+      fullPath: '/catalogue'
+      preLoaderRoute: typeof CatalogueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/booking': {
@@ -1413,6 +1445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCircuitsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/catalogue': {
+      id: '/admin/catalogue'
+      path: '/catalogue'
+      fullPath: '/admin/catalogue'
+      preLoaderRoute: typeof AdminCatalogueRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/bus-reservations': {
       id: '/admin/bus-reservations'
       path: '/bus-reservations'
@@ -1499,6 +1538,7 @@ interface AdminRouteRouteChildren {
   AdminBilletsRoute: typeof AdminBilletsRoute
   AdminBusRoute: typeof AdminBusRoute
   AdminBusReservationsRoute: typeof AdminBusReservationsRoute
+  AdminCatalogueRoute: typeof AdminCatalogueRoute
   AdminCircuitsRoute: typeof AdminCircuitsRoute
   AdminClientsRoute: typeof AdminClientsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
@@ -1526,6 +1566,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminBilletsRoute: AdminBilletsRoute,
   AdminBusRoute: AdminBusRoute,
   AdminBusReservationsRoute: AdminBusReservationsRoute,
+  AdminCatalogueRoute: AdminCatalogueRoute,
   AdminCircuitsRoute: AdminCircuitsRoute,
   AdminClientsRoute: AdminClientsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
@@ -1648,6 +1689,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgenceRoute: AgenceRouteWithChildren,
   BilletsRoute: BilletsRouteWithChildren,
   BookingRoute: BookingRoute,
+  CatalogueRoute: CatalogueRoute,
   ChauffeurRoute: ChauffeurRouteWithChildren,
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
