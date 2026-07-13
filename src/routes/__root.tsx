@@ -12,6 +12,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { ActiveGroupRideGuard } from "@/components/ActiveGroupRideGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StuckRouteRecovery } from "@/components/StuckRouteRecovery";
+import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installDynamicImportRecovery } from "@/lib/dynamic-import-recovery";
 
@@ -98,6 +99,7 @@ function RootComponent() {
     location.pathname.startsWith("/vtc") ||
     location.pathname.startsWith("/circuits") ||
     location.pathname.startsWith("/billets") ||
+    location.pathname.startsWith("/catalogue") ||
     location.pathname.startsWith("/deplacement-groupe") ||
     location.pathname.startsWith("/transport-scolaire") ||
     location.pathname.startsWith("/transport-extra-scolaire") ||
@@ -166,6 +168,7 @@ function RootComponent() {
         <ConsentBanner />
         <AppNotifications />
         <ActiveGroupRideGuard />
+        <AdminPreviewBanner />
         <Toaster position="top-right" richColors />
       </QueryClientProvider>
     </ErrorBoundary>

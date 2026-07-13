@@ -269,6 +269,98 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_vehicle_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon_url: string | null
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      catalog_vehicles: {
+        Row: {
+          brand: string | null
+          category_id: string
+          created_at: string
+          description: string | null
+          gallery: Json
+          id: string
+          is_active: boolean
+          model: string | null
+          name: string
+          seats: number | null
+          sort_order: number
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          brand?: string | null
+          category_id: string
+          created_at?: string
+          description?: string | null
+          gallery?: Json
+          id?: string
+          is_active?: boolean
+          model?: string | null
+          name: string
+          seats?: number | null
+          sort_order?: number
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          brand?: string | null
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          gallery?: Json
+          id?: string
+          is_active?: boolean
+          model?: string | null
+          name?: string
+          seats?: number | null
+          sort_order?: number
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_vehicles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_vehicle_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       circuit_activities: {
         Row: {
           circuit_id: string
