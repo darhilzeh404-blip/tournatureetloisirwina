@@ -310,6 +310,7 @@ export type Database = {
           brand: string | null
           category_id: string
           created_at: string
+          daily_rate: number | null
           description: string | null
           gallery: Json
           id: string
@@ -325,6 +326,7 @@ export type Database = {
           brand?: string | null
           category_id: string
           created_at?: string
+          daily_rate?: number | null
           description?: string | null
           gallery?: Json
           id?: string
@@ -340,6 +342,7 @@ export type Database = {
           brand?: string | null
           category_id?: string
           created_at?: string
+          daily_rate?: number | null
           description?: string | null
           gallery?: Json
           id?: string
