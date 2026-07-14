@@ -289,3 +289,148 @@ function CategoryChip({
     </button>
   );
 }
+
+const fmtXAF = (n: number) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
+
+const SERVICE_OPTIONS: { value: string; label: string }[] = [
+  { value: "avec_chauffeur", label: "Avec chauffeur" },
+  { value: "sans_chauffeur", label: "Sans chauffeur" },
+  { value: "evenement", label: "Événement / cérémonie" },
+  { value: "transfert_aeroport", label: "Transfert aéroport" },
+];
+
+function BookingForm({ vehicle, onDone }: { vehicle: CatalogVehicle; onDone: () => void }) {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const today = new Date().toISOString().split("T")[0];
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
+  const [service, setService] = useState(SERVICE_OPTIONS[0].value);
+  const [quantity, setQuantity] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+
+  const days = useMemo(() => {
+    if (!startDate || !endDate) return 1;
+    const a = new Date(startDate).getTime();
+    const b = new Date(endDate).getTime();
+    if (Number.isNaN(a) || Number.isNaN(b) || b < a) return 1;
+    return Math.max(1, Math.round((b - a) / 86_400_000) + 1);
+  }, [startDate, endDate]);
+
+  const rate = vehicle.daily_rate ?? 0;
+  const total = rate * days * Math.max(1, quantity);
+
+  const submit = async () => {
+    if (!isAuthenticated || !user) {
+      toast.error("Connectez-vous pour réserver");
+      navigate({ to: "/connexion" });
+      return;
+    }
+    if (rate <= 0) {
+      toast.error("Ce véhicule n'a pas encore de tarif — contactez le support.");
+      return;
+    }
+    if (new Date(endDate) < new Date(startDate)) {
+      toast.error("La date de fin doit être après la date de début.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const serviceLabel = SERVICE_OPTIONS.find((s) => s.value === service)?.label ?? service;
+      const { data, error } = await supabase.from("reservations").insert({
+        user_id: user.id,
+        service_type: "LOCATION_CATALOGUE" as any,
+        reservation_date: startDate,
+        total_amount: total,
+        paid_amount: 0,
+        details: {
+          flow: "catalog_rental",
+          catalog_vehicle_id: vehicle.id,
+          vehicle_name: vehicle.name,
+          service_option: service,
+          start_date: startDate,
+          end_date: endDate,
+          days,
+          quantity,
+          daily_rate: rate,
+          quote: [
+            { label: `${vehicle.name} — ${serviceLabel}`, amount: 0 },
+            { label: `${days} jour(s) × ${quantity} × ${fmtXAF(rate)}`, amount: total },
+          ],
+        },
+      } as any).select("id").single();
+      if (error) throw error;
+      toast.success("Réservation créée ! Procédez au paiement.");
+      onDone();
+      navigate({ to: "/paiement/$reservationId", params: { reservationId: (data as any).id } });
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la réservation");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-sm">Réserver ce véhicule</h3>
+        {rate > 0 && (
+          <span className="text-xs font-semibold text-primary">{fmtXAF(rate)} / jour</span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-[11px] font-medium">Du</label>
+          <Input type="date" min={today} value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-[11px] font-medium">Au</label>
+          <Input type="date" min={startDate || today} value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-[11px] font-medium">Type de service</label>
+          <select
+            value={service}
+            onChange={(e) => setService(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            {SERVICE_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-[11px] font-medium">Quantité</label>
+          <Input
+            type="number" min={1} max={20}
+            value={quantity}
+            onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-lg bg-background border p-3">
+        <div className="text-xs text-muted-foreground">
+          {days} jour{days > 1 ? "s" : ""} × {quantity} × {fmtXAF(rate)}
+        </div>
+        <div className="text-lg font-bold text-primary">{fmtXAF(total)}</div>
+      </div>
+
+      {rate <= 0 && (
+        <p className="text-[11px] text-amber-600">
+          Tarif non défini. Contactez l'admin pour définir le tarif journalier avant réservation.
+        </p>
+      )}
+
+      <Button
+        onClick={submit}
+        disabled={submitting || rate <= 0}
+        className="w-full"
+      >
+        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : `Réserver et payer — ${fmtXAF(total)}`}
+      </Button>
+    </div>
+  );
+}
