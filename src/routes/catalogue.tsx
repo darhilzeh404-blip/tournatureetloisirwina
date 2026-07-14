@@ -1,11 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { LayoutGrid, Car, Users, Calendar, ChevronRight, Phone, X } from "lucide-react";
+import { LayoutGrid, Car, Users, Calendar, ChevronRight, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import type { CatalogCategory, CatalogVehicle } from "@/lib/catalog";
 
 export const Route = createFileRoute("/catalogue")({
