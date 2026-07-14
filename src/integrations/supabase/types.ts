@@ -1153,6 +1153,7 @@ export type Database = {
       partner_agencies: {
         Row: {
           category: Database["public"]["Enums"]["agency_category"] | null
+          commission_percent: number
           created_at: string
           description: string
           email: string | null
@@ -1161,12 +1162,13 @@ export type Database = {
           is_verified: boolean
           logo_url: string | null
           name: string
-          owner_user_id: string
+          owner_user_id: string | null
           phone: string | null
           updated_at: string
         }
         Insert: {
           category?: Database["public"]["Enums"]["agency_category"] | null
+          commission_percent?: number
           created_at?: string
           description?: string
           email?: string | null
@@ -1175,12 +1177,13 @@ export type Database = {
           is_verified?: boolean
           logo_url?: string | null
           name: string
-          owner_user_id: string
+          owner_user_id?: string | null
           phone?: string | null
           updated_at?: string
         }
         Update: {
           category?: Database["public"]["Enums"]["agency_category"] | null
+          commission_percent?: number
           created_at?: string
           description?: string
           email?: string | null
@@ -1189,7 +1192,7 @@ export type Database = {
           is_verified?: boolean
           logo_url?: string | null
           name?: string
-          owner_user_id?: string
+          owner_user_id?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -1276,6 +1279,48 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "partner_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_commission_rates: {
+        Row: {
+          agency_id: string
+          category: string
+          commission_percent: number
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          category: string
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          category?: string
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_commission_rates_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_commission_rates_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
             referencedColumns: ["id"]
           },
         ]
@@ -2994,6 +3039,7 @@ export type Database = {
         Args: never
         Returns: {
           category: Database["public"]["Enums"]["agency_category"] | null
+          commission_percent: number
           created_at: string
           description: string
           email: string | null
@@ -3002,7 +3048,7 @@ export type Database = {
           is_verified: boolean
           logo_url: string | null
           name: string
-          owner_user_id: string
+          owner_user_id: string | null
           phone: string | null
           updated_at: string
         }[]
@@ -3110,6 +3156,7 @@ export type Database = {
         Args: never
         Returns: {
           category: Database["public"]["Enums"]["agency_category"] | null
+          commission_percent: number
           created_at: string
           description: string
           email: string | null
@@ -3118,7 +3165,7 @@ export type Database = {
           is_verified: boolean
           logo_url: string | null
           name: string
-          owner_user_id: string
+          owner_user_id: string | null
           phone: string | null
           updated_at: string
         }[]
@@ -3297,6 +3344,7 @@ export type Database = {
         | "CIRCUIT_TOURISTIQUE"
         | "VTC"
         | "BILLET"
+        | "LOCATION_CATALOGUE"
       vtc_category: "STANDARD" | "CONFORT" | "VIP"
       vtc_recharge_method:
         | "mobile_money"
@@ -3451,6 +3499,7 @@ export const Constants = {
         "CIRCUIT_TOURISTIQUE",
         "VTC",
         "BILLET",
+        "LOCATION_CATALOGUE",
       ],
       vtc_category: ["STANDARD", "CONFORT", "VIP"],
       vtc_recharge_method: [
