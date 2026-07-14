@@ -415,6 +415,7 @@ function VehicleDialog({
   const [model, setModel] = useState("");
   const [year, setYear] = useState<string>("");
   const [seats, setSeats] = useState<string>("");
+  const [dailyRate, setDailyRate] = useState<string>("");
   const [description, setDescription] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState(0);
@@ -428,6 +429,7 @@ function VehicleDialog({
       setModel(editing.model ?? "");
       setYear(editing.year?.toString() ?? "");
       setSeats(editing.seats?.toString() ?? "");
+      setDailyRate(editing.daily_rate?.toString() ?? "");
       setDescription(editing.description ?? "");
       setGallery(editing.gallery ?? []);
       setSortOrder(editing.sort_order);
@@ -437,6 +439,7 @@ function VehicleDialog({
       setModel("");
       setYear("");
       setSeats("");
+      setDailyRate("");
       setDescription("");
       setGallery([]);
       setSortOrder(0);
@@ -472,6 +475,7 @@ function VehicleDialog({
       model: model.trim() || null,
       year: year ? parseInt(year) : null,
       seats: seats ? parseInt(seats) : null,
+      daily_rate: dailyRate ? parseInt(dailyRate) : null,
       description: description.trim() || null,
       gallery,
       sort_order: sortOrder,
@@ -517,6 +521,10 @@ function VehicleDialog({
             <div>
               <Label>Places</Label>
               <Input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} placeholder="4" />
+            </div>
+            <div>
+              <Label>Tarif journalier (FCFA)</Label>
+              <Input type="number" value={dailyRate} onChange={(e) => setDailyRate(e.target.value)} placeholder="50000" />
             </div>
             <div>
               <Label>Ordre</Label>
