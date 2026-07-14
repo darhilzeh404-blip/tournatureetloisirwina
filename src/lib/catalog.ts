@@ -20,6 +20,7 @@ export type CatalogVehicle = {
   seats: number | null;
   description: string | null;
   gallery: string[];
+  daily_rate: number | null;
   is_active: boolean;
   sort_order: number;
 };
