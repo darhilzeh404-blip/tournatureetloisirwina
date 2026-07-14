@@ -243,19 +243,7 @@ function CataloguePage() {
                     ))}
                   </div>
                 )}
-                <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                  <Button asChild className="flex-1">
-                    <Link to="/vtc">Réserver une course VTC</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="flex-1">
-                    <Link to="/location-bus">Louer / affréter</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="flex-1">
-                    <Link to="/support">
-                      <Phone className="h-4 w-4 mr-1" /> Contact
-                    </Link>
-                  </Button>
-                </div>
+                <BookingForm vehicle={preview} onDone={() => setPreview(null)} />
               </div>
             </>
           )}
