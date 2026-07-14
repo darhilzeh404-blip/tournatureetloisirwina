@@ -475,6 +475,7 @@ function VehicleDialog({
       model: model.trim() || null,
       year: year ? parseInt(year) : null,
       seats: seats ? parseInt(seats) : null,
+      daily_rate: dailyRate ? parseInt(dailyRate) : null,
       description: description.trim() || null,
       gallery,
       sort_order: sortOrder,
