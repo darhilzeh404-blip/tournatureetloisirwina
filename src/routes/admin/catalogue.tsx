@@ -523,6 +523,10 @@ function VehicleDialog({
               <Input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} placeholder="4" />
             </div>
             <div>
+              <Label>Tarif journalier (FCFA)</Label>
+              <Input type="number" value={dailyRate} onChange={(e) => setDailyRate(e.target.value)} placeholder="50000" />
+            </div>
+            <div>
               <Label>Ordre</Label>
               <Input type="number" value={sortOrder} onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)} />
             </div>
