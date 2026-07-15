@@ -5,7 +5,7 @@ import { useEffect } from "react";
 const NAV_ITEMS = [
   { to: "/espace-client", label: "Accueil", icon: Home },
   { to: "/vtc", label: "VTC", icon: CarFront },
-  { to: "/recompenses", label: "Récompenses", icon: Gift },
+  { to: "/wina-coins", label: "Récompenses", icon: Gift },
   { to: "/wallet", label: "Wallet", icon: Wallet },
   { to: "/mes-reservations", label: "Réserv.", icon: CalendarCheck },
   { to: "/mon-compte", label: "Profil", icon: User },
