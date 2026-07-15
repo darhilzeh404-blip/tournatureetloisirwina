@@ -1,22 +1,53 @@
-// Icônes 3D réelles — pack open-source Microsoft Fluent Emoji (3D)
-// servi via jsDelivr. Zéro dépendance npm, PNG haute résolution.
+import bus3d from "@/assets/icons/bus-3d.png";
+import train3d from "@/assets/icons/train-3d.png";
+import avion3d from "@/assets/icons/avion-3d.png";
+import bateau3d from "@/assets/icons/bateau-3d.png";
+import billeterie3d from "@/assets/icons/billeterie 3d.webp";
 
-export type TicketCategorySlug = "bus" | "train" | "avion" | "bateau" | "evenement";
-
-const CDN = "https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets";
+export type TicketCategorySlug =
+  | "bus"
+  | "train"
+  | "avion"
+  | "bateau"
+  | "evenement";
 
 const MAP: Record<string, { src: string; alt: string }> = {
-  bus:        { src: `${CDN}/Bus/3D/bus_3d.png`,                         alt: "Bus" },
-  train:      { src: `${CDN}/Train/3D/train_3d.png`,                     alt: "Train" },
-  avion:      { src: `${CDN}/Airplane/3D/airplane_3d.png`,               alt: "Avion" },
-  bateau:     { src: `${CDN}/Ship/3D/ship_3d.png`,                       alt: "Bateau" },
-  evenement:  { src: `${CDN}/Party%20popper/3D/party_popper_3d.png`,     alt: "Événement" },
+  bus: {
+    src: bus3d,
+    alt: "Bus",
+  },
+  train: {
+    src: train3d,
+    alt: "Train",
+  },
+  avion: {
+    src: avion3d,
+    alt: "Avion",
+  },
+  bateau: {
+    src: bateau3d,
+    alt: "Bateau",
+  },
+  evenement: {
+    src: billeterie3d,
+    alt: "Événement",
+  },
 };
 
-const FALLBACK = { src: `${CDN}/Ticket/3D/ticket_3d.png`, alt: "Billet" };
+const FALLBACK = {
+  src: billeterie3d,
+  alt: "Billet",
+};
 
-export function TicketCategoryIcon({ slug, className }: { slug: string; className?: string }) {
+export function TicketCategoryIcon({
+  slug,
+  className,
+}: {
+  slug: string;
+  className?: string;
+}) {
   const item = MAP[slug] ?? FALLBACK;
+
   return (
     <img
       src={item.src}

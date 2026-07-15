@@ -1,11 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, CalendarCheck, User, CarFront, Wallet, LayoutGrid } from "lucide-react";
+import { Home, CalendarCheck, Gift, User, CarFront, Wallet, LayoutGrid } from "lucide-react";
 import { useEffect } from "react";
 
 const NAV_ITEMS = [
   { to: "/espace-client", label: "Accueil", icon: Home },
-  { to: "/catalogue", label: "Catalogue", icon: LayoutGrid },
   { to: "/vtc", label: "VTC", icon: CarFront },
+  { to: "/recompenses", label: "Récompenses", icon: Gift },
   { to: "/wallet", label: "Wallet", icon: Wallet },
   { to: "/mes-reservations", label: "Réserv.", icon: CalendarCheck },
   { to: "/mon-compte", label: "Profil", icon: User },

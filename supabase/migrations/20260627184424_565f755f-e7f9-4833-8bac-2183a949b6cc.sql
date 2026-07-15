@@ -176,17 +176,50 @@ ON public.vtc_wallet_transactions AS RESTRICTIVE FOR ALL TO anon
 USING (false) WITH CHECK (false);
 
 -- vtc_recharge_requests
+-- vtc_recharge_requests
+
 DROP POLICY IF EXISTS "restrict_vtc_recharge_requests" ON public.vtc_recharge_requests;
-CREATE POLICY "restrict_vtc_recharge_requests"
-ON public.vtc_recharge_requests AS RESTRICTIVE FOR ALL TO authenticated
-USING (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'::app_role))
-WITH CHECK (user_id = auth.uid() OR public.has_role(auth.uid(), 'admin'::app_role));
 
-DROP POLICY IF EXISTS "block_anon_vtc_recharge_requests" ON public.vtc_recharge_requests;
-CREATE POLICY "block_anon_vtc_recharge_requests"
-ON public.vtc_recharge_requests AS RESTRICTIVE FOR ALL TO anon
-USING (false) WITH CHECK (false);
+CREATE POLICY "vtc_recharge_requests_select"
+ON public.vtc_recharge_requests
+AS RESTRICTIVE
+FOR SELECT
+TO authenticated
+USING (
+  user_id = auth.uid()
+  OR public.has_role(auth.uid(), 'admin'::app_role)
+);
 
+CREATE POLICY "vtc_recharge_requests_insert"
+ON public.vtc_recharge_requests
+AS RESTRICTIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  user_id = auth.uid()
+  OR public.has_role(auth.uid(), 'admin'::app_role)
+);
+
+CREATE POLICY "vtc_recharge_requests_admin_update"
+ON public.vtc_recharge_requests
+AS RESTRICTIVE
+FOR UPDATE
+TO authenticated
+USING (
+  public.has_role(auth.uid(), 'admin'::app_role)
+)
+WITH CHECK (
+  public.has_role(auth.uid(), 'admin'::app_role)
+);
+
+CREATE POLICY "vtc_recharge_requests_admin_delete"
+ON public.vtc_recharge_requests
+AS RESTRICTIVE
+FOR DELETE
+TO authenticated
+USING (
+  public.has_role(auth.uid(), 'admin'::app_role)
+);
 -- wina_coin_balances / history / redemptions
 DROP POLICY IF EXISTS "restrict_wina_balances" ON public.wina_coin_balances;
 CREATE POLICY "restrict_wina_balances"

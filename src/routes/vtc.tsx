@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar, CarFront, Check, CheckCircle2, ChevronDown, Clock, Gem, Heart,
-  Loader2, MapPin, Navigation, Sparkles, Users, Zap, Crown, ArrowRight, Star,
+  Loader2, MapPin, Navigation, Sparkles, Users, Zap, ArrowRight, Star,
   Search, AlertCircle, Timer, Radar,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -72,7 +72,7 @@ const CATEGORIES: CatMeta[] = [
       "Kia K5"
     ],
     usage: "Trajets plus longs et confort accru. (+30 % vs Standard)",
-    icon: "/icons/confort-3d.jpg"
+    icon: "/icons/confort-3d.png"
   },
 
   {
@@ -84,7 +84,7 @@ const CATEGORIES: CatMeta[] = [
       "Berlines de haut standing"
     ],
     usage: "Mariages, événements VIP, clientèle d'affaires.",
-    icon: "/icons/vip-3d.jpg"
+    icon: "/icons/vip-3d.png"
   }
 ];
 
@@ -979,7 +979,13 @@ function MariageFlow() {
     <>
       <AccordionCard id="vehicle" wizard={wizard}
         title="Véhicule mariage" summary={WEDDING_FARES[vehicle].label}
-        icon={<Crown className="h-4 w-4" />}
+        icon={
+  <img
+    src="/icons/vehicule mariage-3d.png"
+    alt="Véhicule mariage"
+    className="h-5 w-5 object-contain"
+  />
+}
       >
         <div className="grid gap-2 sm:grid-cols-2">
           {(Object.keys(WEDDING_FARES) as WeddingVehicle[]).map((v) => {
@@ -1258,7 +1264,7 @@ function PremiumRangesSection({ onCourse: _onCourse }: { onCourse: () => void })
               <RangeCard
                 badge="Abonnement"
                 badgeTone="primary"
-                icon="/icons/berline-3d.jpg"
+                icon="/icons/voiture mariage-3d.png"
                 title="Abonnement Berline Simple"
                 price="150.000 XAF"
                 priceSuffix="/mois"

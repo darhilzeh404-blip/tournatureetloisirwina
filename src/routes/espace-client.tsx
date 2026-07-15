@@ -15,6 +15,7 @@ import circuit3d from "@/assets/icons/circuit-3d.webp";
 import vtc3d from "@/assets/icons/vtc-3d.ico";
 import site3d from "@/assets/icons/site-3d.webp";
 import billetterie3d from "@/assets/icons/billeterie 3d.webp";
+import catalogue3d from "@/assets/icons/catalogue-3d.png";
 import promo3d from "@/assets/icons/Promos 3d.webp";
 import support3d from "@/assets/icons/Support 3d.jpg";
 
@@ -173,6 +174,13 @@ function EspaceClient() {
       image: billetterie3d,
       tint: "from-accent/20 to-primary/10"
     },
+    {
+  to: "/catalogue",
+  label: "Catalogue",
+  desc: "Nos offres",
+  image: catalogue3d,
+  tint: "from-primary/20 to-accent/5"
+},
    {  
   to: "/promos",
   label: "Promos",

@@ -10,6 +10,23 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LayoutGrid, Car, Users, Calendar, ChevronRight, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { CatalogCategory, CatalogVehicle } from "@/lib/catalog";
+import berlineIcon from "@/assets/catalog-icon-berline.png";
+import busIcon from "@/assets/catalog-icon-bus.png";
+import minibusIcon from "@/assets/catalog-icon-minibus.png";
+import suvIcon from "@/assets/catalog-icon-suv.png";
+import utilitaireIcon from "@/assets/catalog-icon-utilitaire.png";
+import vipIcon from "@/assets/catalog-icon-vip.png";
+import autocarIcon from "@/assets/catalog-icon-autocar.png";
+
+const categoryIcons: Record<string, string> = {
+  "Berline": berlineIcon,
+  "Bus": busIcon,
+  "Minibus": minibusIcon,
+  "SUV": suvIcon,
+  "Utilitaire": utilitaireIcon,
+  "VIP": vipIcon,
+  "Autocar": autocarIcon,
+};
 
 export const Route = createFileRoute("/catalogue")({
   head: () => ({
@@ -96,7 +113,7 @@ function CataloguePage() {
             <CategoryChip
               key={c.id}
               active={activeCat === c.id}
-              iconUrl={c.icon_url}
+              iconUrl={categoryIcons[c.name] || c.icon_url}
               label={c.name}
               count={vehicles.filter((v) => v.category_id === c.id).length}
               onClick={() => setActiveCat(c.id)}
