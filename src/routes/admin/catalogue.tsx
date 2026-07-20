@@ -447,6 +447,7 @@ function VehicleDialog({
   }, [state]);
 
   const onFiles = async (files: FileList | null) => {
+    console.log("FILES REÇUS :", files);
     if (!files || files.length === 0) return;
     setUploading(true);
     try {
@@ -552,17 +553,25 @@ function VehicleDialog({
                   </div>
                 ))}
               </div>
-              <label className="flex items-center gap-2 rounded-lg border border-dashed p-3 cursor-pointer hover:bg-muted/50 text-sm">
+              <label
+  htmlFor="catalog-upload"
+  className="flex items-center gap-2 rounded-lg border border-dashed p-3 cursor-pointer hover:bg-muted/50 text-sm"
+>
                 <Upload className="h-4 w-4" />
                 <span>{uploading ? "Envoi en cours…" : "Ajouter des photos (multi-sélection)"}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => onFiles(e.target.files)}
-                  disabled={uploading}
-                />
+               <input
+  id="catalog-upload"
+  type="file"
+  accept="image/*"
+  multiple
+  className="hidden"
+  onClick={() => console.log("CLIC INPUT OK")}
+  onChange={(e) => {
+    console.log("INPUT FICHIER :", e.target.files);
+    onFiles(e.target.files);
+  }}
+  disabled={uploading}
+/>
               </label>
             </div>
           </div>

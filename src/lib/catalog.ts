@@ -25,17 +25,35 @@ export type CatalogVehicle = {
   sort_order: number;
 };
 
-export function publicUrl(path: string): string {
-  const { data } = supabase.storage.from("catalog-vehicles").getPublicUrl(path);
-  return data.publicUrl;
-}
+export async function uploadCatalogImage(file: File, folder = "catalogue"): Promise<string> {
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const uuid = typeof crypto !== "undefined" && crypto.randomUUID
+  ? crypto.randomUUID()
+  : `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 
-export async function uploadCatalogImage(file: File, folder: string): Promise<string> {
-  const ext = file.name.split(".").pop() || "jpg";
-  const key = `${folder}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage
-    .from("catalog-vehicles")
-    .upload(key, file, { contentType: file.type, upsert: false });
-  if (error) throw error;
-  return publicUrl(key);
+const path = `${folder}/${uuid}.${ext}`;
+
+  console.log("📷 Fichier sélectionné :", file.name);
+  console.log("📦 Taille :", file.size);
+  console.log("📍 Chemin :", path);
+
+  const { data, error: uploadError } = await supabase.storage
+    .from("catalogue-images")
+    .upload(path, file, {
+      contentType: file.type || `image/${ext}`,
+      upsert: false,
+    });
+
+  console.log("📤 Résultat Supabase :", data);
+  console.log("❌ Erreur Supabase :", uploadError);
+
+  if (uploadError) throw uploadError;
+
+  const { data: urlData } = supabase.storage
+    .from("catalogue-images")
+    .getPublicUrl(path);
+
+  console.log("🔗 URL générée :", urlData.publicUrl);
+
+  return urlData.publicUrl;
 }
