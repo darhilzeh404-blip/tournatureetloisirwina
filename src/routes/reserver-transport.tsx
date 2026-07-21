@@ -423,6 +423,14 @@ function ReserverTransport() {
             <TabsTrigger value="evenement">Événement</TabsTrigger>
           </TabsList>
 
+          {tab === null && (
+            <div className="mt-6 rounded-3xl border border-dashed border-primary/25 bg-card/60 p-6 text-center">
+              <p className="text-sm font-semibold text-foreground">Choisissez un service ci-dessus</p>
+              <p className="mt-1 text-xs text-muted-foreground">Scolaire · Extra · Groupe · Événement</p>
+            </div>
+          )}
+
+
           {/* ─── SCOLAIRE ─── */}
           <TabsContent value="scolaire" className="mt-5 space-y-4">
             <Field label="Itinéraire">
