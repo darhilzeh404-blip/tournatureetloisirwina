@@ -123,7 +123,7 @@ function RootComponent() {
       else if (role === "admin") target = "/admin";
       else if (role === "gerant") target = "/gerant";
       else if (role === "chauffeur") target = "/chauffeur";
-      else if (role === "agence") target = "/agence";
+      
 
       if (target) {
         navigate({ to: target as any, replace: true });
