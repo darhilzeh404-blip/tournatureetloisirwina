@@ -95,10 +95,25 @@ const WEDDING_FARES = {
 type WeddingVehicle = keyof typeof WEDDING_FARES;
 type WeddingDuration = "h12" | "h24";
 
-type MainTab = "course" | "mariage";
+type MainTab = "standard" | "confort" | "vip" | "mariage" | "covoiturage" | "gammes";
+
+const MAIN_TABS: {
+  id: MainTab;
+  label: string;
+  sub: string;
+  icon?: string;
+  lucide?: React.ComponentType<{ className?: string }>;
+}[] = [
+  { id: "standard",    label: "Standard",    sub: "Citadine",   icon: "/icons/standard-3d.png" },
+  { id: "confort",     label: "Confort",     sub: "Berline",    icon: "/icons/confort-3d.png" },
+  { id: "vip",         label: "VIP",         sub: "Prestige",   icon: "/icons/vip-3d.png" },
+  { id: "mariage",     label: "Mariage",     sub: "Événement",  icon: "/icons/vehicule mariage-3d.png" },
+  { id: "covoiturage", label: "Covoiturage", sub: "En groupe",  lucide: Users },
+  { id: "gammes",      label: "Nos Gammes",  sub: "Abonnement", lucide: Gem },
+];
 
 function VtcPage() {
-  const [tab, setTab] = useState<MainTab>("course");
+  const [tab, setTab] = useState<MainTab>("standard");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
@@ -129,51 +144,59 @@ function VtcPage() {
             </div>
           </div>
           <p className="mt-2 max-w-md text-[12.5px] leading-snug text-primary-foreground/85">
-            Tarifs fixes par zone · Standard, Confort, VIP — ou véhicule de mariage avec chauffeur dédié.
+            Choisissez votre gamme, réservez en quelques secondes — Standard, Confort, VIP, Mariage, Covoiturage.
           </p>
-
-          {/* Pills tabs iOS (sliding) */}
-          <div className="relative mt-4 grid grid-cols-2 gap-1 rounded-full bg-primary-foreground/15 p-1 backdrop-blur-md ring-1 ring-primary-foreground/20">
-            {([
-              { v: "course",  l: "Course",  i: CarFront },
-              { v: "mariage", l: "Mariage", i: Heart },
-            ] as const).map((t) => {
-              const I = t.i;
-              const active = tab === t.v;
-              return (
-                <button
-                  key={t.v}
-                  type="button"
-                  onClick={() => setTab(t.v)}
-                  className="relative z-10 flex h-9 items-center justify-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold transition-colors"
-                  aria-pressed={active}
-                >
-                  {active && (
-                    <motion.span
-                      layoutId="vtc-tab-pill"
-                      className="absolute inset-0 -z-10 rounded-full bg-primary-foreground shadow-sm"
-                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                    />
-                  )}
-                  <I className={`h-3.5 w-3.5 ${active ? "text-primary" : "text-primary-foreground"}`} />
-                  <span className={active ? "text-primary" : "text-primary-foreground"}>{t.l}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <Link
-            to="/deplacement-groupe"
-            className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary-foreground/15 px-3 py-1.5 text-[11.5px] font-semibold text-primary-foreground ring-1 ring-primary-foreground/25 backdrop-blur-md transition hover:bg-primary-foreground/25"
-          >
-            <Users className="h-3.5 w-3.5" />
-            Covoiturage · Voyager en groupe
-            <ArrowRight className="h-3 w-3" />
-          </Link>
         </div>
       </section>
 
-      <main className="mx-auto -mt-3 max-w-3xl px-4">
+      {/* Onglets arrondis (scroll horizontal, iOS-style) */}
+      <div className="relative -mt-4 px-4">
+        <div
+          role="tablist"
+          aria-label="Services VTC"
+          className="mx-auto flex max-w-3xl snap-x snap-mandatory gap-2 overflow-x-auto rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_10px_30px_-18px_hsl(var(--primary)/0.35)] backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {MAIN_TABS.map((t) => {
+            const active = tab === t.id;
+            const Icon = t.lucide;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(t.id)}
+                data-compact="true"
+                className={`relative shrink-0 snap-start rounded-2xl px-3 py-2 text-left transition-all active:scale-[0.97] ${
+                  active
+                    ? "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-[0_8px_22px_-10px_hsl(var(--primary)/0.7)]"
+                    : "bg-muted/60 text-foreground hover:bg-muted"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${active ? "bg-primary-foreground/15" : "bg-card"}`}>
+                    {t.icon ? (
+                      <img src={t.icon} alt="" className="h-8 w-8 object-contain drop-shadow" />
+                    ) : Icon ? (
+                      <Icon className={`h-5 w-5 ${active ? "text-primary-foreground" : "text-primary"}`} />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0 pr-1">
+                    <p className={`text-[12.5px] font-extrabold leading-tight ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                      {t.label}
+                    </p>
+                    <p className={`text-[10.5px] font-semibold ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                      {t.sub}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <main className="mx-auto mt-4 max-w-3xl px-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={tab}
@@ -183,16 +206,73 @@ function VtcPage() {
             transition={{ duration: 0.22, ease: "easeOut" }}
             className="space-y-2.5"
           >
-            {tab === "course" ? <CourseFlow /> : <MariageFlow />}
+            {tab === "mariage" ? (
+              <MariageFlow />
+            ) : tab === "covoiturage" ? (
+              <CovoiturageSection />
+            ) : tab === "gammes" ? (
+              <PremiumRangesSection onCourse={() => setTab("standard")} />
+            ) : (
+              <CourseFlow forcedCategory={tab} />
+            )}
           </motion.div>
         </AnimatePresence>
-
-        <PremiumRangesSection onCourse={() => setTab("course")} />
       </main>
 
       <ClientNav />
       <style>{`.input-base{width:100%;border-radius:.75rem;border:1px solid hsl(var(--border));background:hsl(var(--card));padding:.6rem .75rem;font-size:.875rem;transition:border-color .15s,box-shadow .15s}.input-base:focus{outline:none;border-color:hsl(var(--primary));box-shadow:0 0 0 3px hsl(var(--primary)/.15)}`}</style>
     </div>
+  );
+}
+
+// ─── Covoiturage (résumé + CTA vers le flow existant) ───────────────────────
+function CovoiturageSection() {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="overflow-hidden rounded-3xl border border-border/60 bg-card/95 p-5 shadow-sm backdrop-blur-sm"
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/15">
+          <Users className="h-7 w-7 text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary ring-1 ring-primary/20">
+            <Sparkles className="h-2.5 w-2.5" /> Économique
+          </span>
+          <h3 className="mt-1.5 text-[16px] font-extrabold leading-tight text-foreground">Covoiturage · Voyager en groupe</h3>
+          <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
+            Partagez un trajet avec d'autres passagers vers la même destination et divisez le coût de la course.
+            Idéal pour les longs trajets et les déplacements réguliers.
+          </p>
+        </div>
+      </div>
+
+      <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+        {[
+          { i: Users,    t: "Jusqu'à 4 passagers" },
+          { i: MapPin,   t: "Départs & arrivées communs" },
+          { i: Zap,      t: "Tarif partagé, plus léger" },
+          { i: Calendar, t: "Réservez à l'avance" },
+        ].map((f, idx) => {
+          const I = f.i;
+          return (
+            <li key={idx} className="flex items-center gap-2 rounded-2xl border border-border/60 bg-secondary/40 px-3 py-2">
+              <I className="h-4 w-4 text-primary" />
+              <span className="text-[12.5px] font-semibold text-foreground">{f.t}</span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <Link
+        to="/deplacement-groupe"
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[13.5px] font-bold text-primary-foreground shadow-[0_10px_24px_-12px_hsl(var(--primary)/0.65)] transition-all active:scale-[0.98]"
+      >
+        <Users className="h-4 w-4" /> Réserver un covoiturage <ArrowRight className="h-4 w-4" />
+      </Link>
+    </motion.section>
   );
 }
 
