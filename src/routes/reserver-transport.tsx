@@ -415,7 +415,7 @@ function ReserverTransport() {
       </div>
 
       <div className="mx-auto mt-4 max-w-3xl px-4">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
+        <Tabs value={tab ?? ""} onValueChange={(v) => setTab(v as TabId)} className="w-full">
           <TabsList className="sr-only">
             <TabsTrigger value="scolaire">Scolaire</TabsTrigger>
             <TabsTrigger value="extra">Extra</TabsTrigger>
