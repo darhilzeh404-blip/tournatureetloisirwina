@@ -1389,7 +1389,7 @@ function PremiumRangesSection({ onCourse: _onCourse }: { onCourse: () => void })
               <RangeCard
                 badge="Abonnement"
                 badgeTone="primary"
-                icon="/icons/voiture mariage-3d.png"
+                icon="/icons/vehicule mariage-3d.png"
                 title="Abonnement Berline Simple"
                 price="150.000 XAF"
                 priceSuffix="/mois"
