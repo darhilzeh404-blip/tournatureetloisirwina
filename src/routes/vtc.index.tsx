@@ -420,12 +420,13 @@ function AccordionCard({
 
 type LatLng = { lat: number; lng: number } | null;
 
-function CourseFlow() {
+function CourseFlow({ forcedCategory }: { forcedCategory?: VehicleCategory } = {}) {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 
   const wizard = useWizard(["route", "mode", "when"]);
-  const [category, setCategory] = useState<VehicleCategory>("standard");
+  const [category, setCategory] = useState<VehicleCategory>(forcedCategory ?? "standard");
+  useEffect(() => { if (forcedCategory) setCategory(forcedCategory); }, [forcedCategory]);
   const [mode, setMode] = useState<RideMode>("express");
   const [pickupLabel, setPickupLabel] = useState("");
   const [destLabel, setDestLabel] = useState("");
