@@ -737,11 +737,12 @@ function ReserverTransport() {
                 <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver le bus" />
                 </>)}
               </div>
-            )}
+          </TabsContent>
 
-
-            {busSubTab === "evenement" && (
+          {/* ─── BUS · LOCATION ÉVÉNEMENT ─── */}
+          <TabsContent value="evenement" className="mt-5 space-y-4">
               <div className="space-y-4 pb-28">
+
                 {/* Bandeau */}
                 <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
                   <div className="flex items-start gap-3">
