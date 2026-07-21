@@ -3331,7 +3331,7 @@ export type Database = {
       }
     }
     Enums: {
-      agency_category: "bus" | "train" | "avion" | "bateau"
+      agency_category: "bus" | "train" | "avion" | "bateau" | "evenement"
       app_role: "admin" | "user" | "gerant" | "chauffeur" | "client" | "agence"
       gift_redemption_status: "pending" | "delivered" | "cancelled"
       lottery_status: "draft" | "open" | "closed" | "drawn"
@@ -3485,7 +3485,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      agency_category: ["bus", "train", "avion", "bateau"],
+      agency_category: ["bus", "train", "avion", "bateau", "evenement"],
       app_role: ["admin", "user", "gerant", "chauffeur", "client", "agence"],
       gift_redemption_status: ["pending", "delivered", "cancelled"],
       lottery_status: ["draft", "open", "closed", "drawn"],
