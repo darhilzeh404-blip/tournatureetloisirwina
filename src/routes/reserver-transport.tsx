@@ -60,7 +60,8 @@ function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const catalog = usePricingCatalog();
-  const [tab, setTab] = useState<"scolaire" | "extra" | "groupe" | "evenement">("scolaire");
+  type TabId = "scolaire" | "extra" | "groupe" | "evenement";
+  const [tab, setTab] = useState<TabId | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const ensureAuth = () => {
@@ -372,7 +373,7 @@ function ReserverTransport() {
                 onClick={() => setTab(t.id)}
                 whileTap={{ scale: 0.94 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="relative flex flex-col items-center justify-start gap-1 rounded-2xl px-1 py-2 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="relative flex flex-col items-center justify-center gap-1.5 rounded-2xl px-1 py-3 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 {active && (
                   <motion.span
@@ -385,7 +386,7 @@ function ReserverTransport() {
                 <motion.div
                   animate={{ scale: active ? 1.08 : 1, y: active ? -1 : 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-xl transition-colors sm:h-12 sm:w-12 ${
+                  className={`relative z-10 grid h-12 w-12 place-items-center rounded-2xl transition-colors sm:h-14 sm:w-14 ${
                     active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : "bg-muted/70"
                   }`}
                 >
@@ -393,17 +394,17 @@ function ReserverTransport() {
                     src={t.img}
                     alt=""
                     aria-hidden
-                    width={48}
-                    height={48}
+                    width={56}
+                    height={56}
                     loading="lazy"
-                    className="h-8 w-8 object-contain drop-shadow sm:h-9 sm:w-9"
+                    className="block h-9 w-9 object-contain drop-shadow sm:h-11 sm:w-11"
                   />
                 </motion.div>
-                <div className="relative z-10 min-w-0 w-full">
-                  <p className={`truncate text-[10.5px] font-extrabold leading-tight sm:text-[12px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                <div className="relative z-10 flex min-w-0 w-full flex-col items-center">
+                  <p className={`w-full truncate text-center text-[11px] font-extrabold leading-tight sm:text-[12.5px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
                     {t.label}
                   </p>
-                  <p className={`truncate text-[9px] font-semibold leading-tight sm:text-[10px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                  <p className={`w-full truncate text-center text-[9.5px] font-semibold leading-tight sm:text-[10.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
                     {t.sub}
                   </p>
                 </div>
@@ -414,13 +415,21 @@ function ReserverTransport() {
       </div>
 
       <div className="mx-auto mt-4 max-w-3xl px-4">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
+        <Tabs value={tab ?? ""} onValueChange={(v) => setTab(v as TabId)} className="w-full">
           <TabsList className="sr-only">
             <TabsTrigger value="scolaire">Scolaire</TabsTrigger>
             <TabsTrigger value="extra">Extra</TabsTrigger>
             <TabsTrigger value="groupe">Groupe</TabsTrigger>
             <TabsTrigger value="evenement">Événement</TabsTrigger>
           </TabsList>
+
+          {tab === null && (
+            <div className="mt-6 rounded-3xl border border-dashed border-primary/25 bg-card/60 p-6 text-center">
+              <p className="text-sm font-semibold text-foreground">Choisissez un service ci-dessus</p>
+              <p className="mt-1 text-xs text-muted-foreground">Scolaire · Extra · Groupe · Événement</p>
+            </div>
+          )}
+
 
           {/* ─── SCOLAIRE ─── */}
           <TabsContent value="scolaire" className="mt-5 space-y-4">
