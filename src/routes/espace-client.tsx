@@ -9,7 +9,7 @@ import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { DESTINATIONS, formatFCFA } from "@/lib/destinations";
 import { BookingDialog, type BookingTarget } from "@/components/BookingDialog";
 import heroImg from "@/assets/client-hero.png";
-import bus3d from "@/assets/icons/bus-3d.jpg";
+import bus3d from "@/assets/icons/bus-3d.png";
 import navetteBus3d from "@/assets/icons/Navette bus-3d.webp";
 import circuit3d from "@/assets/icons/circuit-3d.webp";
 import vtc3d from "@/assets/icons/vtc-3d.ico";
