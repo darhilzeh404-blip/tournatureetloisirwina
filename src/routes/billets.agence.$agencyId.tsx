@@ -124,7 +124,23 @@ function AgencyTicketsPage() {
           unit_price: booking.price,
         },
       }).select("id").single();
-      if (bookingRes.error) throw bookingRes.error;
+      if (bookingRes.error) {
+        const msg = bookingRes.error.message || "";
+        if (msg.includes("Places insuffisantes")) {
+          toast.error("Ce billet n'a plus assez de places disponibles.");
+          // Rafraîchit la liste pour montrer les places réelles
+          const { data: refreshed } = await supabase
+            .from("partner_tickets" as any)
+            .select("*")
+            .eq("agency_id", agencyId)
+            .eq("is_active", true);
+          setTickets(((refreshed as any) ?? []) as Ticket[]);
+          setBooking(null);
+          setSubmitting(false);
+          return;
+        }
+        throw bookingRes.error;
+      }
       const partnerBookingId = (bookingRes.data as any).id;
 
       // 2) Réservation liée au flux paiement existant
