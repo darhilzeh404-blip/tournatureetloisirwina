@@ -73,6 +73,7 @@ import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
 import { Route as AdminCatalogueRouteImport } from './routes/admin/catalogue'
 import { Route as AdminBusReservationsRouteImport } from './routes/admin/bus-reservations'
 import { Route as AdminBusRouteImport } from './routes/admin/bus'
+import { Route as AdminBilletsReservationsRouteImport } from './routes/admin/billets-reservations'
 import { Route as AdminBilletsRouteImport } from './routes/admin/billets'
 import { Route as AdminAnnoncesRouteImport } from './routes/admin/annonces'
 import { Route as AdminAgencesRouteImport } from './routes/admin/agences'
@@ -404,6 +405,12 @@ const AdminBusRoute = AdminBusRouteImport.update({
   path: '/bus',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminBilletsReservationsRoute =
+  AdminBilletsReservationsRouteImport.update({
+    id: '/billets-reservations',
+    path: '/billets-reservations',
+    getParentRoute: () => AdminRouteRoute,
+  } as any)
 const AdminBilletsRoute = AdminBilletsRouteImport.update({
   id: '/billets',
   path: '/billets',
@@ -493,6 +500,7 @@ export interface FileRoutesByFullPath {
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
+  '/admin/billets-reservations': typeof AdminBilletsReservationsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/catalogue': typeof AdminCatalogueRoute
@@ -567,6 +575,7 @@ export interface FileRoutesByTo {
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
+  '/admin/billets-reservations': typeof AdminBilletsReservationsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/catalogue': typeof AdminCatalogueRoute
@@ -644,6 +653,7 @@ export interface FileRoutesById {
   '/admin/agences': typeof AdminAgencesRoute
   '/admin/annonces': typeof AdminAnnoncesRoute
   '/admin/billets': typeof AdminBilletsRoute
+  '/admin/billets-reservations': typeof AdminBilletsReservationsRoute
   '/admin/bus': typeof AdminBusRoute
   '/admin/bus-reservations': typeof AdminBusReservationsRoute
   '/admin/catalogue': typeof AdminCatalogueRoute
@@ -722,6 +732,7 @@ export interface FileRouteTypes {
     | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
+    | '/admin/billets-reservations'
     | '/admin/bus'
     | '/admin/bus-reservations'
     | '/admin/catalogue'
@@ -796,6 +807,7 @@ export interface FileRouteTypes {
     | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
+    | '/admin/billets-reservations'
     | '/admin/bus'
     | '/admin/bus-reservations'
     | '/admin/catalogue'
@@ -872,6 +884,7 @@ export interface FileRouteTypes {
     | '/admin/agences'
     | '/admin/annonces'
     | '/admin/billets'
+    | '/admin/billets-reservations'
     | '/admin/bus'
     | '/admin/bus-reservations'
     | '/admin/catalogue'
@@ -1403,6 +1416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBusRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/billets-reservations': {
+      id: '/admin/billets-reservations'
+      path: '/billets-reservations'
+      fullPath: '/admin/billets-reservations'
+      preLoaderRoute: typeof AdminBilletsReservationsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/billets': {
       id: '/admin/billets'
       path: '/billets'
@@ -1480,6 +1500,7 @@ interface AdminRouteRouteChildren {
   AdminAgencesRoute: typeof AdminAgencesRoute
   AdminAnnoncesRoute: typeof AdminAnnoncesRoute
   AdminBilletsRoute: typeof AdminBilletsRoute
+  AdminBilletsReservationsRoute: typeof AdminBilletsReservationsRoute
   AdminBusRoute: typeof AdminBusRoute
   AdminBusReservationsRoute: typeof AdminBusReservationsRoute
   AdminCatalogueRoute: typeof AdminCatalogueRoute
@@ -1508,6 +1529,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminAgencesRoute: AdminAgencesRoute,
   AdminAnnoncesRoute: AdminAnnoncesRoute,
   AdminBilletsRoute: AdminBilletsRoute,
+  AdminBilletsReservationsRoute: AdminBilletsReservationsRoute,
   AdminBusRoute: AdminBusRoute,
   AdminBusReservationsRoute: AdminBusReservationsRoute,
   AdminCatalogueRoute: AdminCatalogueRoute,
