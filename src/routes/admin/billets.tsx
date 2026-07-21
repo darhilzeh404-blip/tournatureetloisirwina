@@ -139,7 +139,7 @@ function AdminBilletsPage() {
     if (!file) return;
     setUploading(true);
     try {
-      const path = `partner-tickets/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
+      const path = `partner-tickets/${randomId("ticket")}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
       const { error } = await supabase.storage.from("ticket-images").upload(path, file, { upsert: false, contentType: file.type });
       if (error) throw error;
       const { data } = supabase.storage.from("ticket-images").getPublicUrl(path);
