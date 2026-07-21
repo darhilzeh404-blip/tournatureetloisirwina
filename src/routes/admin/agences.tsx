@@ -9,6 +9,7 @@ import {
   Bus, TrainFront, Plane, Ship, PartyPopper,
 } from "lucide-react";
 import { toast } from "sonner";
+import { randomId } from "@/lib/random-id";
 
 export const Route = createFileRoute("/admin/agences")({
   component: AdminAgences,
