@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   GraduationCap,
   Bus,
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NumberInput } from "@/components/ui/number-input";
+import hiaceBg from "@/assets/hiace-navette.jpg";
 import {
   usePricingCatalog,
   findSchoolMonthly,
@@ -313,26 +315,100 @@ function ReserverTransport() {
   };
 
   return (
-    <div className="pb-24">
-      <div className="hero-gradient px-5 pb-6 pt-8">
-        <h1 className="text-xl font-bold text-primary-foreground">🚌 Réserver un transport</h1>
-        <p className="mt-1 text-sm text-primary-foreground/70">
-          Scolaire, extra-scolaire ou location de bus
-        </p>
+    <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
+      {/* Header premium avec Hiace en fond */}
+      <section className="relative overflow-hidden rounded-b-[28px] px-5 pb-6 pt-7 shadow-lg shadow-primary/20">
+        <img
+          src={hiaceBg}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+          loading="eager"
+          decoding="async"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/70 to-black/70" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 opacity-20" aria-hidden>
+          <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-primary-foreground blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-accent/60 blur-3xl" />
+        </div>
+        <div className="relative mx-auto max-w-3xl">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-foreground/15 backdrop-blur-md ring-1 ring-primary-foreground/25">
+              <Bus className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-foreground/75">Navette Bus</p>
+              <h1 className="text-xl font-extrabold leading-tight text-primary-foreground">Réserver un transport</h1>
+            </div>
+          </div>
+          <p className="mt-2 max-w-md text-[12.5px] leading-snug text-primary-foreground/85">
+            Scolaire, extra-scolaire ou location de bus événementiel — Toyota Hiace, 14 à 32 places.
+          </p>
+        </div>
+      </section>
+
+      {/* Onglets arrondis premium — grille pleine largeur */}
+      <div className="relative -mt-5 px-3 sm:px-4">
+        <div
+          role="tablist"
+          aria-label="Types de transport"
+          className="mx-auto grid max-w-3xl grid-cols-3 gap-2 rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_12px_32px_-18px_hsl(var(--primary)/0.4)] backdrop-blur-md sm:gap-2.5"
+        >
+          {[
+            { id: "scolaire", label: "Scolaire", sub: "Mensuel", Icon: GraduationCap },
+            { id: "extra",    label: "Extra",    sub: "Activités", Icon: Sparkles },
+            { id: "bus",      label: "Bus",      sub: "Groupe/Event", Icon: Bus },
+          ].map((t) => {
+            const active = tab === t.id;
+            const Icon = t.Icon;
+            return (
+              <motion.button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(t.id)}
+                whileTap={{ scale: 0.94 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="relative flex flex-col items-center justify-start gap-1.5 rounded-2xl px-1.5 py-2.5 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              >
+                {active && (
+                  <motion.span
+                    layoutId="bus-tab-active"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-primary/85 shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.75)]"
+                    aria-hidden
+                  />
+                )}
+                <motion.div
+                  animate={{ scale: active ? 1.08 : 1, y: active ? -1 : 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-xl transition-colors sm:h-12 sm:w-12 ${
+                    active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : "bg-muted/70"
+                  }`}
+                >
+                  <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${active ? "text-primary-foreground" : "text-primary"}`} />
+                </motion.div>
+                <div className="relative z-10 min-w-0">
+                  <p className={`truncate text-[11.5px] font-extrabold leading-tight sm:text-[12.5px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                    {t.label}
+                  </p>
+                  <p className={`truncate text-[9.5px] font-semibold leading-tight sm:text-[10.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                    {t.sub}
+                  </p>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="px-5 pt-5">
+      <div className="mx-auto mt-4 max-w-3xl px-4">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-xl bg-muted p-1">
-            <TabsTrigger value="scolaire" className="flex-col gap-0.5 py-2 text-[11px]">
-              <GraduationCap className="h-4 w-4" /> Scolaire
-            </TabsTrigger>
-            <TabsTrigger value="extra" className="flex-col gap-0.5 py-2 text-[11px]">
-              <Sparkles className="h-4 w-4" /> Extra
-            </TabsTrigger>
-            <TabsTrigger value="bus" className="flex-col gap-0.5 py-2 text-[11px]">
-              <Bus className="h-4 w-4" /> Bus
-            </TabsTrigger>
+          <TabsList className="sr-only">
+            <TabsTrigger value="scolaire">Scolaire</TabsTrigger>
+            <TabsTrigger value="extra">Extra</TabsTrigger>
+            <TabsTrigger value="bus">Bus</TabsTrigger>
           </TabsList>
 
           {/* ─── SCOLAIRE ─── */}
