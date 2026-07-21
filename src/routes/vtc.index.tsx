@@ -641,7 +641,7 @@ function CourseFlow() {
 
       <AccordionCard id="route" wizard={wizard}
         canConfirm={!!(pickup && destination && fare.ok)}
-        title="Itinéraire & zones"
+        title="Itinéraire & Zone"
         summary={pickup && destination ? `${zoneLabel(fare.zoneFrom)} → ${zoneLabel(fare.zoneTo)}` : "Sélectionner départ & arrivée"}
         icon={<MapPin className="h-4 w-4" />}
       >
@@ -900,7 +900,7 @@ function CourseFlow() {
 
       <AccordionCard id="when" wizard={wizard}
         canConfirm={(rideTiming === "now" || !!scheduledAt) && passengers >= 1}
-        title="Date & passagers"
+        title="Date & Passagers"
         summary={`${rideTiming === "now" ? "Maintenant" : scheduledAt || "Planifier"} · ${passengers} pax`}
         icon={<Calendar className="h-4 w-4" />}
         confirmLabel="Valider"
