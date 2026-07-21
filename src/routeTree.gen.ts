@@ -80,6 +80,7 @@ import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$r
 import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/deplacement-groupe.waiting.$rideId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
+import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
 
@@ -439,6 +440,11 @@ const BilletsCategorieSlugRoute = BilletsCategorieSlugRouteImport.update({
   path: '/categorie/$slug',
   getParentRoute: () => BilletsRoute,
 } as any)
+const BilletsAgenceAgencyIdRoute = BilletsAgenceAgencyIdRouteImport.update({
+  id: '/agence/$agencyId',
+  path: '/agence/$agencyId',
+  getParentRoute: () => BilletsRoute,
+} as any)
 const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
   id: '/api/admin/create-user',
   path: '/api/admin/create-user',
@@ -520,6 +526,7 @@ export interface FileRoutesByFullPath {
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
@@ -593,6 +600,7 @@ export interface FileRoutesByTo {
   '/deplacement-groupe': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
@@ -669,6 +677,7 @@ export interface FileRoutesById {
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
@@ -746,6 +755,7 @@ export interface FileRouteTypes {
     | '/deplacement-groupe/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
@@ -819,6 +829,7 @@ export interface FileRouteTypes {
     | '/deplacement-groupe'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
@@ -894,6 +905,7 @@ export interface FileRouteTypes {
     | '/deplacement-groupe/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
@@ -1440,6 +1452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BilletsCategorieSlugRouteImport
       parentRoute: typeof BilletsRoute
     }
+    '/billets/agence/$agencyId': {
+      id: '/billets/agence/$agencyId'
+      path: '/agence/$agencyId'
+      fullPath: '/billets/agence/$agencyId'
+      preLoaderRoute: typeof BilletsAgenceAgencyIdRouteImport
+      parentRoute: typeof BilletsRoute
+    }
     '/api/admin/create-user': {
       id: '/api/admin/create-user'
       path: '/api/admin/create-user'
@@ -1519,11 +1538,13 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 
 interface BilletsRouteChildren {
   BilletsIdRoute: typeof BilletsIdRoute
+  BilletsAgenceAgencyIdRoute: typeof BilletsAgenceAgencyIdRoute
   BilletsCategorieSlugRoute: typeof BilletsCategorieSlugRoute
 }
 
 const BilletsRouteChildren: BilletsRouteChildren = {
   BilletsIdRoute: BilletsIdRoute,
+  BilletsAgenceAgencyIdRoute: BilletsAgenceAgencyIdRoute,
   BilletsCategorieSlugRoute: BilletsCategorieSlugRoute,
 }
 
