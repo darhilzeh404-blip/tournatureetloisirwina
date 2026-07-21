@@ -191,11 +191,7 @@ function AgencyTicketsPage() {
         </Link>
 
         <header className="mt-6 flex items-center gap-3">
-          {agency?.logo_url ? (
-            <img src={agency.logo_url} alt="" className="h-14 w-14 rounded-full object-cover border" />
-          ) : (
-            <div className="h-14 w-14 rounded-full bg-primary/10" />
-          )}
+          <AgencyLogo src={agency?.logo_url} alt={agency?.name ?? ""} size={56} />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="truncate text-2xl font-bold">{agency?.name ?? "Agence"}</h1>
