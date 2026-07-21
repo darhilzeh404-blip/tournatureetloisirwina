@@ -151,62 +151,58 @@ function VtcPage() {
         </div>
       </section>
 
-      {/* Onglets arrondis — grands, pleine largeur, animation premium */}
-      <div className="relative -mt-5 px-3 sm:px-6">
-        <div
-          role="tablist"
-          aria-label="Services VTC"
-          className="mx-auto grid w-full max-w-6xl grid-cols-3 gap-3 rounded-3xl border border-border/60 bg-card/95 p-3 shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.45)] backdrop-blur-md sm:grid-cols-6 sm:gap-4 sm:p-4"
-        >
-          {MAIN_TABS.map((t) => {
-            const active = tab === t.id;
-            const Icon = t.lucide;
-            return (
-              <motion.button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setTab(t.id)}
-                whileTap={{ scale: 0.94 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="relative flex min-h-[110px] w-full flex-col items-center justify-center gap-1.5 rounded-2xl px-1.5 py-2.5 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:min-h-[140px] sm:gap-2 sm:px-2 sm:py-3"
-              >
-                {active && (
-                  <motion.span
-                    layoutId="vtc-tab-active"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-primary/85 shadow-[0_14px_32px_-12px_hsl(var(--primary)/0.75)]"
-                    aria-hidden
-                  />
-                )}
-                <motion.div
-                  animate={{ scale: active ? 1.08 : 1, y: active ? -2 : 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl transition-colors sm:h-20 sm:w-20 ${
-                    active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : "bg-muted/70"
+      {/* Onglets arrondis — style dashboard client (cartes 3D tintées) */}
+      <div className="relative -mt-4 px-4 sm:px-6">
+        <div className="mx-auto max-w-3xl">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-[13px] font-bold text-foreground">Nos services</h2>
+            <span className="text-[10px] font-medium text-muted-foreground">Accès rapide</span>
+          </div>
+          <div
+            role="tablist"
+            aria-label="Services VTC"
+            className="mt-3 grid grid-cols-3 gap-3"
+          >
+            {MAIN_TABS.map((t) => {
+              const active = tab === t.id;
+              const Icon = t.lucide;
+              return (
+                <motion.button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setTab(t.id)}
+                  whileHover={{ y: -4, scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  className={`relative flex h-full flex-col items-center gap-2 overflow-hidden rounded-2xl border p-3 text-center shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                    active
+                      ? "border-primary/40 bg-gradient-to-br from-primary to-primary/85 shadow-[0_14px_28px_-14px_hsl(var(--primary)/0.65)]"
+                      : `border-border/60 bg-gradient-to-br ${t.tint}`
                   }`}
                 >
-                  {t.icon ? (
-                    <img src={t.icon} alt="" className="h-9 w-9 object-contain drop-shadow sm:h-14 sm:w-14" />
-                  ) : Icon ? (
-                    <Icon className={`h-7 w-7 sm:h-10 sm:w-10 ${active ? "text-primary-foreground" : "text-primary"}`} />
-                  ) : null}
-                </motion.div>
-                <div className="relative z-10 w-full min-w-0 px-0.5">
-                  <p className={`truncate text-[11.5px] font-extrabold leading-tight sm:text-[15px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
-                    {t.label}
-                  </p>
-                  <p className={`truncate text-[9.5px] font-semibold leading-tight sm:text-[11.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
-                    {t.sub}
-                  </p>
-                </div>
-
-              </motion.button>
-            );
-          })}
+                  <div className={`grid h-12 w-12 place-items-center rounded-2xl ${active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : ""}`}>
+                    {t.icon ? (
+                      <img src={t.icon} alt="" className="h-12 w-12 object-contain drop-shadow" />
+                    ) : Icon ? (
+                      <Icon className={`h-8 w-8 ${active ? "text-primary-foreground" : "text-primary"}`} />
+                    ) : null}
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-sm font-bold leading-tight ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                      {t.label}
+                    </div>
+                    <div className={`text-[10px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                      {t.sub}
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
       </div>
+
 
       <main className="mx-auto mt-6 max-w-6xl px-4">
 
