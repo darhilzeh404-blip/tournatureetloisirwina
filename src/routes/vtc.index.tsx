@@ -103,13 +103,14 @@ const MAIN_TABS: {
   sub: string;
   icon?: string;
   lucide?: React.ComponentType<{ className?: string }>;
+  tint: string;
 }[] = [
-  { id: "standard",    label: "Standard",    sub: "Citadine",   icon: "/icons/standard-3d.png" },
-  { id: "confort",     label: "Confort",     sub: "Berline",    icon: "/icons/confort-3d.png" },
-  { id: "vip",         label: "VIP",         sub: "Prestige",   icon: "/icons/vip-3d.png" },
-  { id: "mariage",     label: "Mariage",     sub: "Événement",  icon: "/icons/vehicule mariage-3d.png" },
-  { id: "covoiturage", label: "Covoiturage", sub: "En groupe",  lucide: Users },
-  { id: "gammes",      label: "Nos Gammes",  sub: "Abonnement", icon: "/icons/gammes-3d.png" },
+  { id: "standard",    label: "Standard",    sub: "Citadine",   icon: "/icons/standard-3d.png",         tint: "from-primary/20 to-primary/5" },
+  { id: "confort",     label: "Confort",     sub: "Berline",    icon: "/icons/confort-3d.png",          tint: "from-accent/25 to-accent/5" },
+  { id: "vip",         label: "VIP",         sub: "Prestige",   icon: "/icons/vip-3d.png",              tint: "from-primary/15 to-accent/10" },
+  { id: "mariage",     label: "Mariage",     sub: "Événement",  icon: "/icons/vehicule mariage-3d.png", tint: "from-accent/20 to-primary/10" },
+  { id: "covoiturage", label: "Covoiturage", sub: "En groupe",  lucide: Users,                          tint: "from-primary/20 to-accent/5" },
+  { id: "gammes",      label: "Nos Gammes",  sub: "Abonnement", icon: "/icons/gammes-3d.png",           tint: "from-accent/15 to-accent/5" },
 ];
 
 function VtcPage() {
