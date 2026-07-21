@@ -349,20 +349,20 @@ function ReserverTransport() {
         </div>
       </section>
 
-      {/* Onglets arrondis premium — grille pleine largeur */}
+      {/* Onglets arrondis premium — 4 colonnes fixes mobile & desktop */}
       <div className="relative -mt-5 px-3 sm:px-4">
         <div
           role="tablist"
           aria-label="Types de transport"
-          className="mx-auto grid max-w-3xl grid-cols-3 gap-2 rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_12px_32px_-18px_hsl(var(--primary)/0.4)] backdrop-blur-md sm:gap-2.5"
+          className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_12px_32px_-18px_hsl(var(--primary)/0.4)] backdrop-blur-md sm:gap-2.5"
         >
           {[
-            { id: "scolaire", label: "Scolaire", sub: "Mensuel", Icon: GraduationCap },
-            { id: "extra",    label: "Extra",    sub: "Activités", Icon: Sparkles },
-            { id: "bus",      label: "Bus",      sub: "Groupe/Event", Icon: Bus },
+            { id: "scolaire" as const,  label: "Scolaire",  sub: "Mensuel",    img: icon3dScolaire },
+            { id: "extra" as const,     label: "Extra",     sub: "Activités",  img: icon3dExtra },
+            { id: "groupe" as const,    label: "Groupe",    sub: "Déplacement", img: icon3dBusGroupe },
+            { id: "evenement" as const, label: "Événement", sub: "Location",   img: icon3dBusEvenement },
           ].map((t) => {
             const active = tab === t.id;
-            const Icon = t.Icon;
             return (
               <motion.button
                 key={t.id}
@@ -372,7 +372,7 @@ function ReserverTransport() {
                 onClick={() => setTab(t.id)}
                 whileTap={{ scale: 0.94 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="relative flex flex-col items-center justify-start gap-1.5 rounded-2xl px-1.5 py-2.5 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="relative flex flex-col items-center justify-start gap-1 rounded-2xl px-1 py-2 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 {active && (
                   <motion.span
@@ -389,13 +389,21 @@ function ReserverTransport() {
                     active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : "bg-muted/70"
                   }`}
                 >
-                  <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${active ? "text-primary-foreground" : "text-primary"}`} />
+                  <img
+                    src={t.img}
+                    alt=""
+                    aria-hidden
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                    className="h-8 w-8 object-contain drop-shadow sm:h-9 sm:w-9"
+                  />
                 </motion.div>
-                <div className="relative z-10 min-w-0">
-                  <p className={`truncate text-[11.5px] font-extrabold leading-tight sm:text-[12.5px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                <div className="relative z-10 min-w-0 w-full">
+                  <p className={`truncate text-[10.5px] font-extrabold leading-tight sm:text-[12px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
                     {t.label}
                   </p>
-                  <p className={`truncate text-[9.5px] font-semibold leading-tight sm:text-[10.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                  <p className={`truncate text-[9px] font-semibold leading-tight sm:text-[10px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
                     {t.sub}
                   </p>
                 </div>
@@ -406,11 +414,12 @@ function ReserverTransport() {
       </div>
 
       <div className="mx-auto mt-4 max-w-3xl px-4">
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
           <TabsList className="sr-only">
             <TabsTrigger value="scolaire">Scolaire</TabsTrigger>
             <TabsTrigger value="extra">Extra</TabsTrigger>
-            <TabsTrigger value="bus">Bus</TabsTrigger>
+            <TabsTrigger value="groupe">Groupe</TabsTrigger>
+            <TabsTrigger value="evenement">Événement</TabsTrigger>
           </TabsList>
 
           {/* ─── SCOLAIRE ─── */}
