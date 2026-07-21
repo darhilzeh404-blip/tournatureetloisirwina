@@ -41,7 +41,7 @@ function CategoryPage() {
       const pubRes = await supabase
         .from("partner_agencies_public" as any)
         .select("id, name, logo_url, description, category, is_verified")
-        .ilike("category", slug)
+        .eq("category", slug)
         .order("is_verified", { ascending: false });
       if (!pubRes.error && pubRes.data) {
         agenciesData = pubRes.data as any[];
@@ -49,7 +49,7 @@ function CategoryPage() {
         const fbRes = await supabase
           .from("partner_agencies" as any)
           .select("id, name, logo_url, description, category, is_verified, is_active")
-          .ilike("category", slug)
+          .eq("category", slug)
           .eq("is_active", true)
           .order("is_verified", { ascending: false });
         agenciesData = (fbRes.data as any[]) ?? [];
