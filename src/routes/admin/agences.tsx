@@ -109,7 +109,7 @@ function AdminAgences() {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-      const path = `agency-logos/${crypto.randomUUID()}.${ext}`;
+      const path = `agency-logos/${randomId("logo")}.${ext}`;
       const { error } = await supabase.storage.from("ticket-images").upload(path, file, {
         cacheControl: "3600", upsert: false, contentType: file.type,
       });
