@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { randomId } from "@/lib/random-id";
+import { AgencyLogo } from "@/components/AgencyLogo";
 
 export const Route = createFileRoute("/admin/agences")({
   component: AdminAgences,
@@ -231,7 +232,7 @@ function AdminAgences() {
             <label className="text-xs font-medium">Logo</label>
             <div className="flex items-center gap-3">
               {form.logo_url ? (
-                <img src={form.logo_url} alt="logo" className="h-16 w-16 rounded-full object-cover border" />
+                <AgencyLogo src={form.logo_url} alt="logo" size={64} />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-muted" />
               )}
@@ -279,7 +280,7 @@ function AdminAgences() {
             return (
               <div key={a.id} className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border bg-card p-4">
                 {a.logo_url ? (
-                  <img src={a.logo_url} alt="" className="h-16 w-16 rounded-full object-cover border shrink-0" />
+                  <AgencyLogo src={a.logo_url} alt={a.name} size={64} />
                 ) : (
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <CatIcon className="h-7 w-7" />

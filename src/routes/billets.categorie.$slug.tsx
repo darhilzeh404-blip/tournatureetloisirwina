@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, BadgeCheck, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketCategoryIcon, CATEGORY_LABELS, type TicketCategorySlug } from "@/components/TicketCategoryIcon";
+import { AgencyLogo } from "@/components/AgencyLogo";
 
 export const Route = createFileRoute("/billets/categorie/$slug")({
   component: CategoryPage,

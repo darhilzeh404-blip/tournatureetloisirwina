@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { AgencyLogo } from "@/components/AgencyLogo";
 
 export const Route = createFileRoute("/billets/agence/$agencyId")({
   component: AgencyTicketsPage,
