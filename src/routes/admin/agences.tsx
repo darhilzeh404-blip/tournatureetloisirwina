@@ -9,6 +9,7 @@ import {
   Bus, TrainFront, Plane, Ship, Percent, X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/agences")({
   component: AdminAgences,
@@ -304,6 +305,11 @@ function AdminAgences() {
                     </p>
                   )}
                 </div>
+     <Button size="sm" variant="outline" asChild>
+  <Link to="/admin/agences/$id/billets" params={{ id: a.id }}>
+    Billets
+  </Link>
+</Button>
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={() => openEdit(a)}>
                     <Pencil className="mr-1 h-3.5 w-3.5" /> Modifier

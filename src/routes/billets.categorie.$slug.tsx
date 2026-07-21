@@ -107,7 +107,7 @@ function CategoryPage() {
         supabase
           .from("partner_agencies_public" as any)
           .select("id, name, logo_url, description, category")
-          .eq("category", slug),
+          .ilike("category", slug),
       ]);
       setList(((ticketsRes.data as any) ?? []) as Ticket[]);
       setCategoryAgencies(((agenciesRes.data as any) ?? []) as AgencyRow[]);
