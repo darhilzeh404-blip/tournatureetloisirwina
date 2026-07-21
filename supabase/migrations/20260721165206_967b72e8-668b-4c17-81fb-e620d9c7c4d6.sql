@@ -1,0 +1,3 @@
+-- Retirer la policy RESTRICTIVE qui bloque les clients authentifiés de voir les agences partenaires actives.
+-- Historique : ajoutée à l'époque où le modèle avait un "owner". Le modèle actuel est admin-only, cette restriction n'a plus de sens et masque tout aux clients connectés (visible seulement pour anon et admin).
+DROP POLICY IF EXISTS "restrict_partner_agencies_to_owner_or_admin" ON public.partner_agencies;
