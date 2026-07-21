@@ -365,6 +365,29 @@ function PaiementPage() {
         </CardContent>
       </Card>
 
+      {/* Paiement instantané via PawaPay */}
+      <Card className="border-green-500/40 bg-green-500/5">
+        <CardContent className="p-5 space-y-3">
+          <div>
+            <p className="text-sm font-bold">⚡ Paiement instantané</p>
+            <p className="text-xs text-muted-foreground">Confirmé automatiquement dès validation sur votre téléphone.</p>
+          </div>
+          <PawaPayCheckout
+            purpose="reservation"
+            relatedId={reservation.id}
+            amount={Math.max(reservation.total_amount - reservation.paid_amount - (reservation.coins_used ?? 0), 0)}
+            description={`Wina ${reservation.id.slice(0, 6).toUpperCase()}`}
+            onSuccess={() => navigate({ to: "/mes-reservations" })}
+          />
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center gap-3 py-2">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs text-muted-foreground">ou paiement manuel avec justificatif</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
       {/* Choix méthode */}
       <Card>
         <CardContent className="p-5 space-y-4">
