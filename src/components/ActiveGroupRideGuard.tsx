@@ -35,7 +35,7 @@ export function ActiveGroupRideGuard() {
       path.startsWith("/admin") ||
       path.startsWith("/chauffeur") ||
       path.startsWith("/gerant") ||
-      path.startsWith("/agence") ||
+      
       path.startsWith("/connexion") ||
       path.startsWith("/inscription") ||
       path.startsWith("/paiement") ||
