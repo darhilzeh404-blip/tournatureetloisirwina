@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Ticket as TicketIcon, Plus, Pencil, Trash2, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { randomId } from "@/lib/random-id";
 
 export const Route = createFileRoute("/admin/billets")({
   head: () => ({ meta: [{ title: "Billets — Admin" }] }),
