@@ -49,11 +49,15 @@ const path = `${folder}/${uuid}.${ext}`;
 
   if (uploadError) throw uploadError;
 
-  const { data: urlData } = supabase.storage
+  // Bucket privé : générer une URL signée longue durée (10 ans)
+  const { data: signed, error: signedError } = await supabase.storage
     .from("catalogue-images")
-    .getPublicUrl(path);
+    .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
 
-  console.log("🔗 URL générée :", urlData.publicUrl);
+  if (signedError || !signed?.signedUrl) {
+    throw signedError ?? new Error("Impossible de générer l'URL de l'image");
+  }
 
-  return urlData.publicUrl;
+  console.log("🔗 URL signée :", signed.signedUrl);
+  return signed.signedUrl;
 }
