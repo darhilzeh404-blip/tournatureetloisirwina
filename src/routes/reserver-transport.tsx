@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  GraduationCap,
   Bus,
   Sparkles,
   ArrowRight,
@@ -21,6 +20,10 @@ import { formatFCFA } from "@/lib/destinations";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NumberInput } from "@/components/ui/number-input";
 import hiaceBg from "@/assets/hiace-navette.jpg";
+import icon3dScolaire from "@/assets/icons-3d/scolaire.png";
+import icon3dExtra from "@/assets/icons-3d/extra.png";
+import icon3dBusGroupe from "@/assets/icons-3d/bus-groupe.png";
+import icon3dBusEvenement from "@/assets/icons-3d/bus-evenement.png";
 import {
   usePricingCatalog,
   findSchoolMonthly,
