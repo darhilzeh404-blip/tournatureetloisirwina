@@ -150,12 +150,12 @@ function VtcPage() {
         </div>
       </section>
 
-      {/* Onglets arrondis — grille pleine largeur, animation premium */}
-      <div className="relative -mt-5 px-3 sm:px-4">
+      {/* Onglets arrondis — grands, pleine largeur, animation premium */}
+      <div className="relative -mt-5 px-3 sm:px-6">
         <div
           role="tablist"
           aria-label="Services VTC"
-          className="mx-auto grid max-w-3xl grid-cols-3 gap-2 rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_12px_32px_-18px_hsl(var(--primary)/0.4)] backdrop-blur-md sm:grid-cols-6 sm:gap-2.5"
+          className="mx-auto grid w-full max-w-6xl grid-cols-3 gap-3 rounded-3xl border border-border/60 bg-card/95 p-3 shadow-[0_16px_40px_-20px_hsl(var(--primary)/0.45)] backdrop-blur-md sm:grid-cols-6 sm:gap-4 sm:p-4"
         >
           {MAIN_TABS.map((t) => {
             const active = tab === t.id;
@@ -169,34 +169,34 @@ function VtcPage() {
                 onClick={() => setTab(t.id)}
                 whileTap={{ scale: 0.94 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="relative flex flex-col items-center justify-start gap-1.5 rounded-2xl px-1.5 py-2.5 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="relative flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl px-2 py-3 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:aspect-auto sm:min-h-[140px]"
               >
                 {active && (
                   <motion.span
                     layoutId="vtc-tab-active"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-primary/85 shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.75)]"
+                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-primary/85 shadow-[0_14px_32px_-12px_hsl(var(--primary)/0.75)]"
                     aria-hidden
                   />
                 )}
                 <motion.div
-                  animate={{ scale: active ? 1.08 : 1, y: active ? -1 : 0 }}
+                  animate={{ scale: active ? 1.08 : 1, y: active ? -2 : 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-xl transition-colors sm:h-12 sm:w-12 ${
+                  className={`relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl transition-colors sm:h-20 sm:w-20 ${
                     active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : "bg-muted/70"
                   }`}
                 >
                   {t.icon ? (
-                    <img src={t.icon} alt="" className="h-8 w-8 object-contain drop-shadow sm:h-9 sm:w-9" />
+                    <img src={t.icon} alt="" className="h-12 w-12 object-contain drop-shadow sm:h-14 sm:w-14" />
                   ) : Icon ? (
-                    <Icon className={`h-5 w-5 ${active ? "text-primary-foreground" : "text-primary"}`} />
+                    <Icon className={`h-9 w-9 sm:h-10 sm:w-10 ${active ? "text-primary-foreground" : "text-primary"}`} />
                   ) : null}
                 </motion.div>
                 <div className="relative z-10 min-w-0">
-                  <p className={`truncate text-[11.5px] font-extrabold leading-tight sm:text-[12.5px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                  <p className={`truncate text-[13px] font-extrabold leading-tight sm:text-[15px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
                     {t.label}
                   </p>
-                  <p className={`truncate text-[9.5px] font-semibold leading-tight sm:text-[10.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                  <p className={`truncate text-[10.5px] font-semibold leading-tight sm:text-[11.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
                     {t.sub}
                   </p>
                 </div>
@@ -206,7 +206,8 @@ function VtcPage() {
         </div>
       </div>
 
-      <main className="mx-auto mt-4 max-w-3xl px-4">
+      <main className="mx-auto mt-6 max-w-6xl px-4">
+
         <AnimatePresence mode="wait">
           <motion.div
             key={tab ?? "none"}
