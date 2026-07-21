@@ -1486,6 +1486,66 @@ export type Database = {
           },
         ]
       }
+      pawapay_transactions: {
+        Row: {
+          amount: number
+          callback_payload: Json | null
+          completed_at: string | null
+          created_at: string
+          currency: string
+          deposit_id: string
+          failure_reason: string | null
+          id: string
+          initiate_response: Json | null
+          metadata: Json
+          payer_msisdn: string
+          provider: string
+          purpose: string
+          related_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          callback_payload?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          deposit_id: string
+          failure_reason?: string | null
+          id?: string
+          initiate_response?: Json | null
+          metadata?: Json
+          payer_msisdn: string
+          provider: string
+          purpose: string
+          related_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          callback_payload?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          deposit_id?: string
+          failure_reason?: string | null
+          id?: string
+          initiate_response?: Json | null
+          metadata?: Json
+          payer_msisdn?: string
+          provider?: string
+          purpose?: string
+          related_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           admin_comment: string | null
@@ -2942,6 +3002,19 @@ export type Database = {
           status: string
           validated_at: string
         }[]
+      }
+      apply_pawapay_completion: {
+        Args: { _callback: Json; _deposit_id: string }
+        Returns: undefined
+      }
+      apply_pawapay_failure: {
+        Args: {
+          _callback: Json
+          _deposit_id: string
+          _reason: string
+          _status: string
+        }
+        Returns: undefined
       }
       archive_trip_and_reservation: {
         Args: { _trip_id: string }
