@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  GraduationCap,
   Bus,
   Sparkles,
   ArrowRight,
@@ -21,6 +20,10 @@ import { formatFCFA } from "@/lib/destinations";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NumberInput } from "@/components/ui/number-input";
 import hiaceBg from "@/assets/hiace-navette.jpg";
+import icon3dScolaire from "@/assets/icons-3d/scolaire.png";
+import icon3dExtra from "@/assets/icons-3d/extra.png";
+import icon3dBusGroupe from "@/assets/icons-3d/bus-groupe.png";
+import icon3dBusEvenement from "@/assets/icons-3d/bus-evenement.png";
 import {
   usePricingCatalog,
   findSchoolMonthly,
@@ -57,8 +60,7 @@ function ReserverTransport() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const catalog = usePricingCatalog();
-  const [tab, setTab] = useState("scolaire");
-  const [busSubTab, setBusSubTab] = useState<"groupe" | "evenement">("groupe");
+  const [tab, setTab] = useState<"scolaire" | "extra" | "groupe" | "evenement">("scolaire");
   const [submitting, setSubmitting] = useState(false);
 
   const ensureAuth = () => {
@@ -347,20 +349,20 @@ function ReserverTransport() {
         </div>
       </section>
 
-      {/* Onglets arrondis premium — grille pleine largeur */}
+      {/* Onglets arrondis premium — 4 colonnes fixes mobile & desktop */}
       <div className="relative -mt-5 px-3 sm:px-4">
         <div
           role="tablist"
           aria-label="Types de transport"
-          className="mx-auto grid max-w-3xl grid-cols-3 gap-2 rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_12px_32px_-18px_hsl(var(--primary)/0.4)] backdrop-blur-md sm:gap-2.5"
+          className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_12px_32px_-18px_hsl(var(--primary)/0.4)] backdrop-blur-md sm:gap-2.5"
         >
           {[
-            { id: "scolaire", label: "Scolaire", sub: "Mensuel", Icon: GraduationCap },
-            { id: "extra",    label: "Extra",    sub: "Activités", Icon: Sparkles },
-            { id: "bus",      label: "Bus",      sub: "Groupe/Event", Icon: Bus },
+            { id: "scolaire" as const,  label: "Scolaire",  sub: "Mensuel",    img: icon3dScolaire },
+            { id: "extra" as const,     label: "Extra",     sub: "Activités",  img: icon3dExtra },
+            { id: "groupe" as const,    label: "Groupe",    sub: "Déplacement", img: icon3dBusGroupe },
+            { id: "evenement" as const, label: "Événement", sub: "Location",   img: icon3dBusEvenement },
           ].map((t) => {
             const active = tab === t.id;
-            const Icon = t.Icon;
             return (
               <motion.button
                 key={t.id}
@@ -370,7 +372,7 @@ function ReserverTransport() {
                 onClick={() => setTab(t.id)}
                 whileTap={{ scale: 0.94 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="relative flex flex-col items-center justify-start gap-1.5 rounded-2xl px-1.5 py-2.5 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="relative flex flex-col items-center justify-start gap-1 rounded-2xl px-1 py-2 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 {active && (
                   <motion.span
@@ -387,13 +389,21 @@ function ReserverTransport() {
                     active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : "bg-muted/70"
                   }`}
                 >
-                  <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${active ? "text-primary-foreground" : "text-primary"}`} />
+                  <img
+                    src={t.img}
+                    alt=""
+                    aria-hidden
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                    className="h-8 w-8 object-contain drop-shadow sm:h-9 sm:w-9"
+                  />
                 </motion.div>
-                <div className="relative z-10 min-w-0">
-                  <p className={`truncate text-[11.5px] font-extrabold leading-tight sm:text-[12.5px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                <div className="relative z-10 min-w-0 w-full">
+                  <p className={`truncate text-[10.5px] font-extrabold leading-tight sm:text-[12px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
                     {t.label}
                   </p>
-                  <p className={`truncate text-[9.5px] font-semibold leading-tight sm:text-[10.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                  <p className={`truncate text-[9px] font-semibold leading-tight sm:text-[10px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
                     {t.sub}
                   </p>
                 </div>
@@ -404,11 +414,12 @@ function ReserverTransport() {
       </div>
 
       <div className="mx-auto mt-4 max-w-3xl px-4">
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="w-full">
           <TabsList className="sr-only">
             <TabsTrigger value="scolaire">Scolaire</TabsTrigger>
             <TabsTrigger value="extra">Extra</TabsTrigger>
-            <TabsTrigger value="bus">Bus</TabsTrigger>
+            <TabsTrigger value="groupe">Groupe</TabsTrigger>
+            <TabsTrigger value="evenement">Événement</TabsTrigger>
           </TabsList>
 
           {/* ─── SCOLAIRE ─── */}
@@ -532,29 +543,8 @@ function ReserverTransport() {
             <SubmitBtn loading={submitting} onClick={submitExtra} label="Réserver + Activité" />
           </TabsContent>
 
-          {/* ─── BUS ─── */}
-          <TabsContent value="bus" className="mt-5 space-y-4">
-            {/* Sous-onglets Bus */}
-            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted p-1">
-              <button
-                type="button"
-                onClick={() => setBusSubTab("groupe")}
-                className={`rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${busSubTab === "groupe" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-              >
-                <Users className="mx-auto mb-0.5 h-4 w-4" />
-                Déplacement en groupe
-              </button>
-              <button
-                type="button"
-                onClick={() => setBusSubTab("evenement")}
-                className={`rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${busSubTab === "evenement" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-              >
-                <Sparkles className="mx-auto mb-0.5 h-4 w-4" />
-                Location événements
-              </button>
-            </div>
-
-            {busSubTab === "groupe" && (
+          {/* ─── BUS · DÉPLACEMENT EN GROUPE ─── */}
+          <TabsContent value="groupe" className="mt-5 space-y-4">
               <div className="space-y-4">
                 {/* Bandeau d'info clair */}
                 <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
@@ -571,6 +561,7 @@ function ReserverTransport() {
                     </div>
                   </div>
                 </div>
+
 
             {!selectedBusTrip ? (
               <div className="rounded-2xl border bg-card p-6 text-center text-sm text-muted-foreground">
@@ -746,11 +737,12 @@ function ReserverTransport() {
                 <SubmitBtn loading={submitting} onClick={submitBus} label="Réserver le bus" />
                 </>)}
               </div>
-            )}
+          </TabsContent>
 
-
-            {busSubTab === "evenement" && (
+          {/* ─── BUS · LOCATION ÉVÉNEMENT ─── */}
+          <TabsContent value="evenement" className="mt-5 space-y-4">
               <div className="space-y-4 pb-28">
+
                 {/* Bandeau */}
                 <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
                   <div className="flex items-start gap-3">
@@ -894,8 +886,8 @@ function ReserverTransport() {
                   </div>
                 </div>
               </div>
-            )}
           </TabsContent>
+
         </Tabs>
       </div>
 
