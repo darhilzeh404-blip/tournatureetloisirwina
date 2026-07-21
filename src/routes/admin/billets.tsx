@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Ticket as TicketIcon, Plus, Pencil, Trash2, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { randomId } from "@/lib/random-id";
 
 export const Route = createFileRoute("/admin/billets")({
   head: () => ({ meta: [{ title: "Billets — Admin" }] }),
@@ -138,7 +139,7 @@ function AdminBilletsPage() {
     if (!file) return;
     setUploading(true);
     try {
-      const path = `partner-tickets/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
+      const path = `partner-tickets/${randomId("ticket")}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
       const { error } = await supabase.storage.from("ticket-images").upload(path, file, { upsert: false, contentType: file.type });
       if (error) throw error;
       const { data } = supabase.storage.from("ticket-images").getPublicUrl(path);

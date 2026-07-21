@@ -45,6 +45,9 @@ function AgencyTicketsPage() {
   const [dateFilter, setDateFilter] = useState("");
   const [booking, setBooking] = useState<Ticket | null>(null);
   const [qty, setQty] = useState(1);
+  const [passengerName, setPassengerName] = useState("");
+  const [passengerPhone, setPassengerPhone] = useState("");
+  const [passengerEmail, setPassengerEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -94,9 +97,37 @@ function AgencyTicketsPage() {
       navigate({ to: "/connexion" });
       return;
     }
+    if (!passengerName.trim()) return toast.error("Nom du passager requis");
+    if (!passengerPhone.trim()) return toast.error("Téléphone requis");
     setSubmitting(true);
     try {
       const total = booking.price * qty;
+      const reference_code = `BK-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+      // 1) Enregistrement métier dans partner_bookings (visible côté admin)
+      const bookingRes = await supabase.from("partner_bookings" as any).insert({
+        agency_id: agencyId,
+        ticket_id: booking.id,
+        user_id: user.id,
+        passenger_name: passengerName.trim(),
+        passenger_phone: passengerPhone.trim(),
+        passenger_email: passengerEmail.trim() || null,
+        seats: qty,
+        total_amount: total,
+        status: "pending",
+        reference_code,
+        details: {
+          title: booking.title,
+          origin: booking.origin,
+          destination: booking.destination,
+          departure_at: booking.departure_at,
+          unit_price: booking.price,
+        },
+      }).select("id").single();
+      if (bookingRes.error) throw bookingRes.error;
+      const partnerBookingId = (bookingRes.data as any).id;
+
+      // 2) Réservation liée au flux paiement existant
       const { data, error } = await supabase.from("reservations").insert({
         user_id: user.id,
         service_type: "BILLET",
@@ -105,9 +136,14 @@ function AgencyTicketsPage() {
         paid_amount: 0,
         details: {
           partner_ticket_id: booking.id,
+          partner_booking_id: partnerBookingId,
+          reference_code,
           title: booking.title,
           agency: agency?.name ?? null,
           agency_id: agencyId,
+          passenger_name: passengerName.trim(),
+          passenger_phone: passengerPhone.trim(),
+          passenger_email: passengerEmail.trim() || null,
           origin: booking.origin,
           destination: booking.destination,
           departure_at: booking.departure_at,
@@ -251,6 +287,24 @@ function AgencyTicketsPage() {
                 <span className="text-base font-extrabold text-primary">{fmt(booking.price * qty)}</span>
               </div>
             </div>
+
+            <div className="mt-4 space-y-2">
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground">Nom du passager *</label>
+                <Input value={passengerName} onChange={(e) => setPassengerName(e.target.value)} placeholder="Nom complet" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] font-semibold text-muted-foreground">Téléphone *</label>
+                  <Input type="tel" value={passengerPhone} onChange={(e) => setPassengerPhone(e.target.value)} placeholder="+241 …" />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-muted-foreground">Email</label>
+                  <Input type="email" value={passengerEmail} onChange={(e) => setPassengerEmail(e.target.value)} placeholder="(optionnel)" />
+                </div>
+              </div>
+            </div>
+
 
             <div className="mt-4 flex gap-2">
               <button type="button" onClick={() => setBooking(null)} disabled={submitting} className="flex-1 rounded-xl border py-2.5 text-sm font-semibold">

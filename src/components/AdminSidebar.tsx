@@ -25,6 +25,7 @@ const adminLinks = [
   { to: "/admin/vehicule-types", label: "Types véhicules", icon: Settings2, exact: false },
   { to: "/admin/catalogue", label: "Catalogue véhicules", icon: LayoutGrid, exact: false },
   { to: "/admin/billets", label: "Billets", icon: Ticket, exact: false },
+  { to: "/admin/billets-reservations", label: "Réservations billets", icon: ClipboardCheck, exact: false },
   { to: "/admin/agences", label: "Agences partenaires", icon: Building2, exact: false },
   { to: "/admin/sites-touristiques", label: "Sites touristiques", icon: Mountain, exact: false },
   { to: "/admin/annonces", label: "Annonces", icon: Megaphone, exact: false },
