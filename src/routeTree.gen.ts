@@ -38,7 +38,6 @@ import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
 import { Route as ChauffeurRouteImport } from './routes/chauffeur'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as BookingRouteImport } from './routes/booking'
-import { Route as BilletsRouteImport } from './routes/billets'
 import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -230,11 +229,6 @@ const CatalogueRoute = CatalogueRouteImport.update({
 const BookingRoute = BookingRouteImport.update({
   id: '/booking',
   path: '/booking',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BilletsRoute = BilletsRouteImport.update({
-  id: '/billets',
-  path: '/billets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActivitesRoute = ActivitesRouteImport.update({
@@ -479,7 +473,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/activites': typeof ActivitesRoute
-  '/billets': typeof BilletsRouteWithChildren
   '/booking': typeof BookingRoute
   '/catalogue': typeof CatalogueRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
@@ -634,7 +627,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/activites': typeof ActivitesRoute
-  '/billets': typeof BilletsRouteWithChildren
   '/booking': typeof BookingRoute
   '/catalogue': typeof CatalogueRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
@@ -715,7 +707,6 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/activites'
-    | '/billets'
     | '/booking'
     | '/catalogue'
     | '/chauffeur'
@@ -869,7 +860,6 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/activites'
-    | '/billets'
     | '/booking'
     | '/catalogue'
     | '/chauffeur'
@@ -949,7 +939,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   ActivitesRoute: typeof ActivitesRoute
-  BilletsRoute: typeof BilletsRouteWithChildren
   BookingRoute: typeof BookingRoute
   CatalogueRoute: typeof CatalogueRoute
   ChauffeurRoute: typeof ChauffeurRouteWithChildren
@@ -1189,13 +1178,6 @@ declare module '@tanstack/react-router' {
       path: '/booking'
       fullPath: '/booking'
       preLoaderRoute: typeof BookingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/billets': {
-      id: '/billets'
-      path: '/billets'
-      fullPath: '/billets'
-      preLoaderRoute: typeof BilletsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/activites': {
@@ -1592,23 +1574,6 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
-interface BilletsRouteChildren {
-  BilletsIdRoute: typeof BilletsIdRoute
-  BilletsIndexRoute: typeof BilletsIndexRoute
-  BilletsAgenceAgencyIdRoute: typeof BilletsAgenceAgencyIdRoute
-  BilletsCategorieSlugRoute: typeof BilletsCategorieSlugRoute
-}
-
-const BilletsRouteChildren: BilletsRouteChildren = {
-  BilletsIdRoute: BilletsIdRoute,
-  BilletsIndexRoute: BilletsIndexRoute,
-  BilletsAgenceAgencyIdRoute: BilletsAgenceAgencyIdRoute,
-  BilletsCategorieSlugRoute: BilletsCategorieSlugRoute,
-}
-
-const BilletsRouteWithChildren =
-  BilletsRoute._addFileChildren(BilletsRouteChildren)
-
 interface ChauffeurRouteChildren {
   ChauffeurGainsRoute: typeof ChauffeurGainsRoute
   ChauffeurGroupesRoute: typeof ChauffeurGroupesRoute
@@ -1677,7 +1642,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   ActivitesRoute: ActivitesRoute,
-  BilletsRoute: BilletsRouteWithChildren,
   BookingRoute: BookingRoute,
   CatalogueRoute: CatalogueRoute,
   ChauffeurRoute: ChauffeurRouteWithChildren,
