@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Ticket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketCategoryIcon, CATEGORY_LABELS, type TicketCategorySlug } from "@/components/TicketCategoryIcon";
 
-export const Route = createFileRoute("/billets")({
+export const Route = createFileRoute("/billets/")({
   head: () => ({
     meta: [
       { title: "Billets — Agence Wina" },

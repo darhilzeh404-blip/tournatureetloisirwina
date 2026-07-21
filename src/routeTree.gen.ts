@@ -42,7 +42,9 @@ import { Route as BilletsRouteImport } from './routes/billets'
 import { Route as ActivitesRouteImport } from './routes/activites'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VtcIndexRouteImport } from './routes/vtc.index'
 import { Route as DeplacementGroupeIndexRouteImport } from './routes/deplacement-groupe.index'
+import { Route as BilletsIndexRouteImport } from './routes/billets.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as WalletRechargerRouteImport } from './routes/wallet.recharger'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
@@ -250,10 +252,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VtcIndexRoute = VtcIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => VtcRoute,
+} as any)
 const DeplacementGroupeIndexRoute = DeplacementGroupeIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DeplacementGroupeRoute,
+} as any)
+const BilletsIndexRoute = BilletsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BilletsRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -531,7 +543,9 @@ export interface FileRoutesByFullPath {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
+  '/billets/': typeof BilletsIndexRoute
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
+  '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
@@ -543,7 +557,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activites': typeof ActivitesRoute
-  '/billets': typeof BilletsRouteWithChildren
   '/booking': typeof BookingRoute
   '/catalogue': typeof CatalogueRoute
   '/chauffeur': typeof ChauffeurRouteWithChildren
@@ -569,7 +582,6 @@ export interface FileRoutesByTo {
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
-  '/vtc': typeof VtcRouteWithChildren
   '/wallet': typeof WalletRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/agences': typeof AdminAgencesRoute
@@ -606,7 +618,9 @@ export interface FileRoutesByTo {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin': typeof AdminIndexRoute
+  '/billets': typeof BilletsIndexRoute
   '/deplacement-groupe': typeof DeplacementGroupeIndexRoute
+  '/vtc': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
@@ -684,7 +698,9 @@ export interface FileRoutesById {
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
+  '/billets/': typeof BilletsIndexRoute
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
+  '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
@@ -763,7 +779,9 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/wallet/recharger'
     | '/admin/'
+    | '/billets/'
     | '/deplacement-groupe/'
+    | '/vtc/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/agence/$agencyId'
@@ -775,7 +793,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activites'
-    | '/billets'
     | '/booking'
     | '/catalogue'
     | '/chauffeur'
@@ -801,7 +818,6 @@ export interface FileRouteTypes {
     | '/transport-extra-scolaire'
     | '/transport-public'
     | '/transport-scolaire'
-    | '/vtc'
     | '/wallet'
     | '/wina-coins'
     | '/admin/agences'
@@ -838,7 +854,9 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/wallet/recharger'
     | '/admin'
+    | '/billets'
     | '/deplacement-groupe'
+    | '/vtc'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/agence/$agencyId'
@@ -915,7 +933,9 @@ export interface FileRouteTypes {
     | '/suivi/$tripId'
     | '/wallet/recharger'
     | '/admin/'
+    | '/billets/'
     | '/deplacement-groupe/'
+    | '/vtc/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/agence/$agencyId'
@@ -1199,12 +1219,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vtc/': {
+      id: '/vtc/'
+      path: '/'
+      fullPath: '/vtc/'
+      preLoaderRoute: typeof VtcIndexRouteImport
+      parentRoute: typeof VtcRoute
+    }
     '/deplacement-groupe/': {
       id: '/deplacement-groupe/'
       path: '/'
       fullPath: '/deplacement-groupe/'
       preLoaderRoute: typeof DeplacementGroupeIndexRouteImport
       parentRoute: typeof DeplacementGroupeRoute
+    }
+    '/billets/': {
+      id: '/billets/'
+      path: '/'
+      fullPath: '/billets/'
+      preLoaderRoute: typeof BilletsIndexRouteImport
+      parentRoute: typeof BilletsRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -1560,12 +1594,14 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 
 interface BilletsRouteChildren {
   BilletsIdRoute: typeof BilletsIdRoute
+  BilletsIndexRoute: typeof BilletsIndexRoute
   BilletsAgenceAgencyIdRoute: typeof BilletsAgenceAgencyIdRoute
   BilletsCategorieSlugRoute: typeof BilletsCategorieSlugRoute
 }
 
 const BilletsRouteChildren: BilletsRouteChildren = {
   BilletsIdRoute: BilletsIdRoute,
+  BilletsIndexRoute: BilletsIndexRoute,
   BilletsAgenceAgencyIdRoute: BilletsAgenceAgencyIdRoute,
   BilletsCategorieSlugRoute: BilletsCategorieSlugRoute,
 }
@@ -1615,10 +1651,12 @@ const DeplacementGroupeRouteWithChildren =
   DeplacementGroupeRoute._addFileChildren(DeplacementGroupeRouteChildren)
 
 interface VtcRouteChildren {
+  VtcIndexRoute: typeof VtcIndexRoute
   VtcSuiviReservationIdRoute: typeof VtcSuiviReservationIdRoute
 }
 
 const VtcRouteChildren: VtcRouteChildren = {
+  VtcIndexRoute: VtcIndexRoute,
   VtcSuiviReservationIdRoute: VtcSuiviReservationIdRoute,
 }
 

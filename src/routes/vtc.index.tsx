@@ -21,7 +21,7 @@ import {
 import kiaK7Bg from "@/assets/kia-k7-vtc.jpg";
 
 
-export const Route = createFileRoute("/vtc")({
+export const Route = createFileRoute("/vtc/")({
   head: () => ({
     meta: [
       { title: "VTC & Mariage — Agence Wina" },
