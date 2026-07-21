@@ -109,11 +109,12 @@ const MAIN_TABS: {
   { id: "vip",         label: "VIP",         sub: "Prestige",   icon: "/icons/vip-3d.png" },
   { id: "mariage",     label: "Mariage",     sub: "Événement",  icon: "/icons/vehicule mariage-3d.png" },
   { id: "covoiturage", label: "Covoiturage", sub: "En groupe",  lucide: Users },
-  { id: "gammes",      label: "Nos Gammes",  sub: "Abonnement", lucide: Gem },
+  { id: "gammes",      label: "Nos Gammes",  sub: "Abonnement", icon: "/icons/gammes-3d.png" },
 ];
 
 function VtcPage() {
-  const [tab, setTab] = useState<MainTab>("standard");
+  const [tab, setTab] = useState<MainTab | null>(null);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
@@ -199,14 +200,24 @@ function VtcPage() {
       <main className="mx-auto mt-4 max-w-3xl px-4">
         <AnimatePresence mode="wait">
           <motion.div
-            key={tab}
+            key={tab ?? "none"}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
             className="space-y-2.5"
           >
-            {tab === "mariage" ? (
+            {tab === null ? (
+              <div className="rounded-3xl border border-dashed border-border/60 bg-card/70 p-8 text-center backdrop-blur-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/15">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="mt-3 text-[15px] font-extrabold text-foreground">Choisissez une catégorie</h3>
+                <p className="mt-1 text-[12.5px] text-muted-foreground">
+                  Sélectionnez un onglet ci-dessus pour commencer votre réservation.
+                </p>
+              </div>
+            ) : tab === "mariage" ? (
               <MariageFlow />
             ) : tab === "covoiturage" ? (
               <CovoiturageSection />
@@ -217,6 +228,7 @@ function VtcPage() {
             )}
           </motion.div>
         </AnimatePresence>
+
       </main>
 
       <ClientNav />
