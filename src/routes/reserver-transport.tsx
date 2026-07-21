@@ -350,69 +350,66 @@ function ReserverTransport() {
         </div>
       </section>
 
-      {/* Onglets arrondis premium — 4 colonnes fixes mobile & desktop */}
-      <div className="relative -mt-5 px-3 sm:px-4">
-        <div
-          role="tablist"
-          aria-label="Types de transport"
-          className="mx-auto grid max-w-3xl grid-cols-4 gap-1.5 rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_12px_32px_-18px_hsl(var(--primary)/0.4)] backdrop-blur-md sm:gap-2.5"
-        >
-          {[
-            { id: "scolaire" as const,  label: "Scolaire",  sub: "Mensuel",    img: icon3dScolaire },
-            { id: "extra" as const,     label: "Extra",     sub: "Activités",  img: icon3dExtra },
-            { id: "groupe" as const,    label: "Groupe",    sub: "Déplacement", img: icon3dBusGroupe },
-            { id: "evenement" as const, label: "Événement", sub: "Location",   img: icon3dBusEvenement },
-          ].map((t) => {
-            const active = tab === t.id;
-            return (
-              <motion.button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setTab(t.id)}
-                whileTap={{ scale: 0.94 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="relative flex flex-col items-center justify-center gap-1.5 rounded-2xl px-1 py-3 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-              >
-                {active && (
-                  <motion.span
-                    layoutId="bus-tab-active"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-primary/85 shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.75)]"
-                    aria-hidden
-                  />
-                )}
-                <motion.div
-                  animate={{ scale: active ? 1.08 : 1, y: active ? -1 : 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`relative z-10 grid h-12 w-12 place-items-center rounded-2xl transition-colors sm:h-14 sm:w-14 ${
-                    active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : "bg-muted/70"
+      {/* Onglets arrondis — style dashboard client (cartes 3D tintées) */}
+      <div className="relative -mt-4 px-4 sm:px-6">
+        <div className="mx-auto max-w-3xl">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-[13px] font-bold text-foreground">Nos services</h2>
+            <span className="text-[10px] font-medium text-muted-foreground">Accès rapide</span>
+          </div>
+          <div
+            role="tablist"
+            aria-label="Types de transport"
+            className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4"
+          >
+            {[
+              { id: "scolaire" as const,  label: "Scolaire",  sub: "Mensuel",     img: icon3dScolaire,     tint: "from-primary/20 to-primary/5" },
+              { id: "extra" as const,     label: "Extra",     sub: "Activités",   img: icon3dExtra,        tint: "from-accent/25 to-accent/5" },
+              { id: "groupe" as const,    label: "Groupe",    sub: "Déplacement", img: icon3dBusGroupe,    tint: "from-primary/15 to-accent/10" },
+              { id: "evenement" as const, label: "Événement", sub: "Location",    img: icon3dBusEvenement, tint: "from-accent/20 to-primary/10" },
+            ].map((t) => {
+              const active = tab === t.id;
+              return (
+                <motion.button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setTab(t.id)}
+                  whileHover={{ y: -4, scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  className={`relative flex h-full flex-col items-center gap-2 overflow-hidden rounded-2xl border p-3 text-center shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                    active
+                      ? "border-primary/40 bg-gradient-to-br from-primary to-primary/85 shadow-[0_14px_28px_-14px_hsl(var(--primary)/0.65)]"
+                      : `border-border/60 bg-gradient-to-br ${t.tint}`
                   }`}
                 >
-                  <img
-                    src={t.img}
-                    alt=""
-                    aria-hidden
-                    width={56}
-                    height={56}
-                    loading="lazy"
-                    className="block h-9 w-9 object-contain drop-shadow sm:h-11 sm:w-11"
-                  />
-                </motion.div>
-                <div className="relative z-10 flex min-w-0 w-full flex-col items-center">
-                  <p className={`w-full truncate text-center text-[11px] font-extrabold leading-tight sm:text-[12.5px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
-                    {t.label}
-                  </p>
-                  <p className={`w-full truncate text-center text-[9.5px] font-semibold leading-tight sm:text-[10.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
-                    {t.sub}
-                  </p>
-                </div>
-              </motion.button>
-            );
-          })}
+                  <div className={`grid h-12 w-12 place-items-center rounded-2xl ${active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : ""}`}>
+                    <img
+                      src={t.img}
+                      alt=""
+                      aria-hidden
+                      width={56}
+                      height={56}
+                      loading="lazy"
+                      className="h-12 w-12 object-contain drop-shadow"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-sm font-bold leading-tight ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                      {t.label}
+                    </div>
+                    <div className={`text-[10px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                      {t.sub}
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
       </div>
+
 
       <div className="mx-auto mt-4 max-w-3xl px-4">
         <Tabs value={tab ?? ""} onValueChange={(v) => setTab(v as TabId)} className="w-full">
