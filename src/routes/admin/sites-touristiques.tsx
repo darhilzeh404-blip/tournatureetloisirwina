@@ -82,7 +82,7 @@ function AdminSitesTouristiques() {
       const urls: string[] = [];
       for (const file of Array.from(files)) {
         const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-        const path = `tourist-sites/${crypto.randomUUID()}.${ext}`;
+        const path = `tourist-sites/${randomId("site")}.${ext}`;
         const { error } = await supabase.storage.from("circuit-images").upload(path, file, {
           cacheControl: "3600", upsert: false, contentType: file.type,
         });
