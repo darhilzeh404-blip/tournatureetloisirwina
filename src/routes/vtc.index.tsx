@@ -150,48 +150,57 @@ function VtcPage() {
         </div>
       </section>
 
-      {/* Onglets arrondis (scroll horizontal, iOS-style) */}
-      <div className="relative -mt-4 px-4">
+      {/* Onglets arrondis — grille pleine largeur, animation premium */}
+      <div className="relative -mt-5 px-3 sm:px-4">
         <div
           role="tablist"
           aria-label="Services VTC"
-          className="mx-auto flex max-w-3xl snap-x snap-mandatory gap-2 overflow-x-auto rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_10px_30px_-18px_hsl(var(--primary)/0.35)] backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="mx-auto grid max-w-3xl grid-cols-3 gap-2 rounded-3xl border border-border/60 bg-card/95 p-2 shadow-[0_12px_32px_-18px_hsl(var(--primary)/0.4)] backdrop-blur-md sm:grid-cols-6 sm:gap-2.5"
         >
           {MAIN_TABS.map((t) => {
             const active = tab === t.id;
             const Icon = t.lucide;
             return (
-              <button
+              <motion.button
                 key={t.id}
                 type="button"
                 role="tab"
                 aria-selected={active}
                 onClick={() => setTab(t.id)}
-                data-compact="true"
-                className={`relative shrink-0 snap-start rounded-2xl px-3 py-2 text-left transition-all active:scale-[0.97] ${
-                  active
-                    ? "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-[0_8px_22px_-10px_hsl(var(--primary)/0.7)]"
-                    : "bg-muted/60 text-foreground hover:bg-muted"
-                }`}
+                whileTap={{ scale: 0.94 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="relative flex flex-col items-center justify-start gap-1.5 rounded-2xl px-1.5 py-2.5 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
-                <div className="flex items-center gap-2">
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${active ? "bg-primary-foreground/15" : "bg-card"}`}>
-                    {t.icon ? (
-                      <img src={t.icon} alt="" className="h-8 w-8 object-contain drop-shadow" />
-                    ) : Icon ? (
-                      <Icon className={`h-5 w-5 ${active ? "text-primary-foreground" : "text-primary"}`} />
-                    ) : null}
-                  </div>
-                  <div className="min-w-0 pr-1">
-                    <p className={`text-[12.5px] font-extrabold leading-tight ${active ? "text-primary-foreground" : "text-foreground"}`}>
-                      {t.label}
-                    </p>
-                    <p className={`text-[10.5px] font-semibold ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
-                      {t.sub}
-                    </p>
-                  </div>
+                {active && (
+                  <motion.span
+                    layoutId="vtc-tab-active"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-primary/85 shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.75)]"
+                    aria-hidden
+                  />
+                )}
+                <motion.div
+                  animate={{ scale: active ? 1.08 : 1, y: active ? -1 : 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-xl transition-colors sm:h-12 sm:w-12 ${
+                    active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : "bg-muted/70"
+                  }`}
+                >
+                  {t.icon ? (
+                    <img src={t.icon} alt="" className="h-8 w-8 object-contain drop-shadow sm:h-9 sm:w-9" />
+                  ) : Icon ? (
+                    <Icon className={`h-5 w-5 ${active ? "text-primary-foreground" : "text-primary"}`} />
+                  ) : null}
+                </motion.div>
+                <div className="relative z-10 min-w-0">
+                  <p className={`truncate text-[11.5px] font-extrabold leading-tight sm:text-[12.5px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                    {t.label}
+                  </p>
+                  <p className={`truncate text-[9.5px] font-semibold leading-tight sm:text-[10.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                    {t.sub}
+                  </p>
                 </div>
-              </button>
+              </motion.button>
             );
           })}
         </div>
