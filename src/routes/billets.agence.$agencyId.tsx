@@ -288,6 +288,24 @@ function AgencyTicketsPage() {
               </div>
             </div>
 
+            <div className="mt-4 space-y-2">
+              <div>
+                <label className="text-[11px] font-semibold text-muted-foreground">Nom du passager *</label>
+                <Input value={passengerName} onChange={(e) => setPassengerName(e.target.value)} placeholder="Nom complet" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] font-semibold text-muted-foreground">Téléphone *</label>
+                  <Input type="tel" value={passengerPhone} onChange={(e) => setPassengerPhone(e.target.value)} placeholder="+241 …" />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-muted-foreground">Email</label>
+                  <Input type="email" value={passengerEmail} onChange={(e) => setPassengerEmail(e.target.value)} placeholder="(optionnel)" />
+                </div>
+              </div>
+            </div>
+
+
             <div className="mt-4 flex gap-2">
               <button type="button" onClick={() => setBooking(null)} disabled={submitting} className="flex-1 rounded-xl border py-2.5 text-sm font-semibold">
                 Annuler
