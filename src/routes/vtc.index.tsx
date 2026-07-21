@@ -109,11 +109,12 @@ const MAIN_TABS: {
   { id: "vip",         label: "VIP",         sub: "Prestige",   icon: "/icons/vip-3d.png" },
   { id: "mariage",     label: "Mariage",     sub: "Événement",  icon: "/icons/vehicule mariage-3d.png" },
   { id: "covoiturage", label: "Covoiturage", sub: "En groupe",  lucide: Users },
-  { id: "gammes",      label: "Nos Gammes",  sub: "Abonnement", lucide: Gem },
+  { id: "gammes",      label: "Nos Gammes",  sub: "Abonnement", icon: "/icons/gammes-3d.png" },
 ];
 
 function VtcPage() {
-  const [tab, setTab] = useState<MainTab>("standard");
+  const [tab, setTab] = useState<MainTab | null>(null);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
