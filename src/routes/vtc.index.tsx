@@ -169,7 +169,7 @@ function VtcPage() {
                 onClick={() => setTab(t.id)}
                 whileTap={{ scale: 0.94 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="relative flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl px-2 py-3 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:aspect-auto sm:min-h-[140px]"
+                className="relative flex min-h-[110px] w-full flex-col items-center justify-center gap-1.5 rounded-2xl px-1.5 py-2.5 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:min-h-[140px] sm:gap-2 sm:px-2 sm:py-3"
               >
                 {active && (
                   <motion.span
@@ -182,24 +182,25 @@ function VtcPage() {
                 <motion.div
                   animate={{ scale: active ? 1.08 : 1, y: active ? -2 : 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl transition-colors sm:h-20 sm:w-20 ${
+                  className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl transition-colors sm:h-20 sm:w-20 ${
                     active ? "bg-primary-foreground/15 ring-1 ring-primary-foreground/25" : "bg-muted/70"
                   }`}
                 >
                   {t.icon ? (
-                    <img src={t.icon} alt="" className="h-12 w-12 object-contain drop-shadow sm:h-14 sm:w-14" />
+                    <img src={t.icon} alt="" className="h-9 w-9 object-contain drop-shadow sm:h-14 sm:w-14" />
                   ) : Icon ? (
-                    <Icon className={`h-9 w-9 sm:h-10 sm:w-10 ${active ? "text-primary-foreground" : "text-primary"}`} />
+                    <Icon className={`h-7 w-7 sm:h-10 sm:w-10 ${active ? "text-primary-foreground" : "text-primary"}`} />
                   ) : null}
                 </motion.div>
-                <div className="relative z-10 min-w-0">
-                  <p className={`truncate text-[13px] font-extrabold leading-tight sm:text-[15px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
+                <div className="relative z-10 w-full min-w-0 px-0.5">
+                  <p className={`truncate text-[11.5px] font-extrabold leading-tight sm:text-[15px] ${active ? "text-primary-foreground" : "text-foreground"}`}>
                     {t.label}
                   </p>
-                  <p className={`truncate text-[10.5px] font-semibold leading-tight sm:text-[11.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
+                  <p className={`truncate text-[9.5px] font-semibold leading-tight sm:text-[11.5px] ${active ? "text-primary-foreground/85" : "text-muted-foreground"}`}>
                     {t.sub}
                   </p>
                 </div>
+
               </motion.button>
             );
           })}
