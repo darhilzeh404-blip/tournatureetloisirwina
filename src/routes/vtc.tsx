@@ -573,51 +573,71 @@ function CourseFlow() {
 
   return (
     <>
-      <AccordionCard id="cat" wizard={wizard}
-        title="Catégorie de véhicule" summary={`${activeCat.title} · ${model}`}
-        icon={<CarFront className="h-4 w-4" />}
-      >
-        <div className="grid gap-2 sm:grid-cols-3">
+      {/* Onglets/cartes de catégorie — rounded-3xl, présentation améliorée */}
+      <section className="rounded-3xl border border-border/60 bg-card/90 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+        <div className="mb-3 flex items-center gap-2 px-1">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <CarFront className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Choisissez votre gamme</p>
+            <p className="text-[13px] font-bold text-foreground">{activeCat.title} · {model}</p>
+          </div>
+        </div>
+
+        <div className="grid gap-2.5 sm:grid-cols-3">
           {CATEGORIES.map((c) => {
             const active = category === c.id;
             return (
-              <button key={c.id} type="button" onClick={() => setCategory(c.id)}
-                className={`relative overflow-hidden rounded-2xl border-2 p-3 text-left transition-all active:scale-[0.98] ${active ? "border-primary bg-primary/5 shadow-md shadow-primary/10" : "border-border bg-card hover:border-primary/40"}`}
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setCategory(c.id)}
+                className={`group relative overflow-hidden rounded-3xl border-2 p-3 text-left transition-all active:scale-[0.98] ${
+                  active
+                    ? "border-primary bg-gradient-to-br from-primary/10 via-card to-card shadow-[0_10px_30px_-15px_hsl(var(--primary)/0.5)]"
+                    : "border-border/70 bg-card hover:border-primary/40 hover:shadow-md"
+                }`}
               >
-                {active && <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />}
-                <div className="flex items-center gap-2">
-                  <div className="flex h-14 w-14 items-center justify-center">
-  <img
-    src={c.icon}
-    alt={c.title}
-    className="h-12 w-12 object-contain drop-shadow-lg"
-  />
-</div>
+                {active && (
+                  <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-primary px-1.5 py-0.5 text-[9.5px] font-bold text-primary-foreground shadow-sm">
+                    <Check className="h-2.5 w-2.5" /> Sélectionné
+                  </span>
+                )}
+                <div className="flex items-center gap-3">
+                  <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl transition-colors ${active ? "bg-primary/10" : "bg-muted/60 group-hover:bg-primary/5"}`}>
+                    <img
+                      src={c.icon}
+                      alt={c.title}
+                      className="h-12 w-12 object-contain drop-shadow-lg"
+                    />
+                  </div>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-foreground">{c.title}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">{c.subtitle}</p>
+                    <p className="text-[13.5px] font-extrabold text-foreground">{c.title}</p>
+                    <p className="truncate text-[11px] font-semibold text-muted-foreground">{c.subtitle}</p>
                   </div>
                 </div>
-                <p className="mt-2 text-[11px] leading-snug text-muted-foreground">{c.usage}</p>
+                <p className="mt-2.5 line-clamp-2 text-[11px] leading-snug text-muted-foreground">{c.usage}</p>
               </button>
             );
           })}
         </div>
 
         <details className="mt-3 group">
-          <summary className="flex cursor-pointer items-center justify-between rounded-xl border bg-card px-3 py-2 text-xs font-bold">
+          <summary className="flex cursor-pointer items-center justify-between rounded-2xl border bg-card px-3 py-2 text-xs font-bold">
             <span>Choisir un modèle ({model})</span>
             <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
           </summary>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {activeCat.models.map((m) => (
               <button key={m} type="button" onClick={() => setModel(m)}
-                className={`rounded-lg border px-2 py-2 text-xs font-semibold transition-colors ${model === m ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}
+                className={`rounded-xl border px-2 py-2 text-xs font-semibold transition-colors ${model === m ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:border-primary/40"}`}
               >{m}</button>
             ))}
           </div>
         </details>
-      </AccordionCard>
+      </section>
+
 
       <AccordionCard id="route" wizard={wizard}
         canConfirm={!!(pickup && destination && fare.ok)}
