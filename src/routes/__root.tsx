@@ -88,7 +88,7 @@ function RootComponent() {
   const isFullScreenRoute = location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/chauffeur") ||
     location.pathname.startsWith("/gerant") ||
-    location.pathname.startsWith("/agence") ||
+    
     location.pathname.startsWith("/espace-client") ||
     location.pathname.startsWith("/reserver-transport") ||
     location.pathname.startsWith("/activites") ||
