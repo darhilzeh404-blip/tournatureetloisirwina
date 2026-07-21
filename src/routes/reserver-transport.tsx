@@ -543,29 +543,8 @@ function ReserverTransport() {
             <SubmitBtn loading={submitting} onClick={submitExtra} label="Réserver + Activité" />
           </TabsContent>
 
-          {/* ─── BUS ─── */}
-          <TabsContent value="bus" className="mt-5 space-y-4">
-            {/* Sous-onglets Bus */}
-            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted p-1">
-              <button
-                type="button"
-                onClick={() => setBusSubTab("groupe")}
-                className={`rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${busSubTab === "groupe" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-              >
-                <Users className="mx-auto mb-0.5 h-4 w-4" />
-                Déplacement en groupe
-              </button>
-              <button
-                type="button"
-                onClick={() => setBusSubTab("evenement")}
-                className={`rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${busSubTab === "evenement" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-              >
-                <Sparkles className="mx-auto mb-0.5 h-4 w-4" />
-                Location événements
-              </button>
-            </div>
-
-            {busSubTab === "groupe" && (
+          {/* ─── BUS · DÉPLACEMENT EN GROUPE ─── */}
+          <TabsContent value="groupe" className="mt-5 space-y-4">
               <div className="space-y-4">
                 {/* Bandeau d'info clair */}
                 <div className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-4">
@@ -582,6 +561,7 @@ function ReserverTransport() {
                     </div>
                   </div>
                 </div>
+
 
             {!selectedBusTrip ? (
               <div className="rounded-2xl border bg-card p-6 text-center text-sm text-muted-foreground">
