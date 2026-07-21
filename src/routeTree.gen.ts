@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WinaCoinsRouteImport } from './routes/wina-coins'
 import { Route as WalletRouteImport } from './routes/wallet'
-import { Route as VtcRouteImport } from './routes/vtc'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
 import { Route as TransportPublicRouteImport } from './routes/transport-public'
 import { Route as TransportExtraScolaireRouteImport } from './routes/transport-extra-scolaire'
@@ -95,11 +94,6 @@ const WinaCoinsRoute = WinaCoinsRouteImport.update({
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VtcRoute = VtcRouteImport.update({
-  id: '/vtc',
-  path: '/vtc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransportScolaireRoute = TransportScolaireRouteImport.update({
@@ -506,7 +500,6 @@ export interface FileRoutesByFullPath {
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
-  '/vtc': typeof VtcRouteWithChildren
   '/wallet': typeof WalletRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/agences': typeof AdminAgencesRoute
@@ -661,7 +654,6 @@ export interface FileRoutesById {
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
-  '/vtc': typeof VtcRouteWithChildren
   '/wallet': typeof WalletRouteWithChildren
   '/wina-coins': typeof WinaCoinsRoute
   '/admin/agences': typeof AdminAgencesRoute
@@ -742,7 +734,6 @@ export interface FileRouteTypes {
     | '/transport-extra-scolaire'
     | '/transport-public'
     | '/transport-scolaire'
-    | '/vtc'
     | '/wallet'
     | '/wina-coins'
     | '/admin/agences'
@@ -896,7 +887,6 @@ export interface FileRouteTypes {
     | '/transport-extra-scolaire'
     | '/transport-public'
     | '/transport-scolaire'
-    | '/vtc'
     | '/wallet'
     | '/wina-coins'
     | '/admin/agences'
@@ -976,7 +966,6 @@ export interface RootRouteChildren {
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
   TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
-  VtcRoute: typeof VtcRouteWithChildren
   WalletRoute: typeof WalletRouteWithChildren
   WinaCoinsRoute: typeof WinaCoinsRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
@@ -1000,13 +989,6 @@ declare module '@tanstack/react-router' {
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof WalletRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/vtc': {
-      id: '/vtc'
-      path: '/vtc'
-      fullPath: '/vtc'
-      preLoaderRoute: typeof VtcRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transport-scolaire': {
@@ -1650,18 +1632,6 @@ const DeplacementGroupeRouteChildren: DeplacementGroupeRouteChildren = {
 const DeplacementGroupeRouteWithChildren =
   DeplacementGroupeRoute._addFileChildren(DeplacementGroupeRouteChildren)
 
-interface VtcRouteChildren {
-  VtcIndexRoute: typeof VtcIndexRoute
-  VtcSuiviReservationIdRoute: typeof VtcSuiviReservationIdRoute
-}
-
-const VtcRouteChildren: VtcRouteChildren = {
-  VtcIndexRoute: VtcIndexRoute,
-  VtcSuiviReservationIdRoute: VtcSuiviReservationIdRoute,
-}
-
-const VtcRouteWithChildren = VtcRoute._addFileChildren(VtcRouteChildren)
-
 interface WalletRouteChildren {
   WalletRechargerRoute: typeof WalletRechargerRoute
 }
@@ -1704,7 +1674,6 @@ const rootRouteChildren: RootRouteChildren = {
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
   TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
-  VtcRoute: VtcRouteWithChildren,
   WalletRoute: WalletRouteWithChildren,
   WinaCoinsRoute: WinaCoinsRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
