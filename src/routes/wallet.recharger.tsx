@@ -14,6 +14,7 @@ import { NumberInput } from "@/components/ui/number-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { prepareReceiptImage } from "@/lib/image-upload";
 import { formatPoints, formatXAF, requestRecharge } from "@/lib/vtc-wallet";
+import { PawaPayCheckout } from "@/components/PawaPayCheckout";
 
 const CODE_AGENT_MOOV = "TRANSPORT";
 const CODE_AGENT_AIRTEL = "BGG94";
