@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, BadgeCheck, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketCategoryIcon, CATEGORY_LABELS, type TicketCategorySlug } from "@/components/TicketCategoryIcon";
+import { AgencyLogo } from "@/components/AgencyLogo";
 
 export const Route = createFileRoute("/billets/categorie/$slug")({
   component: CategoryPage,
@@ -113,7 +114,7 @@ function CategoryPage() {
                   className="group flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition hover:border-primary hover:shadow-md"
                 >
                   {a.logo_url ? (
-                    <img src={a.logo_url} alt="" className="h-14 w-14 rounded-full object-cover border" loading="lazy" />
+                    <AgencyLogo src={a.logo_url} alt={a.name} size={56} />
                   ) : (
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <TicketCategoryIcon slug={slug} className="h-6 w-6" />
