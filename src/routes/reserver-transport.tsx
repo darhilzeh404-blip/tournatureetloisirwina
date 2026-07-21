@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   GraduationCap,
   Bus,
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NumberInput } from "@/components/ui/number-input";
+import hiaceBg from "@/assets/hiace-navette.jpg";
 import {
   usePricingCatalog,
   findSchoolMonthly,
