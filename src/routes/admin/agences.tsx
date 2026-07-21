@@ -6,23 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   BadgeCheck, ShieldCheck, ShieldOff, Pencil, Trash2, Plus, Upload,
-  Bus, TrainFront, Plane, Ship, Percent, X,
+  Bus, TrainFront, Plane, Ship, PartyPopper,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/agences")({
   component: AdminAgences,
 });
 
-type AgencyCategory = "bus" | "train" | "avion" | "bateau";
+type AgencyCategory = "bus" | "train" | "avion" | "bateau" | "evenement";
 
 type Agency = {
   id: string;
-  owner_user_id: string | null;
   name: string;
-  phone: string | null;
-  email: string | null;
   logo_url: string | null;
   description: string;
   category: AgencyCategory | null;
@@ -32,18 +28,12 @@ type Agency = {
   created_at: string;
 };
 
-type CommissionRate = {
-  id: string;
-  agency_id: string;
-  category: string;
-  commission_percent: number;
-};
-
 const CAT_LABELS: Record<AgencyCategory, string> = {
   bus: "Bus",
   train: "Train",
   avion: "Avion",
-  bateau: "Bateau",
+  bateau: "Bateau / Ferry",
+  evenement: "Événement",
 };
 
 const CAT_ICONS: Record<AgencyCategory, typeof Bus> = {
@@ -51,6 +41,7 @@ const CAT_ICONS: Record<AgencyCategory, typeof Bus> = {
   train: TrainFront,
   avion: Plane,
   bateau: Ship,
+  evenement: PartyPopper,
 };
 
 const ALL_CATS = Object.keys(CAT_LABELS) as AgencyCategory[];
@@ -62,6 +53,8 @@ type FormState = {
   category: AgencyCategory | "";
   logo_url: string;
   commission_percent: number;
+  is_active: boolean;
+  is_verified: boolean;
 };
 
 const emptyForm = (): FormState => ({
@@ -71,27 +64,23 @@ const emptyForm = (): FormState => ({
   category: "",
   logo_url: "",
   commission_percent: 10,
+  is_active: true,
+  is_verified: false,
 });
 
 function AdminAgences() {
   const [list, setList] = useState<Agency[]>([]);
-  const [rates, setRates] = useState<CommissionRate[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<FormState>(emptyForm());
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [commissionsFor, setCommissionsFor] = useState<Agency | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const [agenciesRes, ratesRes] = await Promise.all([
-      supabase.rpc("get_all_partner_agencies_admin"),
-      supabase.from("partner_commission_rates" as any).select("*"),
-    ]);
-    if (agenciesRes.error) toast.error(agenciesRes.error.message);
-    setList(((agenciesRes.data ?? []) as any[]) as Agency[]);
-    setRates(((ratesRes.data ?? []) as any[]) as CommissionRate[]);
+    const { data, error } = await supabase.rpc("get_all_partner_agencies_admin");
+    if (error) toast.error(error.message);
+    setList(((data ?? []) as any[]) as Agency[]);
     setLoading(false);
   };
 
@@ -107,6 +96,8 @@ function AdminAgences() {
       category: (a.category ?? "") as AgencyCategory | "",
       logo_url: a.logo_url ?? "",
       commission_percent: Number(a.commission_percent ?? 10),
+      is_active: a.is_active,
+      is_verified: a.is_verified,
     });
     setShowForm(true);
   };
@@ -144,18 +135,15 @@ function AdminAgences() {
         category: form.category,
         logo_url: form.logo_url || null,
         commission_percent: form.commission_percent,
+        is_active: form.is_active,
+        is_verified: form.is_verified,
       };
       if (form.id) {
         const { error } = await supabase.from("partner_agencies").update(payload).eq("id", form.id);
         if (error) throw error;
         toast.success("Agence mise à jour");
       } else {
-        const { error } = await supabase.from("partner_agencies").insert({
-          ...payload,
-          owner_user_id: null,
-          is_active: true,
-          is_verified: false,
-        } as any);
+        const { error } = await supabase.from("partner_agencies").insert(payload);
         if (error) throw error;
         toast.success("Agence créée");
       }
@@ -194,7 +182,9 @@ function AdminAgences() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Agences partenaires</h1>
-          <p className="text-sm text-muted-foreground">Créez et gérez les agences (Bus, Train, Avion, Bateau) et leurs commissions.</p>
+          <p className="text-sm text-muted-foreground">
+            Créez et gérez les agences (Bus, Train, Avion, Bateau/Ferry, Événement).
+          </p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="mr-1.5 h-4 w-4" /> Nouvelle agence
@@ -222,15 +212,12 @@ function AdminAgences() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium">Commission par défaut (%)</label>
+              <label className="text-xs font-medium">Commission (%)</label>
               <Input
                 type="number" min={0} max={100} step={0.5}
                 value={form.commission_percent}
                 onChange={(e) => setForm({ ...form, commission_percent: Number(e.target.value) })}
               />
-              <p className="mt-1 text-[10px] text-muted-foreground">
-                Appliquée à toutes les ventes de l'agence, sauf catégorie surchargée.
-              </p>
             </div>
           </div>
 
@@ -258,6 +245,19 @@ function AdminAgences() {
             </div>
           </div>
 
+          <div className="flex flex-wrap gap-4 pt-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={form.is_active}
+                onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
+              Active
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={form.is_verified}
+                onChange={(e) => setForm({ ...form, is_verified: e.target.checked })} />
+              Vérifiée
+            </label>
+          </div>
+
           <div className="flex gap-2 pt-2">
             <Button onClick={save} disabled={saving || uploading}>{saving ? "Enregistrement…" : "Enregistrer"}</Button>
             <Button variant="outline" onClick={() => { setShowForm(false); setForm(emptyForm()); }}>Annuler</Button>
@@ -275,154 +275,58 @@ function AdminAgences() {
         <div className="mt-5 grid gap-3">
           {list.map((a) => {
             const CatIcon = a.category ? CAT_ICONS[a.category] : Bus;
-            const agencyRates = rates.filter((r) => r.agency_id === a.id);
             return (
-              <article key={a.id} className="flex flex-wrap items-center gap-4 rounded-2xl border bg-card p-4">
+              <div key={a.id} className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border bg-card p-4">
                 {a.logo_url ? (
-                  <img loading="lazy" decoding="async" src={a.logo_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+                  <img src={a.logo_url} alt="" className="h-16 w-16 rounded-full object-cover border shrink-0" />
                 ) : (
-                  <div className="h-12 w-12 rounded-full bg-primary/10" />
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <CatIcon className="h-7 w-7" />
+                  </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <h2 className="flex flex-wrap items-center gap-1.5 text-base font-bold">
-                    {a.name}
-                    {a.is_verified && <BadgeCheck className="h-4 w-4 text-primary" />}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold truncate">{a.name}</p>
+                    {a.is_verified && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-semibold">
+                        <BadgeCheck className="h-3 w-3" /> Vérifiée
+                      </span>
+                    )}
+                    {!a.is_active && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold">Inactive</span>
+                    )}
                     {a.category && (
-                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                        <CatIcon className="h-3 w-3" />
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold">
                         {CAT_LABELS[a.category]}
                       </span>
                     )}
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-                      <Percent className="h-3 w-3" />
-                      {Number(a.commission_percent ?? 10)}% par défaut
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold">
+                      Commission {a.commission_percent}%
                     </span>
-                  </h2>
-                  {a.description && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{a.description}</p>}
-                  {agencyRates.length > 0 && (
-                    <p className="mt-1 text-[10px] text-muted-foreground">
-                      Surcharges : {agencyRates.map((r) => `${r.category} ${r.commission_percent}%`).join(" · ")}
-                    </p>
+                  </div>
+                  {a.description && (
+                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{a.description}</p>
                   )}
                 </div>
-     <Button size="sm" variant="outline" asChild>
-  <Link to="/admin/agences/$id/billets" params={{ id: a.id }}>
-    Billets
-  </Link>
-</Button>
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => openEdit(a)}>
-                    <Pencil className="mr-1 h-3.5 w-3.5" /> Modifier
+                  <Button size="sm" variant="outline" onClick={() => toggleVerified(a)}>
+                    {a.is_verified ? <><ShieldOff className="h-3.5 w-3.5 mr-1" /> Retirer</> : <><ShieldCheck className="h-3.5 w-3.5 mr-1" /> Vérifier</>}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => setCommissionsFor(a)}>
-                    <Percent className="mr-1 h-3.5 w-3.5" /> Commissions
-                  </Button>
-                  <Button size="sm" variant={a.is_verified ? "outline" : "default"} onClick={() => toggleVerified(a)}>
-                    <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                    {a.is_verified ? "Dévérifier" : "Vérifier"}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => toggleActive(a)}>
-                    <ShieldOff className="mr-1 h-3.5 w-3.5" />
+                  <Button size="sm" variant="outline" onClick={() => toggleActive(a)}>
                     {a.is_active ? "Désactiver" : "Activer"}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => remove(a)}>
-                    <Trash2 className="mr-1 h-3.5 w-3.5" /> Supprimer
+                  <Button size="sm" variant="outline" onClick={() => openEdit(a)}>
+                    <Pencil className="h-3.5 w-3.5 mr-1" /> Modifier
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => remove(a)}>
+                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Supprimer
                   </Button>
                 </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
-
-      {commissionsFor && (
-        <CommissionEditor
-          agency={commissionsFor}
-          initialRates={rates.filter((r) => r.agency_id === commissionsFor.id)}
-          onClose={() => { setCommissionsFor(null); load(); }}
-        />
-      )}
-    </div>
-  );
-}
-
-function CommissionEditor({
-  agency, initialRates, onClose,
-}: { agency: Agency; initialRates: CommissionRate[]; onClose: () => void }) {
-  const [rows, setRows] = useState<Record<string, number | "">>(() => {
-    const map: Record<string, number | ""> = {};
-    ALL_CATS.forEach((c) => {
-      const found = initialRates.find((r) => r.category === c);
-      map[c] = found ? Number(found.commission_percent) : "";
-    });
-    return map;
-  });
-  const [saving, setSaving] = useState(false);
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      for (const c of ALL_CATS) {
-        const v = rows[c];
-        const existing = initialRates.find((r) => r.category === c);
-        if (v === "" || v === null || Number.isNaN(Number(v))) {
-          if (existing) {
-            await supabase.from("partner_commission_rates" as any).delete().eq("id", existing.id);
-          }
-        } else {
-          if (existing) {
-            await supabase.from("partner_commission_rates" as any)
-              .update({ commission_percent: Number(v) }).eq("id", existing.id);
-          } else {
-            await supabase.from("partner_commission_rates" as any).insert({
-              agency_id: agency.id, category: c, commission_percent: Number(v),
-            } as any);
-          }
-        }
-      }
-      toast.success("Commissions enregistrées");
-      onClose();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erreur");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-card p-5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold">Commissions — {agency.name}</h3>
-          <button onClick={onClose}><X className="h-5 w-5" /></button>
-        </div>
-        <p className="text-xs text-muted-foreground mb-3">
-          Laissez vide pour appliquer le taux par défaut ({Number(agency.commission_percent ?? 10)}%).
-        </p>
-        <div className="space-y-2">
-          {ALL_CATS.map((c) => {
-            const Icon = CAT_ICONS[c];
-            return (
-              <div key={c} className="flex items-center gap-3">
-                <div className="flex items-center gap-2 w-24 text-sm">
-                  <Icon className="h-4 w-4" /> {CAT_LABELS[c]}
-                </div>
-                <Input
-                  type="number" min={0} max={100} step={0.5}
-                  placeholder="par défaut"
-                  value={rows[c] === "" ? "" : String(rows[c])}
-                  onChange={(e) => setRows({ ...rows, [c]: e.target.value === "" ? "" : Number(e.target.value) })}
-                />
-                <span className="text-xs text-muted-foreground">%</span>
               </div>
             );
           })}
         </div>
-        <div className="mt-4 flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <Button onClick={save} disabled={saving}>{saving ? "…" : "Enregistrer"}</Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

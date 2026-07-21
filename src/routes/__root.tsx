@@ -88,7 +88,7 @@ function RootComponent() {
   const isFullScreenRoute = location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/chauffeur") ||
     location.pathname.startsWith("/gerant") ||
-    location.pathname.startsWith("/agence") ||
+    
     location.pathname.startsWith("/espace-client") ||
     location.pathname.startsWith("/reserver-transport") ||
     location.pathname.startsWith("/activites") ||
@@ -123,7 +123,7 @@ function RootComponent() {
       else if (role === "admin") target = "/admin";
       else if (role === "gerant") target = "/gerant";
       else if (role === "chauffeur") target = "/chauffeur";
-      else if (role === "agence") target = "/agence";
+      
 
       if (target) {
         navigate({ to: target as any, replace: true });

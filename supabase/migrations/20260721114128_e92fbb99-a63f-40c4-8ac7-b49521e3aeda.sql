@@ -1,0 +1,1 @@
+ALTER TYPE public.agency_category ADD VALUE IF NOT EXISTS 'evenement';
