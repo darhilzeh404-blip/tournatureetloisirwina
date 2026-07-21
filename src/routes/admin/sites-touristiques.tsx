@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Upload, X, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { randomId } from "@/lib/random-id";
 
 export const Route = createFileRoute("/admin/sites-touristiques")({
   component: AdminSitesTouristiques,
