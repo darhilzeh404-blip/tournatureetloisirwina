@@ -1404,7 +1404,7 @@ function PremiumRangesSection({ onCourse: _onCourse }: { onCourse: () => void })
               <RangeCard
                 badge="Prestige"
                 badgeTone="accent"
-                icon="/icons/vip-3d.jpg"
+                icon="/icons/vip-3d.png"
                 title="Abonnement Berline VIP"
                 price="250.000 XAF"
                 priceSuffix="/mois"
