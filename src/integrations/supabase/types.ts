@@ -2736,24 +2736,24 @@ export type Database = {
         Insert: {
           category?: Database["public"]["Enums"]["agency_category"] | null
           description?: string | null
-          email?: string | null
+          email?: never
           id?: string | null
           is_active?: boolean | null
           is_verified?: boolean | null
           logo_url?: string | null
           name?: string | null
-          phone?: string | null
+          phone?: never
         }
         Update: {
           category?: Database["public"]["Enums"]["agency_category"] | null
           description?: string | null
-          email?: string | null
+          email?: never
           id?: string | null
           is_active?: boolean | null
           is_verified?: boolean | null
           logo_url?: string | null
           name?: string | null
-          phone?: string | null
+          phone?: never
         }
         Relationships: []
       }
