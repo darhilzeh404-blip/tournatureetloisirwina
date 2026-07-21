@@ -45,6 +45,9 @@ function AgencyTicketsPage() {
   const [dateFilter, setDateFilter] = useState("");
   const [booking, setBooking] = useState<Ticket | null>(null);
   const [qty, setQty] = useState(1);
+  const [passengerName, setPassengerName] = useState("");
+  const [passengerPhone, setPassengerPhone] = useState("");
+  const [passengerEmail, setPassengerEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
