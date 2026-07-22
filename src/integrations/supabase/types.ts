@@ -1486,66 +1486,6 @@ export type Database = {
           },
         ]
       }
-      pawapay_transactions: {
-        Row: {
-          amount: number
-          callback_payload: Json | null
-          completed_at: string | null
-          created_at: string
-          currency: string
-          deposit_id: string
-          failure_reason: string | null
-          id: string
-          initiate_response: Json | null
-          metadata: Json
-          payer_msisdn: string
-          provider: string
-          purpose: string
-          related_id: string
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          callback_payload?: Json | null
-          completed_at?: string | null
-          created_at?: string
-          currency?: string
-          deposit_id: string
-          failure_reason?: string | null
-          id?: string
-          initiate_response?: Json | null
-          metadata?: Json
-          payer_msisdn: string
-          provider: string
-          purpose: string
-          related_id: string
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          callback_payload?: Json | null
-          completed_at?: string | null
-          created_at?: string
-          currency?: string
-          deposit_id?: string
-          failure_reason?: string | null
-          id?: string
-          initiate_response?: Json | null
-          metadata?: Json
-          payer_msisdn?: string
-          provider?: string
-          purpose?: string
-          related_id?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       payments: {
         Row: {
           admin_comment: string | null
@@ -1630,6 +1570,69 @@ export type Database = {
           id?: string
           phone?: string | null
           status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pvit_transactions: {
+        Row: {
+          amount: number
+          callback_payload: Json | null
+          completed_at: string | null
+          created_at: string
+          currency: string
+          failure_reason: string | null
+          id: string
+          initiate_response: Json | null
+          merchant_operation_id: string | null
+          metadata: Json
+          operator: string
+          payer_msisdn: string
+          purpose: string
+          related_id: string
+          status: string
+          transaction_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          callback_payload?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          initiate_response?: Json | null
+          merchant_operation_id?: string | null
+          metadata?: Json
+          operator: string
+          payer_msisdn: string
+          purpose: string
+          related_id: string
+          status?: string
+          transaction_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          callback_payload?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          initiate_response?: Json | null
+          merchant_operation_id?: string | null
+          metadata?: Json
+          operator?: string
+          payer_msisdn?: string
+          purpose?: string
+          related_id?: string
+          status?: string
+          transaction_id?: string
           updated_at?: string
           user_id?: string
         }
@@ -3003,16 +3006,16 @@ export type Database = {
           validated_at: string
         }[]
       }
-      apply_pawapay_completion: {
-        Args: { _callback: Json; _deposit_id: string }
+      apply_pvit_completion: {
+        Args: { _callback: Json; _transaction_id: string }
         Returns: undefined
       }
-      apply_pawapay_failure: {
+      apply_pvit_failure: {
         Args: {
           _callback: Json
-          _deposit_id: string
           _reason: string
           _status: string
+          _transaction_id: string
         }
         Returns: undefined
       }
