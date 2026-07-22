@@ -14,7 +14,7 @@ import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
 import { UseCoinsToggle } from "@/components/wina-coins/UseCoinsToggle";
 import { fetchBalance } from "@/lib/wina-coins";
 import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
-import { PawaPayCheckout } from "@/components/PawaPayCheckout";
+import { MyPvitCheckout } from "@/components/MyPvitCheckout";
 
 // Codes agents marchands (à personnaliser depuis l'admin plus tard)
 const CODE_AGENT_MOOV = "TRANSPORT";
@@ -365,14 +365,14 @@ function PaiementPage() {
         </CardContent>
       </Card>
 
-      {/* Paiement instantané via PawaPay */}
+      {/* Paiement instantané via MyPVit */}
       <Card className="border-green-500/40 bg-green-500/5">
         <CardContent className="p-5 space-y-3">
           <div>
             <p className="text-sm font-bold">⚡ Paiement instantané</p>
-            <p className="text-xs text-muted-foreground">Confirmé automatiquement dès validation sur votre téléphone.</p>
+            <p className="text-xs text-muted-foreground">Confirmé automatiquement dès validation USSD sur votre téléphone.</p>
           </div>
-          <PawaPayCheckout
+          <MyPvitCheckout
             purpose="reservation"
             relatedId={reservation.id}
             amount={Math.max(reservation.total_amount - reservation.paid_amount - (reservation.coins_used ?? 0), 0)}

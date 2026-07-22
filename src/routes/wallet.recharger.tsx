@@ -14,7 +14,7 @@ import { NumberInput } from "@/components/ui/number-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { prepareReceiptImage } from "@/lib/image-upload";
 import { formatPoints, formatXAF, requestRecharge } from "@/lib/vtc-wallet";
-import { PawaPayCheckout } from "@/components/PawaPayCheckout";
+import { MyPvitCheckout } from "@/components/MyPvitCheckout";
 
 const CODE_AGENT_MOOV = "TRANSPORT";
 const CODE_AGENT_AIRTEL = "BGG94";
@@ -164,16 +164,16 @@ function WalletRechargePage() {
         </CardContent>
       </Card>
 
-      {/* Paiement instantané via PawaPay */}
+      {/* Paiement instantané via MyPVit */}
       <Card className="border-green-500/40 bg-green-500/5">
         <CardContent className="p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-bold">⚡ Paiement instantané</p>
-              <p className="text-xs text-muted-foreground">Recharge validée automatiquement après confirmation sur votre téléphone.</p>
+              <p className="text-xs text-muted-foreground">Recharge validée automatiquement après confirmation USSD sur votre téléphone.</p>
             </div>
           </div>
-          <PawaPayCheckout
+          <MyPvitCheckout
             purpose="wallet_recharge"
             relatedId={user.id}
             amount={amount}
