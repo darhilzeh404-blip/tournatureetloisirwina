@@ -84,11 +84,11 @@ import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/dep
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
 import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
-import { Route as ApiPawapayInitiateRouteImport } from './routes/api/pawapay.initiate'
+import { Route as ApiPvitInitiateRouteImport } from './routes/api/pvit.initiate'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
-import { Route as ApiPublicPawapayCallbackRouteImport } from './routes/api/public/pawapay.callback'
-import { Route as ApiPawapayStatusDepositIdRouteImport } from './routes/api/pawapay.status.$depositId'
+import { Route as ApiPvitStatusTransactionIdRouteImport } from './routes/api/pvit.status.$transactionId'
+import { Route as ApiPublicPvitCallbackRouteImport } from './routes/api/public/pvit.callback'
 
 const WinaCoinsRoute = WinaCoinsRouteImport.update({
   id: '/wina-coins',
@@ -467,9 +467,9 @@ const BilletsAgenceAgencyIdRoute = BilletsAgenceAgencyIdRouteImport.update({
   path: '/agence/$agencyId',
   getParentRoute: () => BilletsRoute,
 } as any)
-const ApiPawapayInitiateRoute = ApiPawapayInitiateRouteImport.update({
-  id: '/api/pawapay/initiate',
-  path: '/api/pawapay/initiate',
+const ApiPvitInitiateRoute = ApiPvitInitiateRouteImport.update({
+  id: '/api/pvit/initiate',
+  path: '/api/pvit/initiate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
@@ -482,18 +482,17 @@ const ApiAdminCreateDriverRoute = ApiAdminCreateDriverRouteImport.update({
   path: '/api/admin/create-driver',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicPawapayCallbackRoute =
-  ApiPublicPawapayCallbackRouteImport.update({
-    id: '/api/public/pawapay/callback',
-    path: '/api/public/pawapay/callback',
+const ApiPvitStatusTransactionIdRoute =
+  ApiPvitStatusTransactionIdRouteImport.update({
+    id: '/api/pvit/status/$transactionId',
+    path: '/api/pvit/status/$transactionId',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPawapayStatusDepositIdRoute =
-  ApiPawapayStatusDepositIdRouteImport.update({
-    id: '/api/pawapay/status/$depositId',
-    path: '/api/pawapay/status/$depositId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiPublicPvitCallbackRoute = ApiPublicPvitCallbackRouteImport.update({
+  id: '/api/public/pvit/callback',
+  path: '/api/public/pvit/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -568,14 +567,14 @@ export interface FileRoutesByFullPath {
   '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
-  '/api/pawapay/initiate': typeof ApiPawapayInitiateRoute
+  '/api/pvit/initiate': typeof ApiPvitInitiateRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
-  '/api/pawapay/status/$depositId': typeof ApiPawapayStatusDepositIdRoute
-  '/api/public/pawapay/callback': typeof ApiPublicPawapayCallbackRoute
+  '/api/public/pvit/callback': typeof ApiPublicPvitCallbackRoute
+  '/api/pvit/status/$transactionId': typeof ApiPvitStatusTransactionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -646,14 +645,14 @@ export interface FileRoutesByTo {
   '/vtc': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
-  '/api/pawapay/initiate': typeof ApiPawapayInitiateRoute
+  '/api/pvit/initiate': typeof ApiPvitInitiateRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
-  '/api/pawapay/status/$depositId': typeof ApiPawapayStatusDepositIdRoute
-  '/api/public/pawapay/callback': typeof ApiPublicPawapayCallbackRoute
+  '/api/public/pvit/callback': typeof ApiPublicPvitCallbackRoute
+  '/api/pvit/status/$transactionId': typeof ApiPvitStatusTransactionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -729,14 +728,14 @@ export interface FileRoutesById {
   '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
-  '/api/pawapay/initiate': typeof ApiPawapayInitiateRoute
+  '/api/pvit/initiate': typeof ApiPvitInitiateRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
-  '/api/pawapay/status/$depositId': typeof ApiPawapayStatusDepositIdRoute
-  '/api/public/pawapay/callback': typeof ApiPublicPawapayCallbackRoute
+  '/api/public/pvit/callback': typeof ApiPublicPvitCallbackRoute
+  '/api/pvit/status/$transactionId': typeof ApiPvitStatusTransactionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -813,14 +812,14 @@ export interface FileRouteTypes {
     | '/vtc/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
-    | '/api/pawapay/initiate'
+    | '/api/pvit/initiate'
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
-    | '/api/pawapay/status/$depositId'
-    | '/api/public/pawapay/callback'
+    | '/api/public/pvit/callback'
+    | '/api/pvit/status/$transactionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -891,14 +890,14 @@ export interface FileRouteTypes {
     | '/vtc'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
-    | '/api/pawapay/initiate'
+    | '/api/pvit/initiate'
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
-    | '/api/pawapay/status/$depositId'
-    | '/api/public/pawapay/callback'
+    | '/api/public/pvit/callback'
+    | '/api/pvit/status/$transactionId'
   id:
     | '__root__'
     | '/'
@@ -973,14 +972,14 @@ export interface FileRouteTypes {
     | '/vtc/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
-    | '/api/pawapay/initiate'
+    | '/api/pvit/initiate'
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
-    | '/api/pawapay/status/$depositId'
-    | '/api/public/pawapay/callback'
+    | '/api/public/pvit/callback'
+    | '/api/pvit/status/$transactionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1022,9 +1021,9 @@ export interface RootRouteChildren {
   SuiviTripIdRoute: typeof SuiviTripIdRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
-  ApiPawapayInitiateRoute: typeof ApiPawapayInitiateRoute
-  ApiPawapayStatusDepositIdRoute: typeof ApiPawapayStatusDepositIdRoute
-  ApiPublicPawapayCallbackRoute: typeof ApiPublicPawapayCallbackRoute
+  ApiPvitInitiateRoute: typeof ApiPvitInitiateRoute
+  ApiPublicPvitCallbackRoute: typeof ApiPublicPvitCallbackRoute
+  ApiPvitStatusTransactionIdRoute: typeof ApiPvitStatusTransactionIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1554,11 +1553,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BilletsAgenceAgencyIdRouteImport
       parentRoute: typeof BilletsRoute
     }
-    '/api/pawapay/initiate': {
-      id: '/api/pawapay/initiate'
-      path: '/api/pawapay/initiate'
-      fullPath: '/api/pawapay/initiate'
-      preLoaderRoute: typeof ApiPawapayInitiateRouteImport
+    '/api/pvit/initiate': {
+      id: '/api/pvit/initiate'
+      path: '/api/pvit/initiate'
+      fullPath: '/api/pvit/initiate'
+      preLoaderRoute: typeof ApiPvitInitiateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/create-user': {
@@ -1575,18 +1574,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminCreateDriverRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/pawapay/callback': {
-      id: '/api/public/pawapay/callback'
-      path: '/api/public/pawapay/callback'
-      fullPath: '/api/public/pawapay/callback'
-      preLoaderRoute: typeof ApiPublicPawapayCallbackRouteImport
+    '/api/pvit/status/$transactionId': {
+      id: '/api/pvit/status/$transactionId'
+      path: '/api/pvit/status/$transactionId'
+      fullPath: '/api/pvit/status/$transactionId'
+      preLoaderRoute: typeof ApiPvitStatusTransactionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/pawapay/status/$depositId': {
-      id: '/api/pawapay/status/$depositId'
-      path: '/api/pawapay/status/$depositId'
-      fullPath: '/api/pawapay/status/$depositId'
-      preLoaderRoute: typeof ApiPawapayStatusDepositIdRouteImport
+    '/api/public/pvit/callback': {
+      id: '/api/public/pvit/callback'
+      path: '/api/public/pvit/callback'
+      fullPath: '/api/public/pvit/callback'
+      preLoaderRoute: typeof ApiPublicPvitCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1774,9 +1773,9 @@ const rootRouteChildren: RootRouteChildren = {
   SuiviTripIdRoute: SuiviTripIdRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
-  ApiPawapayInitiateRoute: ApiPawapayInitiateRoute,
-  ApiPawapayStatusDepositIdRoute: ApiPawapayStatusDepositIdRoute,
-  ApiPublicPawapayCallbackRoute: ApiPublicPawapayCallbackRoute,
+  ApiPvitInitiateRoute: ApiPvitInitiateRoute,
+  ApiPublicPvitCallbackRoute: ApiPublicPvitCallbackRoute,
+  ApiPvitStatusTransactionIdRoute: ApiPvitStatusTransactionIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

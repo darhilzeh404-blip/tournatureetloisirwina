@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Loader2, CheckCircle2, Smartphone, XCircle } from "lucide-react";
 
 type Purpose = "reservation" | "wallet_recharge" | "partner_booking";
-type Provider = "AIRTEL_MMO_GAB" | "MOOV_MMO_GAB";
+type Operator = "airtelmoney" | "moovmoney";
 
 interface Props {
   purpose: Purpose;
@@ -18,11 +18,11 @@ interface Props {
   onSuccess?: () => void;
 }
 
-export function PawaPayCheckout({ purpose, relatedId, amount, description, onSuccess }: Props) {
-  const [provider, setProvider] = useState<Provider>("AIRTEL_MMO_GAB");
+export function MyPvitCheckout({ purpose, relatedId, amount, description, onSuccess }: Props) {
+  const [operator, setOperator] = useState<Operator>("airtelmoney");
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [depositId, setDepositId] = useState<string | null>(null);
+  const [transactionId, setTransactionId] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "pending" | "completed" | "failed">("idle");
   const [failureReason, setFailureReason] = useState<string | null>(null);
   const pollRef = useRef<number | null>(null);
@@ -41,10 +41,10 @@ export function PawaPayCheckout({ purpose, relatedId, amount, description, onSuc
       const token = sess.session?.access_token;
       if (!token) { toast.error("Session expirée"); return; }
 
-      const res = await fetch("/api/pawapay/initiate", {
+      const res = await fetch("/api/pvit/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ purpose, related_id: relatedId, amount, provider, phone, description }),
+        body: JSON.stringify({ purpose, related_id: relatedId, amount, operator, phone, description }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -53,10 +53,10 @@ export function PawaPayCheckout({ purpose, relatedId, amount, description, onSuc
         setFailureReason(body?.error || null);
         return;
       }
-      setDepositId(body.depositId);
+      setTransactionId(body.transactionId);
       setStatus("pending");
-      toast.success("Push envoyé — validez sur votre téléphone");
-      startPolling(body.depositId);
+      toast.success("Push USSD envoyé — validez sur votre téléphone");
+      startPolling(body.transactionId);
     } catch (e: any) {
       toast.error(e?.message || "Erreur réseau");
     } finally {
@@ -71,21 +71,21 @@ export function PawaPayCheckout({ purpose, relatedId, amount, description, onSuc
       try {
         const { data: sess } = await supabase.auth.getSession();
         const token = sess.session?.access_token;
-        const res = await fetch(`/api/pawapay/status/${id}`, {
+        const res = await fetch(`/api/pvit/status/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const body = await res.json();
-        if (body.status === "COMPLETED") {
+        if (body.status === "SUCCESS") {
           if (pollRef.current) window.clearInterval(pollRef.current);
           setStatus("completed");
           toast.success("Paiement confirmé !");
           onSuccess?.();
-        } else if (body.status === "FAILED" || body.status === "REJECTED") {
+        } else if (body.status === "FAILED" || body.status === "EXPIRED") {
           if (pollRef.current) window.clearInterval(pollRef.current);
           setStatus("failed");
           setFailureReason(body.failure_reason || "Paiement refusé");
           toast.error(body.failure_reason || "Paiement refusé");
-        } else if (attempts > 60) { // ~3 min
+        } else if (attempts > 60) {
           if (pollRef.current) window.clearInterval(pollRef.current);
           setStatus("failed");
           setFailureReason("Délai dépassé — réessayez");
@@ -103,7 +103,7 @@ export function PawaPayCheckout({ purpose, relatedId, amount, description, onSuc
         <CheckCircle2 className="h-6 w-6 text-green-500" />
         <div>
           <div className="font-semibold">Paiement confirmé</div>
-          <div className="text-sm text-muted-foreground">Votre réservation est validée.</div>
+          <div className="text-sm text-muted-foreground">Votre transaction est validée.</div>
         </div>
       </div>
     );
@@ -116,7 +116,7 @@ export function PawaPayCheckout({ purpose, relatedId, amount, description, onSuc
         <div className="flex-1">
           <div className="font-semibold">En attente de validation</div>
           <div className="text-sm text-muted-foreground">
-            Confirmez la demande sur votre téléphone ({phone}).
+            Confirmez la demande USSD sur votre téléphone ({phone}).
           </div>
         </div>
       </div>
@@ -127,23 +127,23 @@ export function PawaPayCheckout({ purpose, relatedId, amount, description, onSuc
     <div className="space-y-4">
       <div className="rounded-xl border bg-card p-4">
         <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
-          <Smartphone className="h-4 w-4" /> Mobile Money (PawaPay)
+          <Smartphone className="h-4 w-4" /> Mobile Money (MyPVit)
         </div>
-        <RadioGroup value={provider} onValueChange={(v) => setProvider(v as Provider)} className="grid grid-cols-2 gap-2">
-          <label className={`flex items-center gap-2 rounded-lg border p-3 cursor-pointer ${provider === "AIRTEL_MMO_GAB" ? "border-primary bg-primary/5" : ""}`}>
-            <RadioGroupItem value="AIRTEL_MMO_GAB" />
+        <RadioGroup value={operator} onValueChange={(v) => setOperator(v as Operator)} className="grid grid-cols-2 gap-2">
+          <label className={`flex items-center gap-2 rounded-lg border p-3 cursor-pointer ${operator === "airtelmoney" ? "border-primary bg-primary/5" : ""}`}>
+            <RadioGroupItem value="airtelmoney" />
             <span className="text-sm font-medium">Airtel Money</span>
           </label>
-          <label className={`flex items-center gap-2 rounded-lg border p-3 cursor-pointer ${provider === "MOOV_MMO_GAB" ? "border-primary bg-primary/5" : ""}`}>
-            <RadioGroupItem value="MOOV_MMO_GAB" />
+          <label className={`flex items-center gap-2 rounded-lg border p-3 cursor-pointer ${operator === "moovmoney" ? "border-primary bg-primary/5" : ""}`}>
+            <RadioGroupItem value="moovmoney" />
             <span className="text-sm font-medium">Moov Money</span>
           </label>
         </RadioGroup>
 
         <div className="mt-4 space-y-2">
-          <Label htmlFor="pwp-phone">Numéro du payeur</Label>
+          <Label htmlFor="pvit-phone">Numéro du payeur</Label>
           <Input
-            id="pwp-phone"
+            id="pvit-phone"
             inputMode="tel"
             placeholder="Ex : 077123456 ou 24177123456"
             value={phone}

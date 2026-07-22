@@ -8,27 +8,33 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function pawapayBase() {
-  // Sandbox par défaut (le token PawaPay détermine l'environnement)
-  return process.env.PAWAPAY_BASE_URL || "https://api.sandbox.pawapay.io";
+function pvitBase() {
+  // Base API MyPVit — configurable, sinon URL par défaut du provider
+  return process.env.PVIT_BASE_URL || "https://api.mypvit.pro";
 }
 
 function normalizeMsisdn(raw: string): string | null {
   const digits = String(raw || "").replace(/\D/g, "");
   if (!digits) return null;
-  // Gabon: 8 chiffres locaux, préfixé par 241
   if (digits.startsWith("241") && digits.length >= 11) return digits.slice(0, 11);
   if (digits.length === 8) return "241" + digits;
   if (digits.length === 9 && digits.startsWith("0")) return "241" + digits.slice(1);
   return digits;
 }
 
-export const Route = createFileRoute("/api/pawapay/initiate")({
+function newTransactionId(): string {
+  // Référence unique, préfixée WINA + timestamp + aléatoire (compatible tout navigateur)
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `WINA${Date.now()}${rand}`;
+}
+
+export const Route = createFileRoute("/api/pvit/initiate")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const token = process.env.PAWAPAY_API_TOKEN;
-        if (!token) return json({ error: "PawaPay non configuré" }, 500);
+        const token = process.env.PVIT_API_TOKEN;
+        const codeUrl = process.env.PVIT_CODE_URL;
+        if (!token || !codeUrl) return json({ error: "MyPVit non configuré" }, 500);
 
         const authHeader = request.headers.get("authorization");
         if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
@@ -45,15 +51,15 @@ export const Route = createFileRoute("/api/pawapay/initiate")({
         const purpose = String(body?.purpose || "");
         const relatedId = String(body?.related_id || "");
         const amount = Math.floor(Number(body?.amount));
-        const provider = String(body?.provider || ""); // AIRTEL_MMO_GAB | MOOV_MMO_GAB
+        const operator = String(body?.operator || ""); // airtelmoney | moovmoney
         const rawPhone = String(body?.phone || "");
-        const description = String(body?.description || "Paiement Wina").slice(0, 22);
+        const description = String(body?.description || "Paiement Wina").slice(0, 60);
 
         if (!["reservation", "wallet_recharge", "partner_booking"].includes(purpose)) {
           return json({ error: "purpose invalide" }, 400);
         }
         if (!relatedId || !amount || amount <= 0) return json({ error: "Paramètres invalides" }, 400);
-        if (!["AIRTEL_MMO_GAB", "MOOV_MMO_GAB"].includes(provider)) {
+        if (!["airtelmoney", "moovmoney"].includes(operator)) {
           return json({ error: "Opérateur invalide" }, 400);
         }
         const msisdn = normalizeMsisdn(rawPhone);
@@ -74,73 +80,81 @@ export const Route = createFileRoute("/api/pawapay/initiate")({
           if (!b || b.user_id !== userId) return json({ error: "Réservation introuvable" }, 404);
         }
 
-        // Génère un depositId UUID
-        const depositId = crypto.randomUUID();
+        const transactionId = newTransactionId();
 
-        // Insert la tx en base avant l'appel
-        const { error: insErr } = await supabaseAdmin.from("pawapay_transactions").insert({
-          deposit_id: depositId,
+        const { error: insErr } = await (supabaseAdmin.from("pvit_transactions") as any).insert({
+          transaction_id: transactionId,
           user_id: userId,
           amount,
-          provider,
+          operator,
           payer_msisdn: msisdn,
-          status: "SUBMITTED",
+          status: "PENDING",
           purpose,
           related_id: relatedId,
           metadata: { description },
         });
         if (insErr) return json({ error: "DB error: " + insErr.message }, 500);
 
-        // Appel API PawaPay
-        const pawapayBody = {
-          depositId,
-          amount: String(amount),
-          currency: "XAF",
-          country: "GAB",
-          correspondent: provider,
-          payer: { type: "MSISDN", address: { value: msisdn } },
-          customerTimestamp: new Date().toISOString(),
-          statementDescription: description.replace(/[^A-Za-z0-9 ]/g, "").slice(0, 22) || "Wina",
+        // Callback public
+        const origin = request.headers.get("origin") || new URL(request.url).origin;
+        const callbackUrl = process.env.PVIT_CALLBACK_URL || `${origin}/api/public/pvit/callback`;
+
+        // Corps MyPVit — service RESTLINK (push USSD direct)
+        const pvitBody = {
+          service: "RESTLINK",
+          agent: msisdn,
+          reference: transactionId,
+          amount,
+          operator, // airtelmoney | moovmoney
+          callback_url: callbackUrl,
+          product_name: description,
+          customer_account_number: msisdn,
         };
 
-        let pawapayResponse: any = null;
-        let pawapayStatus = 0;
+        let pvitResponse: any = null;
+        let pvitStatus = 0;
         try {
-          const res = await fetch(`${pawapayBase()}/deposits`, {
+          const res = await fetch(`${pvitBase()}/${codeUrl}/link`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
+              "x-api-key": token,
             },
-            body: JSON.stringify(pawapayBody),
+            body: JSON.stringify(pvitBody),
           });
-          pawapayStatus = res.status;
-          pawapayResponse = await res.json().catch(() => ({}));
+          pvitStatus = res.status;
+          pvitResponse = await res.json().catch(() => ({}));
         } catch (e: any) {
-          await supabaseAdmin.from("pawapay_transactions").update({
+          await (supabaseAdmin.from("pvit_transactions") as any).update({
             status: "FAILED",
             failure_reason: "Réseau: " + (e?.message || "unknown"),
-          }).eq("deposit_id", depositId);
-          return json({ error: "Erreur réseau PawaPay" }, 502);
+          }).eq("transaction_id", transactionId);
+          return json({ error: "Erreur réseau MyPVit" }, 502);
         }
 
-        const acceptedStatus = pawapayResponse?.status || "";
-        const isAccepted = pawapayStatus < 400 && acceptedStatus === "ACCEPTED";
+        const okStatus = pvitStatus < 400;
+        const merchantOpId =
+          pvitResponse?.merchant_operation_id ||
+          pvitResponse?.data?.merchant_operation_id ||
+          pvitResponse?.transaction_id ||
+          null;
 
-        await supabaseAdmin.from("pawapay_transactions").update({
-          status: isAccepted ? "ACCEPTED" : "FAILED",
-          initiate_response: pawapayResponse,
-          failure_reason: isAccepted ? null : (pawapayResponse?.rejectionReason?.rejectionMessage || pawapayResponse?.errorMessage || `HTTP ${pawapayStatus}`),
-        }).eq("deposit_id", depositId);
+        await (supabaseAdmin.from("pvit_transactions") as any).update({
+          status: okStatus ? "ACCEPTED" : "FAILED",
+          merchant_operation_id: merchantOpId,
+          initiate_response: pvitResponse,
+          failure_reason: okStatus ? null : (pvitResponse?.message || pvitResponse?.error || `HTTP ${pvitStatus}`),
+        }).eq("transaction_id", transactionId);
 
-        if (!isAccepted) {
+        if (!okStatus) {
           return json({
-            error: "Paiement refusé par l'opérateur",
-            detail: pawapayResponse,
+            error: "Paiement refusé par MyPVit",
+            detail: pvitResponse,
           }, 400);
         }
 
-        return json({ success: true, depositId });
+        return json({ success: true, transactionId });
       },
     },
   },
