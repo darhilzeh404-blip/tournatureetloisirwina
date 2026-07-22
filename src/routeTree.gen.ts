@@ -84,8 +84,11 @@ import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/dep
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
 import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
+import { Route as ApiPvitInitiateRouteImport } from './routes/api/pvit.initiate'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
+import { Route as ApiPvitStatusTransactionIdRouteImport } from './routes/api/pvit.status.$transactionId'
+import { Route as ApiPublicPvitCallbackRouteImport } from './routes/api/public/pvit.callback'
 
 const WinaCoinsRoute = WinaCoinsRouteImport.update({
   id: '/wina-coins',
@@ -464,6 +467,11 @@ const BilletsAgenceAgencyIdRoute = BilletsAgenceAgencyIdRouteImport.update({
   path: '/agence/$agencyId',
   getParentRoute: () => BilletsRoute,
 } as any)
+const ApiPvitInitiateRoute = ApiPvitInitiateRouteImport.update({
+  id: '/api/pvit/initiate',
+  path: '/api/pvit/initiate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
   id: '/api/admin/create-user',
   path: '/api/admin/create-user',
@@ -472,6 +480,17 @@ const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
 const ApiAdminCreateDriverRoute = ApiAdminCreateDriverRouteImport.update({
   id: '/api/admin/create-driver',
   path: '/api/admin/create-driver',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPvitStatusTransactionIdRoute =
+  ApiPvitStatusTransactionIdRouteImport.update({
+    id: '/api/pvit/status/$transactionId',
+    path: '/api/pvit/status/$transactionId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPvitCallbackRoute = ApiPublicPvitCallbackRouteImport.update({
+  id: '/api/public/pvit/callback',
+  path: '/api/public/pvit/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -548,11 +567,14 @@ export interface FileRoutesByFullPath {
   '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/api/pvit/initiate': typeof ApiPvitInitiateRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
+  '/api/public/pvit/callback': typeof ApiPublicPvitCallbackRoute
+  '/api/pvit/status/$transactionId': typeof ApiPvitStatusTransactionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -623,11 +645,14 @@ export interface FileRoutesByTo {
   '/vtc': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/api/pvit/initiate': typeof ApiPvitInitiateRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
+  '/api/public/pvit/callback': typeof ApiPublicPvitCallbackRoute
+  '/api/pvit/status/$transactionId': typeof ApiPvitStatusTransactionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -703,11 +728,14 @@ export interface FileRoutesById {
   '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/api/pvit/initiate': typeof ApiPvitInitiateRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
+  '/api/public/pvit/callback': typeof ApiPublicPvitCallbackRoute
+  '/api/pvit/status/$transactionId': typeof ApiPvitStatusTransactionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -784,11 +812,14 @@ export interface FileRouteTypes {
     | '/vtc/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/api/pvit/initiate'
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
+    | '/api/public/pvit/callback'
+    | '/api/pvit/status/$transactionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -859,11 +890,14 @@ export interface FileRouteTypes {
     | '/vtc'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/api/pvit/initiate'
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
+    | '/api/public/pvit/callback'
+    | '/api/pvit/status/$transactionId'
   id:
     | '__root__'
     | '/'
@@ -938,11 +972,14 @@ export interface FileRouteTypes {
     | '/vtc/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/api/pvit/initiate'
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
+    | '/api/public/pvit/callback'
+    | '/api/pvit/status/$transactionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -984,6 +1021,9 @@ export interface RootRouteChildren {
   SuiviTripIdRoute: typeof SuiviTripIdRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
+  ApiPvitInitiateRoute: typeof ApiPvitInitiateRoute
+  ApiPublicPvitCallbackRoute: typeof ApiPublicPvitCallbackRoute
+  ApiPvitStatusTransactionIdRoute: typeof ApiPvitStatusTransactionIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1513,6 +1553,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BilletsAgenceAgencyIdRouteImport
       parentRoute: typeof BilletsRoute
     }
+    '/api/pvit/initiate': {
+      id: '/api/pvit/initiate'
+      path: '/api/pvit/initiate'
+      fullPath: '/api/pvit/initiate'
+      preLoaderRoute: typeof ApiPvitInitiateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/create-user': {
       id: '/api/admin/create-user'
       path: '/api/admin/create-user'
@@ -1525,6 +1572,20 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/create-driver'
       fullPath: '/api/admin/create-driver'
       preLoaderRoute: typeof ApiAdminCreateDriverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pvit/status/$transactionId': {
+      id: '/api/pvit/status/$transactionId'
+      path: '/api/pvit/status/$transactionId'
+      fullPath: '/api/pvit/status/$transactionId'
+      preLoaderRoute: typeof ApiPvitStatusTransactionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pvit/callback': {
+      id: '/api/public/pvit/callback'
+      path: '/api/public/pvit/callback'
+      fullPath: '/api/public/pvit/callback'
+      preLoaderRoute: typeof ApiPublicPvitCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1712,6 +1773,9 @@ const rootRouteChildren: RootRouteChildren = {
   SuiviTripIdRoute: SuiviTripIdRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
+  ApiPvitInitiateRoute: ApiPvitInitiateRoute,
+  ApiPublicPvitCallbackRoute: ApiPublicPvitCallbackRoute,
+  ApiPvitStatusTransactionIdRoute: ApiPvitStatusTransactionIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
