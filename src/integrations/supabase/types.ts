@@ -826,6 +826,525 @@ export type Database = {
         }
         Relationships: []
       }
+      flight_booking_delivery_logs: {
+        Row: {
+          actor_id: string | null
+          booking_id: string
+          created_at: string
+          event: string
+          id: string
+          location: string | null
+          note: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          booking_id: string
+          created_at?: string
+          event: string
+          id?: string
+          location?: string | null
+          note?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          booking_id?: string
+          created_at?: string
+          event?: string
+          id?: string
+          location?: string | null
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_booking_delivery_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "flight_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_booking_passengers: {
+        Row: {
+          birth_date: string | null
+          booking_id: string
+          created_at: string
+          full_name: string
+          gender: string | null
+          id: string
+          nationality: string | null
+          passport_expiry: string | null
+          passport_number: string
+          passport_photo_url: string
+          seat_index: number | null
+        }
+        Insert: {
+          birth_date?: string | null
+          booking_id: string
+          created_at?: string
+          full_name: string
+          gender?: string | null
+          id?: string
+          nationality?: string | null
+          passport_expiry?: string | null
+          passport_number: string
+          passport_photo_url: string
+          seat_index?: number | null
+        }
+        Update: {
+          birth_date?: string | null
+          booking_id?: string
+          created_at?: string
+          full_name?: string
+          gender?: string | null
+          id?: string
+          nationality?: string | null
+          passport_expiry?: string | null
+          passport_number?: string
+          passport_photo_url?: string
+          seat_index?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_booking_passengers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "flight_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_booking_payments: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string
+          id: string
+          paid_at: string | null
+          payload: Json | null
+          provider: string
+          provider_reference: string | null
+          status: Database["public"]["Enums"]["flight_payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          payload?: Json | null
+          provider?: string
+          provider_reference?: string | null
+          status?: Database["public"]["Enums"]["flight_payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          payload?: Json | null
+          provider?: string
+          provider_reference?: string | null
+          status?: Database["public"]["Enums"]["flight_payment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_booking_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "flight_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_booking_tracking: {
+        Row: {
+          actor_id: string | null
+          booking_id: string
+          created_at: string
+          from_status:
+            | Database["public"]["Enums"]["flight_booking_status"]
+            | null
+          id: string
+          note: string | null
+          to_status: Database["public"]["Enums"]["flight_booking_status"]
+        }
+        Insert: {
+          actor_id?: string | null
+          booking_id: string
+          created_at?: string
+          from_status?:
+            | Database["public"]["Enums"]["flight_booking_status"]
+            | null
+          id?: string
+          note?: string | null
+          to_status: Database["public"]["Enums"]["flight_booking_status"]
+        }
+        Update: {
+          actor_id?: string | null
+          booking_id?: string
+          created_at?: string
+          from_status?:
+            | Database["public"]["Enums"]["flight_booking_status"]
+            | null
+          id?: string
+          note?: string | null
+          to_status?: Database["public"]["Enums"]["flight_booking_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_booking_tracking_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "flight_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_bookings: {
+        Row: {
+          admin_note: string | null
+          agency_id: string
+          agency_notified_at: string | null
+          agency_pdf_url: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          delivery_address: string | null
+          delivery_method: Database["public"]["Enums"]["flight_delivery_method"]
+          id: string
+          pickup_location_id: string | null
+          program_id: string
+          reference_code: string
+          seats: number
+          service_fee: number
+          status: Database["public"]["Enums"]["flight_booking_status"]
+          ticket_pdf_url: string | null
+          total_amount: number
+          unit_price: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          agency_id: string
+          agency_notified_at?: string | null
+          agency_pdf_url?: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          created_at?: string
+          delivery_address?: string | null
+          delivery_method?: Database["public"]["Enums"]["flight_delivery_method"]
+          id?: string
+          pickup_location_id?: string | null
+          program_id: string
+          reference_code?: string
+          seats: number
+          service_fee?: number
+          status?: Database["public"]["Enums"]["flight_booking_status"]
+          ticket_pdf_url?: string | null
+          total_amount: number
+          unit_price: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          agency_id?: string
+          agency_notified_at?: string | null
+          agency_pdf_url?: string | null
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          delivery_address?: string | null
+          delivery_method?: Database["public"]["Enums"]["flight_delivery_method"]
+          id?: string
+          pickup_location_id?: string | null
+          program_id?: string
+          reference_code?: string
+          seats?: number
+          service_fee?: number
+          status?: Database["public"]["Enums"]["flight_booking_status"]
+          ticket_pdf_url?: string | null
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_bookings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flight_bookings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flight_bookings_pickup_location_id_fkey"
+            columns: ["pickup_location_id"]
+            isOneToOne: false
+            referencedRelation: "flight_pickup_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flight_bookings_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "flight_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_pickup_locations: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      flight_program_files: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_url: string
+          id: string
+          program_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_url: string
+          id?: string
+          program_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string
+          id?: string
+          program_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_program_files_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "flight_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_program_segments: {
+        Row: {
+          airline_name: string | null
+          arrival_at: string | null
+          created_at: string
+          departure_at: string
+          destination: string
+          destination_iata: string | null
+          flight_number: string | null
+          id: string
+          origin: string
+          origin_iata: string | null
+          program_id: string
+          segment_order: number
+        }
+        Insert: {
+          airline_name?: string | null
+          arrival_at?: string | null
+          created_at?: string
+          departure_at: string
+          destination: string
+          destination_iata?: string | null
+          flight_number?: string | null
+          id?: string
+          origin: string
+          origin_iata?: string | null
+          program_id: string
+          segment_order: number
+        }
+        Update: {
+          airline_name?: string | null
+          arrival_at?: string | null
+          created_at?: string
+          departure_at?: string
+          destination?: string
+          destination_iata?: string | null
+          flight_number?: string | null
+          id?: string
+          origin?: string
+          origin_iata?: string | null
+          program_id?: string
+          segment_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_program_segments_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "flight_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_programs: {
+        Row: {
+          agency_id: string
+          airline_name: string | null
+          arrival_at: string | null
+          baggage_allowance: string | null
+          category_id: string | null
+          class: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          departure_at: string
+          description: string | null
+          destination: string
+          destination_iata: string | null
+          flight_number: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          origin: string
+          origin_iata: string | null
+          price: number
+          program_month: string | null
+          seats_available: number
+          seats_total: number
+          service_fee: number
+          status: Database["public"]["Enums"]["flight_program_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          airline_name?: string | null
+          arrival_at?: string | null
+          baggage_allowance?: string | null
+          category_id?: string | null
+          class?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          departure_at: string
+          description?: string | null
+          destination: string
+          destination_iata?: string | null
+          flight_number?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          origin: string
+          origin_iata?: string | null
+          price: number
+          program_month?: string | null
+          seats_available: number
+          seats_total: number
+          service_fee?: number
+          status?: Database["public"]["Enums"]["flight_program_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          airline_name?: string | null
+          arrival_at?: string | null
+          baggage_allowance?: string | null
+          category_id?: string | null
+          class?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          departure_at?: string
+          description?: string | null
+          destination?: string
+          destination_iata?: string | null
+          flight_number?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          origin?: string
+          origin_iata?: string | null
+          price?: number
+          program_month?: string | null
+          seats_available?: number
+          seats_total?: number
+          service_fee?: number
+          status?: Database["public"]["Enums"]["flight_program_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_programs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flight_programs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flight_programs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_bus_trips: {
         Row: {
           code: string
@@ -3409,6 +3928,18 @@ export type Database = {
     Enums: {
       agency_category: "bus" | "train" | "avion" | "bateau" | "evenement"
       app_role: "admin" | "user" | "gerant" | "chauffeur" | "client" | "agence"
+      flight_booking_status:
+        | "pending_payment"
+        | "paid"
+        | "confirmed_by_agency"
+        | "ticket_ready"
+        | "delivered"
+        | "cancelled"
+        | "refunded"
+        | "failed"
+      flight_delivery_method: "pickup_wina" | "delivery_home" | "email_only"
+      flight_payment_status: "pending" | "success" | "failed" | "refunded"
+      flight_program_status: "draft" | "active" | "closed" | "archived"
       gift_redemption_status: "pending" | "delivered" | "cancelled"
       lottery_status: "draft" | "open" | "closed" | "drawn"
       payment_status: "PENDING" | "VALIDATED" | "REJECTED"
@@ -3563,6 +4094,19 @@ export const Constants = {
     Enums: {
       agency_category: ["bus", "train", "avion", "bateau", "evenement"],
       app_role: ["admin", "user", "gerant", "chauffeur", "client", "agence"],
+      flight_booking_status: [
+        "pending_payment",
+        "paid",
+        "confirmed_by_agency",
+        "ticket_ready",
+        "delivered",
+        "cancelled",
+        "refunded",
+        "failed",
+      ],
+      flight_delivery_method: ["pickup_wina", "delivery_home", "email_only"],
+      flight_payment_status: ["pending", "success", "failed", "refunded"],
+      flight_program_status: ["draft", "active", "closed", "archived"],
       gift_redemption_status: ["pending", "delivered", "cancelled"],
       lottery_status: ["draft", "open", "closed", "drawn"],
       payment_status: ["PENDING", "VALIDATED", "REJECTED"],
