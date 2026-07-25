@@ -64,7 +64,7 @@ function BookFlight() {
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [passengers, setPassengers] = useState<Passenger[]>([newPassenger()]);
-  const [deliveryMethod, setDeliveryMethod] = useState<"pickup" | "email">("email");
+  const [deliveryMethod, setDeliveryMethod] = useState<"pickup_wina" | "email_only">("email_only");
   const [pickupId, setPickupId] = useState<string>("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [submitting, setSubmitting] = useState(false);
