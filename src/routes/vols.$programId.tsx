@@ -130,8 +130,8 @@ function BookFlight() {
         toast.error("Nom, n° passeport et photo requis pour chaque passager"); return;
       }
     }
-    if (deliveryMethod === "pickup" && !pickupId) { toast.error("Choisissez un point de retrait"); return; }
-    if (deliveryMethod === "email" && !contactEmail) { toast.error("Email requis"); return; }
+    if (deliveryMethod === "pickup_wina" && !pickupId) { toast.error("Choisissez un point de retrait"); return; }
+    if (deliveryMethod === "email_only" && !contactEmail) { toast.error("Email requis"); return; }
     if (passengers.length > program.seats_available) { toast.error("Pas assez de places"); return; }
 
     setSubmitting(true);
@@ -150,9 +150,9 @@ function BookFlight() {
         service_fee: program.service_fee ?? 0,
         total_amount: total,
         delivery_method: deliveryMethod,
-        pickup_location_id: deliveryMethod === "pickup" ? pickupId : null,
-        delivery_address: deliveryMethod === "email" ? contactEmail : null,
-        status: "PENDING_PAYMENT",
+        pickup_location_id: deliveryMethod === "pickup_wina" ? pickupId : null,
+        delivery_address: deliveryMethod === "email_only" ? contactEmail : null,
+        status: "pending_payment",
       }).select("id").single();
 
       if (bErr || !booking) throw new Error(bErr?.message || "Création dossier échouée");
@@ -276,15 +276,15 @@ function BookFlight() {
           <h2 className="text-base font-bold">Livraison du billet</h2>
           <RadioGroup value={deliveryMethod} onValueChange={(v) => setDeliveryMethod(v as any)} className="mt-3 space-y-2">
             <label className="flex items-center gap-2 rounded-xl border p-3 cursor-pointer">
-              <RadioGroupItem value="email" id="d-email" />
+              <RadioGroupItem value="email_only" id="d-email" />
               <span className="text-sm">Par email (billet numérique)</span>
             </label>
             <label className="flex items-center gap-2 rounded-xl border p-3 cursor-pointer">
-              <RadioGroupItem value="pickup" id="d-pickup" />
+              <RadioGroupItem value="pickup_wina" id="d-pickup" />
               <span className="text-sm">Retrait en agence Wina</span>
             </label>
           </RadioGroup>
-          {deliveryMethod === "pickup" && (
+          {deliveryMethod === "pickup_wina" && (
             <div className="mt-3">
               <Label>Point de retrait</Label>
               <select className="mt-1 w-full rounded-md border bg-background p-2 text-sm"

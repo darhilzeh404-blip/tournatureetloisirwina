@@ -30,7 +30,7 @@ function PayFlight() {
   if (loading) return <main className="p-8 text-center text-sm text-muted-foreground">Chargement…</main>;
   if (!booking) return <main className="p-8 text-center text-sm text-muted-foreground">Dossier introuvable.</main>;
 
-  const isPaid = booking.status === "CONFIRMED" || booking.status === "PAID";
+  const isPaid = ["paid","confirmed_by_agency","ticket_ready","delivered"].includes(booking.status);
 
   return (
     <main className="min-h-screen bg-background">
