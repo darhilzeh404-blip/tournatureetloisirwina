@@ -48,6 +48,7 @@ import { Route as DeplacementGroupeIndexRouteImport } from './routes/deplacement
 import { Route as BilletsIndexRouteImport } from './routes/billets.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as WalletRechargerRouteImport } from './routes/wallet.recharger'
+import { Route as VolsProgramIdRouteImport } from './routes/vols.$programId'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
@@ -285,6 +286,11 @@ const WalletRechargerRoute = WalletRechargerRouteImport.update({
   id: '/recharger',
   path: '/recharger',
   getParentRoute: () => WalletRoute,
+} as any)
+const VolsProgramIdRoute = VolsProgramIdRouteImport.update({
+  id: '/vols/$programId',
+  path: '/vols/$programId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SuiviTripIdRoute = SuiviTripIdRouteImport.update({
   id: '/suivi/$tripId',
@@ -566,6 +572,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
+  '/vols/$programId': typeof VolsProgramIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
   '/billets/': typeof BilletsIndexRoute
@@ -645,6 +652,7 @@ export interface FileRoutesByTo {
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
+  '/vols/$programId': typeof VolsProgramIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin': typeof AdminIndexRoute
   '/billets': typeof BilletsIndexRoute
@@ -729,6 +737,7 @@ export interface FileRoutesById {
   '/chauffeur/trips': typeof ChauffeurTripsRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
+  '/vols/$programId': typeof VolsProgramIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
   '/billets/': typeof BilletsIndexRoute
@@ -814,6 +823,7 @@ export interface FileRouteTypes {
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
+    | '/vols/$programId'
     | '/wallet/recharger'
     | '/admin/'
     | '/billets/'
@@ -893,6 +903,7 @@ export interface FileRouteTypes {
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
+    | '/vols/$programId'
     | '/wallet/recharger'
     | '/admin'
     | '/billets'
@@ -976,6 +987,7 @@ export interface FileRouteTypes {
     | '/chauffeur/trips'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
+    | '/vols/$programId'
     | '/wallet/recharger'
     | '/admin/'
     | '/billets/'
@@ -1031,6 +1043,7 @@ export interface RootRouteChildren {
   AnnoncesIdRoute: typeof AnnoncesIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
+  VolsProgramIdRoute: typeof VolsProgramIdRoute
   VolsIndexRoute: typeof VolsIndexRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
@@ -1313,6 +1326,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/wallet/recharger'
       preLoaderRoute: typeof WalletRechargerRouteImport
       parentRoute: typeof WalletRoute
+    }
+    '/vols/$programId': {
+      id: '/vols/$programId'
+      path: '/vols/$programId'
+      fullPath: '/vols/$programId'
+      preLoaderRoute: typeof VolsProgramIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/suivi/$tripId': {
       id: '/suivi/$tripId'
@@ -1791,6 +1811,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnnoncesIdRoute: AnnoncesIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
+  VolsProgramIdRoute: VolsProgramIdRoute,
   VolsIndexRoute: VolsIndexRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
