@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, Smartphone, XCircle } from "lucide-react";
 
-type Purpose = "reservation" | "wallet_recharge" | "partner_booking";
+type Purpose = "reservation" | "wallet_recharge" | "partner_booking" | "flight_booking";
 type Operator = "airtelmoney" | "moovmoney";
 
 interface Props {
