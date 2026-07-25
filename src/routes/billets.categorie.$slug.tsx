@@ -20,10 +20,18 @@ type AgencyRow = {
 
 function CategoryPage() {
   const { slug } = Route.useParams();
+  const navigate = useNavigate();
   const [categoryName, setCategoryName] = useState<string>("");
   const [agencies, setAgencies] = useState<AgencyRow[]>([]);
   const [ticketCounts, setTicketCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (slug === "avion") {
+      navigate({ to: "/vols" });
+    }
+  }, [slug, navigate]);
+
 
   useEffect(() => {
     (async () => {
