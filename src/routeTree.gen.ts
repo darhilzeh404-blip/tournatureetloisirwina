@@ -59,6 +59,7 @@ import { Route as BilletsIdRouteImport } from './routes/billets.$id'
 import { Route as AnnoncesIdRouteImport } from './routes/annonces.$id'
 import { Route as AdminVtcWalletsRouteImport } from './routes/admin/vtc-wallets'
 import { Route as AdminVtcChauffeursRouteImport } from './routes/admin/vtc-chauffeurs'
+import { Route as AdminVolsRouteImport } from './routes/admin/vols'
 import { Route as AdminVehiculeTypesRouteImport } from './routes/admin/vehicule-types'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
 import { Route as AdminTripsRouteImport } from './routes/admin/trips'
@@ -343,6 +344,11 @@ const AdminVtcChauffeursRoute = AdminVtcChauffeursRouteImport.update({
   path: '/vtc-chauffeurs',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminVolsRoute = AdminVolsRouteImport.update({
+  id: '/vols',
+  path: '/vols',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminVehiculeTypesRoute = AdminVehiculeTypesRouteImport.update({
   id: '/vehicule-types',
   path: '/vehicule-types',
@@ -569,6 +575,7 @@ export interface FileRoutesByFullPath {
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
+  '/admin/vols': typeof AdminVolsRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/admin/vtc-wallets': typeof AdminVtcWalletsRoute
   '/annonces/$id': typeof AnnoncesIdRoute
@@ -650,6 +657,7 @@ export interface FileRoutesByTo {
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
+  '/admin/vols': typeof AdminVolsRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/admin/vtc-wallets': typeof AdminVtcWalletsRoute
   '/annonces/$id': typeof AnnoncesIdRoute
@@ -736,6 +744,7 @@ export interface FileRoutesById {
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
+  '/admin/vols': typeof AdminVolsRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/admin/vtc-wallets': typeof AdminVtcWalletsRoute
   '/annonces/$id': typeof AnnoncesIdRoute
@@ -823,6 +832,7 @@ export interface FileRouteTypes {
     | '/admin/trips'
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
+    | '/admin/vols'
     | '/admin/vtc-chauffeurs'
     | '/admin/vtc-wallets'
     | '/annonces/$id'
@@ -904,6 +914,7 @@ export interface FileRouteTypes {
     | '/admin/trips'
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
+    | '/admin/vols'
     | '/admin/vtc-chauffeurs'
     | '/admin/vtc-wallets'
     | '/annonces/$id'
@@ -989,6 +1000,7 @@ export interface FileRouteTypes {
     | '/admin/trips'
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
+    | '/admin/vols'
     | '/admin/vtc-chauffeurs'
     | '/admin/vtc-wallets'
     | '/annonces/$id'
@@ -1417,6 +1429,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVtcChauffeursRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/vols': {
+      id: '/admin/vols'
+      path: '/vols'
+      fullPath: '/admin/vols'
+      preLoaderRoute: typeof AdminVolsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/vehicule-types': {
       id: '/admin/vehicule-types'
       path: '/vehicule-types'
@@ -1675,6 +1694,7 @@ interface AdminRouteRouteChildren {
   AdminTripsRoute: typeof AdminTripsRoute
   AdminUtilisateursRoute: typeof AdminUtilisateursRoute
   AdminVehiculeTypesRoute: typeof AdminVehiculeTypesRoute
+  AdminVolsRoute: typeof AdminVolsRoute
   AdminVtcChauffeursRoute: typeof AdminVtcChauffeursRoute
   AdminVtcWalletsRoute: typeof AdminVtcWalletsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -1704,6 +1724,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminTripsRoute: AdminTripsRoute,
   AdminUtilisateursRoute: AdminUtilisateursRoute,
   AdminVehiculeTypesRoute: AdminVehiculeTypesRoute,
+  AdminVolsRoute: AdminVolsRoute,
   AdminVtcChauffeursRoute: AdminVtcChauffeursRoute,
   AdminVtcWalletsRoute: AdminVtcWalletsRoute,
   AdminIndexRoute: AdminIndexRoute,
