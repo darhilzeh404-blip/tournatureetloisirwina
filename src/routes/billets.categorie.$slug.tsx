@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, BadgeCheck, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,10 +20,18 @@ type AgencyRow = {
 
 function CategoryPage() {
   const { slug } = Route.useParams();
+  const navigate = useNavigate();
   const [categoryName, setCategoryName] = useState<string>("");
   const [agencies, setAgencies] = useState<AgencyRow[]>([]);
   const [ticketCounts, setTicketCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (slug === "avion") {
+      navigate({ to: "/vols" });
+    }
+  }, [slug, navigate]);
+
 
   useEffect(() => {
     (async () => {

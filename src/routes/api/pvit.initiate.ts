@@ -55,7 +55,7 @@ export const Route = createFileRoute("/api/pvit/initiate")({
         const rawPhone = String(body?.phone || "");
         const description = String(body?.description || "Paiement Wina").slice(0, 60);
 
-        if (!["reservation", "wallet_recharge", "partner_booking"].includes(purpose)) {
+        if (!["reservation", "wallet_recharge", "partner_booking", "flight_booking"].includes(purpose)) {
           return json({ error: "purpose invalide" }, 400);
         }
         if (!relatedId || !amount || amount <= 0) return json({ error: "Paramètres invalides" }, 400);
@@ -78,6 +78,14 @@ export const Route = createFileRoute("/api/pvit/initiate")({
             .from("partner_bookings").select("id,user_id,total_amount")
             .eq("id", relatedId).maybeSingle();
           if (!b || b.user_id !== userId) return json({ error: "Réservation introuvable" }, 404);
+        } else if (purpose === "flight_booking") {
+          const { data: fb } = await (supabaseAdmin.from("flight_bookings") as any)
+            .select("id,user_id,total_amount,status")
+            .eq("id", relatedId).maybeSingle();
+          if (!fb || fb.user_id !== userId) return json({ error: "Dossier vol introuvable" }, 404);
+          if (["paid","confirmed_by_agency","ticket_ready","delivered"].includes(fb.status)) {
+            return json({ error: "Dossier déjà payé" }, 400);
+          }
         }
 
         const transactionId = newTransactionId();
