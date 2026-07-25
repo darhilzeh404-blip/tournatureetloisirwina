@@ -83,7 +83,7 @@ export const Route = createFileRoute("/api/pvit/initiate")({
             .select("id,user_id,total_amount,status")
             .eq("id", relatedId).maybeSingle();
           if (!fb || fb.user_id !== userId) return json({ error: "Dossier vol introuvable" }, 404);
-          if (fb.status === "CONFIRMED" || fb.status === "PAID") {
+          if (["paid","confirmed_by_agency","ticket_ready","delivered"].includes(fb.status)) {
             return json({ error: "Dossier déjà payé" }, 400);
           }
         }
