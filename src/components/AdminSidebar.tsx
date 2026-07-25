@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain, LayoutGrid, Eye } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain, LayoutGrid, Eye, Plane } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { setClientPreview } from "@/lib/admin-preview";
