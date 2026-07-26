@@ -67,5 +67,6 @@ export function ClientNav() {
         })}
       </div>
     </nav>
+    </>
   );
 }
