@@ -2,6 +2,7 @@
   "name": "Tour Wina — Transport & Tourisme au Gabon",
   "short_name": "Tour Wina",
   "description": "Réservez transport scolaire, location de bus et circuits touristiques au Gabon.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
