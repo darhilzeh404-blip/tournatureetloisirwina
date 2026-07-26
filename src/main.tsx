@@ -13,6 +13,13 @@ const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 const root = rootElement;
 
+function hideBootSplash() {
+  const el = document.getElementById('boot-splash');
+  if (!el) return;
+  el.classList.add('is-hidden');
+  window.setTimeout(() => el.remove(), 400);
+}
+
 async function startApp() {
   const { router } = await import('./routes');
   const app = <ErrorBoundary><RouterProvider router={router} /></ErrorBoundary>;
@@ -22,6 +29,11 @@ async function startApp() {
   } else {
     createRoot(root).render(app);
   }
+
+  requestAnimationFrame(() => window.setTimeout(hideBootSplash, 250));
 }
+
+// Filet de sécurité : ne jamais laisser le splash bloqué à l'écran.
+window.setTimeout(hideBootSplash, 6000);
 
 void startApp();
