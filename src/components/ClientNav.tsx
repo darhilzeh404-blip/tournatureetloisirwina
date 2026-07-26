@@ -22,6 +22,30 @@ export function ClientNav() {
   }, []);
 
   return (
+    <>
+    {/* Desktop / tablet : barre de navigation horizontale en haut */}
+    <nav className="sticky top-0 z-50 hidden border-b bg-card/95 backdrop-blur-lg md:block">
+      <div className="mx-auto flex max-w-5xl items-center justify-center gap-1 px-4 py-2">
+        {NAV_ITEMS.map(({ to, label, icon: Icon }) => {
+          const active = location.pathname === to;
+          return (
+            <Link
+              key={to}
+              to={to}
+              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                active
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-lg safe-area-bottom md:hidden">
       <div className="mx-auto flex max-w-lg items-center justify-around px-0.5 py-1.5">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => {
