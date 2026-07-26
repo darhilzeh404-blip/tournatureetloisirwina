@@ -169,6 +169,21 @@
     body { padding-top: 0; }
   }
 
+  /* Mode installé (standalone) : rendu type application native */
+  @media (display-mode: standalone) {
+    body {
+      /* status bar iOS translucide : on peint la zone haute avec le thème */
+      background-color: hsl(var(--background, 0 0% 100%));
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      overscroll-behavior-y: none;
+    }
+    /* pas de sélection/loupe intempestive comme sur une app native */
+    body:not(input):not(textarea) {
+      -webkit-touch-callout: none;
+    }
+  }
+
+
   /* Hide scrollbars globally while keeping scroll functional */
   * {
     scrollbar-width: none;
