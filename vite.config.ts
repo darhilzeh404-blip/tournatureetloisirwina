@@ -43,7 +43,9 @@ export default isSpa
           manifest: false,
           includeAssets: ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'offline.html'],
           workbox: {
-            globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+            globPatterns: ['**/*.{js,css,html,woff2}'],
+            globIgnores: ['**/node_modules/**', 'assets/*.{png,jpg,jpeg,ico}'],
+            maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
             navigateFallback: '/index.html',
             navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/__l5e\//],
             cleanupOutdatedCaches: true,
