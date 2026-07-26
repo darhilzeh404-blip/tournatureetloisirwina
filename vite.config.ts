@@ -4,7 +4,9 @@ import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
+
 
 /**
  * L'application doit tourner comme une PWA/SPA pure sur Android, iPhone,
@@ -33,7 +35,54 @@ export default isSpa
           generatedRouteTree: 'src/routeTree.gen.ts',
         }),
         react(),
+        VitePWA({
+          registerType: 'autoUpdate',
+          injectRegister: null,
+          filename: 'sw.js',
+          devOptions: { enabled: false },
+          manifest: false,
+          includeAssets: ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'offline.html'],
+          workbox: {
+            globPatterns: ['**/*.{js,css,html,woff2}'],
+            globIgnores: ['**/node_modules/**', 'assets/*.{png,jpg,jpeg,ico}'],
+            maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+            navigateFallback: '/index.html',
+            navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/__l5e\//],
+            cleanupOutdatedCaches: true,
+            clientsClaim: true,
+            skipWaiting: true,
+            runtimeCaching: [
+              {
+                urlPattern: ({ request }) => request.mode === 'navigate',
+                handler: 'NetworkFirst',
+                options: {
+                  cacheName: 'tw-pages',
+                  networkTimeoutSeconds: 5,
+                  expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 7 },
+                },
+              },
+              {
+                urlPattern: ({ request, sameOrigin }) =>
+                  sameOrigin && ['style', 'script', 'worker', 'font'].includes(request.destination),
+                handler: 'CacheFirst',
+                options: {
+                  cacheName: 'tw-assets',
+                  expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                },
+              },
+              {
+                urlPattern: ({ request }) => request.destination === 'image',
+                handler: 'StaleWhileRevalidate',
+                options: {
+                  cacheName: 'tw-images',
+                  expiration: { maxEntries: 150, maxAgeSeconds: 60 * 60 * 24 * 14 },
+                },
+              },
+            ],
+          },
+        }),
       ],
+
       resolve: {
         alias: {
           // Stubs SPA pour remplacer le runtime serveur TanStack Start
