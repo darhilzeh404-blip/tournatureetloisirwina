@@ -416,6 +416,9 @@ function VehicleDialog({
   const [year, setYear] = useState<string>("");
   const [seats, setSeats] = useState<string>("");
   const [dailyRate, setDailyRate] = useState<string>("");
+  const [rentalDays, setRentalDays] = useState<string>("");
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
   const [description, setDescription] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState(0);
