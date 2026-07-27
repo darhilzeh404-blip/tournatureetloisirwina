@@ -11,6 +11,7 @@ import {
   fetchTrainReference, STATION_KIND_LABEL,
   type TrainType, type TrainStation, type TrainClass, type TrainDiscountRule,
 } from "@/lib/train";
+import { TrainRoutesBaggage } from "@/components/admin/TrainRoutesBaggage";
 
 export const Route = createFileRoute("/admin/trains")({
   head: () => ({ meta: [{ title: "Configuration Train — Admin" }] }),
@@ -186,6 +187,9 @@ function AdminTrainsPage() {
           <Button onClick={addClass} disabled={busy}><Plus className="h-4 w-4" /> Ajouter</Button>
         </div>
       </CardContent></Card>
+
+      {/* Dessertes + bagages */}
+      <TrainRoutesBaggage types={types} stations={stations} />
 
       {/* Réductions */}
       <Card><CardContent className="space-y-3 p-4">
