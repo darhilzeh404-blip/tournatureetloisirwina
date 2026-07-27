@@ -21,6 +21,7 @@ function BilletConfirmationPage() {
   const { reservationId } = Route.useParams();
   const [loading, setLoading] = useState(true);
   const [receipt, setReceipt] = useState<TrainReceiptData | null>(null);
+  const [boatReceipt, setBoatReceipt] = useState<BoatReceiptData | null>(null);
   const [amount, setAmount] = useState(0);
 
   useEffect(() => {
@@ -32,31 +33,60 @@ function BilletConfirmationPage() {
         .maybeSingle();
       if (data) {
         const d = (data.details ?? {}) as Record<string, any>;
-        setAmount(data.paid_amount || data.total_amount);
-        setReceipt({
-          reference: d.reference_code ?? data.id.slice(0, 8).toUpperCase(),
-          agency: d.agency ?? "—",
-          trainType: d.train_type ?? "—",
-          travelClass: d.travel_class ?? "—",
-          departureDate: d.departure_date ? new Date(d.departure_date).toLocaleDateString("fr-FR") : "—",
-          origin: d.station_from ?? d.origin ?? "—",
-          destination: d.station_to ?? d.destination ?? "—",
-          passenger: d.passenger_name ?? "—",
-          passengerPhone: d.passenger_phone ?? null,
-          passengerEmail: d.passenger_email ?? null,
-          idDocument: d.id_document_label ?? null,
-          children: d.children ?? [],
-          baggageCount: d.baggage_count ?? 0,
-          baggageFee: d.baggage_fee ?? 0,
-          grossTotal: d.gross_total,
-          discountLines: d.discounts ?? [],
-          amountPaid: data.paid_amount || data.total_amount,
-          paidAt: new Date().toLocaleString("fr-FR"),
-        });
+        const paid = data.paid_amount || data.total_amount;
+        setAmount(paid);
+        const reference = d.reference_code ?? data.id.slice(0, 8).toUpperCase();
+        if (d.mode === "bateau") {
+          setBoatReceipt({
+            reference,
+            agency: d.agency ?? "—",
+            vessel: d.vessel ?? "—",
+            origin: d.origin ?? "—",
+            destination: d.destination ?? "—",
+            departureDate: d.departure_date ? new Date(d.departure_date).toLocaleDateString("fr-FR") : "—",
+            departureTime: d.departure_time ? String(d.departure_time).slice(0, 5) : null,
+            returnDate: d.return_date ? new Date(d.return_date).toLocaleDateString("fr-FR") : null,
+            passenger: d.passenger_name ?? "—",
+            passengerPhone: d.passenger_phone ?? null,
+            passengerEmail: d.passenger_email ?? null,
+            adults: d.adults ?? 0,
+            children: d.children ?? 0,
+            infants: d.infants ?? 0,
+            passengers: d.passengers ?? [],
+            baggageKg: d.baggage_kg ?? 0,
+            baggageFee: d.baggage_fee ?? 0,
+            services: d.services ?? [],
+            amountPaid: paid,
+            paidAt: new Date().toLocaleString("fr-FR"),
+          });
+        } else {
+          setReceipt({
+            reference,
+            agency: d.agency ?? "—",
+            trainType: d.train_type ?? "—",
+            travelClass: d.travel_class ?? "—",
+            departureDate: d.departure_date ? new Date(d.departure_date).toLocaleDateString("fr-FR") : "—",
+            origin: d.station_from ?? d.origin ?? "—",
+            destination: d.station_to ?? d.destination ?? "—",
+            passenger: d.passenger_name ?? "—",
+            passengerPhone: d.passenger_phone ?? null,
+            passengerEmail: d.passenger_email ?? null,
+            idDocument: d.id_document_label ?? null,
+            children: d.children ?? [],
+            baggageCount: d.baggage_count ?? 0,
+            baggageFee: d.baggage_fee ?? 0,
+            grossTotal: d.gross_total,
+            discountLines: d.discounts ?? [],
+            amountPaid: paid,
+            paidAt: new Date().toLocaleString("fr-FR"),
+          });
+        }
       }
       setLoading(false);
     })();
   }, [reservationId]);
+
+
 
   const download = () => {
     if (!receipt) return;
