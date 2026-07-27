@@ -78,11 +78,23 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
       return;
     }
     if (finalTotal <= 0) { toast.error("Devis invalide"); return; }
+    const ageNum = Number(childAge);
+    if (showActivities && activityIds.length > 0) {
+      if (!childLastName.trim() || !childFirstName.trim()) {
+        toast.error("Nom et prénom de l'enfant obligatoires");
+        return;
+      }
+      if (!childAge || Number.isNaN(ageNum) || ageNum < 1 || ageNum > 25) {
+        toast.error("Âge de l'enfant invalide");
+        return;
+      }
+    }
 
     setLoading(true);
     try {
       const route = data.routes.find(r => r.id === (selectedPackage?.route_id ?? routeId));
       const vehicle = data.vehicles.find(v => v.id === vehicleId);
+      const selectedActivities = data.activities.filter(a => activityIds.includes(a.id));
       const { error } = await supabase.from("reservations").insert({
         user_id: user.id,
         service_type: serviceType,
@@ -99,6 +111,21 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
           trip_type: trip,
           children_count: children,
           activity_ids: activityIds,
+          activities: selectedActivities.map(a => ({
+            id: a.id,
+            name: a.name,
+            price: a.price,
+            registration_fee: Number(a.registration_fee ?? 0),
+            partner: data.partners.find(p => p.id === a.partner_id)?.name ?? null,
+          })),
+          registration_fees_total: selectedActivities.reduce((s, a) => s + Number(a.registration_fee ?? 0), 0),
+          ...(activityIds.length > 0
+            ? {
+                child_last_name: childLastName.trim(),
+                child_first_name: childFirstName.trim(),
+                child_age: ageNum,
+              }
+            : {}),
           package_id: packageId || undefined,
           ...(showAcOption ? { bus_type: acType, ac_multiplier: mult } : {}),
           quote: selectedPackage
