@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   fetchBoatRoutes, fetchVessels, fetchVesselServices, fetchSailings,
-  computeBoatQuote, baggageAllowance, formatDuration, PASSENGER_LABEL,
+  computeBoatQuote, baggageIncluded, effectivePrices, formatDuration, PASSENGER_LABEL,
   type BoatRoute, type Vessel, type VesselService, type BoatSailing,
   type BoatPassengerInput, type PassengerCategory,
 } from "@/lib/boat";
