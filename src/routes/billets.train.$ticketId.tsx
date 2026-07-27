@@ -212,12 +212,12 @@ function TrainBookingWizard() {
       let docPath: string | null = null;
       if (docFile) {
         const ext = docFile.name.split(".").pop() || "jpg";
-        docPath = `${user.id}/${randomId()}.${ext}`;
+        docPath = `${user.id}/${randomId("doc")}.${ext}`;
         const up = await supabase.storage.from("train-documents").upload(docPath, docFile, { upsert: false });
         if (up.error) throw up.error;
       }
 
-      const reference_code = `TR-${Date.now().toString(36).toUpperCase()}-${randomId().slice(0, 4).toUpperCase()}`;
+      const reference_code = `TR-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
       const passengerName = `${firstName.trim()} ${lastName.trim()}`;
       const trainDetails = {
         train_booking: true,
