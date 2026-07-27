@@ -55,10 +55,13 @@ type FormState = {
   destination: string;
   departure_at: string; // datetime-local
   price: number;
-  seats_available: number;
   description: string;
   image_url: string;
   is_active: boolean;
+  train_type_id: string;
+  origin_station_id: string;
+  destination_station_id: string;
+  classPrices: Record<string, number>;
 };
 
 const emptyForm = (): FormState => ({
@@ -70,16 +73,22 @@ const emptyForm = (): FormState => ({
   destination: "",
   departure_at: "",
   price: 0,
-  seats_available: 0,
   description: "",
   image_url: "",
   is_active: true,
+  train_type_id: "",
+  origin_station_id: "",
+  destination_station_id: "",
+  classPrices: {},
 });
 
 function AdminBilletsPage() {
   const [list, setList] = useState<PartnerTicket[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [trainTypes, setTrainTypes] = useState<TrainType[]>([]);
+  const [stations, setStations] = useState<TrainStation[]>([]);
+  const [trainClasses, setTrainClasses] = useState<TrainClass[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm());
@@ -89,23 +98,37 @@ function AdminBilletsPage() {
 
   const load = async () => {
     setLoading(true);
-    const [ticketsRes, agenciesRes, catsRes] = await Promise.all([
+    const [ticketsRes, agenciesRes, catsRes, trainRef] = await Promise.all([
       supabase.from("partner_tickets" as any).select("*").order("created_at", { ascending: false }),
       supabase.rpc("get_all_partner_agencies_admin"),
       supabase.from("ticket_categories" as any).select("id, slug, name, sort_order").order("sort_order"),
+      fetchTrainReference(),
     ]);
     if (ticketsRes.error) toast.error(ticketsRes.error.message);
     setList(((ticketsRes.data as any) ?? []) as PartnerTicket[]);
     setAgencies(((agenciesRes.data as any) ?? []) as Agency[]);
     setCategories(((catsRes.data as any) ?? []) as Category[]);
+    setTrainTypes(trainRef.types.filter((t) => t.is_active));
+    setStations(trainRef.stations.filter((s) => s.is_active));
+    setTrainClasses(trainRef.classes.filter((c) => c.is_active));
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
+  const trainCategoryId = categories.find((c) => c.slug === TRAIN_CATEGORY_SLUG)?.id ?? "";
+  const isTrain = !!trainCategoryId && form.category_id === trainCategoryId;
+  const selectedType = trainTypes.find((t) => t.id === form.train_type_id);
+  const availableStations = selectedType
+    ? stations.filter((s) => s.station_kind === selectedType.station_kind)
+    : [];
+
   const openCreate = () => { setForm(emptyForm()); setDialogOpen(true); };
 
-  const openEdit = (t: PartnerTicket) => {
+  const openEdit = async (t: PartnerTicket) => {
+    const prices = await fetchTicketClassPrices([t.id]);
+    const classPrices: Record<string, number> = {};
+    prices.forEach((p) => { classPrices[p.class_id] = p.price; });
     setForm({
       id: t.id,
       agency_id: t.agency_id,
@@ -115,13 +138,17 @@ function AdminBilletsPage() {
       destination: t.destination ?? "",
       departure_at: t.departure_at ? t.departure_at.slice(0, 16) : "",
       price: t.price,
-      seats_available: t.seats_available,
       description: t.description ?? "",
       image_url: t.image_url ?? "",
       is_active: t.is_active,
+      train_type_id: t.train_type_id ?? "",
+      origin_station_id: t.origin_station_id ?? "",
+      destination_station_id: t.destination_station_id ?? "",
+      classPrices,
     });
     setDialogOpen(true);
   };
+
 
   const toggleActive = async (t: PartnerTicket) => {
     const { error } = await supabase.from("partner_tickets" as any).update({ is_active: !t.is_active }).eq("id", t.id);
