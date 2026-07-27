@@ -72,6 +72,7 @@ import { Route as AdminReservationsRouteImport } from './routes/admin/reservatio
 import { Route as AdminRechargesRouteImport } from './routes/admin/recharges'
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
 import { Route as AdminOffresRouteImport } from './routes/admin/offres'
+import { Route as AdminNaviresRouteImport } from './routes/admin/navires'
 import { Route as AdminGroupRidesRouteImport } from './routes/admin/group-rides'
 import { Route as AdminFraisRouteImport } from './routes/admin/frais'
 import { Route as AdminFideliteRouteImport } from './routes/admin/fidelite'
@@ -414,6 +415,11 @@ const AdminOffresRoute = AdminOffresRouteImport.update({
   path: '/offres',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminNaviresRoute = AdminNaviresRouteImport.update({
+  id: '/navires',
+  path: '/navires',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminGroupRidesRoute = AdminGroupRidesRouteImport.update({
   id: '/group-rides',
   path: '/group-rides',
@@ -596,6 +602,7 @@ export interface FileRoutesByFullPath {
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
+  '/admin/navires': typeof AdminNaviresRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
@@ -683,6 +690,7 @@ export interface FileRoutesByTo {
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
+  '/admin/navires': typeof AdminNaviresRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
@@ -775,6 +783,7 @@ export interface FileRoutesById {
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
+  '/admin/navires': typeof AdminNaviresRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
@@ -868,6 +877,7 @@ export interface FileRouteTypes {
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
+    | '/admin/navires'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/recharges'
@@ -955,6 +965,7 @@ export interface FileRouteTypes {
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
+    | '/admin/navires'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/recharges'
@@ -1046,6 +1057,7 @@ export interface FileRouteTypes {
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
+    | '/admin/navires'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/recharges'
@@ -1581,6 +1593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOffresRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/navires': {
+      id: '/admin/navires'
+      path: '/navires'
+      fullPath: '/admin/navires'
+      preLoaderRoute: typeof AdminNaviresRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/group-rides': {
       id: '/admin/group-rides'
       path: '/group-rides'
@@ -1780,6 +1799,7 @@ interface AdminRouteRouteChildren {
   AdminFideliteRoute: typeof AdminFideliteRoute
   AdminFraisRoute: typeof AdminFraisRoute
   AdminGroupRidesRoute: typeof AdminGroupRidesRoute
+  AdminNaviresRoute: typeof AdminNaviresRoute
   AdminOffresRoute: typeof AdminOffresRoute
   AdminPaiementsRoute: typeof AdminPaiementsRoute
   AdminRechargesRoute: typeof AdminRechargesRoute
@@ -1812,6 +1832,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminFideliteRoute: AdminFideliteRoute,
   AdminFraisRoute: AdminFraisRoute,
   AdminGroupRidesRoute: AdminGroupRidesRoute,
+  AdminNaviresRoute: AdminNaviresRoute,
   AdminOffresRoute: AdminOffresRoute,
   AdminPaiementsRoute: AdminPaiementsRoute,
   AdminRechargesRoute: AdminRechargesRoute,
