@@ -271,6 +271,10 @@ function PaiementPage() {
 
 
 
+      if ((reservation.details as any)?.train_booking) {
+        navigate({ to: "/billets/confirmation/$reservationId", params: { reservationId: reservation.id } });
+        return;
+      }
       toast.success("Paiement soumis. En attente de validation par l'admin.");
       navigate({ to: "/mes-reservations" });
 
@@ -377,7 +381,11 @@ function PaiementPage() {
             relatedId={reservation.id}
             amount={Math.max(reservation.total_amount - reservation.paid_amount - (reservation.coins_used ?? 0), 0)}
             description={`Wina ${reservation.id.slice(0, 6).toUpperCase()}`}
-            onSuccess={() => navigate({ to: "/mes-reservations" })}
+            onSuccess={() =>
+              (reservation.details as any)?.train_booking
+                ? navigate({ to: "/billets/confirmation/$reservationId", params: { reservationId: reservation.id } })
+                : navigate({ to: "/mes-reservations" })
+            }
           />
         </CardContent>
       </Card>
