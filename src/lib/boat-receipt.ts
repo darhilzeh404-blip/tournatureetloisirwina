@@ -17,6 +17,7 @@ export type BoatReceiptData = {
   infants: number;
   passengers?: { name: string; category: string }[];
   baggageKg?: number;
+  baggageCount?: number;
   baggageFee?: number;
   services?: { label: string; amount: number }[];
   amountPaid: number;
