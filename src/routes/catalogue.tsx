@@ -239,9 +239,9 @@ function CataloguePage() {
                       <Users className="h-4 w-4" /> {preview.seats} places
                     </span>
                   )}
-                  {preview.year && (
+                  {formatRentalDuration(preview) && (
                     <span className="inline-flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4" /> {preview.year}
+                      <Calendar className="h-4 w-4" /> {formatRentalDuration(preview)}
                     </span>
                   )}
                 </div>
