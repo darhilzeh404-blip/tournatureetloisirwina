@@ -224,7 +224,7 @@ function BoatBookingWizard() {
       const { data, error } = await supabase.from("reservations").insert({
         user_id: user.id,
         service_type: "BILLET",
-        reservation_date: sailing.departure_date,
+        reservation_date: departureDate,
         total_amount: total,
         paid_amount: 0,
         details: { ...details, partner_booking_id: partnerBookingId },
