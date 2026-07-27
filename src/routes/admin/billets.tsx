@@ -121,7 +121,14 @@ function AdminBilletsPage() {
   useEffect(() => { load(); }, []);
 
   const trainCategoryId = categories.find((c) => c.slug === TRAIN_CATEGORY_SLUG)?.id ?? "";
-  const isTrain = !!trainCategoryId && form.category_id === trainCategoryId;
+  // La catégorie d'un billet est toujours héritée de l'agence partenaire (bus / train / avion / bateau / événement)
+  const categoryIdForAgency = (agencyId: string) => {
+    const slug = agencies.find((a) => a.id === agencyId)?.category ?? "";
+    return categories.find((c) => c.slug === slug)?.id ?? "";
+  };
+  const derivedCategoryId = categoryIdForAgency(form.agency_id) || form.category_id;
+  const derivedCategory = categories.find((c) => c.id === derivedCategoryId);
+  const isTrain = !!trainCategoryId && derivedCategoryId === trainCategoryId;
   const selectedType = trainTypes.find((t) => t.id === form.train_type_id);
   const availableStations = selectedType
     ? stations.filter((s) => s.station_kind === selectedType.station_kind)
@@ -189,7 +196,7 @@ function AdminBilletsPage() {
 
   const save = async () => {
     if (!form.agency_id) return toast.error("Agence requise");
-    if (!form.category_id) return toast.error("Catégorie requise");
+    if (!derivedCategoryId) return toast.error("Cette agence n'a pas de catégorie de transport définie");
     if (!form.title.trim()) return toast.error("Titre requis");
     if (form.price < 0) return toast.error("Prix invalide");
     if (isTrain && !form.train_type_id) return toast.error("Type de train requis");
@@ -199,7 +206,8 @@ function AdminBilletsPage() {
       const destStation = stations.find((s) => s.id === form.destination_station_id);
       const payload: any = {
         agency_id: form.agency_id,
-        category_id: form.category_id,
+        category_id: derivedCategoryId,
+        transport_mode: derivedCategory?.slug ?? null,
         title: form.title.trim(),
         origin: (isTrain ? originStation?.name : form.origin) || null,
         destination: (isTrain ? destStation?.name : form.destination) || null,
@@ -327,24 +335,33 @@ function AdminBilletsPage() {
                 <label className="text-xs font-semibold text-muted-foreground">Agence *</label>
                 <select
                   value={form.agency_id}
-                  onChange={(e) => setForm({ ...form, agency_id: e.target.value })}
+                  onChange={(e) => {
+                    const agency_id = e.target.value;
+                    const catId = categoryIdForAgency(agency_id);
+                    setForm({
+                      ...form,
+                      agency_id,
+                      category_id: catId,
+                      ...(catId === trainCategoryId ? {} : { train_type_id: "", origin_station_id: "", destination_station_id: "" }),
+                    });
+                  }}
                   className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 >
                   <option value="">— Choisir —</option>
-                  {agencies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  {agencies.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}{a.category ? ` · ${a.category}` : " · (sans catégorie)"}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted-foreground">Catégorie *</label>
-                <select
-                  value={form.category_id}
-                  onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                  className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">— Choisir —</option>
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+                <label className="text-xs font-semibold text-muted-foreground">Catégorie (héritée de l'agence)</label>
+                <div className="mt-1 flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm">
+                  {derivedCategory?.name ?? "— Choisir une agence —"}
+                </div>
               </div>
+
             </div>
 
             <div>
