@@ -15,10 +15,37 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { downloadTrainReceipt } from "@/lib/train-receipt";
+import { downloadBoatReceipt } from "@/lib/boat-receipt";
 
-/** Reçu PDF d'une réservation de billet de train. */
+/** Reçu PDF d'une réservation de billet (train ou navire). */
 function downloadTrainReceiptFor(res: { id: string; total_amount: number; paid_amount: number; created_at: string; reference_code?: string | null; details: Record<string, unknown> | null }) {
   const d = (res.details ?? {}) as Record<string, any>;
+  if (d.mode === "bateau") {
+    downloadBoatReceipt({
+      reference: d.reference_code ?? res.reference_code ?? res.id.slice(0, 8).toUpperCase(),
+      agency: d.agency ?? "—",
+      vessel: d.vessel ?? "—",
+      origin: d.origin ?? "—",
+      destination: d.destination ?? "—",
+      departureDate: d.departure_date ? new Date(d.departure_date).toLocaleDateString("fr-FR") : "—",
+      departureTime: d.departure_time ? String(d.departure_time).slice(0, 5) : null,
+      returnDate: d.return_date ? new Date(d.return_date).toLocaleDateString("fr-FR") : null,
+      passenger: d.passenger_name ?? "—",
+      passengerPhone: d.passenger_phone ?? null,
+      passengerEmail: d.passenger_email ?? null,
+      adults: d.adults ?? 0,
+      children: d.children ?? 0,
+      infants: d.infants ?? 0,
+      passengers: d.passengers ?? [],
+      baggageKg: d.baggage_kg ?? 0,
+      baggageFee: d.baggage_fee ?? 0,
+      services: d.services ?? [],
+      amountPaid: res.paid_amount || res.total_amount,
+      paidAt: new Date(res.created_at).toLocaleString("fr-FR"),
+    });
+    toast.success("Reçu PDF téléchargé");
+    return;
+  }
   downloadTrainReceipt({
     reference: d.reference_code ?? res.reference_code ?? res.id.slice(0, 8).toUpperCase(),
     agency: d.agency ?? "—",
