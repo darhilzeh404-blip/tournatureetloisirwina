@@ -1,15 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Trash2, Plus, Save } from "lucide-react";
+import { Loader2, Trash2, Plus, Save, Upload, Pencil } from "lucide-react";
 import { useTransportData, formatXAF } from "@/hooks/use-transport-data";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadCatalogImage } from "@/lib/catalog";
 
 export const Route = createFileRoute("/admin/transport")({
   component: AdminTransport,
 });
 
-const TABS = ["Itinéraires", "Véhicules", "Tarifs", "Activités", "Forfaits", "Paramètres"] as const;
+const TABS = ["Itinéraires", "Véhicules", "Tarifs", "Activités", "Partenaires", "Forfaits", "Paramètres"] as const;
 type Tab = typeof TABS[number];
 
 function AdminTransport() {
