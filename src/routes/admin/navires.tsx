@@ -216,7 +216,6 @@ function AdminBoatsPage() {
               <span className="w-40 truncate text-xs text-muted-foreground">{agencyName(v.agency_id)}</span>
               <Input className="w-44" defaultValue={v.name} onBlur={(e) => e.target.value !== v.name && patch("vessels", v.id, { name: e.target.value })} />
               <Input className="w-28" type="number" defaultValue={v.capacity} onBlur={(e) => patch("vessels", v.id, { capacity: Number(e.target.value) || 0 })} placeholder="Capacité" />
-              <Input className="w-64" defaultValue={v.photo_url ?? ""} onBlur={(e) => patch("vessels", v.id, { photo_url: e.target.value || null })} placeholder="URL photo" />
               <label className="flex items-center gap-2 text-xs">
                 <Switch checked={v.is_active} onCheckedChange={(x) => patch("vessels", v.id, { is_active: x })} />
                 {v.is_active ? "Actif" : "Inactif"}
@@ -225,13 +224,31 @@ function AdminBoatsPage() {
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {v.photo_url && <img src={v.photo_url} alt={v.name} loading="lazy" className="h-16 w-24 rounded-lg object-cover" />}
+              <label className="cursor-pointer rounded-lg border px-3 py-2 text-xs font-medium">
+                {uploading === v.id ? "Téléversement…" : v.photo_url ? "Remplacer la photo HD" : "Téléverser une photo HD"}
+                <input type="file" accept="image/*" className="hidden" disabled={uploading === v.id}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(v.id, f); e.target.value = ""; }} />
+              </label>
+              {v.photo_url && (
+                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => patch("vessels", v.id, { photo_url: null })}>
+                  Retirer
+                </Button>
+              )}
+            </div>
             <Input defaultValue={v.description} placeholder="Description" onBlur={(e) => e.target.value !== v.description && patch("vessels", v.id, { description: e.target.value })} />
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold uppercase text-muted-foreground">Bagages (kg)</span>
-              <Input className="w-24" type="number" defaultValue={v.baggage_adult_kg} placeholder="Adulte" onBlur={(e) => patch("vessels", v.id, { baggage_adult_kg: Number(e.target.value) || 0 })} />
-              <Input className="w-24" type="number" defaultValue={v.baggage_child_kg} placeholder="Enfant" onBlur={(e) => patch("vessels", v.id, { baggage_child_kg: Number(e.target.value) || 0 })} />
-              <Input className="w-24" type="number" defaultValue={v.baggage_infant_kg} placeholder="Bébé" onBlur={(e) => patch("vessels", v.id, { baggage_infant_kg: Number(e.target.value) || 0 })} />
-              <Input className="w-36" type="number" defaultValue={v.fee_per_extra_kg} placeholder="FCFA / kg suppl." onBlur={(e) => patch("vessels", v.id, { fee_per_extra_kg: Number(e.target.value) || 0 })} />
+              <span className="text-xs font-semibold uppercase text-muted-foreground">Tarifs (FCFA)</span>
+              <Input className="w-28" type="number" defaultValue={v.price_adult} placeholder="Adulte" onBlur={(e) => patch("vessels", v.id, { price_adult: Number(e.target.value) || 0 })} />
+              <Input className="w-28" type="number" defaultValue={v.price_child} placeholder="Enfant" onBlur={(e) => patch("vessels", v.id, { price_child: Number(e.target.value) || 0 })} />
+              <Input className="w-28" type="number" defaultValue={v.price_infant} placeholder="Bébé" onBlur={(e) => patch("vessels", v.id, { price_infant: Number(e.target.value) || 0 })} />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">Bagages</span>
+              <Input className="w-28" type="number" defaultValue={v.baggage_free_count} placeholder="Inclus" onBlur={(e) => patch("vessels", v.id, { baggage_free_count: Number(e.target.value) || 0 })} />
+              <Input className="w-36" type="number" defaultValue={v.baggage_fee_per_extra} placeholder="FCFA / suppl." onBlur={(e) => patch("vessels", v.id, { baggage_fee_per_extra: Number(e.target.value) || 0 })} />
+              <Input className="w-28" type="number" defaultValue={v.baggage_max_count} placeholder="Max" onBlur={(e) => patch("vessels", v.id, { baggage_max_count: Number(e.target.value) || 0 })} />
               <Input className="flex-1 min-w-[200px]" defaultValue={v.baggage_conditions} placeholder="Conditions de bagages" onBlur={(e) => e.target.value !== v.baggage_conditions && patch("vessels", v.id, { baggage_conditions: e.target.value })} />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -251,8 +268,12 @@ function AdminBoatsPage() {
           </select>
           <Input className="w-44" placeholder="Nom du navire" value={newVessel.name} onChange={(e) => setNewVessel({ ...newVessel, name: e.target.value })} />
           <Input className="w-28" type="number" placeholder="Capacité" value={newVessel.capacity} onChange={(e) => setNewVessel({ ...newVessel, capacity: e.target.value })} />
-          <Input className="w-64" placeholder="URL photo" value={newVessel.photo_url} onChange={(e) => setNewVessel({ ...newVessel, photo_url: e.target.value })} />
+          <Input className="w-28" type="number" placeholder="Prix adulte" value={newVessel.price_adult} onChange={(e) => setNewVessel({ ...newVessel, price_adult: e.target.value })} />
+          <Input className="w-28" type="number" placeholder="Prix enfant" value={newVessel.price_child} onChange={(e) => setNewVessel({ ...newVessel, price_child: e.target.value })} />
+          <Input className="w-28" type="number" placeholder="Prix bébé" value={newVessel.price_infant} onChange={(e) => setNewVessel({ ...newVessel, price_infant: e.target.value })} />
           <Button onClick={addVessel} disabled={busy}><Plus className="h-4 w-4" /> Ajouter</Button>
+        </div>
+
         </div>
       </CardContent></Card>
 
