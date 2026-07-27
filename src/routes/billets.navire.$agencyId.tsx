@@ -200,8 +200,8 @@ function BoatBookingWizard() {
         total_amount: total,
         status: "pending",
         reference_code,
-        departure_date: sailing.departure_date,
-        baggage_count: declaredKg,
+        departure_date: departureDate,
+        baggage_count: declaredBags,
         baggage_fee: baggageFee,
         details,
       }).select("id").single();
