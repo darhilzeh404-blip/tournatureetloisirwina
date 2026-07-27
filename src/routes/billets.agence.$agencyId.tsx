@@ -143,6 +143,11 @@ function AgencyTicketsPage() {
   const seats = booking && isTrainTicket(booking) ? trainQuote.travellers : qty;
 
   const openBooking = (t: Ticket) => {
+    // Les billets de train suivent le parcours dédié en 7 étapes
+    if (t.train_type_id) {
+      navigate({ to: "/billets/train/$ticketId", params: { ticketId: t.id } });
+      return;
+    }
     setBooking(t);
     setQty(1);
     setMainAge("");
@@ -152,6 +157,7 @@ function AgencyTicketsPage() {
       .find((c) => c.price > 0);
     setSelectedClassId(first?.id ?? "");
   };
+
 
   const confirmBooking = async () => {
     if (!booking) return;
