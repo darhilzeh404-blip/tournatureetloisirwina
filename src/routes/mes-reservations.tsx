@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2, MapPin, Radio, Users } from "lucide-react";
+import { Clock, CheckCircle, XCircle, AlertCircle, Compass, ArrowRight, Wallet, Loader2, MapPin, Radio, Users, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useShareClientPosition } from "@/hooks/use-client-position";
@@ -14,6 +14,33 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { downloadTrainReceipt } from "@/lib/train-receipt";
+
+/** Reçu PDF d'une réservation de billet de train. */
+function downloadTrainReceiptFor(res: { id: string; total_amount: number; paid_amount: number; created_at: string; reference_code?: string | null; details: Record<string, unknown> | null }) {
+  const d = (res.details ?? {}) as Record<string, any>;
+  downloadTrainReceipt({
+    reference: d.reference_code ?? res.reference_code ?? res.id.slice(0, 8).toUpperCase(),
+    agency: d.agency ?? "—",
+    trainType: d.train_type ?? "—",
+    travelClass: d.travel_class ?? "—",
+    departureDate: d.departure_date ? new Date(d.departure_date).toLocaleDateString("fr-FR") : "—",
+    origin: d.station_from ?? d.origin ?? "—",
+    destination: d.station_to ?? d.destination ?? "—",
+    passenger: d.passenger_name ?? "—",
+    passengerPhone: d.passenger_phone ?? null,
+    passengerEmail: d.passenger_email ?? null,
+    idDocument: d.id_document_label ?? null,
+    children: d.children ?? [],
+    baggageCount: d.baggage_count ?? 0,
+    baggageFee: d.baggage_fee ?? 0,
+    grossTotal: d.gross_total,
+    discountLines: d.discounts ?? [],
+    amountPaid: res.paid_amount || res.total_amount,
+    paidAt: new Date(res.created_at).toLocaleString("fr-FR"),
+  });
+  toast.success("Reçu PDF téléchargé");
+}
 
 type ReservationStatus = Database["public"]["Enums"]["reservation_status"];
 type ServiceType = Database["public"]["Enums"]["service_type"];
@@ -459,8 +486,14 @@ function MesReservationsPage() {
                       )}
                     </div>
                   )}
-                  {(canPay || res.trip_id || res.service_type === "VTC") && (
+                  {(canPay || res.trip_id || res.service_type === "VTC" || (res.details as any)?.train_booking) && (
                     <div className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-4">
+                      {(res.details as any)?.train_booking && (
+                        <Button size="sm" variant="outline" className="gap-2" onClick={() => downloadTrainReceiptFor(res)}>
+                          <Download className="h-4 w-4" />
+                          Reçu PDF
+                        </Button>
+                      )}
                       {res.service_type === "VTC" && (
                         <Link to="/vtc/suivi/$reservationId" params={{ reservationId: res.id }}>
                           <Button size="sm" variant="outline" className="gap-2">

@@ -136,3 +136,92 @@ export function computeTrainQuote(
     total: Math.max(0, grossTotal - discountTotal),
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Dessertes (routes) et bagages — 100 % administrables depuis la base */
+/* ------------------------------------------------------------------ */
+
+export type TrainRoute = {
+  id: string;
+  train_type_id: string;
+  label: string;
+  is_active: boolean;
+  sort_order: number;
+};
+
+export type TrainRouteStation = {
+  id: string;
+  route_id: string;
+  station_id: string;
+  stop_order: number;
+};
+
+export type TrainBaggageRule = {
+  id: string;
+  train_type_id: string | null;
+  label: string;
+  conditions: string;
+  free_count: number;
+  fee_per_extra: number;
+  max_count: number;
+  is_active: boolean;
+  sort_order: number;
+};
+
+export const ID_DOCUMENT_TYPES = [
+  { value: "cni", label: "Carte Nationale d'Identité" },
+  { value: "passeport", label: "Passeport" },
+  { value: "carte_sejour", label: "Carte de séjour" },
+] as const;
+
+export const CHILD_MIN_AGE = 4;
+export const CHILD_MAX_AGE = 11;
+
+export async function fetchTrainRoutes() {
+  const [routes, links, rules] = await Promise.all([
+    supabase.from("train_routes" as any).select("*").order("sort_order"),
+    supabase.from("train_route_stations" as any).select("*").order("stop_order"),
+    supabase.from("train_baggage_rules" as any).select("*").order("sort_order"),
+  ]);
+  return {
+    routes: ((routes.data as any) ?? []) as TrainRoute[],
+    routeStations: ((links.data as any) ?? []) as TrainRouteStation[],
+    baggageRules: ((rules.data as any) ?? []) as TrainBaggageRule[],
+  };
+}
+
+/**
+ * Gares desservies par un type de train.
+ * Priorité aux dessertes configurées ; sinon repli sur le type de gare du train
+ * (train « principale » = gares principales, train « secondaire » = toutes les gares).
+ */
+export function stationsForTrainType(
+  type: TrainType | undefined,
+  stations: TrainStation[],
+  routes: TrainRoute[],
+  routeStations: TrainRouteStation[],
+): TrainStation[] {
+  const active = stations.filter((s) => s.is_active);
+  if (!type) return active;
+  const typeRoutes = routes.filter((r) => r.is_active && r.train_type_id === type.id);
+  if (typeRoutes.length > 0) {
+    const ids = new Set(
+      routeStations.filter((rs) => typeRoutes.some((r) => r.id === rs.route_id)).map((rs) => rs.station_id),
+    );
+    const list = active.filter((s) => ids.has(s.id));
+    if (list.length > 0) return list;
+  }
+  if (type.station_kind === "principale") return active.filter((s) => s.station_kind === "principale");
+  return active;
+}
+
+export function baggageRuleForType(type: TrainType | undefined, rules: TrainBaggageRule[]) {
+  const active = rules.filter((r) => r.is_active);
+  return active.find((r) => type && r.train_type_id === type.id) ?? active.find((r) => r.train_type_id === null) ?? null;
+}
+
+export function computeBaggageFee(rule: TrainBaggageRule | null, count: number) {
+  if (!rule || count <= 0) return 0;
+  const extra = Math.max(0, count - rule.free_count);
+  return Math.round(extra * rule.fee_per_extra);
+}

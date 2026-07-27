@@ -88,6 +88,8 @@ import { Route as AdminAgencesRouteImport } from './routes/admin/agences'
 import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$reservationId'
 import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/deplacement-groupe.waiting.$rideId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
+import { Route as BilletsTrainTicketIdRouteImport } from './routes/billets.train.$ticketId'
+import { Route as BilletsConfirmationReservationIdRouteImport } from './routes/billets.confirmation.$reservationId'
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
 import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
 import { Route as ApiPvitInitiateRouteImport } from './routes/api/pvit.initiate'
@@ -493,6 +495,17 @@ const CircuitsSuiviSlugRoute = CircuitsSuiviSlugRouteImport.update({
   path: '/suivi/$slug',
   getParentRoute: () => CircuitsRoute,
 } as any)
+const BilletsTrainTicketIdRoute = BilletsTrainTicketIdRouteImport.update({
+  id: '/train/$ticketId',
+  path: '/train/$ticketId',
+  getParentRoute: () => BilletsRoute,
+} as any)
+const BilletsConfirmationReservationIdRoute =
+  BilletsConfirmationReservationIdRouteImport.update({
+    id: '/confirmation/$reservationId',
+    path: '/confirmation/$reservationId',
+    getParentRoute: () => BilletsRoute,
+  } as any)
 const BilletsCategorieSlugRoute = BilletsCategorieSlugRouteImport.update({
   id: '/categorie/$slug',
   path: '/categorie/$slug',
@@ -612,6 +625,8 @@ export interface FileRoutesByFullPath {
   '/api/pvit/initiate': typeof ApiPvitInitiateRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
+  '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
+  '/billets/train/$ticketId': typeof BilletsTrainTicketIdRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
@@ -696,6 +711,8 @@ export interface FileRoutesByTo {
   '/api/pvit/initiate': typeof ApiPvitInitiateRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
+  '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
+  '/billets/train/$ticketId': typeof BilletsTrainTicketIdRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
@@ -785,6 +802,8 @@ export interface FileRoutesById {
   '/api/pvit/initiate': typeof ApiPvitInitiateRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
+  '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
+  '/billets/train/$ticketId': typeof BilletsTrainTicketIdRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
   '/vtc/suivi/$reservationId': typeof VtcSuiviReservationIdRoute
@@ -875,6 +894,8 @@ export interface FileRouteTypes {
     | '/api/pvit/initiate'
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
+    | '/billets/confirmation/$reservationId'
+    | '/billets/train/$ticketId'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
@@ -959,6 +980,8 @@ export interface FileRouteTypes {
     | '/api/pvit/initiate'
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
+    | '/billets/confirmation/$reservationId'
+    | '/billets/train/$ticketId'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
@@ -1047,6 +1070,8 @@ export interface FileRouteTypes {
     | '/api/pvit/initiate'
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
+    | '/billets/confirmation/$reservationId'
+    | '/billets/train/$ticketId'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
     | '/vtc/suivi/$reservationId'
@@ -1656,6 +1681,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CircuitsSuiviSlugRouteImport
       parentRoute: typeof CircuitsRoute
     }
+    '/billets/train/$ticketId': {
+      id: '/billets/train/$ticketId'
+      path: '/train/$ticketId'
+      fullPath: '/billets/train/$ticketId'
+      preLoaderRoute: typeof BilletsTrainTicketIdRouteImport
+      parentRoute: typeof BilletsRoute
+    }
+    '/billets/confirmation/$reservationId': {
+      id: '/billets/confirmation/$reservationId'
+      path: '/confirmation/$reservationId'
+      fullPath: '/billets/confirmation/$reservationId'
+      preLoaderRoute: typeof BilletsConfirmationReservationIdRouteImport
+      parentRoute: typeof BilletsRoute
+    }
     '/billets/categorie/$slug': {
       id: '/billets/categorie/$slug'
       path: '/categorie/$slug'
@@ -1781,6 +1820,8 @@ interface BilletsRouteChildren {
   BilletsIndexRoute: typeof BilletsIndexRoute
   BilletsAgenceAgencyIdRoute: typeof BilletsAgenceAgencyIdRoute
   BilletsCategorieSlugRoute: typeof BilletsCategorieSlugRoute
+  BilletsConfirmationReservationIdRoute: typeof BilletsConfirmationReservationIdRoute
+  BilletsTrainTicketIdRoute: typeof BilletsTrainTicketIdRoute
 }
 
 const BilletsRouteChildren: BilletsRouteChildren = {
@@ -1788,6 +1829,8 @@ const BilletsRouteChildren: BilletsRouteChildren = {
   BilletsIndexRoute: BilletsIndexRoute,
   BilletsAgenceAgencyIdRoute: BilletsAgenceAgencyIdRoute,
   BilletsCategorieSlugRoute: BilletsCategorieSlugRoute,
+  BilletsConfirmationReservationIdRoute: BilletsConfirmationReservationIdRoute,
+  BilletsTrainTicketIdRoute: BilletsTrainTicketIdRoute,
 }
 
 const BilletsRouteWithChildren =
