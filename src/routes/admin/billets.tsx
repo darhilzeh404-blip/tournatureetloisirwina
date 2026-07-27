@@ -192,32 +192,49 @@ function AdminBilletsPage() {
     if (!form.category_id) return toast.error("Catégorie requise");
     if (!form.title.trim()) return toast.error("Titre requis");
     if (form.price < 0) return toast.error("Prix invalide");
-    if (form.seats_available < 0) return toast.error("Nombre de places invalide");
+    if (isTrain && !form.train_type_id) return toast.error("Type de train requis");
     setSaving(true);
     try {
+      const originStation = stations.find((s) => s.id === form.origin_station_id);
+      const destStation = stations.find((s) => s.id === form.destination_station_id);
       const payload: any = {
         agency_id: form.agency_id,
         category_id: form.category_id,
         title: form.title.trim(),
-        origin: form.origin || null,
-        destination: form.destination || null,
+        origin: (isTrain ? originStation?.name : form.origin) || null,
+        destination: (isTrain ? destStation?.name : form.destination) || null,
         departure_at: form.departure_at ? new Date(form.departure_at).toISOString() : null,
         price: form.price,
-        seats_available: form.seats_available,
-        seats_total: form.seats_available,
         description: form.description,
         image_url: form.image_url || null,
         is_active: form.is_active,
+        train_type_id: isTrain ? form.train_type_id || null : null,
+        origin_station_id: isTrain ? form.origin_station_id || null : null,
+        destination_station_id: isTrain ? form.destination_station_id || null : null,
       };
+      let ticketId = form.id;
       if (form.id) {
         const { error } = await supabase.from("partner_tickets" as any).update(payload).eq("id", form.id);
         if (error) throw error;
         toast.success("Billet mis à jour");
       } else {
-        const { error } = await supabase.from("partner_tickets" as any).insert(payload);
+        const { data, error } = await supabase.from("partner_tickets" as any).insert(payload).select("id").single();
         if (error) throw error;
+        ticketId = (data as any).id;
         toast.success("Billet créé");
       }
+
+      if (isTrain && ticketId) {
+        await supabase.from("train_ticket_classes" as any).delete().eq("ticket_id", ticketId);
+        const rows = trainClasses
+          .filter((c) => (form.classPrices[c.id] ?? 0) > 0)
+          .map((c) => ({ ticket_id: ticketId, class_id: c.id, price: form.classPrices[c.id] }));
+        if (rows.length) {
+          const { error } = await supabase.from("train_ticket_classes" as any).insert(rows);
+          if (error) throw error;
+        }
+      }
+
       setDialogOpen(false);
       setForm(emptyForm());
       load();
