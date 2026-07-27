@@ -75,6 +75,13 @@ function AgencyTicketsPage() {
       const ag: Agency | null = (aRes.data as any) ?? null;
       setAgency(ag);
 
+      // Les agences maritimes suivent le parcours navire dédié en 7 étapes
+      if (ag?.category === "bateau") {
+        navigate({ to: "/billets/navire/$agencyId", params: { agencyId } });
+        return;
+      }
+
+
       const tRes = await supabase
         .from("partner_tickets" as any)
         .select("id, title, origin, destination, departure_at, price, description, image_url, train_type_id")

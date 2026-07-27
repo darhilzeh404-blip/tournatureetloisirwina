@@ -72,6 +72,7 @@ import { Route as AdminReservationsRouteImport } from './routes/admin/reservatio
 import { Route as AdminRechargesRouteImport } from './routes/admin/recharges'
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
 import { Route as AdminOffresRouteImport } from './routes/admin/offres'
+import { Route as AdminNaviresRouteImport } from './routes/admin/navires'
 import { Route as AdminGroupRidesRouteImport } from './routes/admin/group-rides'
 import { Route as AdminFraisRouteImport } from './routes/admin/frais'
 import { Route as AdminFideliteRouteImport } from './routes/admin/fidelite'
@@ -89,6 +90,7 @@ import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$r
 import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/deplacement-groupe.waiting.$rideId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
 import { Route as BilletsTrainTicketIdRouteImport } from './routes/billets.train.$ticketId'
+import { Route as BilletsNavireAgencyIdRouteImport } from './routes/billets.navire.$agencyId'
 import { Route as BilletsConfirmationReservationIdRouteImport } from './routes/billets.confirmation.$reservationId'
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
 import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
@@ -413,6 +415,11 @@ const AdminOffresRoute = AdminOffresRouteImport.update({
   path: '/offres',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminNaviresRoute = AdminNaviresRouteImport.update({
+  id: '/navires',
+  path: '/navires',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminGroupRidesRoute = AdminGroupRidesRouteImport.update({
   id: '/group-rides',
   path: '/group-rides',
@@ -498,6 +505,11 @@ const CircuitsSuiviSlugRoute = CircuitsSuiviSlugRouteImport.update({
 const BilletsTrainTicketIdRoute = BilletsTrainTicketIdRouteImport.update({
   id: '/train/$ticketId',
   path: '/train/$ticketId',
+  getParentRoute: () => BilletsRoute,
+} as any)
+const BilletsNavireAgencyIdRoute = BilletsNavireAgencyIdRouteImport.update({
+  id: '/navire/$agencyId',
+  path: '/navire/$agencyId',
   getParentRoute: () => BilletsRoute,
 } as any)
 const BilletsConfirmationReservationIdRoute =
@@ -590,6 +602,7 @@ export interface FileRoutesByFullPath {
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
+  '/admin/navires': typeof AdminNaviresRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
@@ -626,6 +639,7 @@ export interface FileRoutesByFullPath {
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
+  '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
   '/billets/train/$ticketId': typeof BilletsTrainTicketIdRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
@@ -676,6 +690,7 @@ export interface FileRoutesByTo {
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
+  '/admin/navires': typeof AdminNaviresRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
@@ -712,6 +727,7 @@ export interface FileRoutesByTo {
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
+  '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
   '/billets/train/$ticketId': typeof BilletsTrainTicketIdRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
@@ -767,6 +783,7 @@ export interface FileRoutesById {
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
+  '/admin/navires': typeof AdminNaviresRoute
   '/admin/offres': typeof AdminOffresRoute
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
@@ -803,6 +820,7 @@ export interface FileRoutesById {
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
+  '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
   '/billets/train/$ticketId': typeof BilletsTrainTicketIdRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
@@ -859,6 +877,7 @@ export interface FileRouteTypes {
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
+    | '/admin/navires'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/recharges'
@@ -895,6 +914,7 @@ export interface FileRouteTypes {
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
+    | '/billets/navire/$agencyId'
     | '/billets/train/$ticketId'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
@@ -945,6 +965,7 @@ export interface FileRouteTypes {
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
+    | '/admin/navires'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/recharges'
@@ -981,6 +1002,7 @@ export interface FileRouteTypes {
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
+    | '/billets/navire/$agencyId'
     | '/billets/train/$ticketId'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
@@ -1035,6 +1057,7 @@ export interface FileRouteTypes {
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
+    | '/admin/navires'
     | '/admin/offres'
     | '/admin/paiements'
     | '/admin/recharges'
@@ -1071,6 +1094,7 @@ export interface FileRouteTypes {
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
+    | '/billets/navire/$agencyId'
     | '/billets/train/$ticketId'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
@@ -1569,6 +1593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOffresRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/navires': {
+      id: '/admin/navires'
+      path: '/navires'
+      fullPath: '/admin/navires'
+      preLoaderRoute: typeof AdminNaviresRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/group-rides': {
       id: '/admin/group-rides'
       path: '/group-rides'
@@ -1688,6 +1719,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BilletsTrainTicketIdRouteImport
       parentRoute: typeof BilletsRoute
     }
+    '/billets/navire/$agencyId': {
+      id: '/billets/navire/$agencyId'
+      path: '/navire/$agencyId'
+      fullPath: '/billets/navire/$agencyId'
+      preLoaderRoute: typeof BilletsNavireAgencyIdRouteImport
+      parentRoute: typeof BilletsRoute
+    }
     '/billets/confirmation/$reservationId': {
       id: '/billets/confirmation/$reservationId'
       path: '/confirmation/$reservationId'
@@ -1761,6 +1799,7 @@ interface AdminRouteRouteChildren {
   AdminFideliteRoute: typeof AdminFideliteRoute
   AdminFraisRoute: typeof AdminFraisRoute
   AdminGroupRidesRoute: typeof AdminGroupRidesRoute
+  AdminNaviresRoute: typeof AdminNaviresRoute
   AdminOffresRoute: typeof AdminOffresRoute
   AdminPaiementsRoute: typeof AdminPaiementsRoute
   AdminRechargesRoute: typeof AdminRechargesRoute
@@ -1793,6 +1832,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminFideliteRoute: AdminFideliteRoute,
   AdminFraisRoute: AdminFraisRoute,
   AdminGroupRidesRoute: AdminGroupRidesRoute,
+  AdminNaviresRoute: AdminNaviresRoute,
   AdminOffresRoute: AdminOffresRoute,
   AdminPaiementsRoute: AdminPaiementsRoute,
   AdminRechargesRoute: AdminRechargesRoute,
@@ -1821,6 +1861,7 @@ interface BilletsRouteChildren {
   BilletsAgenceAgencyIdRoute: typeof BilletsAgenceAgencyIdRoute
   BilletsCategorieSlugRoute: typeof BilletsCategorieSlugRoute
   BilletsConfirmationReservationIdRoute: typeof BilletsConfirmationReservationIdRoute
+  BilletsNavireAgencyIdRoute: typeof BilletsNavireAgencyIdRoute
   BilletsTrainTicketIdRoute: typeof BilletsTrainTicketIdRoute
 }
 
@@ -1830,6 +1871,7 @@ const BilletsRouteChildren: BilletsRouteChildren = {
   BilletsAgenceAgencyIdRoute: BilletsAgenceAgencyIdRoute,
   BilletsCategorieSlugRoute: BilletsCategorieSlugRoute,
   BilletsConfirmationReservationIdRoute: BilletsConfirmationReservationIdRoute,
+  BilletsNavireAgencyIdRoute: BilletsNavireAgencyIdRoute,
   BilletsTrainTicketIdRoute: BilletsTrainTicketIdRoute,
 }
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, Download, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadTrainReceipt, type TrainReceiptData } from "@/lib/train-receipt";
+import { downloadBoatReceipt, type BoatReceiptData } from "@/lib/boat-receipt";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/billets/confirmation/$reservationId")({
@@ -21,6 +22,7 @@ function BilletConfirmationPage() {
   const { reservationId } = Route.useParams();
   const [loading, setLoading] = useState(true);
   const [receipt, setReceipt] = useState<TrainReceiptData | null>(null);
+  const [boatReceipt, setBoatReceipt] = useState<BoatReceiptData | null>(null);
   const [amount, setAmount] = useState(0);
 
   useEffect(() => {
@@ -32,35 +34,65 @@ function BilletConfirmationPage() {
         .maybeSingle();
       if (data) {
         const d = (data.details ?? {}) as Record<string, any>;
-        setAmount(data.paid_amount || data.total_amount);
-        setReceipt({
-          reference: d.reference_code ?? data.id.slice(0, 8).toUpperCase(),
-          agency: d.agency ?? "—",
-          trainType: d.train_type ?? "—",
-          travelClass: d.travel_class ?? "—",
-          departureDate: d.departure_date ? new Date(d.departure_date).toLocaleDateString("fr-FR") : "—",
-          origin: d.station_from ?? d.origin ?? "—",
-          destination: d.station_to ?? d.destination ?? "—",
-          passenger: d.passenger_name ?? "—",
-          passengerPhone: d.passenger_phone ?? null,
-          passengerEmail: d.passenger_email ?? null,
-          idDocument: d.id_document_label ?? null,
-          children: d.children ?? [],
-          baggageCount: d.baggage_count ?? 0,
-          baggageFee: d.baggage_fee ?? 0,
-          grossTotal: d.gross_total,
-          discountLines: d.discounts ?? [],
-          amountPaid: data.paid_amount || data.total_amount,
-          paidAt: new Date().toLocaleString("fr-FR"),
-        });
+        const paid = data.paid_amount || data.total_amount;
+        setAmount(paid);
+        const reference = d.reference_code ?? data.id.slice(0, 8).toUpperCase();
+        if (d.mode === "bateau") {
+          setBoatReceipt({
+            reference,
+            agency: d.agency ?? "—",
+            vessel: d.vessel ?? "—",
+            origin: d.origin ?? "—",
+            destination: d.destination ?? "—",
+            departureDate: d.departure_date ? new Date(d.departure_date).toLocaleDateString("fr-FR") : "—",
+            departureTime: d.departure_time ? String(d.departure_time).slice(0, 5) : null,
+            returnDate: d.return_date ? new Date(d.return_date).toLocaleDateString("fr-FR") : null,
+            passenger: d.passenger_name ?? "—",
+            passengerPhone: d.passenger_phone ?? null,
+            passengerEmail: d.passenger_email ?? null,
+            adults: d.adults ?? 0,
+            children: d.children ?? 0,
+            infants: d.infants ?? 0,
+            passengers: d.passengers ?? [],
+            baggageKg: d.baggage_kg ?? 0,
+            baggageFee: d.baggage_fee ?? 0,
+            services: d.services ?? [],
+            amountPaid: paid,
+            paidAt: new Date().toLocaleString("fr-FR"),
+          });
+        } else {
+          setReceipt({
+            reference,
+            agency: d.agency ?? "—",
+            trainType: d.train_type ?? "—",
+            travelClass: d.travel_class ?? "—",
+            departureDate: d.departure_date ? new Date(d.departure_date).toLocaleDateString("fr-FR") : "—",
+            origin: d.station_from ?? d.origin ?? "—",
+            destination: d.station_to ?? d.destination ?? "—",
+            passenger: d.passenger_name ?? "—",
+            passengerPhone: d.passenger_phone ?? null,
+            passengerEmail: d.passenger_email ?? null,
+            idDocument: d.id_document_label ?? null,
+            children: d.children ?? [],
+            baggageCount: d.baggage_count ?? 0,
+            baggageFee: d.baggage_fee ?? 0,
+            grossTotal: d.gross_total,
+            discountLines: d.discounts ?? [],
+            amountPaid: paid,
+            paidAt: new Date().toLocaleString("fr-FR"),
+          });
+        }
       }
       setLoading(false);
     })();
   }, [reservationId]);
 
+
+
   const download = () => {
-    if (!receipt) return;
-    downloadTrainReceipt(receipt);
+    if (boatReceipt) downloadBoatReceipt(boatReceipt);
+    else if (receipt) downloadTrainReceipt(receipt);
+    else return;
     toast.success("Reçu PDF téléchargé");
   };
 
@@ -106,14 +138,35 @@ function BilletConfirmationPage() {
             </dl>
           )}
 
+          {boatReceipt && (
+            <dl className="mt-6 space-y-2 text-left text-sm">
+              {[
+                ["Référence", boatReceipt.reference],
+                ["Agence", boatReceipt.agency],
+                ["Navire", boatReceipt.vessel],
+                ["Trajet", `${boatReceipt.origin} → ${boatReceipt.destination}`],
+                ["Date", `${boatReceipt.departureDate}${boatReceipt.departureTime ? ` à ${boatReceipt.departureTime}` : ""}`],
+                ["Voyageurs", `${boatReceipt.adults} adulte(s), ${boatReceipt.children} enfant(s), ${boatReceipt.infants} bébé(s)`],
+                ["Voyageur principal", boatReceipt.passenger],
+                ["Montant payé", fmt(amount)],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-3 border-b pb-1.5">
+                  <dt className="text-muted-foreground">{k}</dt>
+                  <dd className="text-right font-medium">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
           <button
             type="button"
             onClick={download}
-            disabled={!receipt}
+            disabled={!receipt && !boatReceipt}
             className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
           >
             <Download className="h-4 w-4" /> Télécharger le reçu PDF
           </button>
+
           <Link
             to="/mes-reservations"
             className="mt-3 inline-block text-sm font-semibold text-primary"

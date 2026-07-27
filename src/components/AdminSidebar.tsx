@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain, LayoutGrid, Eye, Plane, TrainFront } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain, LayoutGrid, Eye, Plane, TrainFront, Ship } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { setClientPreview } from "@/lib/admin-preview";
@@ -26,6 +26,7 @@ const adminLinks = [
   { to: "/admin/catalogue", label: "Catalogue véhicules", icon: LayoutGrid, exact: false },
   { to: "/admin/billets", label: "Billets", icon: Ticket, exact: false },
   { to: "/admin/trains", label: "Configuration Train", icon: TrainFront, exact: false },
+  { to: "/admin/navires", label: "Navires & Billetterie", icon: Ship, exact: false },
   { to: "/admin/billets-reservations", label: "Réservations billets", icon: ClipboardCheck, exact: false },
   { to: "/admin/vols", label: "Vols (Avion)", icon: Plane, exact: false },
   { to: "/admin/vols-reservations", label: "Dossiers vols", icon: ClipboardCheck, exact: false },
