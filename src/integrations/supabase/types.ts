@@ -1774,11 +1774,14 @@ export type Database = {
       partner_bookings: {
         Row: {
           agency_id: string
+          baggage_count: number
+          baggage_fee: number
           cancellation_reason: string | null
           cancelled_at: string | null
           completed_at: string | null
           confirmed_at: string | null
           created_at: string
+          departure_date: string | null
           details: Json
           id: string
           passenger_email: string | null
@@ -1786,19 +1789,25 @@ export type Database = {
           passenger_phone: string | null
           reference_code: string | null
           seats: number
+          station_from_id: string | null
+          station_to_id: string | null
           status: string
           ticket_id: string | null
           total_amount: number
+          travel_class_id: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
           agency_id: string
+          baggage_count?: number
+          baggage_fee?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
           completed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
+          departure_date?: string | null
           details?: Json
           id?: string
           passenger_email?: string | null
@@ -1806,19 +1815,25 @@ export type Database = {
           passenger_phone?: string | null
           reference_code?: string | null
           seats?: number
+          station_from_id?: string | null
+          station_to_id?: string | null
           status?: string
           ticket_id?: string | null
           total_amount?: number
+          travel_class_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           agency_id?: string
+          baggage_count?: number
+          baggage_fee?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
           completed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
+          departure_date?: string | null
           details?: Json
           id?: string
           passenger_email?: string | null
@@ -1826,9 +1841,12 @@ export type Database = {
           passenger_phone?: string | null
           reference_code?: string | null
           seats?: number
+          station_from_id?: string | null
+          station_to_id?: string | null
           status?: string
           ticket_id?: string | null
           total_amount?: number
+          travel_class_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -1848,10 +1866,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "partner_bookings_station_from_id_fkey"
+            columns: ["station_from_id"]
+            isOneToOne: false
+            referencedRelation: "train_stations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_bookings_station_to_id_fkey"
+            columns: ["station_to_id"]
+            isOneToOne: false
+            referencedRelation: "train_stations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "partner_bookings_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "partner_tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_bookings_travel_class_id_fkey"
+            columns: ["travel_class_id"]
+            isOneToOne: false
+            referencedRelation: "train_travel_classes"
             referencedColumns: ["id"]
           },
         ]
@@ -2508,6 +2547,91 @@ export type Database = {
         }
         Relationships: []
       }
+      train_baggage_rules: {
+        Row: {
+          conditions: string
+          created_at: string
+          fee_per_extra: number
+          free_count: number
+          id: string
+          is_active: boolean
+          label: string
+          max_count: number
+          sort_order: number
+          train_type_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          conditions?: string
+          created_at?: string
+          fee_per_extra?: number
+          free_count?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          max_count?: number
+          sort_order?: number
+          train_type_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          conditions?: string
+          created_at?: string
+          fee_per_extra?: number
+          free_count?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          max_count?: number
+          sort_order?: number
+          train_type_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "train_baggage_rules_train_type_id_fkey"
+            columns: ["train_type_id"]
+            isOneToOne: false
+            referencedRelation: "train_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      train_children: {
+        Row: {
+          age: number
+          booking_id: string
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+        }
+        Insert: {
+          age: number
+          booking_id: string
+          created_at?: string
+          first_name: string
+          id?: string
+          last_name: string
+        }
+        Update: {
+          age?: number
+          booking_id?: string
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "train_children_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "partner_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       train_discount_rules: {
         Row: {
           applies_to: string
@@ -2546,6 +2670,136 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      train_passengers: {
+        Row: {
+          age: number | null
+          booking_id: string
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          id_document_number: string | null
+          id_document_type: string
+          id_document_url: string | null
+          last_name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          booking_id: string
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id?: string
+          id_document_number?: string | null
+          id_document_type?: string
+          id_document_url?: string | null
+          last_name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          booking_id?: string
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          id_document_number?: string | null
+          id_document_type?: string
+          id_document_url?: string | null
+          last_name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "train_passengers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "partner_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      train_route_stations: {
+        Row: {
+          created_at: string
+          id: string
+          route_id: string
+          station_id: string
+          stop_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          route_id: string
+          station_id: string
+          stop_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          route_id?: string
+          station_id?: string
+          stop_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "train_route_stations_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "train_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "train_route_stations_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "train_stations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      train_routes: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          sort_order: number
+          train_type_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          sort_order?: number
+          train_type_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          sort_order?: number
+          train_type_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "train_routes_train_type_id_fkey"
+            columns: ["train_type_id"]
+            isOneToOne: false
+            referencedRelation: "train_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       train_stations: {
         Row: {
@@ -3743,11 +3997,14 @@ export type Database = {
         Args: { _booking_id: string; _reason: string }
         Returns: {
           agency_id: string
+          baggage_count: number
+          baggage_fee: number
           cancellation_reason: string | null
           cancelled_at: string | null
           completed_at: string | null
           confirmed_at: string | null
           created_at: string
+          departure_date: string | null
           details: Json
           id: string
           passenger_email: string | null
@@ -3755,9 +4012,12 @@ export type Database = {
           passenger_phone: string | null
           reference_code: string | null
           seats: number
+          station_from_id: string | null
+          station_to_id: string | null
           status: string
           ticket_id: string | null
           total_amount: number
+          travel_class_id: string | null
           updated_at: string
           user_id: string | null
         }
