@@ -114,17 +114,18 @@ function BoatBookingWizard() {
   );
   const selectedServices = vesselServices.filter((s) => serviceIds.includes(s.id));
 
-  const allowance = baggageAllowance(vessel, adults, children, infants);
-  const declaredKg = Math.max(0, Number(baggageKg) || 0);
-  const extraKg = Math.max(0, declaredKg - allowance);
+  const included = baggageIncluded(vessel, adults, children);
+  const declaredBags = Math.max(0, Number(baggageKg) || 0);
+  const extraBags = Math.max(0, declaredBags - included);
+  const prices = effectivePrices(vessel, sailing);
 
   const quote = useMemo(() => computeBoatQuote({
-    sailing, adults, children, infants, extraKg,
-    feePerExtraKg: vessel?.fee_per_extra_kg ?? 0,
+    sailing, vessel, adults, children, infants, extraBaggage: extraBags,
+    feePerExtraBaggage: vessel?.baggage_fee_per_extra ?? 0,
     services: selectedServices, roundTrip,
-  }), [sailing, adults, children, infants, extraKg, vessel?.fee_per_extra_kg, selectedServices, roundTrip]);
+  }), [sailing, vessel, adults, children, infants, extraBags, selectedServices, roundTrip]);
 
-  const baggageFee = extraKg * (vessel?.fee_per_extra_kg ?? 0);
+  const baggageFee = extraBags * (vessel?.baggage_fee_per_extra ?? 0);
   const total = quote.total;
 
   const next = () => {
