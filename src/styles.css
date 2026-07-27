@@ -172,8 +172,8 @@
   /* Mode installé (standalone) : rendu type application native */
   @media (display-mode: standalone) {
     body {
-      /* status bar iOS translucide : on peint la zone haute avec le thème */
-      background-color: hsl(var(--background, 0 0% 100%));
+      /* status bar iOS translucide : on peint la zone haute avec le fond de l'app */
+      background-color: var(--color-background);
       padding-bottom: env(safe-area-inset-bottom, 0px);
       overscroll-behavior-y: none;
     }
