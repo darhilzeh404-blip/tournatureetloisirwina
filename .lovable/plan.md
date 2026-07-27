@@ -1,63 +1,67 @@
-## Section "Billets" — 5 catégories + portail agences partenaires
+## Objectif
 
-### 1. Base de données (migration)
+Ajouter le parcours client complet de réservation de billets de train (7 étapes), le reçu PDF après paiement, et le suivi/validation côté administrateur — en s'appuyant sur le module Billetterie déjà en place (agences partenaires, billets, paiement, réservations).
 
-Nouvelles tables :
+## Choix structurant : étendre l'existant plutôt que dupliquer
 
-- **`ticket_categories`** (table fixe, seedée) — `slug` (bus|train|avion|bateau|evenement), `name`, `icon`, `sort_order`. Sert de référentiel pour le matching automatique.
-- **`partner_agencies`** — `id`, `owner_user_id` (uuid, agence connectée), `name`, `phone`, `email`, `logo_url`, `is_verified`, `created_at`. Une agence = un utilisateur avec le rôle `agence`.
-- **`partner_tickets`** — `id`, `agency_id` (FK), `category_id` (FK → ticket_categories, c'est le matching), `title`, `origin`, `destination`, `departure_at` (timestamp, nullable pour événements), `price` (int FCFA), `seats_available` (int), `description`, `image_url`, `is_active`, timestamps.
+La liste de tables demandée (`train_agencies`, `train_classes`, `train_reservations`, `train_payments`…) recrée un module parallèle à ce qui existe déjà et fonctionne :
 
-Ajout du rôle dans l'enum existant `app_role` : `'agence'`.
+| Demandé | Existant équivalent |
+|---|---|
+| train_agencies | `partner_agencies` (catégorie « train ») |
+| train_types | `train_types` ✅ |
+| train_classes | `train_travel_classes` ✅ |
+| train_stations | `train_stations` ✅ |
+| train_prices | `train_ticket_classes` (prix par classe) ✅ |
+| train_reservations | `partner_bookings` ✅ |
+| train_payments | `reservations` + `payments` ✅ |
 
-RLS :
-- `ticket_categories` : lecture publique, écriture admin uniquement.
-- `partner_agencies` : agence voit/édite la sienne (`owner_user_id = auth.uid()`), admin full, lecture publique des champs vitrine.
-- `partner_tickets` : lecture publique des `is_active=true`, l'agence CRUD ses propres billets, admin full.
+Créer des doublons casserait le paiement, l'espace client et l'admin. On garde donc l'architecture actuelle et on ajoute uniquement ce qui manque.
 
-Matching automatique = simple FK `category_id` choisie au moment de la création (formulaire avec select sur les 5 catégories). Pas de NLP — le type est explicite.
+## 1. Base de données (nouveautés seulement)
 
-### 2. Routes & pages
+- `train_routes` + `train_route_stations` : dessertes par type de train (Express → gares principales, Omnibus → toutes). Administrable.
+- `train_baggage_rules` : conditions de transport + frais par bagage, administrables.
+- `train_passengers` : voyageur principal d'une réservation (nom, prénom, téléphone, email, âge, type de pièce, URL du document).
+- `train_children` : enfants rattachés (nom, prénom, tranche d'âge 4–11 uniquement, contrainte en base).
+- Colonnes ajoutées à `partner_bookings` : `baggage_count`, `baggage_fee`, `departure_date`, `station_from_id`, `station_to_id`, `travel_class_id`.
+- Statuts de réservation étendus : `pending`, `confirmed`, `ticket_ready`, `delivered`, `cancelled`.
+- Bucket privé `train-documents` pour les pièces d'identité, avec accès restreint au propriétaire et aux administrateurs.
+- GRANT + RLS sur chaque nouvelle table.
 
-**Côté client (public) :**
-- `/billets` : refonte. Affiche les 5 catégories en tuiles avec icônes (Bus, Train, Plane, Ship, PartyPopper). Compteur de billets disponibles par catégorie. Conserve la liste actuelle `tickets` (billets internes Wina) dans une section "Billets Wina" en bas pour ne rien casser.
-- `/billets/categorie/$slug` : liste filtrée d'une catégorie. Filtres : agence (dropdown), prix (min/max), date départ. Chaque carte montre agence + logo, trajet/événement, date, prix, places.
+## 2. Espace client — assistant en 7 étapes
 
-**Portail agences partenaires :**
-- `/agence` (layout pour role=agence, redirige `/connexion` si pas connecté, `/` si rôle ≠ agence).
-- `/agence/index` : dashboard agence (mes billets, mes ventes, profil agence).
-- `/agence/billets` : liste de mes billets + bouton "Nouveau billet".
-- `/agence/billets/nouveau` : formulaire (type, titre, départ/arrivée, date, prix, places, description, image). Validation Zod côté client.
-- `/agence/profil` : édition fiche agence.
+Nouvelle page dédiée train (l'ancienne modale de réservation train est remplacée ; les autres catégories de billets restent inchangées) :
 
-**Côté admin :**
-- `/admin/agences` : liste + activation/vérification des agences partenaires, attribution du rôle.
+1. Agence, type de train, classe, **date de départ uniquement** (aucune heure).
+2. Gare de départ / d'arrivée, filtrées par les dessertes du type de train.
+3. Voyageur : nom, prénom, téléphone, email + pièce d'identité obligatoire (CNI / passeport / carte de séjour) avec téléversement du document.
+4. Bagages Oui/Non → nombre, affichage automatique des conditions et frais issus de la base.
+5. Enfants Oui/Non → ajout multiple, tranche d'âge limitée à 4–11 ans.
+6. Âge du voyageur principal → réduction Senior automatique de 50 % si ≥ 55 ans.
+7. Récapitulatif complet (agence, train, classe, date, départ, arrivée, voyageur, enfants, bagages, réductions, total) avant paiement.
 
-### 3. Composants
+Design WINA TOUR conservé, responsive, données 100 % issues de la base.
 
-- `TicketCategoryIcon` : map slug → icône lucide (`Bus`, `TrainFront`, `Plane`, `Ship`, `PartyPopper`).
-- `PartnerTicketCard` : carte billet réutilisée (liste + détail).
-- `PartnerTicketForm` : formulaire création/édition avec validation Zod.
+## 3. Paiement et message d'attente
 
-### 4. Navigation & UX
+Après paiement confirmé : aucun billet définitif immédiat. Message affiché :
+« Votre paiement a bien été reçu. Votre billet est en cours de traitement. Veuillez patienter jusqu'à 24 heures pour recevoir votre billet physique. »
 
-- Ajout de l'entrée "Espace agence" dans le header quand `role=agence`.
-- Page `/billets` met les 5 icônes en avant comme entrée principale.
-- Filtres en haut de chaque catégorie (debounced, URL synced).
+## 4. Reçu PDF
 
-### 5. Détails techniques (section non lue par défaut côté user)
+Généré automatiquement après paiement : logo WINA TOUR, numéro de réservation, voyageur, agence, type de train, classe, départ, arrivée, date, montant payé, date de paiement, statut « Billet en cours de traitement ».
+Téléchargeable depuis l'espace client (Mes réservations). L'envoi automatique par email nécessite la configuration d'un domaine d'envoi — je le proposerai à l'étape correspondante.
 
-- Pas de Edge Function — toutes les écritures passent par le client Supabase avec RLS.
-- L'image agence/billet utilise un nouveau bucket public `partner-tickets`.
-- Le hook `useAuth` est étendu pour exposer le rôle `agence` (déjà géré par `user_roles`).
-- Le matching n'utilise pas d'IA : `category_id` est choisi dans le formulaire et la FK garantit la cohérence. L'icône en front lit `category.slug`.
-- Achat / réservation des billets partenaires : hors scope de ce plan (à demander explicitement). Pour l'instant : bouton "Contacter l'agence" (tel/email) ou "Voir détails".
+## 5. Espace administrateur
 
-### Ordre d'implémentation
+Page réservations train : liste complète, filtres, détail voyageur/enfants/bagages/document d'identité, validation du paiement, modification de la réservation, génération du billet définitif et changement de statut (En attente → Confirmé → Billet prêt → Livré / Annulé).
+Écrans d'administration des dessertes (routes/gares par type de train) et des règles de bagages.
 
-1. Migration DB (tables + rôle `agence` + RLS + seed des 5 catégories + bucket storage).
-2. Page `/billets` refondue avec 5 catégories.
-3. Page `/billets/categorie/$slug` + filtres.
-4. Portail `/agence/*` (layout + CRUD billets + profil).
-5. Page admin `/admin/agences`.
-6. Header : entrée "Espace agence" conditionnelle.
+## Détails techniques
+
+- Migration Supabase unique pour les tables, colonnes, contraintes d'âge, GRANT et politiques RLS.
+- PDF généré côté client avec `jspdf` (téléchargement immédiat, aucune dépendance serveur).
+- Réutilisation de `src/lib/train.ts` pour les réductions ; ajout des règles bagages et dessertes.
+- Aucune valeur codée en dur : types, classes, gares, dessertes, réductions et frais bagages proviennent de la base.
+- Vérification finale du parcours client et admin avant livraison.
