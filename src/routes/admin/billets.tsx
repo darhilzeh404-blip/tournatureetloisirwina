@@ -335,24 +335,33 @@ function AdminBilletsPage() {
                 <label className="text-xs font-semibold text-muted-foreground">Agence *</label>
                 <select
                   value={form.agency_id}
-                  onChange={(e) => setForm({ ...form, agency_id: e.target.value })}
+                  onChange={(e) => {
+                    const agency_id = e.target.value;
+                    const catId = categoryIdForAgency(agency_id);
+                    setForm({
+                      ...form,
+                      agency_id,
+                      category_id: catId,
+                      ...(catId === trainCategoryId ? {} : { train_type_id: "", origin_station_id: "", destination_station_id: "" }),
+                    });
+                  }}
                   className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 >
                   <option value="">— Choisir —</option>
-                  {agencies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  {agencies.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}{a.category ? ` · ${a.category}` : " · (sans catégorie)"}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted-foreground">Catégorie *</label>
-                <select
-                  value={form.category_id}
-                  onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                  className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">— Choisir —</option>
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+                <label className="text-xs font-semibold text-muted-foreground">Catégorie (héritée de l'agence)</label>
+                <div className="mt-1 flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 text-sm">
+                  {derivedCategory?.name ?? "— Choisir une agence —"}
+                </div>
               </div>
+
             </div>
 
             <div>
