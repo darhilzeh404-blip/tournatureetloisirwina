@@ -89,6 +89,7 @@ import { Route as VtcSuiviReservationIdRouteImport } from './routes/vtc.suivi.$r
 import { Route as DeplacementGroupeWaitingRideIdRouteImport } from './routes/deplacement-groupe.waiting.$rideId'
 import { Route as CircuitsSuiviSlugRouteImport } from './routes/circuits.suivi.$slug'
 import { Route as BilletsTrainTicketIdRouteImport } from './routes/billets.train.$ticketId'
+import { Route as BilletsNavireAgencyIdRouteImport } from './routes/billets.navire.$agencyId'
 import { Route as BilletsConfirmationReservationIdRouteImport } from './routes/billets.confirmation.$reservationId'
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
 import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
@@ -500,6 +501,11 @@ const BilletsTrainTicketIdRoute = BilletsTrainTicketIdRouteImport.update({
   path: '/train/$ticketId',
   getParentRoute: () => BilletsRoute,
 } as any)
+const BilletsNavireAgencyIdRoute = BilletsNavireAgencyIdRouteImport.update({
+  id: '/navire/$agencyId',
+  path: '/navire/$agencyId',
+  getParentRoute: () => BilletsRoute,
+} as any)
 const BilletsConfirmationReservationIdRoute =
   BilletsConfirmationReservationIdRouteImport.update({
     id: '/confirmation/$reservationId',
@@ -626,6 +632,7 @@ export interface FileRoutesByFullPath {
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
+  '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
   '/billets/train/$ticketId': typeof BilletsTrainTicketIdRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
@@ -712,6 +719,7 @@ export interface FileRoutesByTo {
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
+  '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
   '/billets/train/$ticketId': typeof BilletsTrainTicketIdRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
@@ -803,6 +811,7 @@ export interface FileRoutesById {
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
+  '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
   '/billets/train/$ticketId': typeof BilletsTrainTicketIdRoute
   '/circuits/suivi/$slug': typeof CircuitsSuiviSlugRoute
   '/deplacement-groupe/waiting/$rideId': typeof DeplacementGroupeWaitingRideIdRoute
@@ -895,6 +904,7 @@ export interface FileRouteTypes {
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
+    | '/billets/navire/$agencyId'
     | '/billets/train/$ticketId'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
@@ -981,6 +991,7 @@ export interface FileRouteTypes {
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
+    | '/billets/navire/$agencyId'
     | '/billets/train/$ticketId'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
@@ -1071,6 +1082,7 @@ export interface FileRouteTypes {
     | '/billets/agence/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
+    | '/billets/navire/$agencyId'
     | '/billets/train/$ticketId'
     | '/circuits/suivi/$slug'
     | '/deplacement-groupe/waiting/$rideId'
@@ -1688,6 +1700,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BilletsTrainTicketIdRouteImport
       parentRoute: typeof BilletsRoute
     }
+    '/billets/navire/$agencyId': {
+      id: '/billets/navire/$agencyId'
+      path: '/navire/$agencyId'
+      fullPath: '/billets/navire/$agencyId'
+      preLoaderRoute: typeof BilletsNavireAgencyIdRouteImport
+      parentRoute: typeof BilletsRoute
+    }
     '/billets/confirmation/$reservationId': {
       id: '/billets/confirmation/$reservationId'
       path: '/confirmation/$reservationId'
@@ -1821,6 +1840,7 @@ interface BilletsRouteChildren {
   BilletsAgenceAgencyIdRoute: typeof BilletsAgenceAgencyIdRoute
   BilletsCategorieSlugRoute: typeof BilletsCategorieSlugRoute
   BilletsConfirmationReservationIdRoute: typeof BilletsConfirmationReservationIdRoute
+  BilletsNavireAgencyIdRoute: typeof BilletsNavireAgencyIdRoute
   BilletsTrainTicketIdRoute: typeof BilletsTrainTicketIdRoute
 }
 
@@ -1830,6 +1850,7 @@ const BilletsRouteChildren: BilletsRouteChildren = {
   BilletsAgenceAgencyIdRoute: BilletsAgenceAgencyIdRoute,
   BilletsCategorieSlugRoute: BilletsCategorieSlugRoute,
   BilletsConfirmationReservationIdRoute: BilletsConfirmationReservationIdRoute,
+  BilletsNavireAgencyIdRoute: BilletsNavireAgencyIdRoute,
   BilletsTrainTicketIdRoute: BilletsTrainTicketIdRoute,
 }
 
