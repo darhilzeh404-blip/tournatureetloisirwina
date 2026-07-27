@@ -106,22 +106,46 @@ export async function fetchVesselServices(vesselIds?: string[]) {
   return ((data as any) ?? []) as VesselService[];
 }
 
+/** Récupère les départs. Un départ couvre soit une date précise, soit une période (mois disponible). */
 export async function fetchSailings(params: { routeId?: string; date?: string; vesselIds?: string[] }) {
   let q = supabase.from("boat_sailings" as any).select("*").order("departure_time");
   if (params.routeId) q = q.eq("route_id", params.routeId);
-  if (params.date) q = q.eq("departure_date", params.date);
   if (params.vesselIds && params.vesselIds.length > 0) q = q.in("vessel_id", params.vesselIds);
   const { data } = await q;
-  return ((data as any) ?? []) as BoatSailing[];
+  const list = ((data as any) ?? []) as BoatSailing[];
+  if (!params.date) return list;
+  return list.filter((s) => coversDate(s, params.date!));
+}
+
+/** Vrai si le départ est disponible à cette date (date fixe ou période administrée). */
+export function coversDate(s: BoatSailing, date: string) {
+  if (s.period_start && s.period_end) return date >= s.period_start && date <= s.period_end;
+  return s.departure_date === date;
+}
+
+/** Prix effectifs : ceux du navire en priorité, sinon ceux du départ. */
+export function effectivePrices(vessel: Vessel | null, sailing: BoatSailing | null) {
+  return {
+    adult: vessel?.price_adult || sailing?.price_adult || 0,
+    child: vessel?.price_child || sailing?.price_child || 0,
+    infant: vessel?.price_infant || sailing?.price_infant || 0,
+  };
+}
+
+/** Bagages inclus (en nombre) pour l'ensemble des voyageurs payants. */
+export function baggageIncluded(vessel: Vessel | null, adults: number, children: number) {
+  if (!vessel) return 0;
+  return (vessel.baggage_free_count ?? 0) * (adults + children);
 }
 
 export type BoatQuoteInput = {
   sailing: BoatSailing | null;
+  vessel: Vessel | null;
   adults: number;
   children: number;
   infants: number;
-  extraKg: number;
-  feePerExtraKg: number;
+  extraBaggage: number;
+  feePerExtraBaggage: number;
   services: VesselService[];
   roundTrip: boolean;
 };
@@ -133,33 +157,23 @@ export type BoatQuote = {
 };
 
 export function computeBoatQuote(input: BoatQuoteInput): BoatQuote {
-  const { sailing, adults, children, infants, extraKg, feePerExtraKg, services, roundTrip } = input;
+  const { sailing, vessel, adults, children, infants, extraBaggage, feePerExtraBaggage, services, roundTrip } = input;
   const lines: { label: string; amount: number }[] = [];
   const legs = roundTrip ? 2 : 1;
+  const p = effectivePrices(vessel, sailing);
 
-  if (sailing) {
-    if (adults > 0) {
-      lines.push({
-        label: `Adultes × ${adults}${roundTrip ? " (aller-retour)" : ""}`,
-        amount: sailing.price_adult * adults * legs,
-      });
-    }
-    if (children > 0) {
-      lines.push({
-        label: `Enfants × ${children}${roundTrip ? " (aller-retour)" : ""}`,
-        amount: sailing.price_child * children * legs,
-      });
-    }
-    if (infants > 0) {
-      lines.push({
-        label: `Bébés × ${infants}${roundTrip ? " (aller-retour)" : ""}`,
-        amount: sailing.price_infant * infants * legs,
-      });
-    }
+  if (adults > 0) {
+    lines.push({ label: `Adultes × ${adults}${roundTrip ? " (aller-retour)" : ""}`, amount: p.adult * adults * legs });
+  }
+  if (children > 0) {
+    lines.push({ label: `Enfants × ${children}${roundTrip ? " (aller-retour)" : ""}`, amount: p.child * children * legs });
+  }
+  if (infants > 0) {
+    lines.push({ label: `Bébés × ${infants}${roundTrip ? " (aller-retour)" : ""}`, amount: p.infant * infants * legs });
   }
 
-  if (extraKg > 0 && feePerExtraKg > 0) {
-    lines.push({ label: `Bagages supplémentaires (${extraKg} kg)`, amount: extraKg * feePerExtraKg });
+  if (extraBaggage > 0 && feePerExtraBaggage > 0) {
+    lines.push({ label: `Bagages supplémentaires × ${extraBaggage}`, amount: extraBaggage * feePerExtraBaggage });
   }
 
   services.forEach((s) => {
