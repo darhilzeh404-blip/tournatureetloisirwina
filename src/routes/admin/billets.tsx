@@ -121,7 +121,14 @@ function AdminBilletsPage() {
   useEffect(() => { load(); }, []);
 
   const trainCategoryId = categories.find((c) => c.slug === TRAIN_CATEGORY_SLUG)?.id ?? "";
-  const isTrain = !!trainCategoryId && form.category_id === trainCategoryId;
+  // La catégorie d'un billet est toujours héritée de l'agence partenaire (bus / train / avion / bateau / événement)
+  const categoryIdForAgency = (agencyId: string) => {
+    const slug = agencies.find((a) => a.id === agencyId)?.category ?? "";
+    return categories.find((c) => c.slug === slug)?.id ?? "";
+  };
+  const derivedCategoryId = categoryIdForAgency(form.agency_id) || form.category_id;
+  const derivedCategory = categories.find((c) => c.id === derivedCategoryId);
+  const isTrain = !!trainCategoryId && derivedCategoryId === trainCategoryId;
   const selectedType = trainTypes.find((t) => t.id === form.train_type_id);
   const availableStations = selectedType
     ? stations.filter((s) => s.station_kind === selectedType.station_kind)
