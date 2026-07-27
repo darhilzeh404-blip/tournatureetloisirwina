@@ -255,18 +255,74 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
               <div className="space-y-2">
                 {data.activities.filter(a => a.is_active).map(a => {
                   const checked = activityIds.includes(a.id);
+                  const partner = data.partners.find(p => p.id === a.partner_id);
                   return (
-                    <label key={a.id} className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2.5 text-sm ${checked ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
-                      <div className="flex items-center gap-2">
-                        <input type="checkbox" checked={checked} onChange={() => {
+                    <label key={a.id} className={`flex cursor-pointer items-start justify-between gap-3 rounded-xl border px-3 py-2.5 text-sm ${checked ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
+                      <div className="flex flex-1 items-start gap-2">
+                        <input type="checkbox" className="mt-1" checked={checked} onChange={() => {
                           setActivityIds(checked ? activityIds.filter(x => x !== a.id) : [...activityIds, a.id]);
                         }} />
-                        <span>{a.name} <span className="text-xs text-muted-foreground">({a.duration_hours}h)</span></span>
+                        {a.image_url && (
+                          <img src={a.image_url} alt={a.name} loading="lazy" className="h-10 w-10 rounded-lg object-cover" />
+                        )}
+                        <div className="min-w-0">
+                          <span className="font-medium">{a.name}</span>{" "}
+                          <span className="text-xs text-muted-foreground">({a.duration_hours}h)</span>
+                          {a.description && (
+                            <p className="text-[11px] leading-snug text-muted-foreground">{a.description}</p>
+                          )}
+                          {partner && (
+                            <p className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-primary">
+                              {partner.logo_url && (
+                                <img src={partner.logo_url} alt={partner.name} className="h-4 w-4 rounded object-contain" />
+                              )}
+                              Partenaire : {partner.name}
+                            </p>
+                          )}
+                          {Number(a.registration_fee) > 0 && (
+                            <p className="text-[11px] text-muted-foreground">
+                              + Frais d'inscription {fmt(Number(a.registration_fee))} FCFA
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <span className="font-semibold">{fmt(a.price)} FCFA</span>
+                      <span className="shrink-0 font-semibold">{fmt(a.price)} FCFA</span>
                     </label>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {showActivities && activityIds.length > 0 && (
+            <div className="rounded-xl border bg-card p-3">
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium">
+                <Users className="h-4 w-4 text-primary" /> Informations de l'enfant
+              </label>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <input
+                  value={childLastName}
+                  onChange={e => setChildLastName(e.target.value)}
+                  placeholder="Nom *"
+                  maxLength={80}
+                  className="rounded-xl border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  value={childFirstName}
+                  onChange={e => setChildFirstName(e.target.value)}
+                  placeholder="Prénom *"
+                  maxLength={80}
+                  className="rounded-xl border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  type="number"
+                  min={1}
+                  max={25}
+                  value={childAge}
+                  onChange={e => setChildAge(e.target.value)}
+                  placeholder="Âge *"
+                  className="rounded-xl border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
             </div>
           )}
