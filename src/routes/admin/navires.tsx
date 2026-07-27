@@ -98,9 +98,31 @@ function AdminBoatsPage() {
       agency_id: newVessel.agency_id,
       name: newVessel.name.trim(),
       capacity: Number(newVessel.capacity) || 0,
-      photo_url: newVessel.photo_url.trim() || null,
+      price_adult: Number(newVessel.price_adult) || 0,
+      price_child: Number(newVessel.price_child) || 0,
+      price_infant: Number(newVessel.price_infant) || 0,
       sort_order: vessels.length + 1,
-    }) as any, "Navire ajouté").then(() => setNewVessel({ agency_id: "", name: "", capacity: "", photo_url: "" }));
+    }) as any, "Navire ajouté").then(() =>
+      setNewVessel({ agency_id: "", name: "", capacity: "", price_adult: "", price_child: "", price_infant: "" }));
+  };
+
+  /** Upload d'une photo HD du navire dans le stockage (bucket public ticket-images). */
+  const uploadPhoto = async (vesselId: string, file: File) => {
+    setUploading(vesselId);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `vessels/${vesselId}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("ticket-images").upload(path, file, { upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from("ticket-images").getPublicUrl(path);
+      await supabase.from("vessels" as any).update({ photo_url: data.publicUrl }).eq("id", vesselId);
+      toast.success("Photo mise à jour");
+      load();
+    } catch (err: any) {
+      toast.error(err.message || "Échec du téléversement");
+    } finally {
+      setUploading(null);
+    }
   };
 
   const addService = () => {
@@ -114,24 +136,23 @@ function AdminBoatsPage() {
   };
 
   const addSailing = () => {
-    if (!newSailing.vessel_id || !newSailing.route_id || !newSailing.departure_date)
-      return toast.error("Navire, route et date requis");
+    if (!newSailing.vessel_id || !newSailing.route_id || !newSailing.period_start || !newSailing.period_end)
+      return toast.error("Navire, route et période requis");
     const seats = Number(newSailing.seats_total) || 0;
     run(() => supabase.from("boat_sailings" as any).insert({
       vessel_id: newSailing.vessel_id,
       route_id: newSailing.route_id,
-      departure_date: newSailing.departure_date,
+      period_start: newSailing.period_start,
+      period_end: newSailing.period_end,
+      departure_date: newSailing.period_start,
       departure_time: newSailing.departure_time || "08:00",
-      price_adult: Number(newSailing.price_adult) || 0,
-      price_child: Number(newSailing.price_child) || 0,
-      price_infant: Number(newSailing.price_infant) || 0,
       seats_total: seats,
       seats_available: seats,
-    }) as any, "Départ programmé").then(() => setNewSailing({
-      vessel_id: "", route_id: "", departure_date: "", departure_time: "08:00",
-      price_adult: "", price_child: "", price_infant: "", seats_total: "",
+    }) as any, "Période de départs programmée").then(() => setNewSailing({
+      vessel_id: "", route_id: "", period_start: "", period_end: "", departure_time: "08:00", seats_total: "0",
     }));
   };
+
 
   if (loading) return <p className="p-10 text-center text-sm text-muted-foreground">Chargement…</p>;
 
