@@ -485,8 +485,9 @@ function BoatBookingWizard() {
                   ["Date", `${new Date(departureDate).toLocaleDateString("fr-FR")}${sailing ? ` à ${sailing.departure_time?.slice(0, 5)}` : ""}`],
                   ...(roundTrip ? [["Retour", new Date(returnDate).toLocaleDateString("fr-FR")]] : []),
                   ["Voyageurs", `${adults} adulte(s), ${children} enfant(s), ${infants} bébé(s)`],
+                  ["Places sollicitées", `${totalTravellers}`],
                   ["Voyageur principal", passengers[0] ? `${passengers[0].first_name} ${passengers[0].last_name}` : "—"],
-                  ["Bagages", `${declaredKg} kg (franchise ${allowance} kg)`],
+                  ["Bagages", `${declaredBags} bagage(s) — ${included} inclus`],
                 ].map(([k, v]) => (
                   <div key={k as string} className="flex justify-between gap-3 border-b pb-1.5">
                     <dt className="text-muted-foreground">{k}</dt>
