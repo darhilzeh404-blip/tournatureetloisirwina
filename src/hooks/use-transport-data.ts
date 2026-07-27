@@ -127,7 +127,10 @@ export function computeQuote(input: QuoteInput, d: TransportData): Quote {
 
   (input.activityIds ?? []).forEach(aid => {
     const act = d.activities.find(a => a.id === aid);
-    if (act) lines.push({ label: `Activité : ${act.name}`, amount: act.price });
+    if (!act) return;
+    const fee = Number(act.registration_fee ?? 0);
+    if (fee > 0) lines.push({ label: `Frais d'inscription — ${act.name}`, amount: fee });
+    lines.push({ label: `Activité : ${act.name}`, amount: act.price });
   });
 
   const total = lines.reduce((s, l) => s + l.amount, 0);
