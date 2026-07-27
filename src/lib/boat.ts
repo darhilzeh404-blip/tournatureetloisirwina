@@ -20,6 +20,12 @@ export type Vessel = {
   photo_url: string | null;
   capacity: number;
   description: string;
+  price_adult: number;
+  price_child: number;
+  price_infant: number;
+  baggage_free_count: number;
+  baggage_fee_per_extra: number;
+  baggage_max_count: number;
   baggage_adult_kg: number;
   baggage_child_kg: number;
   baggage_infant_kg: number;
@@ -43,7 +49,9 @@ export type BoatSailing = {
   id: string;
   vessel_id: string;
   route_id: string;
-  departure_date: string;
+  departure_date: string | null;
+  period_start: string | null;
+  period_end: string | null;
   departure_time: string;
   price_adult: number;
   price_child: number;
