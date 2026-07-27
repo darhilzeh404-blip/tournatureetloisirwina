@@ -427,16 +427,23 @@ function BoatBookingWizard() {
               <h2 className="text-sm font-bold">Étape 6 — Bagages & services</h2>
               <div className="mt-4 space-y-4">
                 <div className="rounded-xl bg-muted/40 p-3 text-xs text-muted-foreground">
-                  Franchise incluse pour ce navire : <strong>{allowance} kg</strong>
-                  {vessel?.fee_per_extra_kg ? ` · ${fmt(vessel.fee_per_extra_kg)} par kg supplémentaire` : ""}
+                  Bagages inclus pour ce navire : <strong>{included} bagage(s)</strong>
+                  {vessel?.baggage_fee_per_extra ? ` · ${fmt(vessel.baggage_fee_per_extra)} par bagage supplémentaire` : ""}
+                  {vessel?.baggage_max_count ? ` · maximum ${vessel.baggage_max_count} bagage(s)` : ""}
                   {vessel?.baggage_conditions ? <span className="mt-1 block">{vessel.baggage_conditions}</span> : null}
                 </div>
                 <div>
-                  <span className={labelCls}>Poids total de vos bagages (kg)</span>
-                  <Input type="number" min={0} className="mt-1" value={baggageKg} onChange={(e) => setBaggageKg(e.target.value)} />
-                  {extraKg > 0 && (
+                  <span className={labelCls}>Nombre total de bagages</span>
+                  <Input type="number" min={0} max={vessel?.baggage_max_count || undefined} className="mt-1"
+                    value={baggageKg} onChange={(e) => setBaggageKg(e.target.value)} />
+                  {extraBags > 0 && (
                     <p className="mt-1 text-xs font-semibold text-amber-600">
-                      {extraKg} kg au-delà de la franchise → supplément {fmt(baggageFee)}
+                      {extraBags} bagage(s) au-delà de la franchise → supplément {fmt(baggageFee)}
+                    </p>
+                  )}
+                  {vessel?.baggage_max_count && declaredBags > vessel.baggage_max_count && (
+                    <p className="mt-1 text-xs font-semibold text-destructive">
+                      Maximum {vessel.baggage_max_count} bagage(s) autorisé(s) sur ce navire.
                     </p>
                   )}
                 </div>
