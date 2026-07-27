@@ -140,6 +140,9 @@ function BoatBookingWizard() {
       if (invalid) return toast.error("Nom et prénom obligatoires pour chaque passager");
       if (!passengers[0]?.phone.trim()) return toast.error("Téléphone du voyageur principal requis");
     }
+    if (step === 5 && vessel?.baggage_max_count && declaredBags > vessel.baggage_max_count) {
+      return toast.error(`Maximum ${vessel.baggage_max_count} bagage(s) sur ce navire`);
+    }
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   };
 
@@ -150,7 +153,8 @@ function BoatBookingWizard() {
       return;
     }
     if (!sailing || !route || total <= 0) return toast.error("Réservation incomplète");
-    if (sailing.seats_available < totalTravellers) return toast.error("Plus assez de places sur ce départ");
+    if ((sailing.seats_total ?? 0) > 0 && sailing.seats_available < totalTravellers)
+      return toast.error("Plus assez de places sur ce départ");
 
     setSubmitting(true);
     try {
