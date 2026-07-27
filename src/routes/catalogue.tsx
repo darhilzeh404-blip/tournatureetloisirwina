@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LayoutGrid, Car, Users, Calendar, ChevronRight, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import type { CatalogCategory, CatalogVehicle } from "@/lib/catalog";
+import { formatRentalDuration, type CatalogCategory, type CatalogVehicle } from "@/lib/catalog";
 import berlineIcon from "@/assets/catalog-icon-berline.png";
 import busIcon from "@/assets/catalog-icon-bus.png";
 import minibusIcon from "@/assets/catalog-icon-minibus.png";
