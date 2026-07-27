@@ -90,8 +90,9 @@ function BilletConfirmationPage() {
 
 
   const download = () => {
-    if (!receipt) return;
-    downloadTrainReceipt(receipt);
+    if (boatReceipt) downloadBoatReceipt(boatReceipt);
+    else if (receipt) downloadTrainReceipt(receipt);
+    else return;
     toast.success("Reçu PDF téléchargé");
   };
 
