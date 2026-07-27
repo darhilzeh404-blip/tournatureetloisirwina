@@ -8,7 +8,7 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#3b6cd6",
+  "theme_color": "#ffffff",
   "lang": "fr",
   "dir": "ltr",
   "categories": ["travel", "transportation", "business"],
