@@ -513,9 +513,9 @@ function MesReservationsPage() {
                       )}
                     </div>
                   )}
-                  {(canPay || res.trip_id || res.service_type === "VTC" || (res.details as any)?.train_booking) && (
+                  {(canPay || res.trip_id || res.service_type === "VTC" || (res.details as any)?.train_booking || (res.details as any)?.mode === "bateau") && (
                     <div className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-4">
-                      {(res.details as any)?.train_booking && (
+                      {((res.details as any)?.train_booking || (res.details as any)?.mode === "bateau") && (
                         <Button size="sm" variant="outline" className="gap-2" onClick={() => downloadTrainReceiptFor(res)}>
                           <Download className="h-4 w-4" />
                           Reçu PDF
