@@ -35,6 +35,9 @@ type PartnerTicket = {
   price: number;
   seats_available: number;
   seats_total: number | null;
+  train_type_id: string | null;
+  origin_station_id: string | null;
+  destination_station_id: string | null;
   description: string;
   image_url: string | null;
   is_active: boolean;
