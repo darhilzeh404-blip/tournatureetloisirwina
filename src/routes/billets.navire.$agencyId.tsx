@@ -169,7 +169,7 @@ function BoatBookingWizard() {
         route_id: route.id,
         origin: route.origin,
         destination: route.destination,
-        departure_date: sailing.departure_date,
+        departure_date: departureDate,
         departure_time: sailing.departure_time,
         return_date: roundTrip ? returnDate : null,
         round_trip: roundTrip,
