@@ -338,8 +338,11 @@ function BoatBookingWizard() {
               <div className="mt-4 space-y-2">
                 <Counter label="Adultes" hint="Plus de 12 ans" value={adults} set={setAdults} min={1} />
                 <Counter label="Enfants" hint="2 à 12 ans" value={children} set={setChildren} />
-                <Counter label="Bébés" hint="Moins de 2 ans" value={infants} set={setInfants} />
+                <Counter label="Bébés" hint="Moins de 2 ans — gratuit ou tarif bébé" value={infants} set={setInfants} />
               </div>
+              <p className="mt-3 rounded-xl bg-primary/5 p-3 text-xs font-semibold text-primary">
+                Places sollicitées : {totalTravellers}
+              </p>
             </div>
           )}
 
@@ -352,9 +355,12 @@ function BoatBookingWizard() {
               ) : (
                 <div className="mt-4 grid gap-3">
                   {sailings.map((s) => {
-                    const v = vessels.find((x) => x.id === s.vessel_id);
+                    const v = vessels.find((x) => x.id === s.vessel_id) ?? null;
                     const svc = services.filter((x) => x.vessel_id === s.vessel_id && x.is_active);
-                    const disabled = s.seats_available < totalTravellers || s.status === "full";
+                    const limited = (s.seats_total ?? 0) > 0;
+                    const disabled = s.status === "full" || (limited && s.seats_available < totalTravellers);
+                    const p = effectivePrices(v, s);
+                    const sub = p.adult * adults + p.child * children + p.infant * infants;
                     return (
                       <button key={s.id} type="button" disabled={disabled}
                         onClick={() => { setSailingId(s.id); setServiceIds([]); }}
@@ -364,7 +370,7 @@ function BoatBookingWizard() {
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-bold">{v?.name ?? "Navire"}</p>
                             <p className="text-xs text-muted-foreground">
-                              Départ {s.departure_time?.slice(0, 5)} · {disabled ? "Complet" : `${s.seats_available} place(s) restante(s)`}
+                              Départ {s.departure_time?.slice(0, 5)} · {disabled ? "Complet" : limited ? `${s.seats_available} place(s) restante(s)` : `${totalTravellers} place(s) demandée(s)`}
                             </p>
                             {svc.length > 0 && (
                               <p className="mt-1 text-[11px] text-muted-foreground">
@@ -372,8 +378,9 @@ function BoatBookingWizard() {
                               </p>
                             )}
                             <p className="mt-1 text-xs font-semibold text-primary">
-                              Adulte {fmt(s.price_adult)} · Enfant {fmt(s.price_child)} · Bébé {fmt(s.price_infant)}
+                              Adulte {fmt(p.adult)} · Enfant {fmt(p.child)} · Bébé {fmt(p.infant)}
                             </p>
+                            <p className="text-xs font-bold">Sous-total billets : {fmt(sub)}</p>
                           </div>
                         </div>
                       </button>
