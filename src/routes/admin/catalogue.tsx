@@ -540,6 +540,18 @@ function VehicleDialog({
               <Input type="number" value={dailyRate} onChange={(e) => setDailyRate(e.target.value)} placeholder="50000" />
             </div>
             <div>
+              <Label>Nombre de jours</Label>
+              <Input type="number" min={1} value={rentalDays} onChange={(e) => setRentalDays(e.target.value)} placeholder="3" />
+            </div>
+            <div>
+              <Label>Heure de début</Label>
+              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            </div>
+            <div>
+              <Label>Heure de fin</Label>
+              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            </div>
+            <div>
               <Label>Ordre</Label>
               <Input type="number" value={sortOrder} onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)} />
             </div>
