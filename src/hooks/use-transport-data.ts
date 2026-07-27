@@ -5,7 +5,31 @@ export type TCategory = { id: string; slug: string; name: string; description: s
 export type TRoute = { id: string; category_id: string; name: string; origin: string; destination: string; distance_km: number; is_active: boolean };
 export type TVehicle = { id: string; name: string; capacity: number; base_price: number; description: string; is_active: boolean };
 export type TPricing = { id: string; route_id: string; vehicle_id: string; service_type: string; trip_type: string; price: number };
-export type TActivity = { id: string; name: string; description: string; price: number; duration_hours: number; is_active: boolean };
+export type TActivity = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  duration_hours: number;
+  is_active: boolean;
+  location?: string;
+  partner_id: string | null;
+  image_url: string | null;
+  gallery: string[];
+  registration_fee: number;
+  requires_child_info: boolean;
+};
+export type TPartner = {
+  id: string;
+  name: string;
+  description: string;
+  logo_url: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  website: string | null;
+  is_active: boolean;
+  sort_order: number;
+};
 export type TPackage = { id: string; name: string; description: string; route_id: string | null; activity_id: string | null; price: number; is_active: boolean };
 export type TSetting = { id: string; key: string; value: number; label: string; description: string };
 
@@ -15,6 +39,7 @@ export type TransportData = {
   vehicles: TVehicle[];
   pricing: TPricing[];
   activities: TActivity[];
+  partners: TPartner[];
   packages: TPackage[];
   settings: Record<string, number>;
   loading: boolean;
@@ -23,18 +48,19 @@ export type TransportData = {
 
 export function useTransportData(): TransportData {
   const [data, setData] = useState<Omit<TransportData, "reload">>({
-    categories: [], routes: [], vehicles: [], pricing: [], activities: [], packages: [],
+    categories: [], routes: [], vehicles: [], pricing: [], activities: [], partners: [], packages: [],
     settings: {}, loading: true,
   });
 
   const load = async () => {
     setData(d => ({ ...d, loading: true }));
-    const [c, r, v, p, a, pk, s] = await Promise.all([
+    const [c, r, v, p, a, pt, pk, s] = await Promise.all([
       supabase.from("transport_categories").select("*").order("sort_order"),
       supabase.from("transport_routes").select("*"),
       supabase.from("transport_vehicles").select("*"),
       supabase.from("transport_pricing").select("*"),
       supabase.from("transport_activities").select("*"),
+      supabase.from("activity_partners" as any).select("*").order("sort_order"),
       supabase.from("transport_packages").select("*"),
       supabase.from("transport_settings").select("*"),
     ]);
@@ -45,7 +71,15 @@ export function useTransportData(): TransportData {
       routes: (r.data ?? []) as TRoute[],
       vehicles: (v.data ?? []) as TVehicle[],
       pricing: (p.data ?? []) as TPricing[],
-      activities: (a.data ?? []) as TActivity[],
+      activities: ((a.data ?? []) as any[]).map((row) => ({
+        ...row,
+        gallery: Array.isArray(row.gallery) ? row.gallery : [],
+        registration_fee: Number(row.registration_fee ?? 0),
+        partner_id: row.partner_id ?? null,
+        image_url: row.image_url ?? null,
+        requires_child_info: row.requires_child_info ?? true,
+      })) as TActivity[],
+      partners: ((pt.data ?? []) as any[]) as TPartner[],
       packages: (pk.data ?? []) as TPackage[],
       settings, loading: false,
     });
@@ -93,7 +127,10 @@ export function computeQuote(input: QuoteInput, d: TransportData): Quote {
 
   (input.activityIds ?? []).forEach(aid => {
     const act = d.activities.find(a => a.id === aid);
-    if (act) lines.push({ label: `Activité : ${act.name}`, amount: act.price });
+    if (!act) return;
+    const fee = Number(act.registration_fee ?? 0);
+    if (fee > 0) lines.push({ label: `Frais d'inscription — ${act.name}`, amount: fee });
+    lines.push({ label: `Activité : ${act.name}`, amount: act.price });
   });
 
   const total = lines.reduce((s, l) => s + l.amount, 0);

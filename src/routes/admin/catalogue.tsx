@@ -416,6 +416,9 @@ function VehicleDialog({
   const [year, setYear] = useState<string>("");
   const [seats, setSeats] = useState<string>("");
   const [dailyRate, setDailyRate] = useState<string>("");
+  const [rentalDays, setRentalDays] = useState<string>("");
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
   const [description, setDescription] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState(0);
@@ -430,6 +433,9 @@ function VehicleDialog({
       setYear(editing.year?.toString() ?? "");
       setSeats(editing.seats?.toString() ?? "");
       setDailyRate(editing.daily_rate?.toString() ?? "");
+      setRentalDays(editing.rental_days?.toString() ?? "");
+      setStartTime(editing.start_time?.slice(0, 5) ?? "");
+      setEndTime(editing.end_time?.slice(0, 5) ?? "");
       setDescription(editing.description ?? "");
       setGallery(editing.gallery ?? []);
       setSortOrder(editing.sort_order);
@@ -440,6 +446,9 @@ function VehicleDialog({
       setYear("");
       setSeats("");
       setDailyRate("");
+      setRentalDays("");
+      setStartTime("");
+      setEndTime("");
       setDescription("");
       setGallery([]);
       setSortOrder(0);
@@ -477,6 +486,9 @@ function VehicleDialog({
       year: year ? parseInt(year) : null,
       seats: seats ? parseInt(seats) : null,
       daily_rate: dailyRate ? parseInt(dailyRate) : null,
+      rental_days: rentalDays ? parseInt(rentalDays) : null,
+      start_time: startTime || null,
+      end_time: endTime || null,
       description: description.trim() || null,
       gallery,
       sort_order: sortOrder,
@@ -526,6 +538,18 @@ function VehicleDialog({
             <div>
               <Label>Tarif journalier (FCFA)</Label>
               <Input type="number" value={dailyRate} onChange={(e) => setDailyRate(e.target.value)} placeholder="50000" />
+            </div>
+            <div>
+              <Label>Nombre de jours</Label>
+              <Input type="number" min={1} value={rentalDays} onChange={(e) => setRentalDays(e.target.value)} placeholder="3" />
+            </div>
+            <div>
+              <Label>Heure de début</Label>
+              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            </div>
+            <div>
+              <Label>Heure de fin</Label>
+              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
             </div>
             <div>
               <Label>Ordre</Label>

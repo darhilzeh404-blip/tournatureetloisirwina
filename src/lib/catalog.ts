@@ -21,9 +21,30 @@ export type CatalogVehicle = {
   description: string | null;
   gallery: string[];
   daily_rate: number | null;
+  rental_days: number | null;
+  start_time: string | null;
+  end_time: string | null;
   is_active: boolean;
   sort_order: number;
 };
+
+/** Ex : "3 jours - 08h00 à 17h00" */
+export function formatRentalDuration(v: {
+  rental_days?: number | null;
+  start_time?: string | null;
+  end_time?: string | null;
+}): string | null {
+  const days = v.rental_days ?? null;
+  const hm = (t?: string | null) => (t ? t.slice(0, 5).replace(":", "h") : null);
+  const start = hm(v.start_time);
+  const end = hm(v.end_time);
+  if (!days && !start && !end) return null;
+  const parts: string[] = [];
+  if (days) parts.push(`${days} jour${days > 1 ? "s" : ""}`);
+  if (start && end) parts.push(`${start} à ${end}`);
+  else if (start) parts.push(`à partir de ${start}`);
+  return parts.join(" - ");
+}
 
 export async function uploadCatalogImage(file: File, folder = "catalogue"): Promise<string> {
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";

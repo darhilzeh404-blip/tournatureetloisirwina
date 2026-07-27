@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_partners: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          sort_order: number
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          sort_order?: number
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       agency_notifications: {
         Row: {
           agency_id: string
@@ -312,13 +354,16 @@ export type Database = {
           created_at: string
           daily_rate: number | null
           description: string | null
+          end_time: string
           gallery: Json
           id: string
           is_active: boolean
           model: string | null
           name: string
+          rental_days: number
           seats: number | null
           sort_order: number
+          start_time: string
           updated_at: string
           year: number | null
         }
@@ -328,13 +373,16 @@ export type Database = {
           created_at?: string
           daily_rate?: number | null
           description?: string | null
+          end_time?: string
           gallery?: Json
           id?: string
           is_active?: boolean
           model?: string | null
           name: string
+          rental_days?: number
           seats?: number | null
           sort_order?: number
+          start_time?: string
           updated_at?: string
           year?: number | null
         }
@@ -344,13 +392,16 @@ export type Database = {
           created_at?: string
           daily_rate?: number | null
           description?: string | null
+          end_time?: string
           gallery?: Json
           id?: string
           is_active?: boolean
           model?: string | null
           name?: string
+          rental_days?: number
           seats?: number | null
           sort_order?: number
+          start_time?: string
           updated_at?: string
           year?: number | null
         }
@@ -2432,39 +2483,62 @@ export type Database = {
           created_at: string
           description: string
           duration_hours: number
+          gallery: string[]
           id: string
+          image_url: string | null
           is_active: boolean
           location: string
           name: string
+          partner_id: string | null
           price: number
           rating: number
+          registration_fee: number
+          requires_child_info: boolean
           updated_at: string
         }
         Insert: {
           created_at?: string
           description?: string
           duration_hours?: number
+          gallery?: string[]
           id?: string
+          image_url?: string | null
           is_active?: boolean
           location?: string
           name: string
+          partner_id?: string | null
           price?: number
           rating?: number
+          registration_fee?: number
+          requires_child_info?: boolean
           updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string
           duration_hours?: number
+          gallery?: string[]
           id?: string
+          image_url?: string | null
           is_active?: boolean
           location?: string
           name?: string
+          partner_id?: string | null
           price?: number
           rating?: number
+          registration_fee?: number
+          requires_child_info?: boolean
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transport_activities_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "activity_partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transport_categories: {
         Row: {

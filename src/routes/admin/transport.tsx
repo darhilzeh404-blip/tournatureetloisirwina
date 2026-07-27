@@ -1,15 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Trash2, Plus, Save } from "lucide-react";
+import { Loader2, Trash2, Plus, Save, Upload, Pencil } from "lucide-react";
 import { useTransportData, formatXAF } from "@/hooks/use-transport-data";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadCatalogImage } from "@/lib/catalog";
 
 export const Route = createFileRoute("/admin/transport")({
   component: AdminTransport,
 });
 
-const TABS = ["Itinéraires", "Véhicules", "Tarifs", "Activités", "Forfaits", "Paramètres"] as const;
+const TABS = ["Itinéraires", "Véhicules", "Tarifs", "Activités", "Partenaires", "Forfaits", "Paramètres"] as const;
 type Tab = typeof TABS[number];
 
 function AdminTransport() {
@@ -39,6 +40,7 @@ function AdminTransport() {
         {tab === "Véhicules" && <VehiclesTab data={data} />}
         {tab === "Tarifs" && <PricingTab data={data} />}
         {tab === "Activités" && <ActivitiesTab data={data} />}
+        {tab === "Partenaires" && <PartnersTab data={data} />}
         {tab === "Forfaits" && <PackagesTab data={data} />}
         {tab === "Paramètres" && <SettingsTab data={data} />}
       </div>
@@ -213,37 +215,240 @@ function PricingTab({ data }: { data: ReturnType<typeof useTransportData> }) {
   );
 }
 
-// ============ ACTIVITÉS ============
-function ActivitiesTab({ data }: { data: ReturnType<typeof useTransportData> }) {
-  const [form, setForm] = useState({ name: "", description: "", price: 0, duration_hours: 1 });
-  const add = async () => {
-    if (!form.name) { toast.error("Nom requis"); return; }
-    const { error } = await supabase.from("transport_activities").insert(form);
+// ============ PARTENAIRES ============
+const emptyPartner = {
+  name: "", description: "", logo_url: "", contact_phone: "", contact_email: "", website: "",
+  is_active: true, sort_order: 0,
+};
+
+function PartnersTab({ data }: { data: ReturnType<typeof useTransportData> }) {
+  const [form, setForm] = useState<typeof emptyPartner>({ ...emptyPartner });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const reset = () => { setForm({ ...emptyPartner }); setEditingId(null); };
+
+  const submit = async () => {
+    if (!form.name.trim()) { toast.error("Nom requis"); return; }
+    const payload = {
+      name: form.name.trim(),
+      description: form.description.trim(),
+      logo_url: form.logo_url.trim() || null,
+      contact_phone: form.contact_phone.trim() || null,
+      contact_email: form.contact_email.trim() || null,
+      website: form.website.trim() || null,
+      is_active: form.is_active,
+      sort_order: form.sort_order,
+    };
+    const { error } = editingId
+      ? await supabase.from("activity_partners" as any).update(payload).eq("id", editingId)
+      : await supabase.from("activity_partners" as any).insert(payload);
     if (error) { toast.error(error.message); return; }
-    toast.success("Activité ajoutée"); setForm({ name: "", description: "", price: 0, duration_hours: 1 }); data.reload();
+    toast.success(editingId ? "Partenaire mis à jour" : "Partenaire ajouté");
+    reset(); data.reload();
   };
+
+  const edit = (p: any) => {
+    setEditingId(p.id);
+    setForm({
+      name: p.name ?? "", description: p.description ?? "", logo_url: p.logo_url ?? "",
+      contact_phone: p.contact_phone ?? "", contact_email: p.contact_email ?? "",
+      website: p.website ?? "", is_active: p.is_active, sort_order: p.sort_order ?? 0,
+    });
+  };
+
   const del = async (id: string) => {
-    if (!confirm("Supprimer ?")) return;
-    await supabase.from("transport_activities").delete().eq("id", id); data.reload();
+    if (!confirm("Supprimer ce partenaire ? Les activités associées seront détachées.")) return;
+    const { error } = await supabase.from("activity_partners" as any).delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Partenaire supprimé"); if (editingId === id) reset(); data.reload();
   };
+
+  const onLogo = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadCatalogImage(file, "partenaires");
+      setForm(f => ({ ...f, logo_url: url }));
+    } catch (e: any) { toast.error(e.message ?? "Erreur upload"); }
+    finally { setUploading(false); }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-5">
-        <input placeholder="Nom" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-2" />
-        <input type="text" inputMode="decimal" placeholder="Durée (h)" value={form.duration_hours || ""} onChange={e => setForm({ ...form, duration_hours: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
-        <input type="text" inputMode="numeric" placeholder="Prix" value={form.price || ""} onChange={e => setForm({ ...form, price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
-        <button onClick={add} className="flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" />Ajouter</button>
+      <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-3">
+        <input placeholder="Nom du partenaire *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input placeholder="Téléphone" value={form.contact_phone} onChange={e => setForm({ ...form, contact_phone: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input placeholder="Email" value={form.contact_email} onChange={e => setForm({ ...form, contact_email: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input placeholder="Site web" value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="numeric" placeholder="Ordre" value={form.sort_order || ""} onChange={e => setForm({ ...form, sort_order: Number(e.target.value.replace(/[^\d]/g, "")) || 0 })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <label className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm">
+          <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} />
+          Actif
+        </label>
+        <textarea placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={2} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-3" />
+        <div className="flex items-center gap-3 md:col-span-2">
+          {form.logo_url && <img src={form.logo_url} alt="" className="h-10 w-10 rounded object-contain" />}
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm">
+            <Upload className="h-4 w-4" />
+            {uploading ? "Envoi…" : "Logo du partenaire"}
+            <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={e => onLogo(e.target.files?.[0] ?? null)} />
+          </label>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={submit} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
+            <Plus className="h-4 w-4" />{editingId ? "Enregistrer" : "Ajouter"}
+          </button>
+          {editingId && <button onClick={reset} className="rounded-lg border px-3 py-2 text-sm">Annuler</button>}
+        </div>
       </div>
+
       <div className="overflow-x-auto rounded-xl border bg-card">
         <table className="w-full text-sm">
-          <thead className="bg-muted/50"><tr><th className="p-3 text-left">Nom</th><th className="p-3">Durée</th><th className="p-3">Prix</th><th></th></tr></thead>
+          <thead className="bg-muted/50"><tr><th className="p-3 text-left">Partenaire</th><th className="p-3 text-left">Contact</th><th className="p-3">Activités</th><th className="p-3">Statut</th><th></th></tr></thead>
+          <tbody>
+            {data.partners.map(p => (
+              <tr key={p.id} className="border-t">
+                <td className="p-3">
+                  <div className="flex items-center gap-2">
+                    {p.logo_url && <img src={p.logo_url} alt="" className="h-8 w-8 rounded object-contain" />}
+                    <div>
+                      <div className="font-medium">{p.name}</div>
+                      <div className="text-xs text-muted-foreground">{p.description}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="p-3 text-xs text-muted-foreground">{[p.contact_phone, p.contact_email].filter(Boolean).join(" · ") || "—"}</td>
+                <td className="p-3 text-center">{data.activities.filter(a => a.partner_id === p.id).length}</td>
+                <td className="p-3 text-center">{p.is_active ? "Actif" : "Inactif"}</td>
+                <td className="p-3 text-right">
+                  <button onClick={() => edit(p)} className="mr-3 text-primary"><Pencil className="h-4 w-4" /></button>
+                  <button onClick={() => del(p.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></button>
+                </td>
+              </tr>
+            ))}
+            {data.partners.length === 0 && (
+              <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">Aucun partenaire pour le moment.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ============ ACTIVITÉS ============
+const emptyActivity = {
+  name: "", description: "", price: 0, duration_hours: 1,
+  registration_fee: 10000, partner_id: "", image_url: "", is_active: true,
+};
+
+function ActivitiesTab({ data }: { data: ReturnType<typeof useTransportData> }) {
+  const [form, setForm] = useState<typeof emptyActivity>({ ...emptyActivity });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const reset = () => { setForm({ ...emptyActivity }); setEditingId(null); };
+
+  const submit = async () => {
+    if (!form.name.trim()) { toast.error("Nom requis"); return; }
+    const payload = {
+      name: form.name.trim(),
+      description: form.description.trim(),
+      price: form.price,
+      duration_hours: form.duration_hours,
+      registration_fee: form.registration_fee,
+      partner_id: form.partner_id || null,
+      image_url: form.image_url.trim() || null,
+      is_active: form.is_active,
+    };
+    const { error } = editingId
+      ? await supabase.from("transport_activities").update(payload as any).eq("id", editingId)
+      : await supabase.from("transport_activities").insert(payload as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success(editingId ? "Activité mise à jour" : "Activité ajoutée");
+    reset(); data.reload();
+  };
+
+  const edit = (a: any) => {
+    setEditingId(a.id);
+    setForm({
+      name: a.name ?? "", description: a.description ?? "", price: a.price ?? 0,
+      duration_hours: a.duration_hours ?? 1, registration_fee: Number(a.registration_fee ?? 0),
+      partner_id: a.partner_id ?? "", image_url: a.image_url ?? "", is_active: a.is_active,
+    });
+  };
+
+  const del = async (id: string) => {
+    if (!confirm("Supprimer cette activité ?")) return;
+    const { error } = await supabase.from("transport_activities").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Activité supprimée"); if (editingId === id) reset(); data.reload();
+  };
+
+  const onImage = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadCatalogImage(file, "activites");
+      setForm(f => ({ ...f, image_url: url }));
+    } catch (e: any) { toast.error(e.message ?? "Erreur upload"); }
+    finally { setUploading(false); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-2 rounded-xl border bg-card p-4 md:grid-cols-3">
+        <input placeholder="Nom *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="decimal" placeholder="Durée (h)" value={form.duration_hours || ""} onChange={e => setForm({ ...form, duration_hours: Number(e.target.value.replace(/[^\d.]/g, "")) || 0 })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="numeric" placeholder="Prix (FCFA)" value={form.price || ""} onChange={e => setForm({ ...form, price: Number(e.target.value.replace(/[^\d]/g, "")) || 0 })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <input type="text" inputMode="numeric" placeholder="Frais d'inscription (FCFA)" value={form.registration_fee || ""} onChange={e => setForm({ ...form, registration_fee: Number(e.target.value.replace(/[^\d]/g, "")) || 0 })} className="rounded-lg border bg-background px-3 py-2 text-sm" />
+        <select value={form.partner_id} onChange={e => setForm({ ...form, partner_id: e.target.value })} className="rounded-lg border bg-background px-3 py-2 text-sm">
+          <option value="">Aucun partenaire</option>
+          {data.partners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <label className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm">
+          <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} />
+          Active
+        </label>
+        <textarea placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={2} className="rounded-lg border bg-background px-3 py-2 text-sm md:col-span-3" />
+        <div className="flex items-center gap-3 md:col-span-2">
+          {form.image_url && <img src={form.image_url} alt="" className="h-10 w-16 rounded object-cover" />}
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm">
+            <Upload className="h-4 w-4" />
+            {uploading ? "Envoi…" : "Image de l'activité"}
+            <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={e => onImage(e.target.files?.[0] ?? null)} />
+          </label>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={submit} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">
+            <Plus className="h-4 w-4" />{editingId ? "Enregistrer" : "Ajouter"}
+          </button>
+          {editingId && <button onClick={reset} className="rounded-lg border px-3 py-2 text-sm">Annuler</button>}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50"><tr><th className="p-3 text-left">Nom</th><th className="p-3 text-left">Partenaire</th><th className="p-3">Durée</th><th className="p-3">Prix</th><th className="p-3">Inscription</th><th className="p-3">Statut</th><th></th></tr></thead>
           <tbody>
             {data.activities.map(a => (
               <tr key={a.id} className="border-t">
-                <td className="p-3 font-medium">{a.name}</td>
+                <td className="p-3">
+                  <div className="flex items-center gap-2">
+                    {a.image_url && <img src={a.image_url} alt="" className="h-8 w-12 rounded object-cover" />}
+                    <span className="font-medium">{a.name}</span>
+                  </div>
+                </td>
+                <td className="p-3 text-muted-foreground">{data.partners.find(p => p.id === a.partner_id)?.name ?? "—"}</td>
                 <td className="p-3 text-center">{a.duration_hours}h</td>
                 <td className="p-3 text-center">{formatXAF(a.price)}</td>
-                <td className="p-3 text-right"><button onClick={() => del(a.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></button></td>
+                <td className="p-3 text-center">{formatXAF(Number(a.registration_fee ?? 0))}</td>
+                <td className="p-3 text-center">{a.is_active ? "Active" : "Inactive"}</td>
+                <td className="p-3 text-right">
+                  <button onClick={() => edit(a)} className="mr-3 text-primary"><Pencil className="h-4 w-4" /></button>
+                  <button onClick={() => del(a.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></button>
+                </td>
               </tr>
             ))}
           </tbody>

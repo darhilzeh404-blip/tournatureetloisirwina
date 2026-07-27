@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LayoutGrid, Car, Users, Calendar, ChevronRight, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import type { CatalogCategory, CatalogVehicle } from "@/lib/catalog";
+import { formatRentalDuration, type CatalogCategory, type CatalogVehicle } from "@/lib/catalog";
 import berlineIcon from "@/assets/catalog-icon-berline.png";
 import busIcon from "@/assets/catalog-icon-bus.png";
 import minibusIcon from "@/assets/catalog-icon-minibus.png";
@@ -174,9 +174,9 @@ function CataloguePage() {
                           <Users className="h-3.5 w-3.5" /> {v.seats} places
                         </span>
                       )}
-                      {v.year && (
+                      {formatRentalDuration(v) && (
                         <span className="inline-flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5" /> {v.year}
+                          <Calendar className="h-3.5 w-3.5" /> {formatRentalDuration(v)}
                         </span>
                       )}
                       <span className="ml-auto inline-flex items-center gap-1 text-primary font-medium">
@@ -239,9 +239,9 @@ function CataloguePage() {
                       <Users className="h-4 w-4" /> {preview.seats} places
                     </span>
                   )}
-                  {preview.year && (
+                  {formatRentalDuration(preview) && (
                     <span className="inline-flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4" /> {preview.year}
+                      <Calendar className="h-4 w-4" /> {formatRentalDuration(preview)}
                     </span>
                   )}
                 </div>
