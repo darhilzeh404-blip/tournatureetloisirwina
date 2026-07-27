@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, Download, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadTrainReceipt, type TrainReceiptData } from "@/lib/train-receipt";
+import { downloadBoatReceipt, type BoatReceiptData } from "@/lib/boat-receipt";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/billets/confirmation/$reservationId")({
