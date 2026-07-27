@@ -271,7 +271,7 @@ function PaiementPage() {
 
 
 
-      if ((reservation.details as any)?.train_booking) {
+      if ((reservation.details as any)?.train_booking || (reservation.details as any)?.mode === "bateau") {
         navigate({ to: "/billets/confirmation/$reservationId", params: { reservationId: reservation.id } });
         return;
       }
