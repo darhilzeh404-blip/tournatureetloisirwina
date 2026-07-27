@@ -252,17 +252,30 @@ function AdminBoatsPage() {
 
       {/* Départs */}
       <Card><CardContent className="space-y-3 p-4">
-        <h2 className="font-semibold">Départs programmés</h2>
+        <h2 className="font-semibold">Départs programmés (période mensuelle)</h2>
+        <p className="text-xs text-muted-foreground">
+          Définissez une période de disponibilité : le client choisit librement sa date dans cette période, ainsi que le
+          nombre d'adultes, d'enfants et de bébés. Les tarifs proviennent du navire. Places = 0 signifie illimité.
+        </p>
         {sailingsSorted.map((s) => (
           <div key={s.id} className="flex flex-wrap items-center gap-2 rounded-xl border p-3">
             <span className="w-40 truncate text-xs font-semibold">{vesselName(s.vessel_id)}</span>
             <span className="w-48 truncate text-xs text-muted-foreground">{routeLabel(s.route_id)}</span>
-            <Input className="w-36" type="date" defaultValue={s.departure_date} onBlur={(e) => e.target.value !== s.departure_date && patch("boat_sailings", s.id, { departure_date: e.target.value })} />
+            <label className="flex items-center gap-1 text-xs">Du
+              <Input className="w-36" type="date" defaultValue={s.period_start ?? s.departure_date ?? ""}
+                onBlur={(e) => e.target.value && patch("boat_sailings", s.id, { period_start: e.target.value })} />
+            </label>
+            <label className="flex items-center gap-1 text-xs">Au
+              <Input className="w-36" type="date" defaultValue={s.period_end ?? s.departure_date ?? ""}
+                onBlur={(e) => e.target.value && patch("boat_sailings", s.id, { period_end: e.target.value })} />
+            </label>
             <Input className="w-28" type="time" defaultValue={s.departure_time?.slice(0, 5)} onBlur={(e) => patch("boat_sailings", s.id, { departure_time: e.target.value })} />
-            <Input className="w-28" type="number" defaultValue={s.price_adult} placeholder="Adulte" onBlur={(e) => patch("boat_sailings", s.id, { price_adult: Number(e.target.value) || 0 })} />
-            <Input className="w-28" type="number" defaultValue={s.price_child} placeholder="Enfant" onBlur={(e) => patch("boat_sailings", s.id, { price_child: Number(e.target.value) || 0 })} />
-            <Input className="w-28" type="number" defaultValue={s.price_infant} placeholder="Bébé" onBlur={(e) => patch("boat_sailings", s.id, { price_infant: Number(e.target.value) || 0 })} />
-            <span className="text-xs text-muted-foreground">{s.seats_available}/{s.seats_total} places</span>
+            <label className="flex items-center gap-1 text-xs">Places
+              <Input className="w-24" type="number" defaultValue={s.seats_total} onBlur={(e) => patch("boat_sailings", s.id, { seats_total: Number(e.target.value) || 0, seats_available: Number(e.target.value) || 0 })} />
+            </label>
+            <span className="text-xs text-muted-foreground">
+              {(s.seats_total ?? 0) > 0 ? `${s.seats_available}/${s.seats_total} places` : "Illimité"}
+            </span>
             <select className={selectCls} value={s.status} onChange={(e) => patch("boat_sailings", s.id, { status: e.target.value })}>
               <option value="active">Actif</option>
               <option value="full">Complet</option>
@@ -282,15 +295,18 @@ function AdminBoatsPage() {
             <option value="">Route…</option>
             {routes.map((r) => <option key={r.id} value={r.id}>{r.origin} → {r.destination}</option>)}
           </select>
-          <Input className="w-36" type="date" value={newSailing.departure_date} onChange={(e) => setNewSailing({ ...newSailing, departure_date: e.target.value })} />
+          <label className="flex items-center gap-1 text-xs">Du
+            <Input className="w-36" type="date" value={newSailing.period_start} onChange={(e) => setNewSailing({ ...newSailing, period_start: e.target.value })} />
+          </label>
+          <label className="flex items-center gap-1 text-xs">Au
+            <Input className="w-36" type="date" value={newSailing.period_end} onChange={(e) => setNewSailing({ ...newSailing, period_end: e.target.value })} />
+          </label>
           <Input className="w-28" type="time" value={newSailing.departure_time} onChange={(e) => setNewSailing({ ...newSailing, departure_time: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Adulte" value={newSailing.price_adult} onChange={(e) => setNewSailing({ ...newSailing, price_adult: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Enfant" value={newSailing.price_child} onChange={(e) => setNewSailing({ ...newSailing, price_child: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Bébé" value={newSailing.price_infant} onChange={(e) => setNewSailing({ ...newSailing, price_infant: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Places" value={newSailing.seats_total} onChange={(e) => setNewSailing({ ...newSailing, seats_total: e.target.value })} />
+          <Input className="w-32" type="number" placeholder="Places (0 = illimité)" value={newSailing.seats_total} onChange={(e) => setNewSailing({ ...newSailing, seats_total: e.target.value })} />
           <Button onClick={addSailing} disabled={busy}><Plus className="h-4 w-4" /> Programmer</Button>
         </div>
       </CardContent></Card>
+
     </div>
   );
 }
