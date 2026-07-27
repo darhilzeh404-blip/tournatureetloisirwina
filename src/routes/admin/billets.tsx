@@ -361,17 +361,76 @@ function AdminBilletsPage() {
               </div>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground">Nombre de places *</label>
-              <Input
-                type="text" inputMode="numeric"
-                value={String(form.seats_available)}
-                onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, "");
-                  setForm({ ...form, seats_available: v === "" ? 0 : parseInt(v, 10) });
-                }}
-              />
-            </div>
+            {isTrain && (
+              <div className="space-y-3 rounded-xl border bg-muted/30 p-3">
+                <p className="text-xs font-bold uppercase text-muted-foreground">Détails du train</p>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground">Type de train *</label>
+                  <select
+                    value={form.train_type_id}
+                    onChange={(e) => setForm({ ...form, train_type_id: e.target.value, origin_station_id: "", destination_station_id: "" })}
+                    className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">— Choisir —</option>
+                    {trainTypes.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                  {selectedType && (
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Dessert uniquement les {STATION_KIND_LABEL[selectedType.station_kind].toLowerCase()}s.
+                    </p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground">Gare de départ</label>
+                    <select
+                      value={form.origin_station_id}
+                      onChange={(e) => setForm({ ...form, origin_station_id: e.target.value })}
+                      disabled={!selectedType}
+                      className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50"
+                    >
+                      <option value="">— Choisir —</option>
+                      {availableStations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground">Gare d'arrivée</label>
+                    <select
+                      value={form.destination_station_id}
+                      onChange={(e) => setForm({ ...form, destination_station_id: e.target.value })}
+                      disabled={!selectedType}
+                      className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50"
+                    >
+                      <option value="">— Choisir —</option>
+                      {availableStations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground">Tarifs par classe (FCFA)</label>
+                  <div className="mt-1 space-y-2">
+                    {trainClasses.map((c) => (
+                      <div key={c.id} className="flex items-center gap-2">
+                        <span className="w-36 text-sm">{c.name}</span>
+                        <Input
+                          type="text" inputMode="numeric"
+                          value={form.classPrices[c.id] ? String(form.classPrices[c.id]) : ""}
+                          placeholder="0"
+                          onChange={(e) => {
+                            const v = e.target.value.replace(/\D/g, "");
+                            setForm({ ...form, classPrices: { ...form.classPrices, [c.id]: v === "" ? 0 : parseInt(v, 10) } });
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Laissez vide pour utiliser le prix de base du billet.
+                  </p>
+                </div>
+              </div>
+            )}
+
 
             <div>
               <label className="text-xs font-semibold text-muted-foreground">Description</label>
