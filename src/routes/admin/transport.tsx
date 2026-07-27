@@ -40,6 +40,7 @@ function AdminTransport() {
         {tab === "Véhicules" && <VehiclesTab data={data} />}
         {tab === "Tarifs" && <PricingTab data={data} />}
         {tab === "Activités" && <ActivitiesTab data={data} />}
+        {tab === "Partenaires" && <PartnersTab data={data} />}
         {tab === "Forfaits" && <PackagesTab data={data} />}
         {tab === "Paramètres" && <SettingsTab data={data} />}
       </div>
