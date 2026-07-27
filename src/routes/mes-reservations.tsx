@@ -459,8 +459,14 @@ function MesReservationsPage() {
                       )}
                     </div>
                   )}
-                  {(canPay || res.trip_id || res.service_type === "VTC") && (
+                  {(canPay || res.trip_id || res.service_type === "VTC" || (res.details as any)?.train_booking) && (
                     <div className="mt-4 flex flex-wrap justify-end gap-2 border-t pt-4">
+                      {(res.details as any)?.train_booking && (
+                        <Button size="sm" variant="outline" className="gap-2" onClick={() => downloadTrainReceiptFor(res)}>
+                          <Download className="h-4 w-4" />
+                          Reçu PDF
+                        </Button>
+                      )}
                       {res.service_type === "VTC" && (
                         <Link to="/vtc/suivi/$reservationId" params={{ reservationId: res.id }}>
                           <Button size="sm" variant="outline" className="gap-2">
