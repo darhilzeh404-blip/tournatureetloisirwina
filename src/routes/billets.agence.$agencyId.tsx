@@ -72,15 +72,7 @@ function AgencyTicketsPage() {
         .select("id, name, logo_url, description, category, is_verified")
         .eq("id", agencyId)
         .maybeSingle();
-      let ag: Agency | null = aRes.data as any;
-      if (!ag) {
-        const fb = await supabase
-          .from("partner_agencies" as any)
-          .select("id, name, logo_url, description, category, is_verified")
-          .eq("id", agencyId)
-          .maybeSingle();
-        ag = (fb.data as any) ?? null;
-      }
+      const ag: Agency | null = (aRes.data as any) ?? null;
       setAgency(ag);
 
       const tRes = await supabase
