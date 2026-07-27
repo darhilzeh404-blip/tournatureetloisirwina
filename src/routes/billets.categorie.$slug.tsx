@@ -45,24 +45,12 @@ function CategoryPage() {
 
       const catId = (cat as any)?.id ?? null;
 
-      // Try public view first; fallback to base table
-      let agenciesData: any[] | null = null;
       const pubRes = await supabase
         .from("partner_agencies_public" as any)
         .select("id, name, logo_url, description, category, is_verified")
         .eq("category", slug)
         .order("is_verified", { ascending: false });
-      if (!pubRes.error && pubRes.data) {
-        agenciesData = pubRes.data as any[];
-      } else {
-        const fbRes = await supabase
-          .from("partner_agencies" as any)
-          .select("id, name, logo_url, description, category, is_verified, is_active")
-          .eq("category", slug)
-          .eq("is_active", true)
-          .order("is_verified", { ascending: false });
-        agenciesData = (fbRes.data as any[]) ?? [];
-      }
+      const agenciesData = (pubRes.data as any[]) ?? [];
 
       const list = (agenciesData ?? []) as AgencyRow[];
       setAgencies(list);
