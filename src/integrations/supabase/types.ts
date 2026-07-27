@@ -243,6 +243,167 @@ export type Database = {
           },
         ]
       }
+      boat_passengers: {
+        Row: {
+          booking_id: string
+          category: string
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          id_document: string | null
+          last_name: string
+          phone: string | null
+        }
+        Insert: {
+          booking_id: string
+          category: string
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id?: string
+          id_document?: string | null
+          last_name: string
+          phone?: string | null
+        }
+        Update: {
+          booking_id?: string
+          category?: string
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          id_document?: string | null
+          last_name?: string
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boat_passengers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "partner_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boat_routes: {
+        Row: {
+          agency_id: string
+          created_at: string
+          destination: string
+          distance_km: number
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          origin: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          destination: string
+          distance_km?: number
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          origin: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          destination?: string
+          distance_km?: number
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          origin?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boat_routes_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boat_routes_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boat_sailings: {
+        Row: {
+          created_at: string
+          departure_date: string
+          departure_time: string
+          id: string
+          price_adult: number
+          price_child: number
+          price_infant: number
+          route_id: string
+          seats_available: number
+          seats_total: number
+          status: string
+          updated_at: string
+          vessel_id: string
+        }
+        Insert: {
+          created_at?: string
+          departure_date: string
+          departure_time?: string
+          id?: string
+          price_adult?: number
+          price_child?: number
+          price_infant?: number
+          route_id: string
+          seats_available?: number
+          seats_total?: number
+          status?: string
+          updated_at?: string
+          vessel_id: string
+        }
+        Update: {
+          created_at?: string
+          departure_date?: string
+          departure_time?: string
+          id?: string
+          price_adult?: number
+          price_child?: number
+          price_infant?: number
+          route_id?: string
+          seats_available?: number
+          seats_total?: number
+          status?: string
+          updated_at?: string
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boat_sailings_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "boat_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boat_sailings_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_status_history: {
         Row: {
           actor_id: string | null
@@ -1788,6 +1949,7 @@ export type Database = {
           passenger_name: string
           passenger_phone: string | null
           reference_code: string | null
+          sailing_id: string | null
           seats: number
           station_from_id: string | null
           station_to_id: string | null
@@ -1814,6 +1976,7 @@ export type Database = {
           passenger_name: string
           passenger_phone?: string | null
           reference_code?: string | null
+          sailing_id?: string | null
           seats?: number
           station_from_id?: string | null
           station_to_id?: string | null
@@ -1840,6 +2003,7 @@ export type Database = {
           passenger_name?: string
           passenger_phone?: string | null
           reference_code?: string | null
+          sailing_id?: string | null
           seats?: number
           station_from_id?: string | null
           station_to_id?: string | null
@@ -1863,6 +2027,13 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_bookings_sailing_id_fkey"
+            columns: ["sailing_id"]
+            isOneToOne: false
+            referencedRelation: "boat_sailings"
             referencedColumns: ["id"]
           },
           {
@@ -3421,6 +3592,116 @@ export type Database = {
         }
         Relationships: []
       }
+      vessel_services: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          sort_order: number
+          vessel_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number
+          sort_order?: number
+          vessel_id: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          sort_order?: number
+          vessel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vessel_services_vessel_id_fkey"
+            columns: ["vessel_id"]
+            isOneToOne: false
+            referencedRelation: "vessels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vessels: {
+        Row: {
+          agency_id: string
+          baggage_adult_kg: number
+          baggage_child_kg: number
+          baggage_conditions: string
+          baggage_infant_kg: number
+          capacity: number
+          created_at: string
+          description: string
+          fee_per_extra_kg: number
+          id: string
+          is_active: boolean
+          name: string
+          photo_url: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          baggage_adult_kg?: number
+          baggage_child_kg?: number
+          baggage_conditions?: string
+          baggage_infant_kg?: number
+          capacity?: number
+          created_at?: string
+          description?: string
+          fee_per_extra_kg?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          photo_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          baggage_adult_kg?: number
+          baggage_child_kg?: number
+          baggage_conditions?: string
+          baggage_infant_kg?: number
+          capacity?: number
+          created_at?: string
+          description?: string
+          fee_per_extra_kg?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          photo_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vessels_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vessels_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vip_levels: {
         Row: {
           badge_icon: string
@@ -4011,6 +4292,7 @@ export type Database = {
           passenger_name: string
           passenger_phone: string | null
           reference_code: string | null
+          sailing_id: string | null
           seats: number
           station_from_id: string | null
           station_to_id: string | null
