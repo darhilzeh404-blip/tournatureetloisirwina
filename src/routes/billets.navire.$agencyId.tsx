@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   fetchBoatRoutes, fetchVessels, fetchVesselServices, fetchSailings,
-  computeBoatQuote, baggageAllowance, formatDuration, PASSENGER_LABEL,
+  computeBoatQuote, baggageIncluded, effectivePrices, formatDuration, PASSENGER_LABEL,
   type BoatRoute, type Vessel, type VesselService, type BoatSailing,
   type BoatPassengerInput, type PassengerCategory,
 } from "@/lib/boat";
@@ -114,17 +114,18 @@ function BoatBookingWizard() {
   );
   const selectedServices = vesselServices.filter((s) => serviceIds.includes(s.id));
 
-  const allowance = baggageAllowance(vessel, adults, children, infants);
-  const declaredKg = Math.max(0, Number(baggageKg) || 0);
-  const extraKg = Math.max(0, declaredKg - allowance);
+  const included = baggageIncluded(vessel, adults, children);
+  const declaredBags = Math.max(0, Number(baggageKg) || 0);
+  const extraBags = Math.max(0, declaredBags - included);
+  const prices = effectivePrices(vessel, sailing);
 
   const quote = useMemo(() => computeBoatQuote({
-    sailing, adults, children, infants, extraKg,
-    feePerExtraKg: vessel?.fee_per_extra_kg ?? 0,
+    sailing, vessel, adults, children, infants, extraBaggage: extraBags,
+    feePerExtraBaggage: vessel?.baggage_fee_per_extra ?? 0,
     services: selectedServices, roundTrip,
-  }), [sailing, adults, children, infants, extraKg, vessel?.fee_per_extra_kg, selectedServices, roundTrip]);
+  }), [sailing, vessel, adults, children, infants, extraBags, selectedServices, roundTrip]);
 
-  const baggageFee = extraKg * (vessel?.fee_per_extra_kg ?? 0);
+  const baggageFee = extraBags * (vessel?.baggage_fee_per_extra ?? 0);
   const total = quote.total;
 
   const next = () => {
@@ -139,6 +140,9 @@ function BoatBookingWizard() {
       if (invalid) return toast.error("Nom et prénom obligatoires pour chaque passager");
       if (!passengers[0]?.phone.trim()) return toast.error("Téléphone du voyageur principal requis");
     }
+    if (step === 5 && vessel?.baggage_max_count && declaredBags > vessel.baggage_max_count) {
+      return toast.error(`Maximum ${vessel.baggage_max_count} bagage(s) sur ce navire`);
+    }
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   };
 
@@ -149,7 +153,8 @@ function BoatBookingWizard() {
       return;
     }
     if (!sailing || !route || total <= 0) return toast.error("Réservation incomplète");
-    if (sailing.seats_available < totalTravellers) return toast.error("Plus assez de places sur ce départ");
+    if ((sailing.seats_total ?? 0) > 0 && sailing.seats_available < totalTravellers)
+      return toast.error("Plus assez de places sur ce départ");
 
     setSubmitting(true);
     try {
@@ -168,7 +173,7 @@ function BoatBookingWizard() {
         route_id: route.id,
         origin: route.origin,
         destination: route.destination,
-        departure_date: sailing.departure_date,
+        departure_date: departureDate,
         departure_time: sailing.departure_time,
         return_date: roundTrip ? returnDate : null,
         round_trip: roundTrip,
@@ -180,9 +185,9 @@ function BoatBookingWizard() {
           name: `${p.first_name.trim()} ${p.last_name.trim()}`.trim(),
           category: PASSENGER_LABEL[p.category],
         })),
-        baggage_kg: declaredKg,
-        baggage_allowance_kg: allowance,
-        baggage_extra_kg: extraKg,
+        baggage_count: declaredBags,
+        baggage_included: included,
+        baggage_extra: extraBags,
         baggage_fee: baggageFee,
         services: selectedServices.map((s) => ({ label: s.name, amount: s.price })),
         quote: quote.lines,
@@ -199,8 +204,8 @@ function BoatBookingWizard() {
         total_amount: total,
         status: "pending",
         reference_code,
-        departure_date: sailing.departure_date,
-        baggage_count: declaredKg,
+        departure_date: departureDate,
+        baggage_count: declaredBags,
         baggage_fee: baggageFee,
         details,
       }).select("id").single();
@@ -223,7 +228,7 @@ function BoatBookingWizard() {
       const { data, error } = await supabase.from("reservations").insert({
         user_id: user.id,
         service_type: "BILLET",
-        reservation_date: sailing.departure_date,
+        reservation_date: departureDate,
         total_amount: total,
         paid_amount: 0,
         details: { ...details, partner_booking_id: partnerBookingId },
@@ -337,8 +342,11 @@ function BoatBookingWizard() {
               <div className="mt-4 space-y-2">
                 <Counter label="Adultes" hint="Plus de 12 ans" value={adults} set={setAdults} min={1} />
                 <Counter label="Enfants" hint="2 à 12 ans" value={children} set={setChildren} />
-                <Counter label="Bébés" hint="Moins de 2 ans" value={infants} set={setInfants} />
+                <Counter label="Bébés" hint="Moins de 2 ans — gratuit ou tarif bébé" value={infants} set={setInfants} />
               </div>
+              <p className="mt-3 rounded-xl bg-primary/5 p-3 text-xs font-semibold text-primary">
+                Places sollicitées : {totalTravellers}
+              </p>
             </div>
           )}
 
@@ -351,9 +359,12 @@ function BoatBookingWizard() {
               ) : (
                 <div className="mt-4 grid gap-3">
                   {sailings.map((s) => {
-                    const v = vessels.find((x) => x.id === s.vessel_id);
+                    const v = vessels.find((x) => x.id === s.vessel_id) ?? null;
                     const svc = services.filter((x) => x.vessel_id === s.vessel_id && x.is_active);
-                    const disabled = s.seats_available < totalTravellers || s.status === "full";
+                    const limited = (s.seats_total ?? 0) > 0;
+                    const disabled = s.status === "full" || (limited && s.seats_available < totalTravellers);
+                    const p = effectivePrices(v, s);
+                    const sub = p.adult * adults + p.child * children + p.infant * infants;
                     return (
                       <button key={s.id} type="button" disabled={disabled}
                         onClick={() => { setSailingId(s.id); setServiceIds([]); }}
@@ -363,7 +374,7 @@ function BoatBookingWizard() {
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-bold">{v?.name ?? "Navire"}</p>
                             <p className="text-xs text-muted-foreground">
-                              Départ {s.departure_time?.slice(0, 5)} · {disabled ? "Complet" : `${s.seats_available} place(s) restante(s)`}
+                              Départ {s.departure_time?.slice(0, 5)} · {disabled ? "Complet" : limited ? `${s.seats_available} place(s) restante(s)` : `${totalTravellers} place(s) demandée(s)`}
                             </p>
                             {svc.length > 0 && (
                               <p className="mt-1 text-[11px] text-muted-foreground">
@@ -371,8 +382,9 @@ function BoatBookingWizard() {
                               </p>
                             )}
                             <p className="mt-1 text-xs font-semibold text-primary">
-                              Adulte {fmt(s.price_adult)} · Enfant {fmt(s.price_child)} · Bébé {fmt(s.price_infant)}
+                              Adulte {fmt(p.adult)} · Enfant {fmt(p.child)} · Bébé {fmt(p.infant)}
                             </p>
+                            <p className="text-xs font-bold">Sous-total billets : {fmt(sub)}</p>
                           </div>
                         </div>
                       </button>
@@ -419,16 +431,23 @@ function BoatBookingWizard() {
               <h2 className="text-sm font-bold">Étape 6 — Bagages & services</h2>
               <div className="mt-4 space-y-4">
                 <div className="rounded-xl bg-muted/40 p-3 text-xs text-muted-foreground">
-                  Franchise incluse pour ce navire : <strong>{allowance} kg</strong>
-                  {vessel?.fee_per_extra_kg ? ` · ${fmt(vessel.fee_per_extra_kg)} par kg supplémentaire` : ""}
+                  Bagages inclus pour ce navire : <strong>{included} bagage(s)</strong>
+                  {vessel?.baggage_fee_per_extra ? ` · ${fmt(vessel.baggage_fee_per_extra)} par bagage supplémentaire` : ""}
+                  {vessel?.baggage_max_count ? ` · maximum ${vessel.baggage_max_count} bagage(s)` : ""}
                   {vessel?.baggage_conditions ? <span className="mt-1 block">{vessel.baggage_conditions}</span> : null}
                 </div>
                 <div>
-                  <span className={labelCls}>Poids total de vos bagages (kg)</span>
-                  <Input type="number" min={0} className="mt-1" value={baggageKg} onChange={(e) => setBaggageKg(e.target.value)} />
-                  {extraKg > 0 && (
+                  <span className={labelCls}>Nombre total de bagages</span>
+                  <Input type="number" min={0} max={vessel?.baggage_max_count || undefined} className="mt-1"
+                    value={baggageKg} onChange={(e) => setBaggageKg(e.target.value)} />
+                  {extraBags > 0 && (
                     <p className="mt-1 text-xs font-semibold text-amber-600">
-                      {extraKg} kg au-delà de la franchise → supplément {fmt(baggageFee)}
+                      {extraBags} bagage(s) au-delà de la franchise → supplément {fmt(baggageFee)}
+                    </p>
+                  )}
+                  {vessel?.baggage_max_count && declaredBags > vessel.baggage_max_count && (
+                    <p className="mt-1 text-xs font-semibold text-destructive">
+                      Maximum {vessel.baggage_max_count} bagage(s) autorisé(s) sur ce navire.
                     </p>
                   )}
                 </div>
@@ -470,8 +489,9 @@ function BoatBookingWizard() {
                   ["Date", `${new Date(departureDate).toLocaleDateString("fr-FR")}${sailing ? ` à ${sailing.departure_time?.slice(0, 5)}` : ""}`],
                   ...(roundTrip ? [["Retour", new Date(returnDate).toLocaleDateString("fr-FR")]] : []),
                   ["Voyageurs", `${adults} adulte(s), ${children} enfant(s), ${infants} bébé(s)`],
+                  ["Places sollicitées", `${totalTravellers}`],
                   ["Voyageur principal", passengers[0] ? `${passengers[0].first_name} ${passengers[0].last_name}` : "—"],
-                  ["Bagages", `${declaredKg} kg (franchise ${allowance} kg)`],
+                  ["Bagages", `${declaredBags} bagage(s) — ${included} inclus`],
                 ].map(([k, v]) => (
                   <div key={k as string} className="flex justify-between gap-3 border-b pb-1.5">
                     <dt className="text-muted-foreground">{k}</dt>

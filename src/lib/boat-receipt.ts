@@ -17,6 +17,7 @@ export type BoatReceiptData = {
   infants: number;
   passengers?: { name: string; category: string }[];
   baggageKg?: number;
+  baggageCount?: number;
   baggageFee?: number;
   services?: { label: string; amount: number }[];
   amountPaid: number;
@@ -90,9 +91,10 @@ export function buildBoatReceipt(data: BoatReceiptData): jsPDF {
   line("Répartition", `${data.adults} adulte(s), ${data.children} enfant(s), ${data.infants} bébé(s)`);
   (data.passengers ?? []).forEach((p, i) => line(`Passager ${i + 1}`, `${p.name} — ${p.category}`));
 
-  if (data.baggageKg) {
+  if (data.baggageKg || data.baggageCount) {
     section("Bagages & services");
-    line("Bagages déclarés", `${data.baggageKg} kg`);
+    if (data.baggageCount) line("Bagages déclarés", `${data.baggageCount} bagage(s)`);
+    if (data.baggageKg) line("Poids déclaré", `${data.baggageKg} kg`);
     if (data.baggageFee) line("Supplément bagages", money(data.baggageFee));
   }
   (data.services ?? []).forEach((s) => line(s.label, money(s.amount)));

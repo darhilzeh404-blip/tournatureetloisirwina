@@ -31,11 +31,11 @@ function AdminBoatsPage() {
   const [busy, setBusy] = useState(false);
 
   const [newRoute, setNewRoute] = useState({ agency_id: "", origin: "", destination: "", distance_km: "", duration_minutes: "" });
-  const [newVessel, setNewVessel] = useState({ agency_id: "", name: "", capacity: "", photo_url: "" });
+  const [newVessel, setNewVessel] = useState({ agency_id: "", name: "", capacity: "", price_adult: "", price_child: "", price_infant: "" });
   const [newService, setNewService] = useState({ vessel_id: "", name: "", price: "" });
+  const [uploading, setUploading] = useState<string | null>(null);
   const [newSailing, setNewSailing] = useState({
-    vessel_id: "", route_id: "", departure_date: "", departure_time: "08:00",
-    price_adult: "", price_child: "", price_infant: "", seats_total: "",
+    vessel_id: "", route_id: "", period_start: "", period_end: "", departure_time: "08:00", seats_total: "0",
   });
 
   const load = async () => {
@@ -98,9 +98,31 @@ function AdminBoatsPage() {
       agency_id: newVessel.agency_id,
       name: newVessel.name.trim(),
       capacity: Number(newVessel.capacity) || 0,
-      photo_url: newVessel.photo_url.trim() || null,
+      price_adult: Number(newVessel.price_adult) || 0,
+      price_child: Number(newVessel.price_child) || 0,
+      price_infant: Number(newVessel.price_infant) || 0,
       sort_order: vessels.length + 1,
-    }) as any, "Navire ajouté").then(() => setNewVessel({ agency_id: "", name: "", capacity: "", photo_url: "" }));
+    }) as any, "Navire ajouté").then(() =>
+      setNewVessel({ agency_id: "", name: "", capacity: "", price_adult: "", price_child: "", price_infant: "" }));
+  };
+
+  /** Upload d'une photo HD du navire dans le stockage (bucket public ticket-images). */
+  const uploadPhoto = async (vesselId: string, file: File) => {
+    setUploading(vesselId);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `vessels/${vesselId}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("ticket-images").upload(path, file, { upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from("ticket-images").getPublicUrl(path);
+      await supabase.from("vessels" as any).update({ photo_url: data.publicUrl }).eq("id", vesselId);
+      toast.success("Photo mise à jour");
+      load();
+    } catch (err: any) {
+      toast.error(err.message || "Échec du téléversement");
+    } finally {
+      setUploading(null);
+    }
   };
 
   const addService = () => {
@@ -114,24 +136,23 @@ function AdminBoatsPage() {
   };
 
   const addSailing = () => {
-    if (!newSailing.vessel_id || !newSailing.route_id || !newSailing.departure_date)
-      return toast.error("Navire, route et date requis");
+    if (!newSailing.vessel_id || !newSailing.route_id || !newSailing.period_start || !newSailing.period_end)
+      return toast.error("Navire, route et période requis");
     const seats = Number(newSailing.seats_total) || 0;
     run(() => supabase.from("boat_sailings" as any).insert({
       vessel_id: newSailing.vessel_id,
       route_id: newSailing.route_id,
-      departure_date: newSailing.departure_date,
+      period_start: newSailing.period_start,
+      period_end: newSailing.period_end,
+      departure_date: newSailing.period_start,
       departure_time: newSailing.departure_time || "08:00",
-      price_adult: Number(newSailing.price_adult) || 0,
-      price_child: Number(newSailing.price_child) || 0,
-      price_infant: Number(newSailing.price_infant) || 0,
       seats_total: seats,
       seats_available: seats,
-    }) as any, "Départ programmé").then(() => setNewSailing({
-      vessel_id: "", route_id: "", departure_date: "", departure_time: "08:00",
-      price_adult: "", price_child: "", price_infant: "", seats_total: "",
+    }) as any, "Période de départs programmée").then(() => setNewSailing({
+      vessel_id: "", route_id: "", period_start: "", period_end: "", departure_time: "08:00", seats_total: "0",
     }));
   };
+
 
   if (loading) return <p className="p-10 text-center text-sm text-muted-foreground">Chargement…</p>;
 
@@ -195,7 +216,6 @@ function AdminBoatsPage() {
               <span className="w-40 truncate text-xs text-muted-foreground">{agencyName(v.agency_id)}</span>
               <Input className="w-44" defaultValue={v.name} onBlur={(e) => e.target.value !== v.name && patch("vessels", v.id, { name: e.target.value })} />
               <Input className="w-28" type="number" defaultValue={v.capacity} onBlur={(e) => patch("vessels", v.id, { capacity: Number(e.target.value) || 0 })} placeholder="Capacité" />
-              <Input className="w-64" defaultValue={v.photo_url ?? ""} onBlur={(e) => patch("vessels", v.id, { photo_url: e.target.value || null })} placeholder="URL photo" />
               <label className="flex items-center gap-2 text-xs">
                 <Switch checked={v.is_active} onCheckedChange={(x) => patch("vessels", v.id, { is_active: x })} />
                 {v.is_active ? "Actif" : "Inactif"}
@@ -204,13 +224,31 @@ function AdminBoatsPage() {
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {v.photo_url && <img src={v.photo_url} alt={v.name} loading="lazy" className="h-16 w-24 rounded-lg object-cover" />}
+              <label className="cursor-pointer rounded-lg border px-3 py-2 text-xs font-medium">
+                {uploading === v.id ? "Téléversement…" : v.photo_url ? "Remplacer la photo HD" : "Téléverser une photo HD"}
+                <input type="file" accept="image/*" className="hidden" disabled={uploading === v.id}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(v.id, f); e.target.value = ""; }} />
+              </label>
+              {v.photo_url && (
+                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => patch("vessels", v.id, { photo_url: null })}>
+                  Retirer
+                </Button>
+              )}
+            </div>
             <Input defaultValue={v.description} placeholder="Description" onBlur={(e) => e.target.value !== v.description && patch("vessels", v.id, { description: e.target.value })} />
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold uppercase text-muted-foreground">Bagages (kg)</span>
-              <Input className="w-24" type="number" defaultValue={v.baggage_adult_kg} placeholder="Adulte" onBlur={(e) => patch("vessels", v.id, { baggage_adult_kg: Number(e.target.value) || 0 })} />
-              <Input className="w-24" type="number" defaultValue={v.baggage_child_kg} placeholder="Enfant" onBlur={(e) => patch("vessels", v.id, { baggage_child_kg: Number(e.target.value) || 0 })} />
-              <Input className="w-24" type="number" defaultValue={v.baggage_infant_kg} placeholder="Bébé" onBlur={(e) => patch("vessels", v.id, { baggage_infant_kg: Number(e.target.value) || 0 })} />
-              <Input className="w-36" type="number" defaultValue={v.fee_per_extra_kg} placeholder="FCFA / kg suppl." onBlur={(e) => patch("vessels", v.id, { fee_per_extra_kg: Number(e.target.value) || 0 })} />
+              <span className="text-xs font-semibold uppercase text-muted-foreground">Tarifs (FCFA)</span>
+              <Input className="w-28" type="number" defaultValue={v.price_adult} placeholder="Adulte" onBlur={(e) => patch("vessels", v.id, { price_adult: Number(e.target.value) || 0 })} />
+              <Input className="w-28" type="number" defaultValue={v.price_child} placeholder="Enfant" onBlur={(e) => patch("vessels", v.id, { price_child: Number(e.target.value) || 0 })} />
+              <Input className="w-28" type="number" defaultValue={v.price_infant} placeholder="Bébé" onBlur={(e) => patch("vessels", v.id, { price_infant: Number(e.target.value) || 0 })} />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">Bagages</span>
+              <Input className="w-28" type="number" defaultValue={v.baggage_free_count} placeholder="Inclus" onBlur={(e) => patch("vessels", v.id, { baggage_free_count: Number(e.target.value) || 0 })} />
+              <Input className="w-36" type="number" defaultValue={v.baggage_fee_per_extra} placeholder="FCFA / suppl." onBlur={(e) => patch("vessels", v.id, { baggage_fee_per_extra: Number(e.target.value) || 0 })} />
+              <Input className="w-28" type="number" defaultValue={v.baggage_max_count} placeholder="Max" onBlur={(e) => patch("vessels", v.id, { baggage_max_count: Number(e.target.value) || 0 })} />
               <Input className="flex-1 min-w-[200px]" defaultValue={v.baggage_conditions} placeholder="Conditions de bagages" onBlur={(e) => e.target.value !== v.baggage_conditions && patch("vessels", v.id, { baggage_conditions: e.target.value })} />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -230,10 +268,13 @@ function AdminBoatsPage() {
           </select>
           <Input className="w-44" placeholder="Nom du navire" value={newVessel.name} onChange={(e) => setNewVessel({ ...newVessel, name: e.target.value })} />
           <Input className="w-28" type="number" placeholder="Capacité" value={newVessel.capacity} onChange={(e) => setNewVessel({ ...newVessel, capacity: e.target.value })} />
-          <Input className="w-64" placeholder="URL photo" value={newVessel.photo_url} onChange={(e) => setNewVessel({ ...newVessel, photo_url: e.target.value })} />
+          <Input className="w-28" type="number" placeholder="Prix adulte" value={newVessel.price_adult} onChange={(e) => setNewVessel({ ...newVessel, price_adult: e.target.value })} />
+          <Input className="w-28" type="number" placeholder="Prix enfant" value={newVessel.price_child} onChange={(e) => setNewVessel({ ...newVessel, price_child: e.target.value })} />
+          <Input className="w-28" type="number" placeholder="Prix bébé" value={newVessel.price_infant} onChange={(e) => setNewVessel({ ...newVessel, price_infant: e.target.value })} />
           <Button onClick={addVessel} disabled={busy}><Plus className="h-4 w-4" /> Ajouter</Button>
         </div>
       </CardContent></Card>
+
 
       {/* Services */}
       <Card><CardContent className="space-y-3 p-4">
@@ -252,17 +293,30 @@ function AdminBoatsPage() {
 
       {/* Départs */}
       <Card><CardContent className="space-y-3 p-4">
-        <h2 className="font-semibold">Départs programmés</h2>
+        <h2 className="font-semibold">Départs programmés (période mensuelle)</h2>
+        <p className="text-xs text-muted-foreground">
+          Définissez une période de disponibilité : le client choisit librement sa date dans cette période, ainsi que le
+          nombre d'adultes, d'enfants et de bébés. Les tarifs proviennent du navire. Places = 0 signifie illimité.
+        </p>
         {sailingsSorted.map((s) => (
           <div key={s.id} className="flex flex-wrap items-center gap-2 rounded-xl border p-3">
             <span className="w-40 truncate text-xs font-semibold">{vesselName(s.vessel_id)}</span>
             <span className="w-48 truncate text-xs text-muted-foreground">{routeLabel(s.route_id)}</span>
-            <Input className="w-36" type="date" defaultValue={s.departure_date} onBlur={(e) => e.target.value !== s.departure_date && patch("boat_sailings", s.id, { departure_date: e.target.value })} />
+            <label className="flex items-center gap-1 text-xs">Du
+              <Input className="w-36" type="date" defaultValue={s.period_start ?? s.departure_date ?? ""}
+                onBlur={(e) => e.target.value && patch("boat_sailings", s.id, { period_start: e.target.value })} />
+            </label>
+            <label className="flex items-center gap-1 text-xs">Au
+              <Input className="w-36" type="date" defaultValue={s.period_end ?? s.departure_date ?? ""}
+                onBlur={(e) => e.target.value && patch("boat_sailings", s.id, { period_end: e.target.value })} />
+            </label>
             <Input className="w-28" type="time" defaultValue={s.departure_time?.slice(0, 5)} onBlur={(e) => patch("boat_sailings", s.id, { departure_time: e.target.value })} />
-            <Input className="w-28" type="number" defaultValue={s.price_adult} placeholder="Adulte" onBlur={(e) => patch("boat_sailings", s.id, { price_adult: Number(e.target.value) || 0 })} />
-            <Input className="w-28" type="number" defaultValue={s.price_child} placeholder="Enfant" onBlur={(e) => patch("boat_sailings", s.id, { price_child: Number(e.target.value) || 0 })} />
-            <Input className="w-28" type="number" defaultValue={s.price_infant} placeholder="Bébé" onBlur={(e) => patch("boat_sailings", s.id, { price_infant: Number(e.target.value) || 0 })} />
-            <span className="text-xs text-muted-foreground">{s.seats_available}/{s.seats_total} places</span>
+            <label className="flex items-center gap-1 text-xs">Places
+              <Input className="w-24" type="number" defaultValue={s.seats_total} onBlur={(e) => patch("boat_sailings", s.id, { seats_total: Number(e.target.value) || 0, seats_available: Number(e.target.value) || 0 })} />
+            </label>
+            <span className="text-xs text-muted-foreground">
+              {(s.seats_total ?? 0) > 0 ? `${s.seats_available}/${s.seats_total} places` : "Illimité"}
+            </span>
             <select className={selectCls} value={s.status} onChange={(e) => patch("boat_sailings", s.id, { status: e.target.value })}>
               <option value="active">Actif</option>
               <option value="full">Complet</option>
@@ -282,15 +336,18 @@ function AdminBoatsPage() {
             <option value="">Route…</option>
             {routes.map((r) => <option key={r.id} value={r.id}>{r.origin} → {r.destination}</option>)}
           </select>
-          <Input className="w-36" type="date" value={newSailing.departure_date} onChange={(e) => setNewSailing({ ...newSailing, departure_date: e.target.value })} />
+          <label className="flex items-center gap-1 text-xs">Du
+            <Input className="w-36" type="date" value={newSailing.period_start} onChange={(e) => setNewSailing({ ...newSailing, period_start: e.target.value })} />
+          </label>
+          <label className="flex items-center gap-1 text-xs">Au
+            <Input className="w-36" type="date" value={newSailing.period_end} onChange={(e) => setNewSailing({ ...newSailing, period_end: e.target.value })} />
+          </label>
           <Input className="w-28" type="time" value={newSailing.departure_time} onChange={(e) => setNewSailing({ ...newSailing, departure_time: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Adulte" value={newSailing.price_adult} onChange={(e) => setNewSailing({ ...newSailing, price_adult: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Enfant" value={newSailing.price_child} onChange={(e) => setNewSailing({ ...newSailing, price_child: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Bébé" value={newSailing.price_infant} onChange={(e) => setNewSailing({ ...newSailing, price_infant: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Places" value={newSailing.seats_total} onChange={(e) => setNewSailing({ ...newSailing, seats_total: e.target.value })} />
+          <Input className="w-32" type="number" placeholder="Places (0 = illimité)" value={newSailing.seats_total} onChange={(e) => setNewSailing({ ...newSailing, seats_total: e.target.value })} />
           <Button onClick={addSailing} disabled={busy}><Plus className="h-4 w-4" /> Programmer</Button>
         </div>
       </CardContent></Card>
+
     </div>
   );
 }

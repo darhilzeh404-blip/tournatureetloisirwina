@@ -323,9 +323,11 @@ export type Database = {
       boat_sailings: {
         Row: {
           created_at: string
-          departure_date: string
+          departure_date: string | null
           departure_time: string
           id: string
+          period_end: string | null
+          period_start: string | null
           price_adult: number
           price_child: number
           price_infant: number
@@ -338,9 +340,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          departure_date: string
+          departure_date?: string | null
           departure_time?: string
           id?: string
+          period_end?: string | null
+          period_start?: string | null
           price_adult?: number
           price_child?: number
           price_infant?: number
@@ -353,9 +357,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          departure_date?: string
+          departure_date?: string | null
           departure_time?: string
           id?: string
+          period_end?: string | null
+          period_start?: string | null
           price_adult?: number
           price_child?: number
           price_infant?: number
@@ -3576,7 +3582,10 @@ export type Database = {
           baggage_adult_kg: number
           baggage_child_kg: number
           baggage_conditions: string
+          baggage_fee_per_extra: number
+          baggage_free_count: number
           baggage_infant_kg: number
+          baggage_max_count: number
           capacity: number
           created_at: string
           description: string
@@ -3585,6 +3594,9 @@ export type Database = {
           is_active: boolean
           name: string
           photo_url: string | null
+          price_adult: number
+          price_child: number
+          price_infant: number
           sort_order: number
           updated_at: string
         }
@@ -3593,7 +3605,10 @@ export type Database = {
           baggage_adult_kg?: number
           baggage_child_kg?: number
           baggage_conditions?: string
+          baggage_fee_per_extra?: number
+          baggage_free_count?: number
           baggage_infant_kg?: number
+          baggage_max_count?: number
           capacity?: number
           created_at?: string
           description?: string
@@ -3602,6 +3617,9 @@ export type Database = {
           is_active?: boolean
           name: string
           photo_url?: string | null
+          price_adult?: number
+          price_child?: number
+          price_infant?: number
           sort_order?: number
           updated_at?: string
         }
@@ -3610,7 +3628,10 @@ export type Database = {
           baggage_adult_kg?: number
           baggage_child_kg?: number
           baggage_conditions?: string
+          baggage_fee_per_extra?: number
+          baggage_free_count?: number
           baggage_infant_kg?: number
+          baggage_max_count?: number
           capacity?: number
           created_at?: string
           description?: string
@@ -3619,6 +3640,9 @@ export type Database = {
           is_active?: boolean
           name?: string
           photo_url?: string | null
+          price_adult?: number
+          price_child?: number
+          price_infant?: number
           sort_order?: number
           updated_at?: string
         }
