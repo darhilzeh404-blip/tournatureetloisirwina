@@ -5,7 +5,31 @@ export type TCategory = { id: string; slug: string; name: string; description: s
 export type TRoute = { id: string; category_id: string; name: string; origin: string; destination: string; distance_km: number; is_active: boolean };
 export type TVehicle = { id: string; name: string; capacity: number; base_price: number; description: string; is_active: boolean };
 export type TPricing = { id: string; route_id: string; vehicle_id: string; service_type: string; trip_type: string; price: number };
-export type TActivity = { id: string; name: string; description: string; price: number; duration_hours: number; is_active: boolean };
+export type TActivity = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  duration_hours: number;
+  is_active: boolean;
+  location?: string;
+  partner_id: string | null;
+  image_url: string | null;
+  gallery: string[];
+  registration_fee: number;
+  requires_child_info: boolean;
+};
+export type TPartner = {
+  id: string;
+  name: string;
+  description: string;
+  logo_url: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  website: string | null;
+  is_active: boolean;
+  sort_order: number;
+};
 export type TPackage = { id: string; name: string; description: string; route_id: string | null; activity_id: string | null; price: number; is_active: boolean };
 export type TSetting = { id: string; key: string; value: number; label: string; description: string };
 
