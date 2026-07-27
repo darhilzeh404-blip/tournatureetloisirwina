@@ -25,6 +25,7 @@ const adminLinks = [
   { to: "/admin/vehicule-types", label: "Types véhicules", icon: Settings2, exact: false },
   { to: "/admin/catalogue", label: "Catalogue véhicules", icon: LayoutGrid, exact: false },
   { to: "/admin/billets", label: "Billets", icon: Ticket, exact: false },
+  { to: "/admin/trains", label: "Configuration Train", icon: TrainFront, exact: false },
   { to: "/admin/billets-reservations", label: "Réservations billets", icon: ClipboardCheck, exact: false },
   { to: "/admin/vols", label: "Vols (Avion)", icon: Plane, exact: false },
   { to: "/admin/vols-reservations", label: "Dossiers vols", icon: ClipboardCheck, exact: false },

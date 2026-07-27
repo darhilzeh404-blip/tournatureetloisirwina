@@ -65,6 +65,7 @@ import { Route as AdminVehiculeTypesRouteImport } from './routes/admin/vehicule-
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
 import { Route as AdminTripsRouteImport } from './routes/admin/trips'
 import { Route as AdminTransportRouteImport } from './routes/admin/transport'
+import { Route as AdminTrainsRouteImport } from './routes/admin/trains'
 import { Route as AdminSuiviRouteImport } from './routes/admin/suivi'
 import { Route as AdminSitesTouristiquesRouteImport } from './routes/admin/sites-touristiques'
 import { Route as AdminReservationsRouteImport } from './routes/admin/reservations'
@@ -375,6 +376,11 @@ const AdminTransportRoute = AdminTransportRouteImport.update({
   path: '/transport',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminTrainsRoute = AdminTrainsRouteImport.update({
+  id: '/trains',
+  path: '/trains',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminSuiviRoute = AdminSuiviRouteImport.update({
   id: '/suivi',
   path: '/suivi',
@@ -577,6 +583,7 @@ export interface FileRoutesByFullPath {
   '/admin/reservations': typeof AdminReservationsRoute
   '/admin/sites-touristiques': typeof AdminSitesTouristiquesRoute
   '/admin/suivi': typeof AdminSuiviRoute
+  '/admin/trains': typeof AdminTrainsRoute
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
@@ -660,6 +667,7 @@ export interface FileRoutesByTo {
   '/admin/reservations': typeof AdminReservationsRoute
   '/admin/sites-touristiques': typeof AdminSitesTouristiquesRoute
   '/admin/suivi': typeof AdminSuiviRoute
+  '/admin/trains': typeof AdminTrainsRoute
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
@@ -748,6 +756,7 @@ export interface FileRoutesById {
   '/admin/reservations': typeof AdminReservationsRoute
   '/admin/sites-touristiques': typeof AdminSitesTouristiquesRoute
   '/admin/suivi': typeof AdminSuiviRoute
+  '/admin/trains': typeof AdminTrainsRoute
   '/admin/transport': typeof AdminTransportRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
@@ -837,6 +846,7 @@ export interface FileRouteTypes {
     | '/admin/reservations'
     | '/admin/sites-touristiques'
     | '/admin/suivi'
+    | '/admin/trains'
     | '/admin/transport'
     | '/admin/trips'
     | '/admin/utilisateurs'
@@ -920,6 +930,7 @@ export interface FileRouteTypes {
     | '/admin/reservations'
     | '/admin/sites-touristiques'
     | '/admin/suivi'
+    | '/admin/trains'
     | '/admin/transport'
     | '/admin/trips'
     | '/admin/utilisateurs'
@@ -1007,6 +1018,7 @@ export interface FileRouteTypes {
     | '/admin/reservations'
     | '/admin/sites-touristiques'
     | '/admin/suivi'
+    | '/admin/trains'
     | '/admin/transport'
     | '/admin/trips'
     | '/admin/utilisateurs'
@@ -1483,6 +1495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTransportRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/trains': {
+      id: '/admin/trains'
+      path: '/trains'
+      fullPath: '/admin/trains'
+      preLoaderRoute: typeof AdminTrainsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/suivi': {
       id: '/admin/suivi'
       path: '/suivi'
@@ -1709,6 +1728,7 @@ interface AdminRouteRouteChildren {
   AdminReservationsRoute: typeof AdminReservationsRoute
   AdminSitesTouristiquesRoute: typeof AdminSitesTouristiquesRoute
   AdminSuiviRoute: typeof AdminSuiviRoute
+  AdminTrainsRoute: typeof AdminTrainsRoute
   AdminTransportRoute: typeof AdminTransportRoute
   AdminTripsRoute: typeof AdminTripsRoute
   AdminUtilisateursRoute: typeof AdminUtilisateursRoute
@@ -1740,6 +1760,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminReservationsRoute: AdminReservationsRoute,
   AdminSitesTouristiquesRoute: AdminSitesTouristiquesRoute,
   AdminSuiviRoute: AdminSuiviRoute,
+  AdminTrainsRoute: AdminTrainsRoute,
   AdminTransportRoute: AdminTransportRoute,
   AdminTripsRoute: AdminTripsRoute,
   AdminUtilisateursRoute: AdminUtilisateursRoute,
