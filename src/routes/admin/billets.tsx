@@ -196,7 +196,7 @@ function AdminBilletsPage() {
 
   const save = async () => {
     if (!form.agency_id) return toast.error("Agence requise");
-    if (!form.category_id) return toast.error("Catégorie requise");
+    if (!derivedCategoryId) return toast.error("Cette agence n'a pas de catégorie de transport définie");
     if (!form.title.trim()) return toast.error("Titre requis");
     if (form.price < 0) return toast.error("Prix invalide");
     if (isTrain && !form.train_type_id) return toast.error("Type de train requis");
@@ -206,7 +206,8 @@ function AdminBilletsPage() {
       const destStation = stations.find((s) => s.id === form.destination_station_id);
       const payload: any = {
         agency_id: form.agency_id,
-        category_id: form.category_id,
+        category_id: derivedCategoryId,
+        transport_mode: derivedCategory?.slug ?? null,
         title: form.title.trim(),
         origin: (isTrain ? originStation?.name : form.origin) || null,
         destination: (isTrain ? destStation?.name : form.destination) || null,
