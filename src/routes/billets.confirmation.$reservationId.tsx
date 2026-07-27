@@ -136,14 +136,35 @@ function BilletConfirmationPage() {
             </dl>
           )}
 
+          {boatReceipt && (
+            <dl className="mt-6 space-y-2 text-left text-sm">
+              {[
+                ["Référence", boatReceipt.reference],
+                ["Agence", boatReceipt.agency],
+                ["Navire", boatReceipt.vessel],
+                ["Trajet", `${boatReceipt.origin} → ${boatReceipt.destination}`],
+                ["Date", `${boatReceipt.departureDate}${boatReceipt.departureTime ? ` à ${boatReceipt.departureTime}` : ""}`],
+                ["Voyageurs", `${boatReceipt.adults} adulte(s), ${boatReceipt.children} enfant(s), ${boatReceipt.infants} bébé(s)`],
+                ["Voyageur principal", boatReceipt.passenger],
+                ["Montant payé", fmt(amount)],
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-3 border-b pb-1.5">
+                  <dt className="text-muted-foreground">{k}</dt>
+                  <dd className="text-right font-medium">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
           <button
             type="button"
             onClick={download}
-            disabled={!receipt}
+            disabled={!receipt && !boatReceipt}
             className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
           >
             <Download className="h-4 w-4" /> Télécharger le reçu PDF
           </button>
+
           <Link
             to="/mes-reservations"
             className="mt-3 inline-block text-sm font-semibold text-primary"
