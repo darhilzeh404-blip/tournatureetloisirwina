@@ -174,9 +174,9 @@ function CataloguePage() {
                           <Users className="h-3.5 w-3.5" /> {v.seats} places
                         </span>
                       )}
-                      {v.year && (
+                      {formatRentalDuration(v) && (
                         <span className="inline-flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5" /> {v.year}
+                          <Calendar className="h-3.5 w-3.5" /> {formatRentalDuration(v)}
                         </span>
                       )}
                       <span className="ml-auto inline-flex items-center gap-1 text-primary font-medium">
