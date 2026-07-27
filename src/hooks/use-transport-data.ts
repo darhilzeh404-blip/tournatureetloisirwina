@@ -39,6 +39,7 @@ export type TransportData = {
   vehicles: TVehicle[];
   pricing: TPricing[];
   activities: TActivity[];
+  partners: TPartner[];
   packages: TPackage[];
   settings: Record<string, number>;
   loading: boolean;
@@ -47,18 +48,19 @@ export type TransportData = {
 
 export function useTransportData(): TransportData {
   const [data, setData] = useState<Omit<TransportData, "reload">>({
-    categories: [], routes: [], vehicles: [], pricing: [], activities: [], packages: [],
+    categories: [], routes: [], vehicles: [], pricing: [], activities: [], partners: [], packages: [],
     settings: {}, loading: true,
   });
 
   const load = async () => {
     setData(d => ({ ...d, loading: true }));
-    const [c, r, v, p, a, pk, s] = await Promise.all([
+    const [c, r, v, p, a, pt, pk, s] = await Promise.all([
       supabase.from("transport_categories").select("*").order("sort_order"),
       supabase.from("transport_routes").select("*"),
       supabase.from("transport_vehicles").select("*"),
       supabase.from("transport_pricing").select("*"),
       supabase.from("transport_activities").select("*"),
+      supabase.from("activity_partners" as any).select("*").order("sort_order"),
       supabase.from("transport_packages").select("*"),
       supabase.from("transport_settings").select("*"),
     ]);
@@ -69,7 +71,15 @@ export function useTransportData(): TransportData {
       routes: (r.data ?? []) as TRoute[],
       vehicles: (v.data ?? []) as TVehicle[],
       pricing: (p.data ?? []) as TPricing[],
-      activities: (a.data ?? []) as TActivity[],
+      activities: ((a.data ?? []) as any[]).map((row) => ({
+        ...row,
+        gallery: Array.isArray(row.gallery) ? row.gallery : [],
+        registration_fee: Number(row.registration_fee ?? 0),
+        partner_id: row.partner_id ?? null,
+        image_url: row.image_url ?? null,
+        requires_child_info: row.requires_child_info ?? true,
+      })) as TActivity[],
+      partners: ((pt.data ?? []) as any[]) as TPartner[],
       packages: (pk.data ?? []) as TPackage[],
       settings, loading: false,
     });
