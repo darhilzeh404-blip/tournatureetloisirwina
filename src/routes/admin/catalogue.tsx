@@ -433,6 +433,9 @@ function VehicleDialog({
       setYear(editing.year?.toString() ?? "");
       setSeats(editing.seats?.toString() ?? "");
       setDailyRate(editing.daily_rate?.toString() ?? "");
+      setRentalDays(editing.rental_days?.toString() ?? "");
+      setStartTime(editing.start_time?.slice(0, 5) ?? "");
+      setEndTime(editing.end_time?.slice(0, 5) ?? "");
       setDescription(editing.description ?? "");
       setGallery(editing.gallery ?? []);
       setSortOrder(editing.sort_order);
@@ -443,6 +446,9 @@ function VehicleDialog({
       setYear("");
       setSeats("");
       setDailyRate("");
+      setRentalDays("");
+      setStartTime("");
+      setEndTime("");
       setDescription("");
       setGallery([]);
       setSortOrder(0);
