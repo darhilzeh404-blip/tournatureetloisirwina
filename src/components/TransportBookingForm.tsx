@@ -31,6 +31,9 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
   const [children, setChildren] = useState(0);
   const [date, setDate] = useState("");
   const [activityIds, setActivityIds] = useState<string[]>([]);
+  const [childLastName, setChildLastName] = useState("");
+  const [childFirstName, setChildFirstName] = useState("");
+  const [childAge, setChildAge] = useState("");
   const [packageId, setPackageId] = useState("");
   const [loading, setLoading] = useState(false);
 
