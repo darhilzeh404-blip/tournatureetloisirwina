@@ -102,13 +102,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "agency_notifications_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "agency_notifications_booking_id_fkey"
             columns: ["booking_id"]
             isOneToOne: false
@@ -234,13 +227,6 @@ export type Database = {
             referencedRelation: "partner_agencies"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "audit_logs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       boat_passengers: {
@@ -330,13 +316,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "partner_agencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "boat_routes_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1299,13 +1278,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "flight_bookings_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "flight_bookings_pickup_location_id_fkey"
             columns: ["pickup_location_id"]
             isOneToOne: false
@@ -1539,13 +1511,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "partner_agencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "flight_programs_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
             referencedColumns: ["id"]
           },
           {
@@ -2023,13 +1988,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "partner_bookings_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "partner_bookings_sailing_id_fkey"
             columns: ["sailing_id"]
             isOneToOne: false
@@ -2099,13 +2057,6 @@ export type Database = {
             referencedRelation: "partner_agencies"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "partner_commission_rates_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       partner_ticket_codes: {
@@ -2157,13 +2108,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "partner_agencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "partner_ticket_codes_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
             referencedColumns: ["id"]
           },
           {
@@ -2257,13 +2201,6 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "partner_agencies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "partner_tickets_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
             referencedColumns: ["id"]
           },
           {
@@ -3693,13 +3630,6 @@ export type Database = {
             referencedRelation: "partner_agencies"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "vessels_agency_id_fkey"
-            columns: ["agency_id"]
-            isOneToOne: false
-            referencedRelation: "partner_agencies_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       vip_levels: {
@@ -4118,6 +4048,13 @@ export type Database = {
             referencedRelation: "wina_lotteries"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "wina_lottery_entries_lottery_id_fkey"
+            columns: ["lottery_id"]
+            isOneToOne: false
+            referencedRelation: "wina_lotteries_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -4133,28 +4070,6 @@ export type Database = {
           logo_url: string | null
           name: string | null
           phone: string | null
-        }
-        Insert: {
-          category?: Database["public"]["Enums"]["agency_category"] | null
-          description?: string | null
-          email?: never
-          id?: string | null
-          is_active?: boolean | null
-          is_verified?: boolean | null
-          logo_url?: string | null
-          name?: string | null
-          phone?: never
-        }
-        Update: {
-          category?: Database["public"]["Enums"]["agency_category"] | null
-          description?: string | null
-          email?: never
-          id?: string | null
-          is_active?: boolean | null
-          is_verified?: boolean | null
-          logo_url?: string | null
-          name?: string | null
-          phone?: never
         }
         Relationships: []
       }
@@ -4196,6 +4111,59 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      wina_lotteries_public: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          draw_date: string | null
+          entry_cost_coins: number | null
+          id: string | null
+          image_url: string | null
+          max_entries_per_user: number | null
+          min_vip_level_id: string | null
+          name: string | null
+          prize_label: string | null
+          status: Database["public"]["Enums"]["lottery_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          draw_date?: string | null
+          entry_cost_coins?: number | null
+          id?: string | null
+          image_url?: string | null
+          max_entries_per_user?: number | null
+          min_vip_level_id?: string | null
+          name?: string | null
+          prize_label?: string | null
+          status?: Database["public"]["Enums"]["lottery_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          draw_date?: string | null
+          entry_cost_coins?: number | null
+          id?: string | null
+          image_url?: string | null
+          max_entries_per_user?: number | null
+          min_vip_level_id?: string | null
+          name?: string | null
+          prize_label?: string | null
+          status?: Database["public"]["Enums"]["lottery_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wina_lotteries_min_vip_level_id_fkey"
+            columns: ["min_vip_level_id"]
+            isOneToOne: false
+            referencedRelation: "vip_levels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
@@ -4660,6 +4628,20 @@ export type Database = {
         Returns: {
           ride_id: string
           seat_index: number
+        }[]
+      }
+      list_public_partner_agencies: {
+        Args: never
+        Returns: {
+          category: Database["public"]["Enums"]["agency_category"]
+          description: string
+          email: string
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          logo_url: string
+          name: string
+          phone: string
         }[]
       }
       pay_reservation_with_wallet: {
