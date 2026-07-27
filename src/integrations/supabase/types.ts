@@ -1973,10 +1973,12 @@ export type Database = {
           departure_at: string | null
           description: string
           destination: string | null
+          destination_station_id: string | null
           id: string
           image_url: string | null
           is_active: boolean
           origin: string | null
+          origin_station_id: string | null
           price: number
           return_departure_at: string | null
           return_destination: string | null
@@ -1984,6 +1986,7 @@ export type Database = {
           seats_available: number
           seats_total: number | null
           title: string
+          train_type_id: string | null
           transport_mode: string | null
           updated_at: string
           vehicle_kind: string | null
@@ -1995,10 +1998,12 @@ export type Database = {
           departure_at?: string | null
           description?: string
           destination?: string | null
+          destination_station_id?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
           origin?: string | null
+          origin_station_id?: string | null
           price?: number
           return_departure_at?: string | null
           return_destination?: string | null
@@ -2006,6 +2011,7 @@ export type Database = {
           seats_available?: number
           seats_total?: number | null
           title: string
+          train_type_id?: string | null
           transport_mode?: string | null
           updated_at?: string
           vehicle_kind?: string | null
@@ -2017,10 +2023,12 @@ export type Database = {
           departure_at?: string | null
           description?: string
           destination?: string | null
+          destination_station_id?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
           origin?: string | null
+          origin_station_id?: string | null
           price?: number
           return_departure_at?: string | null
           return_destination?: string | null
@@ -2028,6 +2036,7 @@ export type Database = {
           seats_available?: number
           seats_total?: number | null
           title?: string
+          train_type_id?: string | null
           transport_mode?: string | null
           updated_at?: string
           vehicle_kind?: string | null
@@ -2052,6 +2061,27 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "ticket_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_tickets_destination_station_id_fkey"
+            columns: ["destination_station_id"]
+            isOneToOne: false
+            referencedRelation: "train_stations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_tickets_origin_station_id_fkey"
+            columns: ["origin_station_id"]
+            isOneToOne: false
+            referencedRelation: "train_stations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_tickets_train_type_id_fkey"
+            columns: ["train_type_id"]
+            isOneToOne: false
+            referencedRelation: "train_types"
             referencedColumns: ["id"]
           },
         ]
@@ -2474,6 +2504,186 @@ export type Database = {
           price?: number
           slug?: string
           sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      train_discount_rules: {
+        Row: {
+          applies_to: string
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          max_age: number | null
+          min_age: number | null
+          percent: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          applies_to: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          max_age?: number | null
+          min_age?: number | null
+          percent?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          applies_to?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          max_age?: number | null
+          min_age?: number | null
+          percent?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      train_stations: {
+        Row: {
+          city: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          station_kind: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          station_kind?: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          station_kind?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      train_ticket_classes: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          price: number
+          ticket_id: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          price?: number
+          ticket_id: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          price?: number
+          ticket_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "train_ticket_classes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "train_travel_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "train_ticket_classes_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "partner_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      train_travel_classes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      train_types: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          station_kind: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          station_kind?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          station_kind?: string
           updated_at?: string
         }
         Relationships: []
