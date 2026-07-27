@@ -273,9 +273,8 @@ function AdminBoatsPage() {
           <Input className="w-28" type="number" placeholder="Prix bébé" value={newVessel.price_infant} onChange={(e) => setNewVessel({ ...newVessel, price_infant: e.target.value })} />
           <Button onClick={addVessel} disabled={busy}><Plus className="h-4 w-4" /> Ajouter</Button>
         </div>
-
-        </div>
       </CardContent></Card>
+
 
       {/* Services */}
       <Card><CardContent className="space-y-3 p-4">
