@@ -31,11 +31,11 @@ function AdminBoatsPage() {
   const [busy, setBusy] = useState(false);
 
   const [newRoute, setNewRoute] = useState({ agency_id: "", origin: "", destination: "", distance_km: "", duration_minutes: "" });
-  const [newVessel, setNewVessel] = useState({ agency_id: "", name: "", capacity: "", photo_url: "" });
+  const [newVessel, setNewVessel] = useState({ agency_id: "", name: "", capacity: "", price_adult: "", price_child: "", price_infant: "" });
   const [newService, setNewService] = useState({ vessel_id: "", name: "", price: "" });
+  const [uploading, setUploading] = useState<string | null>(null);
   const [newSailing, setNewSailing] = useState({
-    vessel_id: "", route_id: "", departure_date: "", departure_time: "08:00",
-    price_adult: "", price_child: "", price_infant: "", seats_total: "",
+    vessel_id: "", route_id: "", period_start: "", period_end: "", departure_time: "08:00", seats_total: "0",
   });
 
   const load = async () => {
