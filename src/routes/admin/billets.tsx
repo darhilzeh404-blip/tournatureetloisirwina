@@ -352,16 +352,18 @@ function AdminBilletsPage() {
               <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="ex: Libreville → Port-Gentil" />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground">Origine</label>
-                <Input value={form.origin} onChange={(e) => setForm({ ...form, origin: e.target.value })} />
+            {!isTrain && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground">Origine</label>
+                  <Input value={form.origin} onChange={(e) => setForm({ ...form, origin: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground">Destination</label>
+                  <Input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} />
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground">Destination</label>
-                <Input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} />
-              </div>
-            </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
