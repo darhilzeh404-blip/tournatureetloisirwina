@@ -294,7 +294,7 @@ function AdminBilletsPage() {
                   </p>
                 )}
                 <p className="text-sm font-bold text-primary">
-                  {FCFA(t.price)} · {t.seats_available} place{t.seats_available > 1 ? "s" : ""}
+                  {FCFA(t.price)}
                 </p>
                 <div className="flex items-center justify-between pt-2">
                   <label className="flex items-center gap-2 text-xs">
