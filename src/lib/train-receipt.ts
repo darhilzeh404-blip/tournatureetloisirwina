@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { WINA_LOGO_DATA_URL } from "./wina-logo";
 
 export type TrainReceiptData = {
   reference: string;
