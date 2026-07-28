@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { WINA_LOGO_DATA_URL } from "./wina-logo";
 
 export type TrainReceiptData = {
   reference: string;
@@ -31,16 +32,22 @@ export function buildTrainReceipt(data: TrainReceiptData): jsPDF {
   const M = 48;
   let y = 56;
 
-  // En-tête / logo textuel
+  // En-tête avec logo WINA TOUR
   doc.setFillColor(21, 94, 117);
-  doc.rect(0, 0, W, 96, "F");
+  doc.rect(0, 0, W, 110, "F");
+  try {
+    doc.addImage(WINA_LOGO_DATA_URL, "JPEG", M, 18, 74, 74);
+  } catch {
+    /* logo optionnel */
+  }
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(24);
-  doc.text("WINA TOUR", M, 50);
+  doc.text("WINA TOUR", M + 90, 56);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
-  doc.text("Reçu de réservation — Billet de train", M, 70);
+  doc.text("Reçu de réservation — Billet de train", M + 90, 76);
+
 
   y = 132;
   doc.setTextColor(17, 24, 39);

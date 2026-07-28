@@ -12,6 +12,7 @@ import {
   type TrainType, type TrainStation, type TrainClass, type TrainDiscountRule,
 } from "@/lib/train";
 import { TrainRoutesBaggage } from "@/components/admin/TrainRoutesBaggage";
+import { TrainTickets } from "@/components/admin/TrainTickets";
 
 export const Route = createFileRoute("/admin/trains")({
   head: () => ({ meta: [{ title: "Configuration Train — Admin" }] }),
@@ -190,6 +191,10 @@ function AdminTrainsPage() {
 
       {/* Dessertes + bagages */}
       <TrainRoutesBaggage types={types} stations={stations} />
+
+      {/* Billets de train */}
+      <TrainTickets types={types} stations={stations} classes={classes} />
+
 
       {/* Réductions */}
       <Card><CardContent className="space-y-3 p-4">
