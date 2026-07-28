@@ -2145,6 +2145,8 @@ export type Database = {
           return_origin: string | null
           seats_available: number
           seats_total: number | null
+          service_end_date: string | null
+          service_start_date: string | null
           title: string
           train_type_id: string | null
           transport_mode: string | null
@@ -2170,6 +2172,8 @@ export type Database = {
           return_origin?: string | null
           seats_available?: number
           seats_total?: number | null
+          service_end_date?: string | null
+          service_start_date?: string | null
           title: string
           train_type_id?: string | null
           transport_mode?: string | null
@@ -2195,6 +2199,8 @@ export type Database = {
           return_origin?: string | null
           seats_available?: number
           seats_total?: number | null
+          service_end_date?: string | null
+          service_start_date?: string | null
           title?: string
           train_type_id?: string | null
           transport_mode?: string | null

@@ -31,6 +31,8 @@ type TicketRow = {
   train_type_id: string | null;
   origin_station_id: string | null;
   destination_station_id: string | null;
+  service_start_date: string | null;
+  service_end_date: string | null;
 };
 
 type FormState = {
@@ -39,7 +41,9 @@ type FormState = {
   train_type_id: string;
   origin_station_id: string;
   destination_station_id: string;
-  departure_at: string;
+  service_start_date: string;
+  service_end_date: string;
+  departure_time: string;
   seats_total: number;
   description: string;
   is_active: boolean;
@@ -48,15 +52,33 @@ type FormState = {
 
 const emptyForm = (): FormState => ({
   agency_id: "", train_type_id: "", origin_station_id: "", destination_station_id: "",
-  departure_at: "", seats_total: 50, description: "", is_active: true, prices: {},
+  service_start_date: "", service_end_date: "", departure_time: "08:00",
+  seats_total: 50, description: "", is_active: true, prices: {},
 });
 
-function toInput(v: string | null) {
+const p2 = (n: number) => String(n).padStart(2, "0");
+
+function toDateInput(v: string | null) {
   if (!v) return "";
   const d = new Date(v);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
 }
+
+function toTimeInput(v: string | null) {
+  if (!v) return "08:00";
+  const d = new Date(v);
+  return `${p2(d.getHours())}:${p2(d.getMinutes())}`;
+}
+
+/** Fin du mois de la date donnée (agenda mensuel). */
+function endOfMonth(dateStr: string) {
+  if (!dateStr) return "";
+  const [y, m] = dateStr.split("-").map(Number);
+  return `${y}-${p2(m)}-${p2(new Date(y, m, 0).getDate())}`;
+}
+
+const frDate = (v: string | null) =>
+  v ? new Date(`${v}T00:00:00`).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }) : "—";
 
 export function TrainTickets({
   types, stations, classes,
@@ -76,9 +98,9 @@ export function TrainTickets({
       supabase.from("partner_agencies").select("id,name").eq("category", "train" as any).order("name"),
       supabase
         .from("partner_tickets")
-        .select("id,agency_id,title,origin,destination,departure_at,price,seats_total,seats_available,description,is_active,train_type_id,origin_station_id,destination_station_id")
+        .select("id,agency_id,title,origin,destination,departure_at,price,seats_total,seats_available,description,is_active,train_type_id,origin_station_id,destination_station_id,service_start_date,service_end_date")
         .not("train_type_id", "is", null)
-        .order("departure_at", { ascending: true }),
+        .order("service_start_date", { ascending: true, nullsFirst: false }),
       fetchTrainRoutes(),
     ]);
     setAgencies(((ag as any) ?? []) as Agency[]);
@@ -115,7 +137,9 @@ export function TrainTickets({
       train_type_id: t.train_type_id ?? "",
       origin_station_id: t.origin_station_id ?? "",
       destination_station_id: t.destination_station_id ?? "",
-      departure_at: toInput(t.departure_at),
+      service_start_date: t.service_start_date ?? toDateInput(t.departure_at),
+      service_end_date: t.service_end_date ?? endOfMonth(t.service_start_date ?? toDateInput(t.departure_at)),
+      departure_time: toTimeInput(t.departure_at),
       seats_total: t.seats_total ?? t.seats_available ?? 0,
       description: t.description ?? "",
       is_active: t.is_active,
@@ -129,7 +153,8 @@ export function TrainTickets({
     if (!form.train_type_id) return toast.error("Type de train requis");
     if (!form.origin_station_id || !form.destination_station_id) return toast.error("Gares de départ et d'arrivée requises");
     if (form.origin_station_id === form.destination_station_id) return toast.error("Les deux gares doivent être différentes");
-    if (!form.departure_at) return toast.error("Date et heure de départ requises");
+    if (!form.service_start_date || !form.service_end_date) return toast.error("Période de circulation requise (début et fin)");
+    if (form.service_end_date < form.service_start_date) return toast.error("La fin de période doit suivre le début");
     const priced = activeClasses.filter((c) => Number(form.prices[c.id]) > 0);
     if (priced.length === 0) return toast.error("Renseignez au moins un tarif de classe");
 
@@ -142,7 +167,9 @@ export function TrainTickets({
       title: `${typeName(form.train_type_id)} — ${origin} → ${destination}`,
       origin,
       destination,
-      departure_at: new Date(form.departure_at).toISOString(),
+      departure_at: new Date(`${form.service_start_date}T${form.departure_time || "08:00"}:00`).toISOString(),
+      service_start_date: form.service_start_date,
+      service_end_date: form.service_end_date,
       price: minPrice,
       seats_total: Number(form.seats_total) || 0,
       description: form.description,
@@ -218,7 +245,7 @@ export function TrainTickets({
               <div className="min-w-52 flex-1">
                 <p className="text-sm font-semibold">{t.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  {agencyName(t.agency_id)} · {t.departure_at ? new Date(t.departure_at).toLocaleString("fr-FR") : "—"} ·
+                  {agencyName(t.agency_id)} · Du {frDate(t.service_start_date)} au {frDate(t.service_end_date)} ·
                   {" "}dès {Number(t.price).toLocaleString("fr-FR")} FCFA · {t.seats_available}/{t.seats_total ?? 0} places
                 </p>
               </div>
@@ -269,8 +296,32 @@ export function TrainTickets({
             </select>
           </div>
           <div>
-            <Label>Départ</Label>
-            <Input type="datetime-local" value={form.departure_at} onChange={(e) => setForm({ ...form, departure_at: e.target.value })} />
+            <Label>Début de la période (mois)</Label>
+            <Input
+              type="date"
+              value={form.service_start_date}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  service_start_date: e.target.value,
+                  service_end_date: form.service_end_date || endOfMonth(e.target.value),
+                })
+              }
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">Le client choisit librement sa date dans cette période.</p>
+          </div>
+          <div>
+            <Label>Fin de la période</Label>
+            <Input
+              type="date"
+              min={form.service_start_date || undefined}
+              value={form.service_end_date}
+              onChange={(e) => setForm({ ...form, service_end_date: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label>Heure de départ</Label>
+            <Input type="time" value={form.departure_time} onChange={(e) => setForm({ ...form, departure_time: e.target.value })} />
           </div>
           <div>
             <Label>Places totales</Label>
