@@ -192,6 +192,10 @@ function AdminTrainsPage() {
       {/* Dessertes + bagages */}
       <TrainRoutesBaggage types={types} stations={stations} />
 
+      {/* Billets de train */}
+      <TrainTickets types={types} stations={stations} classes={classes} />
+
+
       {/* Réductions */}
       <Card><CardContent className="space-y-3 p-4">
         <h2 className="font-semibold">Réductions automatiques</h2>
