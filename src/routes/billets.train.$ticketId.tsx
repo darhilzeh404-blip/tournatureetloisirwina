@@ -28,6 +28,9 @@ export const Route = createFileRoute("/billets/train/$ticketId")({
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
 
+const frDate = (v: string) =>
+  new Date(`${v}T00:00:00`).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+
 const STEPS = [
   "Voyage", "Gares", "Voyageur", "Bagages", "Enfants", "Réduction", "Récapitulatif",
 ];
@@ -39,6 +42,9 @@ type Ticket = {
   price: number;
   train_type_id: string | null;
   description: string | null;
+  departure_at: string | null;
+  service_start_date: string | null;
+  service_end_date: string | null;
 };
 
 type Child = { first_name: string; last_name: string; age: string };
@@ -62,6 +68,10 @@ function TrainBookingWizard() {
   const [routes, setRoutes] = useState<TrainRoute[]>([]);
   const [routeStations, setRouteStations] = useState<TrainRouteStation[]>([]);
   const [baggageRules, setBaggageRules] = useState<TrainBaggageRule[]>([]);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const minDate = ticket?.service_start_date && ticket.service_start_date > today ? ticket.service_start_date : today;
+  const maxDate = ticket?.service_end_date ?? "";
 
   // Étape 1
   const [classId, setClassId] = useState("");
@@ -91,7 +101,7 @@ function TrainBookingWizard() {
       setLoading(true);
       const { data: t } = await supabase
         .from("partner_tickets" as any)
-        .select("id, agency_id, title, price, train_type_id, description")
+        .select("id, agency_id, title, price, train_type_id, description, departure_at, service_start_date, service_end_date")
         .eq("id", ticketId)
         .maybeSingle();
       const tk = (t as any) as Ticket | null;
@@ -159,6 +169,8 @@ function TrainBookingWizard() {
     if (s === 0) {
       if (!classId) return "Sélectionnez une classe de voyage";
       if (!departureDate) return "Sélectionnez la date de départ";
+      if (minDate && departureDate < minDate) return "Date hors de la période de circulation";
+      if (maxDate && departureDate > maxDate) return "Date hors de la période de circulation";
     }
     if (s === 1) {
       if (!fromId) return "Sélectionnez la gare de départ";
@@ -411,12 +423,15 @@ function TrainBookingWizard() {
                   <Input
                     type="date"
                     className="mt-1"
-                    min={new Date().toISOString().slice(0, 10)}
+                    min={minDate}
+                    max={maxDate || undefined}
                     value={departureDate}
                     onChange={(e) => setDepartureDate(e.target.value)}
                   />
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    Les horaires de départ sont fixés par l'agence.
+                    {ticket?.service_start_date && ticket?.service_end_date
+                      ? `Circulation du ${frDate(ticket.service_start_date)} au ${frDate(ticket.service_end_date)} — choisissez librement votre date.`
+                      : "Les horaires de départ sont fixés par l'agence."}
                   </p>
                 </div>
               </div>
