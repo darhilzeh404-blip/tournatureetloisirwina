@@ -14,7 +14,7 @@ import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
 import { UseCoinsToggle } from "@/components/wina-coins/UseCoinsToggle";
 import { fetchBalance } from "@/lib/wina-coins";
 import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
-import { MyPvitCheckout } from "@/components/MyPvitCheckout";
+import { WalletCheckout } from "@/components/WalletCheckout";
 
 // Codes agents marchands (à personnaliser depuis l'admin plus tard)
 const CODE_AGENT_MOOV = "TRANSPORT";
@@ -376,7 +376,7 @@ function PaiementPage() {
             <p className="text-sm font-bold">⚡ Paiement instantané</p>
             <p className="text-xs text-muted-foreground">Confirmé automatiquement dès validation USSD sur votre téléphone.</p>
           </div>
-          <MyPvitCheckout
+          <WalletCheckout
             purpose="reservation"
             relatedId={reservation.id}
             amount={Math.max(reservation.total_amount - reservation.paid_amount - (reservation.coins_used ?? 0), 0)}
