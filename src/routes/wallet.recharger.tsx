@@ -14,7 +14,6 @@ import { NumberInput } from "@/components/ui/number-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { prepareReceiptImage } from "@/lib/image-upload";
 import { formatPoints, formatXAF, requestRecharge } from "@/lib/vtc-wallet";
-import { MyPvitCheckout } from "@/components/MyPvitCheckout";
 
 const CODE_AGENT_MOOV = "TRANSPORT";
 const CODE_AGENT_AIRTEL = "BGG94";
@@ -129,7 +128,7 @@ function WalletRechargePage() {
           <Wallet className="h-6 w-6 text-primary" /> Recharger mon portefeuille
         </h1>
         <p className="text-sm text-muted-foreground">
-          Portefeuille Wina — utilisé pour les courses VTC et les courses de groupe.
+          Portefeuille Wina — utilisé pour tous vos achats et réservations dans l’application.
         </p>
       </div>
 
