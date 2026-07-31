@@ -369,12 +369,12 @@ function PaiementPage() {
         </CardContent>
       </Card>
 
-      {/* Paiement instantané via MyPVit */}
+      {/* Paiement par portefeuille Wina */}
       <Card className="border-green-500/40 bg-green-500/5">
         <CardContent className="p-5 space-y-3">
           <div>
-            <p className="text-sm font-bold">⚡ Paiement instantané</p>
-            <p className="text-xs text-muted-foreground">Confirmé automatiquement dès validation USSD sur votre téléphone.</p>
+            <p className="text-sm font-bold">💳 Paiement par portefeuille</p>
+            <p className="text-xs text-muted-foreground">Réservation confirmée immédiatement après débit du solde.</p>
           </div>
           <WalletCheckout
             purpose="reservation"
