@@ -380,7 +380,6 @@ function PaiementPage() {
             purpose="reservation"
             relatedId={reservation.id}
             amount={Math.max(reservation.total_amount - reservation.paid_amount - (reservation.coins_used ?? 0), 0)}
-            description={`Wina ${reservation.id.slice(0, 6).toUpperCase()}`}
             onSuccess={() =>
               ((reservation.details as any)?.train_booking || (reservation.details as any)?.mode === "bateau")
                 ? navigate({ to: "/billets/confirmation/$reservationId", params: { reservationId: reservation.id } })

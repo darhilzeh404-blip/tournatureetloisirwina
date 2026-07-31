@@ -72,7 +72,6 @@ function PayFlight() {
               purpose="flight_booking"
               relatedId={booking.id}
               amount={Number(booking.total_amount)}
-              description={`Vol ${booking.reference_code}`}
               onSuccess={() => setRefresh((n) => n + 1)}
             />
           </div>
