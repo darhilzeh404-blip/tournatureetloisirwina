@@ -2334,69 +2334,6 @@ export type Database = {
         }
         Relationships: []
       }
-      pvit_transactions: {
-        Row: {
-          amount: number
-          callback_payload: Json | null
-          completed_at: string | null
-          created_at: string
-          currency: string
-          failure_reason: string | null
-          id: string
-          initiate_response: Json | null
-          merchant_operation_id: string | null
-          metadata: Json
-          operator: string
-          payer_msisdn: string
-          purpose: string
-          related_id: string
-          status: string
-          transaction_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          callback_payload?: Json | null
-          completed_at?: string | null
-          created_at?: string
-          currency?: string
-          failure_reason?: string | null
-          id?: string
-          initiate_response?: Json | null
-          merchant_operation_id?: string | null
-          metadata?: Json
-          operator: string
-          payer_msisdn: string
-          purpose: string
-          related_id: string
-          status?: string
-          transaction_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          callback_payload?: Json | null
-          completed_at?: string | null
-          created_at?: string
-          currency?: string
-          failure_reason?: string | null
-          id?: string
-          initiate_response?: Json | null
-          merchant_operation_id?: string | null
-          metadata?: Json
-          operator?: string
-          payer_msisdn?: string
-          purpose?: string
-          related_id?: string
-          status?: string
-          transaction_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       reservations: {
         Row: {
           admin_comment: string | null
@@ -4349,19 +4286,6 @@ export type Database = {
           validated_at: string
         }[]
       }
-      apply_pvit_completion: {
-        Args: { _callback: Json; _transaction_id: string }
-        Returns: undefined
-      }
-      apply_pvit_failure: {
-        Args: {
-          _callback: Json
-          _reason: string
-          _status: string
-          _transaction_id: string
-        }
-        Returns: undefined
-      }
       archive_trip_and_reservation: {
         Args: { _trip_id: string }
         Returns: undefined
@@ -4672,6 +4596,20 @@ export type Database = {
           logo_url: string
           name: string
           phone: string
+        }[]
+      }
+      pay_flight_booking_with_wallet: {
+        Args: { _booking_id: string }
+        Returns: {
+          new_balance: number
+          total_paid: number
+        }[]
+      }
+      pay_partner_booking_with_wallet: {
+        Args: { _booking_id: string }
+        Returns: {
+          new_balance: number
+          total_paid: number
         }[]
       }
       pay_reservation_with_wallet: {
