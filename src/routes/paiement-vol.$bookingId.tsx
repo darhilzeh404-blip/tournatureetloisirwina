@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Plane } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { MyPvitCheckout } from "@/components/MyPvitCheckout";
+import { WalletCheckout } from "@/components/WalletCheckout";
 
 export const Route = createFileRoute("/paiement-vol/$bookingId")({
   component: PayFlight,
@@ -68,11 +68,10 @@ function PayFlight() {
           </div>
         ) : (
           <div className="mt-6">
-            <MyPvitCheckout
+            <WalletCheckout
               purpose="flight_booking"
               relatedId={booking.id}
               amount={Number(booking.total_amount)}
-              description={`Vol ${booking.reference_code}`}
               onSuccess={() => setRefresh((n) => n + 1)}
             />
           </div>

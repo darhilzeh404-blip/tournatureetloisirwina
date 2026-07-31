@@ -14,7 +14,7 @@ import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
 import { UseCoinsToggle } from "@/components/wina-coins/UseCoinsToggle";
 import { fetchBalance } from "@/lib/wina-coins";
 import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
-import { MyPvitCheckout } from "@/components/MyPvitCheckout";
+import { WalletCheckout } from "@/components/WalletCheckout";
 
 // Codes agents marchands (à personnaliser depuis l'admin plus tard)
 const CODE_AGENT_MOOV = "TRANSPORT";
@@ -369,18 +369,17 @@ function PaiementPage() {
         </CardContent>
       </Card>
 
-      {/* Paiement instantané via MyPVit */}
+      {/* Paiement par portefeuille Wina */}
       <Card className="border-green-500/40 bg-green-500/5">
         <CardContent className="p-5 space-y-3">
           <div>
-            <p className="text-sm font-bold">⚡ Paiement instantané</p>
-            <p className="text-xs text-muted-foreground">Confirmé automatiquement dès validation USSD sur votre téléphone.</p>
+            <p className="text-sm font-bold">💳 Paiement par portefeuille</p>
+            <p className="text-xs text-muted-foreground">Réservation confirmée immédiatement après débit du solde.</p>
           </div>
-          <MyPvitCheckout
+          <WalletCheckout
             purpose="reservation"
             relatedId={reservation.id}
             amount={Math.max(reservation.total_amount - reservation.paid_amount - (reservation.coins_used ?? 0), 0)}
-            description={`Wina ${reservation.id.slice(0, 6).toUpperCase()}`}
             onSuccess={() =>
               ((reservation.details as any)?.train_booking || (reservation.details as any)?.mode === "bateau")
                 ? navigate({ to: "/billets/confirmation/$reservationId", params: { reservationId: reservation.id } })

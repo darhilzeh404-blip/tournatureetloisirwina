@@ -133,6 +133,25 @@ export async function payReservationWithWallet(reservationId: string): Promise<{
   return { new_balance: Number(row?.new_balance ?? 0), total_paid: Number(row?.total_paid ?? 0) };
 }
 
+export async function payPartnerBookingWithWallet(bookingId: string): Promise<{ new_balance: number; total_paid: number }> {
+  const { data, error } = await supabase.rpc("pay_partner_booking_with_wallet" as never, {
+    _booking_id: bookingId,
+  } as never);
+  if (error) throw error;
+  const row = (Array.isArray(data) ? data[0] : data) as { new_balance?: number; total_paid?: number } | null;
+  return { new_balance: Number(row?.new_balance ?? 0), total_paid: Number(row?.total_paid ?? 0) };
+}
+
+export async function payFlightBookingWithWallet(bookingId: string): Promise<{ new_balance: number; total_paid: number }> {
+  const { data, error } = await supabase.rpc("pay_flight_booking_with_wallet" as never, {
+    _booking_id: bookingId,
+  } as never);
+  if (error) throw error;
+  const row = (Array.isArray(data) ? data[0] : data) as { new_balance?: number; total_paid?: number } | null;
+  return { new_balance: Number(row?.new_balance ?? 0), total_paid: Number(row?.total_paid ?? 0) };
+}
+
+
 export async function completeVtcTrip(tripId: string): Promise<{ driver_net: number; driver_balance: number; paid_via_wallet: boolean }> {
   const { data, error } = await supabase.rpc("complete_vtc_trip" as never, {
     _trip_id: tripId,

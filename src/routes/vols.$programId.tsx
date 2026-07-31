@@ -313,7 +313,7 @@ function BookFlight() {
             Continuer vers le paiement
           </Button>
           <p className="mt-2 text-center text-[11px] text-muted-foreground">
-            Paiement Airtel Money / Moov Money via MyPVit
+            Paiement via votre portefeuille Wina
           </p>
         </div>
       </div>
