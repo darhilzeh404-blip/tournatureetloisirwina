@@ -44,6 +44,7 @@ import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VtcIndexRouteImport } from './routes/vtc.index'
 import { Route as VolsIndexRouteImport } from './routes/vols.index'
+import { Route as MesDemandesVolsIndexRouteImport } from './routes/mes-demandes-vols.index'
 import { Route as DeplacementGroupeIndexRouteImport } from './routes/deplacement-groupe.index'
 import { Route as BilletsIndexRouteImport } from './routes/billets.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -268,6 +269,11 @@ const VtcIndexRoute = VtcIndexRouteImport.update({
 const VolsIndexRoute = VolsIndexRouteImport.update({
   id: '/vols/',
   path: '/vols/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MesDemandesVolsIndexRoute = MesDemandesVolsIndexRouteImport.update({
+  id: '/mes-demandes-vols/',
+  path: '/mes-demandes-vols/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeplacementGroupeIndexRoute = DeplacementGroupeIndexRouteImport.update({
@@ -598,6 +604,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/billets/': typeof BilletsIndexRoute
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
+  '/mes-demandes-vols/': typeof MesDemandesVolsIndexRoute
   '/vols/': typeof VolsIndexRoute
   '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
@@ -681,6 +688,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/billets': typeof BilletsIndexRoute
   '/deplacement-groupe': typeof DeplacementGroupeIndexRoute
+  '/mes-demandes-vols': typeof MesDemandesVolsIndexRoute
   '/vols': typeof VolsIndexRoute
   '/vtc': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
@@ -769,6 +777,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/billets/': typeof BilletsIndexRoute
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
+  '/mes-demandes-vols/': typeof MesDemandesVolsIndexRoute
   '/vols/': typeof VolsIndexRoute
   '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
@@ -858,6 +867,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/billets/'
     | '/deplacement-groupe/'
+    | '/mes-demandes-vols/'
     | '/vols/'
     | '/vtc/'
     | '/api/admin/create-driver'
@@ -941,6 +951,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/billets'
     | '/deplacement-groupe'
+    | '/mes-demandes-vols'
     | '/vols'
     | '/vtc'
     | '/api/admin/create-driver'
@@ -1028,6 +1039,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/billets/'
     | '/deplacement-groupe/'
+    | '/mes-demandes-vols/'
     | '/vols/'
     | '/vtc/'
     | '/api/admin/create-driver'
@@ -1079,6 +1091,7 @@ export interface RootRouteChildren {
   AnnoncesIdRoute: typeof AnnoncesIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
+  MesDemandesVolsIndexRoute: typeof MesDemandesVolsIndexRoute
   VolsIndexRoute: typeof VolsIndexRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
@@ -1329,6 +1342,13 @@ declare module '@tanstack/react-router' {
       path: '/vols'
       fullPath: '/vols/'
       preLoaderRoute: typeof VolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mes-demandes-vols/': {
+      id: '/mes-demandes-vols/'
+      path: '/mes-demandes-vols'
+      fullPath: '/mes-demandes-vols/'
+      preLoaderRoute: typeof MesDemandesVolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deplacement-groupe/': {
@@ -1878,6 +1898,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnnoncesIdRoute: AnnoncesIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
+  MesDemandesVolsIndexRoute: MesDemandesVolsIndexRoute,
   VolsIndexRoute: VolsIndexRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
