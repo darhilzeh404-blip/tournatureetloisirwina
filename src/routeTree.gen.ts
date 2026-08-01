@@ -51,6 +51,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as WalletRechargerRouteImport } from './routes/wallet.recharger'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
+import { Route as MesDemandesVolsRequestIdRouteImport } from './routes/mes-demandes-vols.$requestId'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
 import { Route as ChauffeurGroupesRouteImport } from './routes/chauffeur.groupes'
 import { Route as ChauffeurGainsRouteImport } from './routes/chauffeur.gains'
@@ -306,6 +307,12 @@ const PaiementReservationIdRoute = PaiementReservationIdRouteImport.update({
   path: '/paiement/$reservationId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MesDemandesVolsRequestIdRoute =
+  MesDemandesVolsRequestIdRouteImport.update({
+    id: '/mes-demandes-vols/$requestId',
+    path: '/mes-demandes-vols/$requestId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ChauffeurTripsRoute = ChauffeurTripsRouteImport.update({
   id: '/trips',
   path: '/trips',
@@ -598,6 +605,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
+  '/mes-demandes-vols/$requestId': typeof MesDemandesVolsRequestIdRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
@@ -682,6 +690,7 @@ export interface FileRoutesByTo {
   '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
+  '/mes-demandes-vols/$requestId': typeof MesDemandesVolsRequestIdRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
@@ -771,6 +780,7 @@ export interface FileRoutesById {
   '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
+  '/mes-demandes-vols/$requestId': typeof MesDemandesVolsRequestIdRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
@@ -861,6 +871,7 @@ export interface FileRouteTypes {
     | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
+    | '/mes-demandes-vols/$requestId'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/wallet/recharger'
@@ -945,6 +956,7 @@ export interface FileRouteTypes {
     | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
+    | '/mes-demandes-vols/$requestId'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/wallet/recharger'
@@ -1033,6 +1045,7 @@ export interface FileRouteTypes {
     | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
+    | '/mes-demandes-vols/$requestId'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
     | '/wallet/recharger'
@@ -1089,6 +1102,7 @@ export interface RootRouteChildren {
   WalletRoute: typeof WalletRouteWithChildren
   WinaCoinsRoute: typeof WinaCoinsRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
+  MesDemandesVolsRequestIdRoute: typeof MesDemandesVolsRequestIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
   MesDemandesVolsIndexRoute: typeof MesDemandesVolsIndexRoute
@@ -1391,6 +1405,13 @@ declare module '@tanstack/react-router' {
       path: '/paiement/$reservationId'
       fullPath: '/paiement/$reservationId'
       preLoaderRoute: typeof PaiementReservationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mes-demandes-vols/$requestId': {
+      id: '/mes-demandes-vols/$requestId'
+      path: '/mes-demandes-vols/$requestId'
+      fullPath: '/mes-demandes-vols/$requestId'
+      preLoaderRoute: typeof MesDemandesVolsRequestIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chauffeur/trips': {
@@ -1896,6 +1917,7 @@ const rootRouteChildren: RootRouteChildren = {
   WalletRoute: WalletRouteWithChildren,
   WinaCoinsRoute: WinaCoinsRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
+  MesDemandesVolsRequestIdRoute: MesDemandesVolsRequestIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
   MesDemandesVolsIndexRoute: MesDemandesVolsIndexRoute,
