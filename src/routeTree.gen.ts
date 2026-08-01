@@ -48,10 +48,8 @@ import { Route as DeplacementGroupeIndexRouteImport } from './routes/deplacement
 import { Route as BilletsIndexRouteImport } from './routes/billets.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as WalletRechargerRouteImport } from './routes/wallet.recharger'
-import { Route as VolsProgramIdRouteImport } from './routes/vols.$programId'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
-import { Route as PaiementVolBookingIdRouteImport } from './routes/paiement-vol.$bookingId'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
 import { Route as ChauffeurGroupesRouteImport } from './routes/chauffeur.groupes'
 import { Route as ChauffeurGainsRouteImport } from './routes/chauffeur.gains'
@@ -59,7 +57,6 @@ import { Route as BilletsIdRouteImport } from './routes/billets.$id'
 import { Route as AnnoncesIdRouteImport } from './routes/annonces.$id'
 import { Route as AdminVtcWalletsRouteImport } from './routes/admin/vtc-wallets'
 import { Route as AdminVtcChauffeursRouteImport } from './routes/admin/vtc-chauffeurs'
-import { Route as AdminVolsReservationsRouteImport } from './routes/admin/vols-reservations'
 import { Route as AdminVolsRouteImport } from './routes/admin/vols'
 import { Route as AdminVehiculeTypesRouteImport } from './routes/admin/vehicule-types'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
@@ -292,11 +289,6 @@ const WalletRechargerRoute = WalletRechargerRouteImport.update({
   path: '/recharger',
   getParentRoute: () => WalletRoute,
 } as any)
-const VolsProgramIdRoute = VolsProgramIdRouteImport.update({
-  id: '/vols/$programId',
-  path: '/vols/$programId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SuiviTripIdRoute = SuiviTripIdRouteImport.update({
   id: '/suivi/$tripId',
   path: '/suivi/$tripId',
@@ -305,11 +297,6 @@ const SuiviTripIdRoute = SuiviTripIdRouteImport.update({
 const PaiementReservationIdRoute = PaiementReservationIdRouteImport.update({
   id: '/paiement/$reservationId',
   path: '/paiement/$reservationId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PaiementVolBookingIdRoute = PaiementVolBookingIdRouteImport.update({
-  id: '/paiement-vol/$bookingId',
-  path: '/paiement-vol/$bookingId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChauffeurTripsRoute = ChauffeurTripsRouteImport.update({
@@ -345,11 +332,6 @@ const AdminVtcWalletsRoute = AdminVtcWalletsRouteImport.update({
 const AdminVtcChauffeursRoute = AdminVtcChauffeursRouteImport.update({
   id: '/vtc-chauffeurs',
   path: '/vtc-chauffeurs',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminVolsReservationsRoute = AdminVolsReservationsRouteImport.update({
-  id: '/vols-reservations',
-  path: '/vols-reservations',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminVolsRoute = AdminVolsRouteImport.update({
@@ -596,7 +578,6 @@ export interface FileRoutesByFullPath {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vols': typeof AdminVolsRoute
-  '/admin/vols-reservations': typeof AdminVolsReservationsRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/admin/vtc-wallets': typeof AdminVtcWalletsRoute
   '/annonces/$id': typeof AnnoncesIdRoute
@@ -604,10 +585,8 @@ export interface FileRoutesByFullPath {
   '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
-  '/paiement-vol/$bookingId': typeof PaiementVolBookingIdRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
-  '/vols/$programId': typeof VolsProgramIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
   '/billets/': typeof BilletsIndexRoute
@@ -681,7 +660,6 @@ export interface FileRoutesByTo {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vols': typeof AdminVolsRoute
-  '/admin/vols-reservations': typeof AdminVolsReservationsRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/admin/vtc-wallets': typeof AdminVtcWalletsRoute
   '/annonces/$id': typeof AnnoncesIdRoute
@@ -689,10 +667,8 @@ export interface FileRoutesByTo {
   '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
-  '/paiement-vol/$bookingId': typeof PaiementVolBookingIdRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
-  '/vols/$programId': typeof VolsProgramIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin': typeof AdminIndexRoute
   '/billets': typeof BilletsIndexRoute
@@ -771,7 +747,6 @@ export interface FileRoutesById {
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
   '/admin/vols': typeof AdminVolsRoute
-  '/admin/vols-reservations': typeof AdminVolsReservationsRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
   '/admin/vtc-wallets': typeof AdminVtcWalletsRoute
   '/annonces/$id': typeof AnnoncesIdRoute
@@ -779,10 +754,8 @@ export interface FileRoutesById {
   '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
-  '/paiement-vol/$bookingId': typeof PaiementVolBookingIdRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
-  '/vols/$programId': typeof VolsProgramIdRoute
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
   '/billets/': typeof BilletsIndexRoute
@@ -862,7 +835,6 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
     | '/admin/vols'
-    | '/admin/vols-reservations'
     | '/admin/vtc-chauffeurs'
     | '/admin/vtc-wallets'
     | '/annonces/$id'
@@ -870,10 +842,8 @@ export interface FileRouteTypes {
     | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
-    | '/paiement-vol/$bookingId'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
-    | '/vols/$programId'
     | '/wallet/recharger'
     | '/admin/'
     | '/billets/'
@@ -947,7 +917,6 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
     | '/admin/vols'
-    | '/admin/vols-reservations'
     | '/admin/vtc-chauffeurs'
     | '/admin/vtc-wallets'
     | '/annonces/$id'
@@ -955,10 +924,8 @@ export interface FileRouteTypes {
     | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
-    | '/paiement-vol/$bookingId'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
-    | '/vols/$programId'
     | '/wallet/recharger'
     | '/admin'
     | '/billets'
@@ -1036,7 +1003,6 @@ export interface FileRouteTypes {
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
     | '/admin/vols'
-    | '/admin/vols-reservations'
     | '/admin/vtc-chauffeurs'
     | '/admin/vtc-wallets'
     | '/annonces/$id'
@@ -1044,10 +1010,8 @@ export interface FileRouteTypes {
     | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
-    | '/paiement-vol/$bookingId'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
-    | '/vols/$programId'
     | '/wallet/recharger'
     | '/admin/'
     | '/billets/'
@@ -1101,10 +1065,8 @@ export interface RootRouteChildren {
   WalletRoute: typeof WalletRouteWithChildren
   WinaCoinsRoute: typeof WinaCoinsRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
-  PaiementVolBookingIdRoute: typeof PaiementVolBookingIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
-  VolsProgramIdRoute: typeof VolsProgramIdRoute
   VolsIndexRoute: typeof VolsIndexRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
@@ -1385,13 +1347,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WalletRechargerRouteImport
       parentRoute: typeof WalletRoute
     }
-    '/vols/$programId': {
-      id: '/vols/$programId'
-      path: '/vols/$programId'
-      fullPath: '/vols/$programId'
-      preLoaderRoute: typeof VolsProgramIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/suivi/$tripId': {
       id: '/suivi/$tripId'
       path: '/suivi/$tripId'
@@ -1404,13 +1359,6 @@ declare module '@tanstack/react-router' {
       path: '/paiement/$reservationId'
       fullPath: '/paiement/$reservationId'
       preLoaderRoute: typeof PaiementReservationIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/paiement-vol/$bookingId': {
-      id: '/paiement-vol/$bookingId'
-      path: '/paiement-vol/$bookingId'
-      fullPath: '/paiement-vol/$bookingId'
-      preLoaderRoute: typeof PaiementVolBookingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chauffeur/trips': {
@@ -1460,13 +1408,6 @@ declare module '@tanstack/react-router' {
       path: '/vtc-chauffeurs'
       fullPath: '/admin/vtc-chauffeurs'
       preLoaderRoute: typeof AdminVtcChauffeursRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/vols-reservations': {
-      id: '/admin/vols-reservations'
-      path: '/vols-reservations'
-      fullPath: '/admin/vols-reservations'
-      preLoaderRoute: typeof AdminVolsReservationsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/vols': {
@@ -1751,7 +1692,6 @@ interface AdminRouteRouteChildren {
   AdminUtilisateursRoute: typeof AdminUtilisateursRoute
   AdminVehiculeTypesRoute: typeof AdminVehiculeTypesRoute
   AdminVolsRoute: typeof AdminVolsRoute
-  AdminVolsReservationsRoute: typeof AdminVolsReservationsRoute
   AdminVtcChauffeursRoute: typeof AdminVtcChauffeursRoute
   AdminVtcWalletsRoute: typeof AdminVtcWalletsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -1784,7 +1724,6 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminUtilisateursRoute: AdminUtilisateursRoute,
   AdminVehiculeTypesRoute: AdminVehiculeTypesRoute,
   AdminVolsRoute: AdminVolsRoute,
-  AdminVolsReservationsRoute: AdminVolsReservationsRoute,
   AdminVtcChauffeursRoute: AdminVtcChauffeursRoute,
   AdminVtcWalletsRoute: AdminVtcWalletsRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -1916,10 +1855,8 @@ const rootRouteChildren: RootRouteChildren = {
   WalletRoute: WalletRouteWithChildren,
   WinaCoinsRoute: WinaCoinsRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
-  PaiementVolBookingIdRoute: PaiementVolBookingIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
-  VolsProgramIdRoute: VolsProgramIdRoute,
   VolsIndexRoute: VolsIndexRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
