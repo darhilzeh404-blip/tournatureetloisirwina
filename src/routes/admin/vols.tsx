@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { FCFA, fmtDate, PROGRAM_STATUS_LABEL } from "@/lib/flight-quotes";
 
 export const Route = createFileRoute("/admin/vols")({
   component: AdminVols,
@@ -18,38 +19,39 @@ export const Route = createFileRoute("/admin/vols")({
 type Program = {
   id: string;
   agency_id: string;
-  title: string;
-  airline_name: string | null;
-  flight_number: string | null;
   origin: string;
   destination: string;
-  departure_at: string | null;
-  arrival_at: string | null;
-  price: number;
-  service_fee: number | null;
-  seats_total: number;
-  seats_available: number;
-  class: string | null;
-  description: string | null;
+  price_from: number;
+  month_start: string;
+  month_end: string;
   status: string;
+  description: string | null;
+  conditions: string | null;
   is_active: boolean;
 };
 type Agency = { id: string; name: string };
 
-const empty = (): Partial<Program> => ({
-  agency_id: "", title: "", airline_name: "", flight_number: "",
-  origin: "Libreville", destination: "Paris",
-  departure_at: null, arrival_at: null,
-  price: 0, service_fee: 0, seats_total: 10, seats_available: 10,
-  class: "Économique", description: "", status: "active", is_active: true,
-});
+const firstOfMonth = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+};
+const lastOfMonth = () => {
+  const d = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
-function toInputDateTime(v: string | null) {
-  if (!v) return "";
-  const d = new Date(v);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-}
+const empty = (): Partial<Program> => ({
+  agency_id: "",
+  origin: "Libreville",
+  destination: "Paris",
+  price_from: 0,
+  month_start: firstOfMonth(),
+  month_end: lastOfMonth(),
+  status: "available",
+  description: "",
+  conditions: "",
+  is_active: true,
+});
 
 function AdminVols() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -62,8 +64,8 @@ function AdminVols() {
   const load = async () => {
     setLoading(true);
     const [{ data: p }, { data: a }] = await Promise.all([
-      (supabase.from("flight_programs") as any).select("*").order("departure_at", { ascending: true }),
-      (supabase.from("partner_agencies") as any).select("id,name").order("name"),
+      (supabase.from("flight_programs") as any).select("*").order("created_at", { ascending: false }),
+      (supabase.from("partner_agencies") as any).select("id,name").eq("category", "avion").eq("is_active", true).order("name"),
     ]);
     setPrograms(((p as any) ?? []) as Program[]);
     setAgencies(((a as any) ?? []) as Agency[]);
@@ -72,155 +74,167 @@ function AdminVols() {
   useEffect(() => { load(); }, []);
 
   const openNew = () => { setEditing(empty()); setOpen(true); };
-  const openEdit = (p: Program) => {
-    setEditing({ ...p, departure_at: toInputDateTime(p.departure_at) as any, arrival_at: toInputDateTime(p.arrival_at) as any });
-    setOpen(true);
-  };
+  const openEdit = (p: Program) => { setEditing({ ...p }); setOpen(true); };
 
   const save = async () => {
-    if (!editing.agency_id || !editing.title?.trim() || !editing.origin || !editing.destination) {
-      toast.error("Agence, titre, origine et destination requis"); return;
-    }
+    if (!editing.agency_id) { toast.error("Sélectionnez une compagnie aérienne"); return; }
+    if (!editing.origin?.trim() || !editing.destination?.trim()) { toast.error("Départ et arrivée requis"); return; }
+    if (!editing.month_start || !editing.month_end) { toast.error("Période mensuelle requise"); return; }
     setSaving(true);
     const payload: any = {
       agency_id: editing.agency_id,
-      title: editing.title.trim(),
-      airline_name: editing.airline_name || null,
-      flight_number: editing.flight_number || null,
-      origin: editing.origin,
-      destination: editing.destination,
-      departure_at: editing.departure_at ? new Date(editing.departure_at as any).toISOString() : null,
-      arrival_at: editing.arrival_at ? new Date(editing.arrival_at as any).toISOString() : null,
-      price: Number(editing.price ?? 0),
-      service_fee: Number(editing.service_fee ?? 0),
-      seats_total: Number(editing.seats_total ?? 0),
-      class: editing.class || null,
+      origin: editing.origin.trim(),
+      destination: editing.destination.trim(),
+      price_from: Number(editing.price_from ?? 0),
+      month_start: editing.month_start,
+      month_end: editing.month_end,
+      status: editing.status ?? "available",
       description: editing.description || null,
-      status: editing.status || "active",
+      conditions: editing.conditions || null,
       is_active: editing.is_active ?? true,
     };
-    if (!editing.id) {
-      payload.seats_available = payload.seats_total;
-      const { error } = await (supabase.from("flight_programs") as any).insert(payload);
-      if (error) { toast.error(error.message); setSaving(false); return; }
-    } else {
-      const { error } = await (supabase.from("flight_programs") as any).update(payload).eq("id", editing.id);
-      if (error) { toast.error(error.message); setSaving(false); return; }
-    }
-    toast.success("Enregistré");
-    setSaving(false); setOpen(false);
+    const q = editing.id
+      ? (supabase.from("flight_programs") as any).update(payload).eq("id", editing.id)
+      : (supabase.from("flight_programs") as any).insert(payload);
+    const { error } = await q;
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(editing.id ? "Programme mis à jour" : "Programme créé");
+    setOpen(false);
     load();
   };
 
-  const remove = async (p: Program) => {
-    if (!confirm(`Supprimer "${p.title}" ?`)) return;
-    const { error } = await (supabase.from("flight_programs") as any).delete().eq("id", p.id);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Supprimé"); load();
+  const remove = async (id: string) => {
+    if (!confirm("Supprimer ce programme de vol ?")) return;
+    const { error } = await (supabase.from("flight_programs") as any).delete().eq("id", id);
+    if (error) toast.error(error.message); else { toast.success("Supprimé"); load(); }
   };
 
   return (
     <div className="p-6">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Plane className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Vols — Programmes</h1>
-            <p className="text-xs text-muted-foreground">Gestion des vols proposés par les agences</p>
+            <h1 className="text-xl font-bold">Programmes de vols</h1>
+            <p className="text-xs text-muted-foreground">
+              Le prix « à partir de » est indicatif — le tarif final est envoyé par devis.
+            </p>
           </div>
         </div>
-        <Button onClick={openNew}><Plus className="h-4 w-4" /> Nouveau vol</Button>
+        <Button onClick={openNew}><Plus className="mr-1.5 h-4 w-4" /> Nouveau programme</Button>
       </header>
 
-      <div className="mt-6 rounded-2xl border bg-card">
-        {loading ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">Chargement…</div>
-        ) : programs.length === 0 ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">Aucun programme.</div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs text-muted-foreground">
-              <tr className="border-b">
-                <th className="p-3">Titre</th>
-                <th className="p-3">Trajet</th>
-                <th className="p-3">Départ</th>
-                <th className="p-3">Prix</th>
-                <th className="p-3">Places</th>
-                <th className="p-3">Statut</th>
-                <th className="p-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {programs.map((p) => (
-                <tr key={p.id} className="border-b last:border-0">
-                  <td className="p-3 font-semibold">{p.title}<div className="text-xs text-muted-foreground">{p.airline_name} {p.flight_number}</div></td>
-                  <td className="p-3">{p.origin} → {p.destination}</td>
-                  <td className="p-3">{p.departure_at ? new Date(p.departure_at).toLocaleString("fr-FR") : "—"}</td>
-                  <td className="p-3">{Number(p.price).toLocaleString("fr-FR")} FCFA</td>
-                  <td className="p-3">{p.seats_available}/{p.seats_total}</td>
-                  <td className="p-3">
-                    <span className={`rounded-full px-2 py-0.5 text-xs ${p.is_active && p.status === "active" ? "bg-green-500/10 text-green-600" : "bg-muted"}`}>
-                      {p.is_active ? p.status : "inactif"}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right">
-                    <Button size="sm" variant="ghost" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => remove(p)}><Trash2 className="h-4 w-4" /></Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {loading ? (
+        <div className="mt-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      ) : programs.length === 0 ? (
+        <p className="mt-10 text-center text-sm text-muted-foreground">Aucun programme de vol.</p>
+      ) : (
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
+          {programs.map((p) => (
+            <div key={p.id} className="rounded-2xl border bg-card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold">
+                    {agencies.find((a) => a.id === p.agency_id)?.name ?? "Compagnie"}
+                  </p>
+                  <p className="truncate text-sm text-muted-foreground">{p.origin} → {p.destination}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {fmtDate(p.month_start)} — {fmtDate(p.month_end)}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <Button size="icon" variant="ghost" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => remove(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-base font-extrabold text-primary">À partir de {FCFA(p.price_from)}</span>
+                <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold">
+                  {PROGRAM_STATUS_LABEL[p.status] ?? p.status}{p.is_active ? "" : " · masqué"}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing.id ? "Modifier le vol" : "Nouveau vol"}</DialogTitle></DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label>Agence</Label>
-              <Select value={editing.agency_id ?? ""} onValueChange={(v) => setEditing({ ...editing, agency_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Choisir…" /></SelectTrigger>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing.id ? "Modifier le programme" : "Nouveau programme de vol"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div>
+              <Label>Compagnie aérienne</Label>
+              <Select value={editing.agency_id ?? ""} onValueChange={(v) => setEditing((e) => ({ ...e, agency_id: v }))}>
+                <SelectTrigger><SelectValue placeholder="Sélectionner une compagnie" /></SelectTrigger>
                 <SelectContent>
                   {agencies.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {agencies.length === 0 && (
+                <p className="mt-1 text-xs text-destructive">
+                  Aucune compagnie enregistrée. Ajoutez-en une dans « Agences partenaires » (catégorie Avion).
+                </p>
+              )}
             </div>
-            <div className="sm:col-span-2"><Label>Titre</Label>
-              <Input value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} /></div>
-            <div><Label>Compagnie</Label>
-              <Input value={editing.airline_name ?? ""} onChange={(e) => setEditing({ ...editing, airline_name: e.target.value })} /></div>
-            <div><Label>N° vol</Label>
-              <Input value={editing.flight_number ?? ""} onChange={(e) => setEditing({ ...editing, flight_number: e.target.value })} /></div>
-            <div><Label>Origine</Label>
-              <Input value={editing.origin ?? ""} onChange={(e) => setEditing({ ...editing, origin: e.target.value })} /></div>
-            <div><Label>Destination</Label>
-              <Input value={editing.destination ?? ""} onChange={(e) => setEditing({ ...editing, destination: e.target.value })} /></div>
-            <div><Label>Départ</Label>
-              <Input type="datetime-local" value={(editing.departure_at as any) ?? ""} onChange={(e) => setEditing({ ...editing, departure_at: e.target.value as any })} /></div>
-            <div><Label>Arrivée</Label>
-              <Input type="datetime-local" value={(editing.arrival_at as any) ?? ""} onChange={(e) => setEditing({ ...editing, arrival_at: e.target.value as any })} /></div>
-            <div><Label>Prix (FCFA)</Label>
-              <Input type="number" value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} /></div>
-            <div><Label>Frais de service (FCFA)</Label>
-              <Input type="number" value={editing.service_fee ?? 0} onChange={(e) => setEditing({ ...editing, service_fee: Number(e.target.value) })} /></div>
-            <div><Label>Places totales</Label>
-              <Input type="number" value={editing.seats_total ?? 0} onChange={(e) => setEditing({ ...editing, seats_total: Number(e.target.value) })} /></div>
-            <div><Label>Classe</Label>
-              <Input value={editing.class ?? ""} onChange={(e) => setEditing({ ...editing, class: e.target.value })} /></div>
-            <div className="sm:col-span-2"><Label>Description</Label>
-              <Textarea value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>
-            <div className="sm:col-span-2 flex items-center gap-3">
-              <Switch checked={editing.is_active ?? true} onCheckedChange={(v) => setEditing({ ...editing, is_active: v })} />
-              <span className="text-sm">Actif (visible côté client)</span>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Départ (ville / aéroport)</Label>
+                <Input value={editing.origin ?? ""} onChange={(e) => setEditing((s) => ({ ...s, origin: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Arrivée (ville / aéroport)</Label>
+                <Input value={editing.destination ?? ""} onChange={(e) => setEditing((s) => ({ ...s, destination: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <Label>Prix « à partir de » (FCFA, indicatif)</Label>
+              <Input type="number" min={0} value={editing.price_from ?? 0}
+                onChange={(e) => setEditing((s) => ({ ...s, price_from: Number(e.target.value) }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Début de période</Label>
+                <Input type="date" value={editing.month_start ?? ""} onChange={(e) => setEditing((s) => ({ ...s, month_start: e.target.value }))} />
+              </div>
+              <div>
+                <Label>Fin de période</Label>
+                <Input type="date" value={editing.month_end ?? ""} onChange={(e) => setEditing((s) => ({ ...s, month_end: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <Label>Statut</Label>
+              <Select value={editing.status ?? "available"} onValueChange={(v) => setEditing((e) => ({ ...e, status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="available">Disponible</SelectItem>
+                  <SelectItem value="suspended">Suspendu</SelectItem>
+                  <SelectItem value="full">Complet</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Description / informations complémentaires</Label>
+              <Textarea rows={3} value={editing.description ?? ""} onChange={(e) => setEditing((s) => ({ ...s, description: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Conditions particulières (optionnel)</Label>
+              <Textarea rows={2} value={editing.conditions ?? ""} onChange={(e) => setEditing((s) => ({ ...s, conditions: e.target.value }))} />
+            </div>
+            <div className="flex items-center justify-between rounded-xl border p-3">
+              <Label className="mb-0">Visible par les clients</Label>
+              <Switch checked={editing.is_active ?? true} onCheckedChange={(v) => setEditing((s) => ({ ...s, is_active: v }))} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-            <Button onClick={save} disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin" />} Enregistrer</Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>Annuler</Button>
+            <Button onClick={save} disabled={saving}>
+              {saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Enregistrer
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
