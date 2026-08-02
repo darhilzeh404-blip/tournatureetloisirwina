@@ -29,15 +29,26 @@ function MyFlightRequests() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    const load = async (userId: string) => {
+      const { data } = await (supabase.from("flight_quote_requests") as any)
+        .select("*").eq("user_id", userId).order("created_at", { ascending: false });
+      setRows(((data as any) ?? []) as Req[]);
+    };
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) { setLoading(false); return; }
-      const { data } = await (supabase.from("flight_quote_requests") as any)
-        .select("*").eq("user_id", auth.user.id).order("created_at", { ascending: false });
-      setRows(((data as any) ?? []) as Req[]);
+      await load(auth.user.id);
       setLoading(false);
+      channel = supabase
+        .channel(`flight-requests-${auth.user.id}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "flight_quote_requests", filter: `user_id=eq.${auth.user.id}` },
+          () => { void load(auth.user!.id); })
+        .subscribe();
     })();
+    return () => { if (channel) supabase.removeChannel(channel); };
   }, []);
+
 
   return (
     <main className="min-h-screen bg-background">

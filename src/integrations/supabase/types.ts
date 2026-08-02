@@ -4480,6 +4480,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_self: {
+        Args: {
+          _link?: string
+          _message: string
+          _payload?: Json
+          _title: string
+          _type: string
+        }
+        Returns: undefined
+      }
       notify_user: {
         Args: {
           _link: string

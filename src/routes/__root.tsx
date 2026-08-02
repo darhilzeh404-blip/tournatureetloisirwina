@@ -8,6 +8,7 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { IosInstallBanner } from "@/components/IosInstallBanner";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { AppNotifications } from "@/components/AppNotifications";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { SplashScreen } from "@/components/SplashScreen";
 import { ActiveGroupRideGuard } from "@/components/ActiveGroupRideGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -167,6 +168,7 @@ function RootComponent() {
         <IosInstallBanner />
         <ConsentBanner />
         <AppNotifications />
+        <NotificationCenter />
         <ActiveGroupRideGuard />
         <AdminPreviewBanner />
         <Toaster position="top-right" richColors />
