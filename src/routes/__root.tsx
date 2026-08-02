@@ -168,6 +168,7 @@ function RootComponent() {
         <IosInstallBanner />
         <ConsentBanner />
         <AppNotifications />
+        <NotificationCenter />
         <ActiveGroupRideGuard />
         <AdminPreviewBanner />
         <Toaster position="top-right" richColors />
