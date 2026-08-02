@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { FCFA, fmtDate, fmtDateTime, isInfantAge, REQUEST_STATUS_CLASS, REQUEST_STATUS_LABEL } from "@/lib/flight-quotes";
+import { playNotificationSound } from "@/lib/notification-sound";
 
 export const Route = createFileRoute("/mes-demandes-vols/$requestId")({
   head: () => ({
