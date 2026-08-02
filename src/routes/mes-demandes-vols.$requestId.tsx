@@ -67,6 +67,16 @@ function RequestDetail() {
   };
   useEffect(() => { load(); }, [requestId]);
 
+  // Statut en temps réel (offre reçue, paiement, billet émis, annulation…)
+  useEffect(() => {
+    const channel = supabase
+      .channel(`flight-request-${requestId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "flight_quote_requests", filter: `id=eq.${requestId}` }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "flight_quote_offers", filter: `request_id=eq.${requestId}` }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [requestId]);
+
   useEffect(() => {
     if (!req || savedPax.length > 0 || pax.length > 0) return;
     if (req.status !== "paid" && req.status !== "ticket_issued") return;
@@ -82,10 +92,10 @@ function RequestDetail() {
     setBusy(true);
     const { data, error } = await (supabase.rpc as any)("respond_flight_offer", { _request_id: requestId, _accept: accept });
     setBusy(false);
-    if (error) { toast.error(mapError(error.message)); await load(); return; }
-    if (data === "expired") toast.error("Cette offre a expiré.");
-    else if (accept) toast.success("Offre acceptée — procédez au paiement.");
-    else toast.success("Offre refusée, la réservation est annulée.");
+    if (error) { playNotificationSound("error"); toast.error(mapError(error.message)); await load(); return; }
+    if (data === "expired") { playNotificationSound("error"); toast.error("Cette offre a expiré."); }
+    else if (accept) { playNotificationSound("success"); toast.success("Offre acceptée — procédez au paiement."); }
+    else { playNotificationSound("info"); toast.success("Offre refusée, la réservation est annulée."); }
     load();
   };
 
@@ -93,10 +103,23 @@ function RequestDetail() {
     setBusy(true);
     const { error } = await (supabase.rpc as any)("pay_flight_quote_with_wallet", { _request_id: requestId });
     setBusy(false);
-    if (error) { toast.error(mapError(error.message)); await load(); return; }
+    if (error) {
+      playNotificationSound("error");
+      toast.error(mapError(error.message));
+      await (supabase.rpc as any)("notify_self", {
+        _type: "flight_payment_failed",
+        _title: "Paiement échoué",
+        _message: mapError(error.message),
+        _link: `/mes-demandes-vols/${requestId}`,
+      });
+      await load();
+      return;
+    }
+    playNotificationSound("success");
     toast.success("Paiement confirmé");
     load();
   };
+
 
   const copyContact = (i: number) => {
     setPax((list) => list.map((p, idx) => idx === i || idx === 0 ? p : {
