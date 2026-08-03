@@ -81,7 +81,7 @@ function Pills<T extends string | number>({
   );
 }
 
-function MovingPage() {
+export function MovingPage() {
   const navigate = useNavigate();
   const { user, isLoading, isAuthenticated } = useAuth();
 
