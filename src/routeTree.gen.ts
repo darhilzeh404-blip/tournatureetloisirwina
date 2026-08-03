@@ -46,6 +46,7 @@ import { Route as VtcIndexRouteImport } from './routes/vtc.index'
 import { Route as VolsIndexRouteImport } from './routes/vols.index'
 import { Route as MesDemandesVolsIndexRouteImport } from './routes/mes-demandes-vols.index'
 import { Route as DeplacementGroupeIndexRouteImport } from './routes/deplacement-groupe.index'
+import { Route as DemenagementIndexRouteImport } from './routes/demenagement.index'
 import { Route as BilletsIndexRouteImport } from './routes/billets.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as WalletRechargerRouteImport } from './routes/wallet.recharger'
@@ -281,6 +282,11 @@ const DeplacementGroupeIndexRoute = DeplacementGroupeIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DeplacementGroupeRoute,
+} as any)
+const DemenagementIndexRoute = DemenagementIndexRouteImport.update({
+  id: '/demenagement/',
+  path: '/demenagement/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BilletsIndexRoute = BilletsIndexRouteImport.update({
   id: '/',
@@ -611,6 +617,7 @@ export interface FileRoutesByFullPath {
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
   '/billets/': typeof BilletsIndexRoute
+  '/demenagement/': typeof DemenagementIndexRoute
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
   '/mes-demandes-vols/': typeof MesDemandesVolsIndexRoute
   '/vols/': typeof VolsIndexRoute
@@ -696,6 +703,7 @@ export interface FileRoutesByTo {
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin': typeof AdminIndexRoute
   '/billets': typeof BilletsIndexRoute
+  '/demenagement': typeof DemenagementIndexRoute
   '/deplacement-groupe': typeof DeplacementGroupeIndexRoute
   '/mes-demandes-vols': typeof MesDemandesVolsIndexRoute
   '/vols': typeof VolsIndexRoute
@@ -786,6 +794,7 @@ export interface FileRoutesById {
   '/wallet/recharger': typeof WalletRechargerRoute
   '/admin/': typeof AdminIndexRoute
   '/billets/': typeof BilletsIndexRoute
+  '/demenagement/': typeof DemenagementIndexRoute
   '/deplacement-groupe/': typeof DeplacementGroupeIndexRoute
   '/mes-demandes-vols/': typeof MesDemandesVolsIndexRoute
   '/vols/': typeof VolsIndexRoute
@@ -877,6 +886,7 @@ export interface FileRouteTypes {
     | '/wallet/recharger'
     | '/admin/'
     | '/billets/'
+    | '/demenagement/'
     | '/deplacement-groupe/'
     | '/mes-demandes-vols/'
     | '/vols/'
@@ -962,6 +972,7 @@ export interface FileRouteTypes {
     | '/wallet/recharger'
     | '/admin'
     | '/billets'
+    | '/demenagement'
     | '/deplacement-groupe'
     | '/mes-demandes-vols'
     | '/vols'
@@ -1051,6 +1062,7 @@ export interface FileRouteTypes {
     | '/wallet/recharger'
     | '/admin/'
     | '/billets/'
+    | '/demenagement/'
     | '/deplacement-groupe/'
     | '/mes-demandes-vols/'
     | '/vols/'
@@ -1105,6 +1117,7 @@ export interface RootRouteChildren {
   MesDemandesVolsRequestIdRoute: typeof MesDemandesVolsRequestIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
+  DemenagementIndexRoute: typeof DemenagementIndexRoute
   MesDemandesVolsIndexRoute: typeof MesDemandesVolsIndexRoute
   VolsIndexRoute: typeof VolsIndexRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
@@ -1371,6 +1384,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/deplacement-groupe/'
       preLoaderRoute: typeof DeplacementGroupeIndexRouteImport
       parentRoute: typeof DeplacementGroupeRoute
+    }
+    '/demenagement/': {
+      id: '/demenagement/'
+      path: '/demenagement'
+      fullPath: '/demenagement/'
+      preLoaderRoute: typeof DemenagementIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/billets/': {
       id: '/billets/'
@@ -1920,6 +1940,7 @@ const rootRouteChildren: RootRouteChildren = {
   MesDemandesVolsRequestIdRoute: MesDemandesVolsRequestIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
+  DemenagementIndexRoute: DemenagementIndexRoute,
   MesDemandesVolsIndexRoute: MesDemandesVolsIndexRoute,
   VolsIndexRoute: VolsIndexRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
