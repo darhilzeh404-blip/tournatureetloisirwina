@@ -53,6 +53,7 @@ import { Route as WalletRechargerRouteImport } from './routes/wallet.recharger'
 import { Route as SuiviTripIdRouteImport } from './routes/suivi.$tripId'
 import { Route as PaiementReservationIdRouteImport } from './routes/paiement.$reservationId'
 import { Route as MesDemandesVolsRequestIdRouteImport } from './routes/mes-demandes-vols.$requestId'
+import { Route as DemenagementIdRouteImport } from './routes/demenagement.$id'
 import { Route as ChauffeurTripsRouteImport } from './routes/chauffeur.trips'
 import { Route as ChauffeurGroupesRouteImport } from './routes/chauffeur.groupes'
 import { Route as ChauffeurGainsRouteImport } from './routes/chauffeur.gains'
@@ -77,6 +78,7 @@ import { Route as AdminNaviresRouteImport } from './routes/admin/navires'
 import { Route as AdminGroupRidesRouteImport } from './routes/admin/group-rides'
 import { Route as AdminFraisRouteImport } from './routes/admin/frais'
 import { Route as AdminFideliteRouteImport } from './routes/admin/fidelite'
+import { Route as AdminDemenagementsRouteImport } from './routes/admin/demenagements'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCircuitsRouteImport } from './routes/admin/circuits'
@@ -319,6 +321,11 @@ const MesDemandesVolsRequestIdRoute =
     path: '/mes-demandes-vols/$requestId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DemenagementIdRoute = DemenagementIdRouteImport.update({
+  id: '/demenagement/$id',
+  path: '/demenagement/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChauffeurTripsRoute = ChauffeurTripsRouteImport.update({
   id: '/trips',
   path: '/trips',
@@ -437,6 +444,11 @@ const AdminFraisRoute = AdminFraisRouteImport.update({
 const AdminFideliteRoute = AdminFideliteRouteImport.update({
   id: '/fidelite',
   path: '/fidelite',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminDemenagementsRoute = AdminDemenagementsRouteImport.update({
+  id: '/demenagements',
+  path: '/demenagements',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
@@ -587,6 +599,7 @@ export interface FileRoutesByFullPath {
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/demenagements': typeof AdminDemenagementsRoute
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
@@ -611,6 +624,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
+  '/demenagement/$id': typeof DemenagementIdRoute
   '/mes-demandes-vols/$requestId': typeof MesDemandesVolsRequestIdRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -673,6 +687,7 @@ export interface FileRoutesByTo {
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/demenagements': typeof AdminDemenagementsRoute
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
@@ -697,6 +712,7 @@ export interface FileRoutesByTo {
   '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
+  '/demenagement/$id': typeof DemenagementIdRoute
   '/mes-demandes-vols/$requestId': typeof MesDemandesVolsRequestIdRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -764,6 +780,7 @@ export interface FileRoutesById {
   '/admin/circuits': typeof AdminCircuitsRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/demenagements': typeof AdminDemenagementsRoute
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
@@ -788,6 +805,7 @@ export interface FileRoutesById {
   '/chauffeur/gains': typeof ChauffeurGainsRoute
   '/chauffeur/groupes': typeof ChauffeurGroupesRoute
   '/chauffeur/trips': typeof ChauffeurTripsRoute
+  '/demenagement/$id': typeof DemenagementIdRoute
   '/mes-demandes-vols/$requestId': typeof MesDemandesVolsRequestIdRoute
   '/paiement/$reservationId': typeof PaiementReservationIdRoute
   '/suivi/$tripId': typeof SuiviTripIdRoute
@@ -856,6 +874,7 @@ export interface FileRouteTypes {
     | '/admin/circuits'
     | '/admin/clients'
     | '/admin/dashboard'
+    | '/admin/demenagements'
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
@@ -880,6 +899,7 @@ export interface FileRouteTypes {
     | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
+    | '/demenagement/$id'
     | '/mes-demandes-vols/$requestId'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -942,6 +962,7 @@ export interface FileRouteTypes {
     | '/admin/circuits'
     | '/admin/clients'
     | '/admin/dashboard'
+    | '/admin/demenagements'
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
@@ -966,6 +987,7 @@ export interface FileRouteTypes {
     | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
+    | '/demenagement/$id'
     | '/mes-demandes-vols/$requestId'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -1032,6 +1054,7 @@ export interface FileRouteTypes {
     | '/admin/circuits'
     | '/admin/clients'
     | '/admin/dashboard'
+    | '/admin/demenagements'
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
@@ -1056,6 +1079,7 @@ export interface FileRouteTypes {
     | '/chauffeur/gains'
     | '/chauffeur/groupes'
     | '/chauffeur/trips'
+    | '/demenagement/$id'
     | '/mes-demandes-vols/$requestId'
     | '/paiement/$reservationId'
     | '/suivi/$tripId'
@@ -1114,6 +1138,7 @@ export interface RootRouteChildren {
   WalletRoute: typeof WalletRouteWithChildren
   WinaCoinsRoute: typeof WinaCoinsRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
+  DemenagementIdRoute: typeof DemenagementIdRoute
   MesDemandesVolsRequestIdRoute: typeof MesDemandesVolsRequestIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
@@ -1434,6 +1459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MesDemandesVolsRequestIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demenagement/$id': {
+      id: '/demenagement/$id'
+      path: '/demenagement/$id'
+      fullPath: '/demenagement/$id'
+      preLoaderRoute: typeof DemenagementIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chauffeur/trips': {
       id: '/chauffeur/trips'
       path: '/trips'
@@ -1602,6 +1634,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFideliteRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/demenagements': {
+      id: '/admin/demenagements'
+      path: '/demenagements'
+      fullPath: '/admin/demenagements'
+      preLoaderRoute: typeof AdminDemenagementsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/dashboard'
@@ -1756,6 +1795,7 @@ interface AdminRouteRouteChildren {
   AdminCircuitsRoute: typeof AdminCircuitsRoute
   AdminClientsRoute: typeof AdminClientsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminDemenagementsRoute: typeof AdminDemenagementsRoute
   AdminFideliteRoute: typeof AdminFideliteRoute
   AdminFraisRoute: typeof AdminFraisRoute
   AdminGroupRidesRoute: typeof AdminGroupRidesRoute
@@ -1789,6 +1829,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminCircuitsRoute: AdminCircuitsRoute,
   AdminClientsRoute: AdminClientsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminDemenagementsRoute: AdminDemenagementsRoute,
   AdminFideliteRoute: AdminFideliteRoute,
   AdminFraisRoute: AdminFraisRoute,
   AdminGroupRidesRoute: AdminGroupRidesRoute,
@@ -1937,6 +1978,7 @@ const rootRouteChildren: RootRouteChildren = {
   WalletRoute: WalletRouteWithChildren,
   WinaCoinsRoute: WinaCoinsRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
+  DemenagementIdRoute: DemenagementIdRoute,
   MesDemandesVolsRequestIdRoute: MesDemandesVolsRequestIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
