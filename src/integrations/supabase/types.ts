@@ -1651,6 +1651,287 @@ export type Database = {
         }
         Relationships: []
       }
+      moving_quotes: {
+        Row: {
+          admin_note: string | null
+          client_message: string | null
+          conditions: string | null
+          created_at: string
+          created_by: string | null
+          details: string | null
+          id: string
+          price: number
+          request_id: string
+          responded_at: string | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          client_message?: string | null
+          conditions?: string | null
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          id?: string
+          price: number
+          request_id: string
+          responded_at?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          client_message?: string | null
+          conditions?: string | null
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          id?: string
+          price?: number
+          request_id?: string
+          responded_at?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moving_quotes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "moving_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moving_request_items: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          label: string
+          quantity: number
+          request_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          label: string
+          quantity?: number
+          request_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string
+          quantity?: number
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moving_request_items_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "moving_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moving_request_photos: {
+        Row: {
+          created_at: string
+          id: string
+          request_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          request_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          request_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moving_request_photos_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "moving_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moving_requests: {
+        Row: {
+          ac_dismount: boolean
+          ac_units: number
+          boxes_count: number
+          comment: string | null
+          created_at: string
+          desired_date: string
+          desired_time: string | null
+          email: string | null
+          from_address: string
+          from_commune: string | null
+          from_elevator: boolean
+          from_floor: string
+          from_lat: number | null
+          from_lng: number | null
+          from_quartier: string | null
+          full_name: string
+          housing_type: string
+          id: string
+          movers_count: number
+          packing: string
+          paid: boolean
+          paid_amount: number
+          paid_at: string | null
+          phone: string
+          reassembly: boolean
+          reference_code: string
+          service_type: string
+          status: string
+          to_address: string
+          to_commune: string | null
+          to_elevator: boolean
+          to_floor: string
+          to_lat: number | null
+          to_lng: number | null
+          to_quartier: string | null
+          updated_at: string
+          user_id: string
+          volume: string
+        }
+        Insert: {
+          ac_dismount?: boolean
+          ac_units?: number
+          boxes_count?: number
+          comment?: string | null
+          created_at?: string
+          desired_date: string
+          desired_time?: string | null
+          email?: string | null
+          from_address: string
+          from_commune?: string | null
+          from_elevator?: boolean
+          from_floor?: string
+          from_lat?: number | null
+          from_lng?: number | null
+          from_quartier?: string | null
+          full_name: string
+          housing_type: string
+          id?: string
+          movers_count?: number
+          packing?: string
+          paid?: boolean
+          paid_amount?: number
+          paid_at?: string | null
+          phone: string
+          reassembly?: boolean
+          reference_code?: string
+          service_type: string
+          status?: string
+          to_address: string
+          to_commune?: string | null
+          to_elevator?: boolean
+          to_floor?: string
+          to_lat?: number | null
+          to_lng?: number | null
+          to_quartier?: string | null
+          updated_at?: string
+          user_id: string
+          volume: string
+        }
+        Update: {
+          ac_dismount?: boolean
+          ac_units?: number
+          boxes_count?: number
+          comment?: string | null
+          created_at?: string
+          desired_date?: string
+          desired_time?: string | null
+          email?: string | null
+          from_address?: string
+          from_commune?: string | null
+          from_elevator?: boolean
+          from_floor?: string
+          from_lat?: number | null
+          from_lng?: number | null
+          from_quartier?: string | null
+          full_name?: string
+          housing_type?: string
+          id?: string
+          movers_count?: number
+          packing?: string
+          paid?: boolean
+          paid_amount?: number
+          paid_at?: string | null
+          phone?: string
+          reassembly?: boolean
+          reference_code?: string
+          service_type?: string
+          status?: string
+          to_address?: string
+          to_commune?: string | null
+          to_elevator?: boolean
+          to_floor?: string
+          to_lat?: number | null
+          to_lng?: number | null
+          to_quartier?: string | null
+          updated_at?: string
+          user_id?: string
+          volume?: string
+        }
+        Relationships: []
+      }
+      moving_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          note: string | null
+          request_id: string
+          status: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          request_id: string
+          status: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          request_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moving_status_history_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "moving_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           created_at: string
@@ -3563,6 +3844,30 @@ export type Database = {
         }
         Relationships: []
       }
+      vtc_relaunch_subscribers: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          phone: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       vtc_wallet_transactions: {
         Row: {
           amount_points: number
@@ -4508,6 +4813,13 @@ export type Database = {
           total_paid: number
         }[]
       }
+      pay_moving_quote_with_wallet: {
+        Args: { _quote_id: string }
+        Returns: {
+          new_balance: number
+          total_paid: number
+        }[]
+      }
       pay_partner_booking_with_wallet: {
         Args: { _booking_id: string }
         Returns: {
@@ -4570,6 +4882,10 @@ export type Database = {
       respond_flight_offer: {
         Args: { _accept: boolean; _request_id: string }
         Returns: string
+      }
+      respond_moving_quote: {
+        Args: { _action: string; _message?: string; _quote_id: string }
+        Returns: undefined
       }
       spend_vtc_points: {
         Args: {
