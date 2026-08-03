@@ -67,6 +67,7 @@ import { Route as AdminVolsRouteImport } from './routes/admin/vols'
 import { Route as AdminVehiculeTypesRouteImport } from './routes/admin/vehicule-types'
 import { Route as AdminUtilisateursRouteImport } from './routes/admin/utilisateurs'
 import { Route as AdminTripsRouteImport } from './routes/admin/trips'
+import { Route as AdminTransportScolaireRouteImport } from './routes/admin/transport-scolaire'
 import { Route as AdminTransportRouteImport } from './routes/admin/transport'
 import { Route as AdminTrainsRouteImport } from './routes/admin/trains'
 import { Route as AdminSuiviRouteImport } from './routes/admin/suivi'
@@ -292,9 +293,9 @@ const DeplacementGroupeIndexRoute = DeplacementGroupeIndexRouteImport.update({
   getParentRoute: () => DeplacementGroupeRoute,
 } as any)
 const DemenagementIndexRoute = DemenagementIndexRouteImport.update({
-  id: '/demenagement/',
-  path: '/demenagement/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => DemenagementRoute,
 } as any)
 const BilletsIndexRoute = BilletsIndexRouteImport.update({
   id: '/',
@@ -328,9 +329,9 @@ const MesDemandesVolsRequestIdRoute =
     getParentRoute: () => rootRouteImport,
   } as any)
 const DemenagementIdRoute = DemenagementIdRouteImport.update({
-  id: '/demenagement/$id',
-  path: '/demenagement/$id',
-  getParentRoute: () => rootRouteImport,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => DemenagementRoute,
 } as any)
 const ChauffeurTripsRoute = ChauffeurTripsRouteImport.update({
   id: '/trips',
@@ -390,6 +391,11 @@ const AdminUtilisateursRoute = AdminUtilisateursRouteImport.update({
 const AdminTripsRoute = AdminTripsRouteImport.update({
   id: '/trips',
   path: '/trips',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminTransportScolaireRoute = AdminTransportScolaireRouteImport.update({
+  id: '/transport-scolaire',
+  path: '/transport-scolaire',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminTransportRoute = AdminTransportRouteImport.update({
@@ -576,7 +582,7 @@ export interface FileRoutesByFullPath {
   '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
   '/course': typeof CourseRoute
-  '/demenagement': typeof DemenagementRoute
+  '/demenagement': typeof DemenagementRouteWithChildren
   '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
@@ -619,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/trains': typeof AdminTrainsRoute
   '/admin/transport': typeof AdminTransportRoute
+  '/admin/transport-scolaire': typeof AdminTransportScolaireRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
@@ -667,7 +674,6 @@ export interface FileRoutesByTo {
   '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
   '/course': typeof CourseRoute
-  '/demenagement': typeof DemenagementRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -708,6 +714,7 @@ export interface FileRoutesByTo {
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/trains': typeof AdminTrainsRoute
   '/admin/transport': typeof AdminTransportRoute
+  '/admin/transport-scolaire': typeof AdminTransportScolaireRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
@@ -759,7 +766,7 @@ export interface FileRoutesById {
   '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
   '/course': typeof CourseRoute
-  '/demenagement': typeof DemenagementRoute
+  '/demenagement': typeof DemenagementRouteWithChildren
   '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
@@ -802,6 +809,7 @@ export interface FileRoutesById {
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/trains': typeof AdminTrainsRoute
   '/admin/transport': typeof AdminTransportRoute
+  '/admin/transport-scolaire': typeof AdminTransportScolaireRoute
   '/admin/trips': typeof AdminTripsRoute
   '/admin/utilisateurs': typeof AdminUtilisateursRoute
   '/admin/vehicule-types': typeof AdminVehiculeTypesRoute
@@ -897,6 +905,7 @@ export interface FileRouteTypes {
     | '/admin/suivi'
     | '/admin/trains'
     | '/admin/transport'
+    | '/admin/transport-scolaire'
     | '/admin/trips'
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
@@ -945,7 +954,6 @@ export interface FileRouteTypes {
     | '/confidentialite'
     | '/connexion'
     | '/course'
-    | '/demenagement'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -986,6 +994,7 @@ export interface FileRouteTypes {
     | '/admin/suivi'
     | '/admin/trains'
     | '/admin/transport'
+    | '/admin/transport-scolaire'
     | '/admin/trips'
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
@@ -1079,6 +1088,7 @@ export interface FileRouteTypes {
     | '/admin/suivi'
     | '/admin/trains'
     | '/admin/transport'
+    | '/admin/transport-scolaire'
     | '/admin/trips'
     | '/admin/utilisateurs'
     | '/admin/vehicule-types'
@@ -1130,7 +1140,7 @@ export interface RootRouteChildren {
   ConfidentialiteRoute: typeof ConfidentialiteRoute
   ConnexionRoute: typeof ConnexionRoute
   CourseRoute: typeof CourseRoute
-  DemenagementRoute: typeof DemenagementRoute
+  DemenagementRoute: typeof DemenagementRouteWithChildren
   DeplacementGroupeRoute: typeof DeplacementGroupeRouteWithChildren
   EspaceClientRoute: typeof EspaceClientRoute
   GerantRoute: typeof GerantRoute
@@ -1151,11 +1161,9 @@ export interface RootRouteChildren {
   WalletRoute: typeof WalletRouteWithChildren
   WinaCoinsRoute: typeof WinaCoinsRoute
   AnnoncesIdRoute: typeof AnnoncesIdRoute
-  DemenagementIdRoute: typeof DemenagementIdRoute
   MesDemandesVolsRequestIdRoute: typeof MesDemandesVolsRequestIdRoute
   PaiementReservationIdRoute: typeof PaiementReservationIdRoute
   SuiviTripIdRoute: typeof SuiviTripIdRoute
-  DemenagementIndexRoute: typeof DemenagementIndexRoute
   MesDemandesVolsIndexRoute: typeof MesDemandesVolsIndexRoute
   VolsIndexRoute: typeof VolsIndexRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
@@ -1432,10 +1440,10 @@ declare module '@tanstack/react-router' {
     }
     '/demenagement/': {
       id: '/demenagement/'
-      path: '/demenagement'
+      path: '/'
       fullPath: '/demenagement/'
       preLoaderRoute: typeof DemenagementIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemenagementRoute
     }
     '/billets/': {
       id: '/billets/'
@@ -1481,10 +1489,10 @@ declare module '@tanstack/react-router' {
     }
     '/demenagement/$id': {
       id: '/demenagement/$id'
-      path: '/demenagement/$id'
+      path: '/$id'
       fullPath: '/demenagement/$id'
       preLoaderRoute: typeof DemenagementIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DemenagementRoute
     }
     '/chauffeur/trips': {
       id: '/chauffeur/trips'
@@ -1568,6 +1576,13 @@ declare module '@tanstack/react-router' {
       path: '/trips'
       fullPath: '/admin/trips'
       preLoaderRoute: typeof AdminTripsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/transport-scolaire': {
+      id: '/admin/transport-scolaire'
+      path: '/transport-scolaire'
+      fullPath: '/admin/transport-scolaire'
+      preLoaderRoute: typeof AdminTransportScolaireRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/transport': {
@@ -1828,6 +1843,7 @@ interface AdminRouteRouteChildren {
   AdminSuiviRoute: typeof AdminSuiviRoute
   AdminTrainsRoute: typeof AdminTrainsRoute
   AdminTransportRoute: typeof AdminTransportRoute
+  AdminTransportScolaireRoute: typeof AdminTransportScolaireRoute
   AdminTripsRoute: typeof AdminTripsRoute
   AdminUtilisateursRoute: typeof AdminUtilisateursRoute
   AdminVehiculeTypesRoute: typeof AdminVehiculeTypesRoute
@@ -1862,6 +1878,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminSuiviRoute: AdminSuiviRoute,
   AdminTrainsRoute: AdminTrainsRoute,
   AdminTransportRoute: AdminTransportRoute,
+  AdminTransportScolaireRoute: AdminTransportScolaireRoute,
   AdminTripsRoute: AdminTripsRoute,
   AdminUtilisateursRoute: AdminUtilisateursRoute,
   AdminVehiculeTypesRoute: AdminVehiculeTypesRoute,
@@ -1927,6 +1944,20 @@ const CircuitsRouteWithChildren = CircuitsRoute._addFileChildren(
   CircuitsRouteChildren,
 )
 
+interface DemenagementRouteChildren {
+  DemenagementIdRoute: typeof DemenagementIdRoute
+  DemenagementIndexRoute: typeof DemenagementIndexRoute
+}
+
+const DemenagementRouteChildren: DemenagementRouteChildren = {
+  DemenagementIdRoute: DemenagementIdRoute,
+  DemenagementIndexRoute: DemenagementIndexRoute,
+}
+
+const DemenagementRouteWithChildren = DemenagementRoute._addFileChildren(
+  DemenagementRouteChildren,
+)
+
 interface DeplacementGroupeRouteChildren {
   DeplacementGroupeIndexRoute: typeof DeplacementGroupeIndexRoute
   DeplacementGroupeWaitingRideIdRoute: typeof DeplacementGroupeWaitingRideIdRoute
@@ -1978,7 +2009,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfidentialiteRoute: ConfidentialiteRoute,
   ConnexionRoute: ConnexionRoute,
   CourseRoute: CourseRoute,
-  DemenagementRoute: DemenagementRoute,
+  DemenagementRoute: DemenagementRouteWithChildren,
   DeplacementGroupeRoute: DeplacementGroupeRouteWithChildren,
   EspaceClientRoute: EspaceClientRoute,
   GerantRoute: GerantRoute,
@@ -1999,11 +2030,9 @@ const rootRouteChildren: RootRouteChildren = {
   WalletRoute: WalletRouteWithChildren,
   WinaCoinsRoute: WinaCoinsRoute,
   AnnoncesIdRoute: AnnoncesIdRoute,
-  DemenagementIdRoute: DemenagementIdRoute,
   MesDemandesVolsRequestIdRoute: MesDemandesVolsRequestIdRoute,
   PaiementReservationIdRoute: PaiementReservationIdRoute,
   SuiviTripIdRoute: SuiviTripIdRoute,
-  DemenagementIndexRoute: DemenagementIndexRoute,
   MesDemandesVolsIndexRoute: MesDemandesVolsIndexRoute,
   VolsIndexRoute: VolsIndexRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
