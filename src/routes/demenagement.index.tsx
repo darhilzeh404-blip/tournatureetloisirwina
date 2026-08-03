@@ -122,6 +122,7 @@ function MovingPage() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [sent, setSent] = useState(false);
   const [myRequests, setMyRequests] = useState<MovingRequest[]>([]);
 
@@ -164,13 +165,21 @@ function MovingPage() {
 
   const addPhotos = (files: FileList | null) => {
     if (!files) return;
-    const incoming = Array.from(files);
+    const incoming = Array.from(files).filter((file) => file.type.startsWith("image/"));
+    if (incoming.length === 0) {
+      toast.error("Sélectionnez uniquement des fichiers image.");
+      return;
+    }
     const room = MAX_MOVING_PHOTOS - photos.length;
     if (room <= 0) {
       toast.error(`Maximum ${MAX_MOVING_PHOTOS} photos.`);
       return;
     }
-    setPhotos([...photos, ...incoming.slice(0, room)]);
+    const selected = incoming.slice(0, room);
+    setPhotos([...photos, ...selected]);
+    if (selected.length < incoming.length) {
+      toast.message(`Vous pouvez ajouter jusqu'à ${MAX_MOVING_PHOTOS} photos au total.`);
+    }
   };
 
   const validate = (): string | null => {
@@ -190,6 +199,7 @@ function MovingPage() {
     if (err) { toast.error(err); return; }
 
     setSubmitting(true);
+    setUploadingPhotos(photos.length > 0);
     try {
       const db = supabase as unknown as { from: (t: string) => any };
       const { data: inserted, error } = await db.from("moving_requests").insert({
@@ -238,10 +248,14 @@ function MovingPage() {
         const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${user.id}/${requestId}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage.from("moving-photos").upload(path, file, {
-          cacheControl: "3600", upsert: false,
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type || "image/jpeg",
         });
         if (!upErr) {
           await db.from("moving_request_photos").insert({ request_id: requestId, storage_path: path });
+        } else {
+          console.error("[moving photo upload]", upErr);
         }
       }
 
@@ -254,6 +268,7 @@ function MovingPage() {
       toast.error("Envoi impossible. Vérifiez les champs et réessayez.");
     } finally {
       setSubmitting(false);
+      setUploadingPhotos(false);
     }
   };
 
@@ -293,7 +308,7 @@ function MovingPage() {
     <div className="pb-24">
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/15 via-accent/10 to-transparent px-5 pb-8 pt-10">
         <div className="mx-auto flex max-w-3xl items-center gap-4">
-          <img src={truck3d} alt="Déménagement" className="h-20 w-20 object-contain drop-shadow-lg"
+          <img src={truck3d} alt="Illustration 3D de camion de déménagement" className="h-20 w-20 object-contain drop-shadow-lg"
             loading="lazy" width={512} height={512} />
           <div>
             <h1 className="text-2xl font-bold">Réserver un déménagement</h1>
@@ -384,15 +399,15 @@ function MovingPage() {
           </div>
         </Section>
 
-        <Section icon={CalendarDays} title="Date souhaitée">
+        <Section icon={CalendarDays} title="Date">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <Label htmlFor="date">Date *</Label>
+              <Label htmlFor="date">Date souhaitée *</Label>
               <Input id="date" type="date" value={date} min={new Date().toISOString().slice(0, 10)}
                 onChange={(e) => setDate(e.target.value)} required className="mt-1.5" />
             </div>
             <div>
-              <Label htmlFor="time">Heure</Label>
+              <Label htmlFor="time">Heure souhaitée</Label>
               <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="mt-1.5" />
             </div>
           </div>
@@ -429,17 +444,12 @@ function MovingPage() {
           <Pills ariaLabel="Volume" options={VOLUMES} value={volume} onChange={setVolume} />
         </Section>
 
-        <Section icon={Building2} title="Étages & ascenseur">
+        <Section icon={Building2} title="Nombre d'étages">
           <div className="space-y-4">
             <div>
               <Label className="text-xs text-muted-foreground">Départ</Label>
               <div className="mt-2">
                 <Pills ariaLabel="Étage départ" options={FLOORS.map((f) => ({ value: f, label: f }))} value={fromFloor} onChange={setFromFloor} />
-              </div>
-              <div className="mt-2">
-                <Pills ariaLabel="Ascenseur départ" value={fromElevator ? "oui" : "non"}
-                  onChange={(v) => setFromElevator(v === "oui")}
-                  options={[{ value: "oui", label: "Ascenseur : Oui" }, { value: "non", label: "Ascenseur : Non" }]} />
               </div>
             </div>
             <div>
@@ -447,10 +457,26 @@ function MovingPage() {
               <div className="mt-2">
                 <Pills ariaLabel="Étage arrivée" options={FLOORS.map((f) => ({ value: f, label: f }))} value={toFloor} onChange={setToFloor} />
               </div>
+            </div>
+          </div>
+        </Section>
+
+        <Section icon={Building2} title="Ascenseur">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label className="text-xs text-muted-foreground">Départ</Label>
+              <div className="mt-2">
+                <Pills ariaLabel="Ascenseur départ" value={fromElevator ? "oui" : "non"}
+                  onChange={(v) => setFromElevator(v === "oui")}
+                  options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]} />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Arrivée</Label>
               <div className="mt-2">
                 <Pills ariaLabel="Ascenseur arrivée" value={toElevator ? "oui" : "non"}
                   onChange={(v) => setToElevator(v === "oui")}
-                  options={[{ value: "oui", label: "Ascenseur : Oui" }, { value: "non", label: "Ascenseur : Non" }]} />
+                  options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]} />
               </div>
             </div>
           </div>
@@ -482,14 +508,12 @@ function MovingPage() {
               </label>
             ))}
           </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Remontage à destination</Label>
-            <div className="mt-2">
-              <Pills ariaLabel="Remontage" value={reassembly ? "oui" : "non"}
-                onChange={(v) => setReassembly(v === "oui")}
-                options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]} />
-            </div>
-          </div>
+        </Section>
+
+        <Section icon={Package} title="Remontage à destination">
+          <Pills ariaLabel="Remontage" value={reassembly ? "oui" : "non"}
+            onChange={(v) => setReassembly(v === "oui")}
+            options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]} />
         </Section>
 
         <Section icon={Package} title="Emballage">
@@ -514,13 +538,18 @@ function MovingPage() {
 
         <Section icon={Camera} title={`Photos (max ${MAX_MOVING_PHOTOS})`}>
           <p className="text-xs text-muted-foreground">
-            Photographiez vos meubles, cartons, électroménagers et objets fragiles pour un devis plus précis.
+            Autorisez jusqu&apos;à {MAX_MOVING_PHOTOS} photos HD. Le client peut photographier les meubles, cartons, électroménagers et objets fragiles pour un devis plus précis.
           </p>
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-5 text-sm font-semibold text-primary">
             <Camera className="h-4 w-4" /> Ajouter des photos
             <input type="file" accept="image/*" multiple capture="environment" className="hidden"
               onChange={(e) => { addPhotos(e.target.files); e.currentTarget.value = ""; }} />
           </label>
+          {uploadingPhotos && (
+            <div className="flex items-center gap-2 rounded-2xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">
+              <Loader2 className="h-4 w-4 animate-spin" /> Téléchargement des photos en cours…
+            </div>
+          )}
           {previews.length > 0 && (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
               {previews.map((src, i) => (
@@ -542,13 +571,16 @@ function MovingPage() {
             placeholder="Précisions utiles pour notre équipe…" />
         </Section>
 
-        <div className="rounded-2xl bg-muted/60 p-4 text-xs text-muted-foreground">
-          Aucun prix automatique n'est appliqué : notre équipe étudie votre dossier et vous envoie un devis personnalisé.
-        </div>
+        <Section icon={Package} title="Calcul du devis">
+          <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-4 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Aucun prix automatique ne sera affiché.</p>
+            <p className="mt-1">Après validation, une demande de devis sera créée et notre équipe vous répondra avec un devis personnalisé.</p>
+          </div>
+        </Section>
 
         <Button type="submit" disabled={submitting} className="h-12 w-full rounded-2xl text-base font-bold">
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : (
-            <>Envoyer ma demande <ArrowRight className="ml-2 h-4 w-4" /></>
+            <>Créer une demande de devis <ArrowRight className="ml-2 h-4 w-4" /></>
           )}
         </Button>
       </form>
