@@ -28,6 +28,7 @@ import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as GerantRouteImport } from './routes/gerant'
 import { Route as EspaceClientRouteImport } from './routes/espace-client'
 import { Route as DeplacementGroupeRouteImport } from './routes/deplacement-groupe'
+import { Route as DemenagementRouteImport } from './routes/demenagement'
 import { Route as CourseRouteImport } from './routes/course'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
@@ -193,6 +194,11 @@ const EspaceClientRoute = EspaceClientRouteImport.update({
 const DeplacementGroupeRoute = DeplacementGroupeRouteImport.update({
   id: '/deplacement-groupe',
   path: '/deplacement-groupe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemenagementRoute = DemenagementRouteImport.update({
+  id: '/demenagement',
+  path: '/demenagement',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CourseRoute = CourseRouteImport.update({
@@ -570,6 +576,7 @@ export interface FileRoutesByFullPath {
   '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
   '/course': typeof CourseRoute
+  '/demenagement': typeof DemenagementRoute
   '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
@@ -660,6 +667,7 @@ export interface FileRoutesByTo {
   '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
   '/course': typeof CourseRoute
+  '/demenagement': typeof DemenagementRoute
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
   '/inscription': typeof InscriptionRoute
@@ -751,6 +759,7 @@ export interface FileRoutesById {
   '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
   '/course': typeof CourseRoute
+  '/demenagement': typeof DemenagementRoute
   '/deplacement-groupe': typeof DeplacementGroupeRouteWithChildren
   '/espace-client': typeof EspaceClientRoute
   '/gerant': typeof GerantRoute
@@ -845,6 +854,7 @@ export interface FileRouteTypes {
     | '/confidentialite'
     | '/connexion'
     | '/course'
+    | '/demenagement'
     | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
@@ -935,6 +945,7 @@ export interface FileRouteTypes {
     | '/confidentialite'
     | '/connexion'
     | '/course'
+    | '/demenagement'
     | '/espace-client'
     | '/gerant'
     | '/inscription'
@@ -1025,6 +1036,7 @@ export interface FileRouteTypes {
     | '/confidentialite'
     | '/connexion'
     | '/course'
+    | '/demenagement'
     | '/deplacement-groupe'
     | '/espace-client'
     | '/gerant'
@@ -1118,6 +1130,7 @@ export interface RootRouteChildren {
   ConfidentialiteRoute: typeof ConfidentialiteRoute
   ConnexionRoute: typeof ConnexionRoute
   CourseRoute: typeof CourseRoute
+  DemenagementRoute: typeof DemenagementRoute
   DeplacementGroupeRoute: typeof DeplacementGroupeRouteWithChildren
   EspaceClientRoute: typeof EspaceClientRoute
   GerantRoute: typeof GerantRoute
@@ -1282,6 +1295,13 @@ declare module '@tanstack/react-router' {
       path: '/deplacement-groupe'
       fullPath: '/deplacement-groupe'
       preLoaderRoute: typeof DeplacementGroupeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demenagement': {
+      id: '/demenagement'
+      path: '/demenagement'
+      fullPath: '/demenagement'
+      preLoaderRoute: typeof DemenagementRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/course': {
@@ -1958,6 +1978,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfidentialiteRoute: ConfidentialiteRoute,
   ConnexionRoute: ConnexionRoute,
   CourseRoute: CourseRoute,
+  DemenagementRoute: DemenagementRoute,
   DeplacementGroupeRoute: DeplacementGroupeRouteWithChildren,
   EspaceClientRoute: EspaceClientRoute,
   GerantRoute: GerantRoute,

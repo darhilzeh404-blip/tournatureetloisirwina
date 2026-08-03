@@ -54,6 +54,7 @@ function AdminDashboard() {
 
   const quickLinks = [
     { to: "/admin/reservations", label: "Réservations" },
+    { to: "/admin/demenagements", label: "Déménagements" },
     { to: "/admin/paiements", label: "Paiements" },
     { to: "/admin/billets", label: "Billets" },
     { to: "/admin/vtc-chauffeurs", label: "VTC Chauffeurs" },

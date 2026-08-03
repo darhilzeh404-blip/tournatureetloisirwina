@@ -118,13 +118,14 @@ const STATUS_CONFIG: Record<ReservationStatus, { label: string; icon: React.Reac
   CANCELLED: { label: "Annulée", icon: <AlertCircle className="h-4 w-4" />, className: "bg-muted text-muted-foreground border-muted" },
 };
 
-const SERVICE_LABEL: Record<ServiceType, string> = {
+const SERVICE_LABEL: Record<string, string> = {
   TRANSPORT_SCOLAIRE: "Transport Scolaire",
   LOCATION_BUS: "Location de Bus",
   CIRCUIT_TOURISTIQUE: "Circuit Touristique",
   VTC: "Transfert privé VTC",
   BILLET: "Billet",
   LOCATION_CATALOGUE: "Location véhicule (catalogue)",
+  DEMENAGEMENT: "Déménagement",
 };
 
 function formatXAF(amount: number) {
@@ -167,6 +168,9 @@ function summarize(details: Record<string, unknown> | null, type: ServiceType): 
     const seats = d.places || d.seats;
     const event = d.evenement || d.event;
     return `${seats ? `Bus ${seats} places` : "Bus"}${event ? ` — ${event}` : ""}`;
+  }
+  if (type === "DEMENAGEMENT") {
+    return `${d.pickup_address ?? "Départ"} → ${d.destination_address ?? "Arrivée"}${d.volume_m3 ? ` · ${d.volume_m3} m³` : ""}`;
   }
   return SERVICE_LABEL[type];
 }

@@ -4954,6 +4954,7 @@ export type Database = {
         | "VTC"
         | "BILLET"
         | "LOCATION_CATALOGUE"
+        | "DEMENAGEMENT"
       vtc_category: "STANDARD" | "CONFORT" | "VIP"
       vtc_recharge_method:
         | "mobile_money"
@@ -5122,6 +5123,7 @@ export const Constants = {
         "VTC",
         "BILLET",
         "LOCATION_CATALOGUE",
+        "DEMENAGEMENT",
       ],
       vtc_category: ["STANDARD", "CONFORT", "VIP"],
       vtc_recharge_method: [

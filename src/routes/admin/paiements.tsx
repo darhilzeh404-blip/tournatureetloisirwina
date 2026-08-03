@@ -43,6 +43,7 @@ const SERVICE_LABEL: Record<string, string> = {
   CIRCUIT_TOURISTIQUE: "Circuit Touristique",
   VTC: "VTC",
   BILLET: "Billet",
+  DEMENAGEMENT: "Déménagement",
 };
 
 function formatXAF(n: number) {

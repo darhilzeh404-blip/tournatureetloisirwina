@@ -6,6 +6,7 @@ import {
   Loader2, MapPin, Navigation, Sparkles, Users, Zap, ArrowRight, Star,
   Search, AlertCircle, Timer, Radar,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
@@ -92,10 +93,58 @@ const WEDDING_FARES = {
   berline: { h12: 100_000, h24: 200_000, label: "Berline VIP" },
   suv:     { h12: 200_000, h24: 400_000, label: "SUV VIP" },
 } as const;
+const VTC_SLEEP_UNTIL = new Date(2026, 7, 14, 0, 0, 0);
+const VTC_SLEEP_LABEL = "jeudi 13 août 2026";
+
 type WeddingVehicle = keyof typeof WEDDING_FARES;
 type WeddingDuration = "h12" | "h24";
 
 type MainTab = "standard" | "confort" | "vip" | "mariage" | "covoiturage" | "gammes";
+
+function VtcSleepNotice({
+  open,
+  onOpenChange,
+  onNotify,
+  requesting,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onNotify: () => void;
+  requesting: boolean;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Service VTC temporairement indisponible</DialogTitle>
+          <DialogDescription>
+            Notre service VTC est en pause jusqu'au {VTC_SLEEP_LABEL}. Retrouvez-nous bientôt pour vos courses et mariages.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="mt-4 rounded-3xl border border-amber-300/60 bg-amber-50 p-4 text-sm text-amber-900">
+          <p>Vous pouvez demander à recevoir une notification lorsque le service reprendra.</p>
+        </div>
+        <DialogFooter className="mt-4 gap-2">
+          <button
+            type="button"
+            onClick={onNotify}
+            disabled={requesting}
+            className="inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {requesting ? "Activation en cours…" : "Recevoir un rappel"}
+          </button>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="inline-flex items-center justify-center rounded-2xl border border-input bg-background px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
+          >
+            Fermer
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const MAIN_TABS: {
   id: MainTab;
@@ -115,10 +164,47 @@ const MAIN_TABS: {
 
 function VtcPage() {
   const [tab, setTab] = useState<MainTab | null>(null);
+  const [showSleepModal, setShowSleepModal] = useState(false);
+  const [requestingNotification, setRequestingNotification] = useState(false);
+  const sleepActive = Date.now() < VTC_SLEEP_UNTIL.getTime();
 
+  useEffect(() => {
+    if (sleepActive) {
+      setShowSleepModal(true);
+    }
+  }, [sleepActive]);
+
+  const requestVtcResumeNotification = async () => {
+    setRequestingNotification(true);
+    try {
+      const permission = await requestNotificationPermission();
+      if (permission === "granted") {
+        await showAppNotification("Service VTC en pause", {
+          body: `Le service VTC reste indisponible jusqu'au ${VTC_SLEEP_LABEL}. Nous vous informerons dès sa reprise.`,
+          tag: "vtc-sleep",
+        });
+        toast.success("Notifications activées. Vous recevrez un rappel si possible.");
+      } else if (permission === "denied") {
+        toast.error("Notifications refusées. Activez-les dans votre navigateur pour recevoir un rappel.");
+      } else {
+        toast("Permission de notifications demandée. Activez-les pour recevoir un rappel.");
+      }
+    } catch (error) {
+      console.error("[VTC sleep] notification", error);
+      toast.error("Impossible d'activer les notifications.");
+    } finally {
+      setRequestingNotification(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/40 via-background to-background pb-32">
+      <VtcSleepNotice
+        open={showSleepModal}
+        onOpenChange={setShowSleepModal}
+        onNotify={requestVtcResumeNotification}
+        requesting={requestingNotification}
+      />
       {/* Header premium compact, glass, coins inférieurs arrondis */}
       <section className="relative overflow-hidden rounded-b-[28px] px-5 pb-6 pt-7 shadow-lg shadow-primary/20">
         <img
@@ -203,6 +289,7 @@ function VtcPage() {
         </div>
       </div>
 
+<<<<<<< HEAD
 
       <main className="mx-auto mt-6 max-w-6xl px-4">
 
@@ -219,24 +306,72 @@ function VtcPage() {
               <div className="rounded-3xl border border-dashed border-border/60 bg-card/70 p-8 text-center backdrop-blur-sm">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/15">
                   <Sparkles className="h-6 w-6 text-primary" />
+=======
+      <main className="mx-auto mt-4 max-w-3xl px-4">
+        {sleepActive ? (
+          <section className="rounded-3xl border border-amber-300/50 bg-amber-100/90 p-6 text-foreground shadow-sm">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 rounded-3xl bg-amber-200/80 p-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-300 text-amber-950">
+                  <Sparkles className="h-6 w-6" />
                 </div>
-                <h3 className="mt-3 text-[15px] font-extrabold text-foreground">Choisissez une catégorie</h3>
-                <p className="mt-1 text-[12.5px] text-muted-foreground">
-                  Sélectionnez un onglet ci-dessus pour commencer votre réservation.
-                </p>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-amber-950">VTC en pause temporaire</p>
+                  <p className="mt-1 text-sm text-amber-900/90">
+                    Nos services VTC sont temporairement suspendus jusqu'au {VTC_SLEEP_LABEL}. Merci de votre patience.
+                  </p>
+>>>>>>> 6925663 (Mise à jour de l'application)
+                </div>
               </div>
-            ) : tab === "mariage" ? (
-              <MariageFlow />
-            ) : tab === "covoiturage" ? (
-              <CovoiturageSection />
-            ) : tab === "gammes" ? (
-              <PremiumRangesSection onCourse={() => setTab("standard")} />
-            ) : (
-              <CourseFlow forcedCategory={tab} />
-            )}
-          </motion.div>
-        </AnimatePresence>
-
+              <div className="grid gap-4 sm:grid-cols-[1.5fr_1fr]">
+                <div className="rounded-3xl border border-border/70 bg-card/80 p-5">
+                  <p className="text-sm text-muted-foreground">
+                    Vous pouvez revenir plus tard ou réserver un autre service depuis votre espace client.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={requestVtcResumeNotification}
+                  disabled={requestingNotification}
+                  className="inline-flex h-12 items-center justify-center rounded-2xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {requestingNotification ? "Activation en cours…" : "Recevoir un rappel"}
+                </button>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tab ?? "none"}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              className="space-y-2.5"
+            >
+              {tab === null ? (
+                <div className="rounded-3xl border border-dashed border-border/60 bg-card/70 p-8 text-center backdrop-blur-sm">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/15">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="mt-3 text-[15px] font-extrabold text-foreground">Choisissez une catégorie</h3>
+                  <p className="mt-1 text-[12.5px] text-muted-foreground">
+                    Sélectionnez un onglet ci-dessus pour commencer votre réservation.
+                  </p>
+                </div>
+              ) : tab === "mariage" ? (
+                <MariageFlow />
+              ) : tab === "covoiturage" ? (
+                <CovoiturageSection />
+              ) : tab === "gammes" ? (
+                <PremiumRangesSection onCourse={() => setTab("standard")} />
+              ) : (
+                <CourseFlow forcedCategory={tab} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        )}
       </main>
 
       <ClientNav />

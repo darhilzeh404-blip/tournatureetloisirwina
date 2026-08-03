@@ -161,6 +161,13 @@ function EspaceClient() {
       tint: "from-primary/15 to-accent/10"
     },
     {
+      to: "/demenagement",
+      label: "Déménagement",
+      desc: "Service premium",
+      image: catalogue3d,
+      tint: "from-primary/20 to-accent/5"
+    },
+    {
       to: "/sites-touristiques",
       label: "Sites touristique",
       desc: "À découvrir",
