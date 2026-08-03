@@ -21,6 +21,7 @@ const adminLinks = [
   { to: "/admin/transport", label: "Module Transport", icon: RouteIcon, exact: false },
   { to: "/admin/trips", label: "Courses GPS", icon: Truck, exact: false },
   { to: "/admin/group-rides", label: "Courses Groupées", icon: UsersRound, exact: false },
+  { to: "/admin/demenagements", label: "Déménagements", icon: Truck, exact: false },
   { to: "/admin/vtc-chauffeurs", label: "VTC Chauffeurs", icon: Car, exact: false },
   { to: "/admin/vehicule-types", label: "Types véhicules", icon: Settings2, exact: false },
   { to: "/admin/catalogue", label: "Catalogue véhicules", icon: LayoutGrid, exact: false },
