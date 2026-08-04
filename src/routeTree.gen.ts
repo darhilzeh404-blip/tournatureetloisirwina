@@ -98,6 +98,7 @@ import { Route as BilletsTrainTicketIdRouteImport } from './routes/billets.train
 import { Route as BilletsNavireAgencyIdRouteImport } from './routes/billets.navire.$agencyId'
 import { Route as BilletsConfirmationReservationIdRouteImport } from './routes/billets.confirmation.$reservationId'
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
+import { Route as BilletsBusAgencyIdRouteImport } from './routes/billets.bus.$agencyId'
 import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
@@ -551,6 +552,11 @@ const BilletsCategorieSlugRoute = BilletsCategorieSlugRouteImport.update({
   path: '/categorie/$slug',
   getParentRoute: () => BilletsRoute,
 } as any)
+const BilletsBusAgencyIdRoute = BilletsBusAgencyIdRouteImport.update({
+  id: '/bus/$agencyId',
+  path: '/bus/$agencyId',
+  getParentRoute: () => BilletsRoute,
+} as any)
 const BilletsAgenceAgencyIdRoute = BilletsAgenceAgencyIdRouteImport.update({
   id: '/agence/$agencyId',
   path: '/agence/$agencyId',
@@ -653,6 +659,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
+  '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
   '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
@@ -742,6 +749,7 @@ export interface FileRoutesByTo {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
+  '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
   '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
@@ -837,6 +845,7 @@ export interface FileRoutesById {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
+  '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
   '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
@@ -933,6 +942,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/agence/$agencyId'
+    | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
     | '/billets/navire/$agencyId'
@@ -1022,6 +1032,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/agence/$agencyId'
+    | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
     | '/billets/navire/$agencyId'
@@ -1116,6 +1127,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/agence/$agencyId'
+    | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
     | '/billets/navire/$agencyId'
@@ -1795,6 +1807,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BilletsCategorieSlugRouteImport
       parentRoute: typeof BilletsRoute
     }
+    '/billets/bus/$agencyId': {
+      id: '/billets/bus/$agencyId'
+      path: '/bus/$agencyId'
+      fullPath: '/billets/bus/$agencyId'
+      preLoaderRoute: typeof BilletsBusAgencyIdRouteImport
+      parentRoute: typeof BilletsRoute
+    }
     '/billets/agence/$agencyId': {
       id: '/billets/agence/$agencyId'
       path: '/agence/$agencyId'
@@ -1897,6 +1916,7 @@ interface BilletsRouteChildren {
   BilletsIdRoute: typeof BilletsIdRoute
   BilletsIndexRoute: typeof BilletsIndexRoute
   BilletsAgenceAgencyIdRoute: typeof BilletsAgenceAgencyIdRoute
+  BilletsBusAgencyIdRoute: typeof BilletsBusAgencyIdRoute
   BilletsCategorieSlugRoute: typeof BilletsCategorieSlugRoute
   BilletsConfirmationReservationIdRoute: typeof BilletsConfirmationReservationIdRoute
   BilletsNavireAgencyIdRoute: typeof BilletsNavireAgencyIdRoute
@@ -1907,6 +1927,7 @@ const BilletsRouteChildren: BilletsRouteChildren = {
   BilletsIdRoute: BilletsIdRoute,
   BilletsIndexRoute: BilletsIndexRoute,
   BilletsAgenceAgencyIdRoute: BilletsAgenceAgencyIdRoute,
+  BilletsBusAgencyIdRoute: BilletsBusAgencyIdRoute,
   BilletsCategorieSlugRoute: BilletsCategorieSlugRoute,
   BilletsConfirmationReservationIdRoute: BilletsConfirmationReservationIdRoute,
   BilletsNavireAgencyIdRoute: BilletsNavireAgencyIdRoute,
