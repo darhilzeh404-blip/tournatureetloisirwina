@@ -14,6 +14,7 @@ import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as VtcRouteImport } from './routes/vtc'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
 import { Route as TransportPublicRouteImport } from './routes/transport-public'
+import { Route as TransportFuneraireRouteImport } from './routes/transport-funeraire'
 import { Route as TransportExtraScolaireRouteImport } from './routes/transport-extra-scolaire'
 import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as SupportRouteImport } from './routes/support'
@@ -34,6 +35,7 @@ import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as ConditionsRouteImport } from './routes/conditions'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as ColisRouteImport } from './routes/colis'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
 import { Route as ChauffeurRouteImport } from './routes/chauffeur'
@@ -98,6 +100,7 @@ import { Route as BilletsTrainTicketIdRouteImport } from './routes/billets.train
 import { Route as BilletsNavireAgencyIdRouteImport } from './routes/billets.navire.$agencyId'
 import { Route as BilletsConfirmationReservationIdRouteImport } from './routes/billets.confirmation.$reservationId'
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
+import { Route as BilletsBusAgencyIdRouteImport } from './routes/billets.bus.$agencyId'
 import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
@@ -125,6 +128,11 @@ const TransportScolaireRoute = TransportScolaireRouteImport.update({
 const TransportPublicRoute = TransportPublicRouteImport.update({
   id: '/transport-public',
   path: '/transport-public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransportFuneraireRoute = TransportFuneraireRouteImport.update({
+  id: '/transport-funeraire',
+  path: '/transport-funeraire',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransportExtraScolaireRoute = TransportExtraScolaireRouteImport.update({
@@ -225,6 +233,11 @@ const ConditionsRoute = ConditionsRouteImport.update({
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ColisRoute = ColisRouteImport.update({
+  id: '/colis',
+  path: '/colis',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CircuitsRoute = CircuitsRouteImport.update({
@@ -551,6 +564,11 @@ const BilletsCategorieSlugRoute = BilletsCategorieSlugRouteImport.update({
   path: '/categorie/$slug',
   getParentRoute: () => BilletsRoute,
 } as any)
+const BilletsBusAgencyIdRoute = BilletsBusAgencyIdRouteImport.update({
+  id: '/bus/$agencyId',
+  path: '/bus/$agencyId',
+  getParentRoute: () => BilletsRoute,
+} as any)
 const BilletsAgenceAgencyIdRoute = BilletsAgenceAgencyIdRouteImport.update({
   id: '/agence/$agencyId',
   path: '/agence/$agencyId',
@@ -577,6 +595,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
+  '/colis': typeof ColisRoute
   '/compare': typeof CompareRoute
   '/conditions': typeof ConditionsRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -597,6 +616,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
+  '/transport-funeraire': typeof TransportFuneraireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
@@ -653,6 +673,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
+  '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
   '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
@@ -669,6 +690,7 @@ export interface FileRoutesByTo {
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
+  '/colis': typeof ColisRoute
   '/compare': typeof CompareRoute
   '/conditions': typeof ConditionsRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -687,6 +709,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
+  '/transport-funeraire': typeof TransportFuneraireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/wallet': typeof WalletRouteWithChildren
@@ -742,6 +765,7 @@ export interface FileRoutesByTo {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
+  '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
   '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
@@ -761,6 +785,7 @@ export interface FileRoutesById {
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
+  '/colis': typeof ColisRoute
   '/compare': typeof CompareRoute
   '/conditions': typeof ConditionsRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -781,6 +806,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
+  '/transport-funeraire': typeof TransportFuneraireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
@@ -837,6 +863,7 @@ export interface FileRoutesById {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
+  '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
   '/billets/confirmation/$reservationId': typeof BilletsConfirmationReservationIdRoute
   '/billets/navire/$agencyId': typeof BilletsNavireAgencyIdRoute
@@ -857,6 +884,7 @@ export interface FileRouteTypes {
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
+    | '/colis'
     | '/compare'
     | '/conditions'
     | '/confidentialite'
@@ -877,6 +905,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
+    | '/transport-funeraire'
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
@@ -933,6 +962,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/agence/$agencyId'
+    | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
     | '/billets/navire/$agencyId'
@@ -949,6 +979,7 @@ export interface FileRouteTypes {
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
+    | '/colis'
     | '/compare'
     | '/conditions'
     | '/confidentialite'
@@ -967,6 +998,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
+    | '/transport-funeraire'
     | '/transport-public'
     | '/transport-scolaire'
     | '/wallet'
@@ -1022,6 +1054,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/agence/$agencyId'
+    | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
     | '/billets/navire/$agencyId'
@@ -1040,6 +1073,7 @@ export interface FileRouteTypes {
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
+    | '/colis'
     | '/compare'
     | '/conditions'
     | '/confidentialite'
@@ -1060,6 +1094,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
+    | '/transport-funeraire'
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
@@ -1116,6 +1151,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/billets/agence/$agencyId'
+    | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
     | '/billets/confirmation/$reservationId'
     | '/billets/navire/$agencyId'
@@ -1135,6 +1171,7 @@ export interface RootRouteChildren {
   ChauffeurRoute: typeof ChauffeurRouteWithChildren
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
+  ColisRoute: typeof ColisRoute
   CompareRoute: typeof CompareRoute
   ConditionsRoute: typeof ConditionsRoute
   ConfidentialiteRoute: typeof ConfidentialiteRoute
@@ -1155,6 +1192,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TarifsRoute: typeof TarifsRoute
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
+  TransportFuneraireRoute: typeof TransportFuneraireRoute
   TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
   VtcRoute: typeof VtcRouteWithChildren
@@ -1205,6 +1243,13 @@ declare module '@tanstack/react-router' {
       path: '/transport-public'
       fullPath: '/transport-public'
       preLoaderRoute: typeof TransportPublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transport-funeraire': {
+      id: '/transport-funeraire'
+      path: '/transport-funeraire'
+      fullPath: '/transport-funeraire'
+      preLoaderRoute: typeof TransportFuneraireRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transport-extra-scolaire': {
@@ -1345,6 +1390,13 @@ declare module '@tanstack/react-router' {
       path: '/compare'
       fullPath: '/compare'
       preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/colis': {
+      id: '/colis'
+      path: '/colis'
+      fullPath: '/colis'
+      preLoaderRoute: typeof ColisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/circuits': {
@@ -1795,6 +1847,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BilletsCategorieSlugRouteImport
       parentRoute: typeof BilletsRoute
     }
+    '/billets/bus/$agencyId': {
+      id: '/billets/bus/$agencyId'
+      path: '/bus/$agencyId'
+      fullPath: '/billets/bus/$agencyId'
+      preLoaderRoute: typeof BilletsBusAgencyIdRouteImport
+      parentRoute: typeof BilletsRoute
+    }
     '/billets/agence/$agencyId': {
       id: '/billets/agence/$agencyId'
       path: '/agence/$agencyId'
@@ -1897,6 +1956,7 @@ interface BilletsRouteChildren {
   BilletsIdRoute: typeof BilletsIdRoute
   BilletsIndexRoute: typeof BilletsIndexRoute
   BilletsAgenceAgencyIdRoute: typeof BilletsAgenceAgencyIdRoute
+  BilletsBusAgencyIdRoute: typeof BilletsBusAgencyIdRoute
   BilletsCategorieSlugRoute: typeof BilletsCategorieSlugRoute
   BilletsConfirmationReservationIdRoute: typeof BilletsConfirmationReservationIdRoute
   BilletsNavireAgencyIdRoute: typeof BilletsNavireAgencyIdRoute
@@ -1907,6 +1967,7 @@ const BilletsRouteChildren: BilletsRouteChildren = {
   BilletsIdRoute: BilletsIdRoute,
   BilletsIndexRoute: BilletsIndexRoute,
   BilletsAgenceAgencyIdRoute: BilletsAgenceAgencyIdRoute,
+  BilletsBusAgencyIdRoute: BilletsBusAgencyIdRoute,
   BilletsCategorieSlugRoute: BilletsCategorieSlugRoute,
   BilletsConfirmationReservationIdRoute: BilletsConfirmationReservationIdRoute,
   BilletsNavireAgencyIdRoute: BilletsNavireAgencyIdRoute,
@@ -2004,6 +2065,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeurRoute: ChauffeurRouteWithChildren,
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
+  ColisRoute: ColisRoute,
   CompareRoute: CompareRoute,
   ConditionsRoute: ConditionsRoute,
   ConfidentialiteRoute: ConfidentialiteRoute,
@@ -2024,6 +2086,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TarifsRoute: TarifsRoute,
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
+  TransportFuneraireRoute: TransportFuneraireRoute,
   TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
   VtcRoute: VtcRouteWithChildren,
