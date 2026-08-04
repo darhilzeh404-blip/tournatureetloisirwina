@@ -53,16 +53,16 @@ function AdminDashboard() {
   ];
 
   const quickLinks = [
-    { to: "/admin/reservations", label: "Réservations" },
-    { to: "/admin/demenagements", label: "Déménagements" },
-    { to: "/admin/paiements", label: "Paiements" },
-    { to: "/admin/billets", label: "Billets" },
-    { to: "/admin/vtc-chauffeurs", label: "VTC Chauffeurs" },
-    { to: "/admin/vehicule-types", label: "Types véhicules" },
-    { to: "/admin/circuits", label: "Circuits" },
-    { to: "/admin/transport-scolaire", label: "Transport scolaire" },
-  ] as const;
-
+  { to: "/admin/reservations", label: "Réservations" },
+  { to: "/admin/demenagements", label: "Déménagements" },
+  { to: "/admin/paiements", label: "Paiements" },
+  { to: "/admin/billets", label: "Billets" },
+  { to: "/admin/bus-billetterie", label: "Billetterie Bus" },
+  { to: "/admin/vtc-chauffeurs", label: "VTC Chauffeurs" },
+  { to: "/admin/vehicule-types", label: "Types véhicules" },
+  { to: "/admin/circuits", label: "Circuits" },
+  { to: "/admin/transport-scolaire", label: "Transport scolaire" },
+] as const;
   return (
     <div className="space-y-6 p-4 lg:p-8">
       <div>

@@ -31,6 +31,46 @@ function TransportScolaireAdmin() {
 
   const [tariffs, setTariffs] = useState<SchoolTariff[]>([]);
   const [activities, setActivities] = useState<ExtraActivity[]>([]);
+  type School = {
+  id:string;
+  name:string;
+  address:string | null;
+  is_active:boolean;
+};
+
+
+type SchoolRoute = {
+  id:string;
+  school_id:string;
+  name:string;
+  departure_point:string;
+  arrival_point:string;
+  departure_time:string;
+  return_time:string;
+  monthly_price:number;
+};
+
+
+const [schools,setSchools] = useState<School[]>([]);
+
+const [routes,setRoutes] = useState<SchoolRoute[]>([]);
+
+
+const [schoolForm,setSchoolForm] = useState({
+  name:"",
+  address:""
+});
+
+
+const [routeForm,setRouteForm] = useState({
+  school_id:"",
+  name:"",
+  departure_point:"",
+  arrival_point:"",
+  departure_time:"",
+  return_time:"",
+  monthly_price:0
+});
 
   const [loading, setLoading] = useState(true);
 
@@ -52,14 +92,59 @@ function TransportScolaireAdmin() {
 
 
 
-  useEffect(() => {
+ useEffect(() => {
 
-    loadTariffs();
-    loadActivities();
+  loadTariffs();
+  loadActivities();
+  loadSchools();
+  loadRoutes();
 
-  }, []);
+}, []);
+
+async function loadSchools(){
+
+  const { data, error } = await supabase
+    .from("schools")
+    .select("*")
+    .order("name");
 
 
+  if(error){
+
+    console.error(
+      "Erreur chargement établissements :",
+      error
+    );
+
+    return;
+  }
+
+
+  setSchools(data ?? []);
+
+}
+async function loadRoutes(){
+
+  const { data, error } = await supabase
+    .from("school_routes")
+    .select("*")
+    .order("name");
+
+
+  if(error){
+
+    console.error(
+      "Erreur chargement itinéraires :",
+      error
+    );
+
+    return;
+  }
+
+
+  setRoutes(data ?? []);
+
+}
 
 
 
@@ -81,14 +166,10 @@ function TransportScolaireAdmin() {
 
     }
 
-
     setTariffs((data ?? []) as SchoolTariff[]);
     setLoading(false);
 
   }
-
-
-
 
 
   async function loadActivities() {
@@ -111,6 +192,109 @@ function TransportScolaireAdmin() {
     setActivities((data ?? []) as unknown as ExtraActivity[]);
 
   }
+  async function createSchool(){
+
+  if(!schoolForm.name){
+
+    alert("Nom établissement obligatoire");
+    return;
+
+  }
+
+
+  const { error } = await supabase
+    .from("schools")
+    .insert({
+      name: schoolForm.name,
+      address: schoolForm.address
+    });
+
+
+  if(error){
+
+    console.error(error);
+    alert("Erreur création établissement");
+    return;
+
+  }
+
+
+  setSchoolForm({
+    name:"",
+    address:""
+  });
+
+
+  loadSchools();
+
+
+  alert("Etablissement créé");
+
+}
+async function createRoute(){
+
+  if(
+    !routeForm.school_id ||
+    !routeForm.name
+  ){
+
+    alert("Informations manquantes");
+    return;
+
+  }
+
+
+  const { error } = await supabase
+  .from("school_routes")
+  .insert({
+    school_id: routeForm.school_id,
+    name: routeForm.name,
+    departure_point: routeForm.departure_point,
+    arrival_point: routeForm.arrival_point,
+    departure_time: routeForm.departure_time,
+    return_time: routeForm.return_time,
+    monthly_price: Number(routeForm.monthly_price)
+  });
+
+
+if(error){
+
+  console.error(
+    "Erreur création itinéraire :",
+    error
+  );
+
+  alert("Erreur création itinéraire");
+  return;
+}
+
+
+  if(error){
+
+    console.error(error);
+    alert("Erreur création itinéraire");
+    return;
+
+  }
+
+
+  setRouteForm({
+    school_id:"",
+    name:"",
+    departure_point:"",
+    arrival_point:"",
+    departure_time:"",
+    return_time:"",
+    monthly_price:0
+  });
+
+
+  loadRoutes();
+
+
+  alert("Itinéraire créé");
+
+}
 
 
 

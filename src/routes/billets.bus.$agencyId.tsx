@@ -67,6 +67,14 @@ function BusAgencyPage() {
           .eq("id", agencyId).maybeSingle(),
         supabase.from("bus_trips" as any).select("*").eq("agency_id", agencyId)
           .eq("status", "available").gte("departure_date", toISODate(new Date()))
+.lte(
+  "departure_date",
+  toISODate(
+    new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000
+    )
+  )
+)
           .order("departure_date", { ascending: true }),
       ]);
       setAgency((ag as any) ?? null);

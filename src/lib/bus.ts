@@ -5,19 +5,31 @@ export const BUS_CATEGORY_SLUG = "bus";
 export type BusTrip = {
   id: string;
   agency_id: string;
+
   origin: string;
   destination: string;
   departure_date: string;
+
   seats_total: number;
   seats_available: number;
+
   status: "available" | "full" | "cancelled";
+
   price_adult: number;
   price_child_7_11: number;
   price_child_0_6: number;
+
   baggage_included_kg: number;
   baggage_extra_price_per_kg: number;
   baggage_conditions: string;
+
   notes: string;
+
+  partner_agencies?: {
+    name: string;
+    logo_url: string | null;
+  };
+
   created_at?: string;
 };
 
@@ -163,7 +175,27 @@ export const formatDateFR = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
 
 export async function fetchBusTrips(agencyId?: string): Promise<BusTrip[]> {
-  let q = supabase.from("bus_trips" as any).select("*").order("departure_date", { ascending: true });
+  let q = supabase.from("bus_trips" as any).select(`
+ id,
+ agency_id,
+ origin,
+ destination,
+ departure_date,
+ seats_total,
+ seats_available,
+ status,
+ price_adult,
+ price_child_7_11,
+ price_child_0_6,
+ baggage_included_kg,
+ baggage_extra_price_per_kg,
+ baggage_conditions,
+ notes,
+ partner_agencies(
+   name,
+   logo_url
+ )
+`).order("departure_date", { ascending: true });
   if (agencyId) q = q.eq("agency_id", agencyId);
   const { data, error } = await q;
   if (error) throw error;
