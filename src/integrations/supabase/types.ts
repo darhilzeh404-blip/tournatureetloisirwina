@@ -427,6 +427,399 @@ export type Database = {
           },
         ]
       }
+      bus_booking_passengers: {
+        Row: {
+          age: number
+          baggage_fee: number
+          baggage_kg: number
+          booking_id: string
+          created_at: string
+          extra_kg: number
+          fare_amount: number
+          fare_category: string
+          full_name: string
+          id: string
+          seat_number: string | null
+        }
+        Insert: {
+          age: number
+          baggage_fee?: number
+          baggage_kg?: number
+          booking_id: string
+          created_at?: string
+          extra_kg?: number
+          fare_amount?: number
+          fare_category: string
+          full_name: string
+          id?: string
+          seat_number?: string | null
+        }
+        Update: {
+          age?: number
+          baggage_fee?: number
+          baggage_kg?: number
+          booking_id?: string
+          created_at?: string
+          extra_kg?: number
+          fare_amount?: number
+          fare_category?: string
+          full_name?: string
+          id?: string
+          seat_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bus_booking_passengers_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bus_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bus_bookings: {
+        Row: {
+          admin_comment: string | null
+          baggage_total: number
+          booker_name: string
+          booker_phone: string
+          created_at: string
+          id: string
+          id_document_url: string
+          passengers_count: number
+          reference_code: string
+          reservation_id: string | null
+          status: string
+          tickets_total: number
+          total_amount: number
+          trip_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_comment?: string | null
+          baggage_total?: number
+          booker_name: string
+          booker_phone: string
+          created_at?: string
+          id?: string
+          id_document_url: string
+          passengers_count?: number
+          reference_code: string
+          reservation_id?: string | null
+          status?: string
+          tickets_total?: number
+          total_amount?: number
+          trip_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_comment?: string | null
+          baggage_total?: number
+          booker_name?: string
+          booker_phone?: string
+          created_at?: string
+          id?: string
+          id_document_url?: string
+          passengers_count?: number
+          reference_code?: string
+          reservation_id?: string | null
+          status?: string
+          tickets_total?: number
+          total_amount?: number
+          trip_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bus_bookings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "bus_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bus_final_tickets: {
+        Row: {
+          boarding_time: string
+          booking_id: string
+          created_at: string
+          departure_time: string
+          extra_info: string
+          id: string
+          issued_at: string
+          issued_by: string | null
+          seat_numbers: string
+          ticket_number: string
+          updated_at: string
+        }
+        Insert: {
+          boarding_time?: string
+          booking_id: string
+          created_at?: string
+          departure_time: string
+          extra_info?: string
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          seat_numbers?: string
+          ticket_number: string
+          updated_at?: string
+        }
+        Update: {
+          boarding_time?: string
+          booking_id?: string
+          created_at?: string
+          departure_time?: string
+          extra_info?: string
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          seat_numbers?: string
+          ticket_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bus_final_tickets_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bus_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bus_funeral_requests: {
+        Row: {
+          agency_id: string
+          comments: string
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          deceased_name: string
+          destination: string
+          documents: string
+          id: string
+          origin: string
+          quote_available_date: string | null
+          quote_conditions: string | null
+          quote_price: number | null
+          quoted_at: string | null
+          reference_code: string
+          reservation_id: string | null
+          status: string
+          transport_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency_id: string
+          comments?: string
+          contact_name: string
+          contact_phone: string
+          created_at?: string
+          deceased_name: string
+          destination: string
+          documents?: string
+          id?: string
+          origin: string
+          quote_available_date?: string | null
+          quote_conditions?: string | null
+          quote_price?: number | null
+          quoted_at?: string | null
+          reference_code?: string
+          reservation_id?: string | null
+          status?: string
+          transport_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency_id?: string
+          comments?: string
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string
+          deceased_name?: string
+          destination?: string
+          documents?: string
+          id?: string
+          origin?: string
+          quote_available_date?: string | null
+          quote_conditions?: string | null
+          quote_price?: number | null
+          quoted_at?: string | null
+          reference_code?: string
+          reservation_id?: string | null
+          status?: string
+          transport_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bus_funeral_requests_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bus_parcel_requests: {
+        Row: {
+          agency_id: string
+          created_at: string
+          description: string
+          destination: string
+          dimensions: string
+          id: string
+          origin: string
+          parcel_nature: string
+          quote_comment: string | null
+          quote_delay: string | null
+          quote_price: number | null
+          quoted_at: string | null
+          recipient_name: string
+          recipient_phone: string
+          reference_code: string
+          reservation_id: string | null
+          sender_name: string
+          sender_phone: string
+          status: string
+          updated_at: string
+          user_id: string
+          weight_kg: number
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          description?: string
+          destination: string
+          dimensions?: string
+          id?: string
+          origin: string
+          parcel_nature: string
+          quote_comment?: string | null
+          quote_delay?: string | null
+          quote_price?: number | null
+          quoted_at?: string | null
+          recipient_name: string
+          recipient_phone: string
+          reference_code?: string
+          reservation_id?: string | null
+          sender_name: string
+          sender_phone: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          weight_kg?: number
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          description?: string
+          destination?: string
+          dimensions?: string
+          id?: string
+          origin?: string
+          parcel_nature?: string
+          quote_comment?: string | null
+          quote_delay?: string | null
+          quote_price?: number | null
+          quoted_at?: string | null
+          recipient_name?: string
+          recipient_phone?: string
+          reference_code?: string
+          reservation_id?: string | null
+          sender_name?: string
+          sender_phone?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bus_parcel_requests_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bus_trips: {
+        Row: {
+          agency_id: string
+          baggage_conditions: string
+          baggage_extra_price_per_kg: number
+          baggage_included_kg: number
+          created_at: string
+          departure_date: string
+          destination: string
+          id: string
+          notes: string
+          origin: string
+          price_adult: number
+          price_child_0_6: number
+          price_child_7_11: number
+          seats_available: number
+          seats_total: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          baggage_conditions?: string
+          baggage_extra_price_per_kg?: number
+          baggage_included_kg?: number
+          created_at?: string
+          departure_date: string
+          destination: string
+          id?: string
+          notes?: string
+          origin: string
+          price_adult?: number
+          price_child_0_6?: number
+          price_child_7_11?: number
+          seats_available?: number
+          seats_total?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          baggage_conditions?: string
+          baggage_extra_price_per_kg?: number
+          baggage_included_kg?: number
+          created_at?: string
+          departure_date?: string
+          destination?: string
+          id?: string
+          notes?: string
+          origin?: string
+          price_adult?: number
+          price_child_0_6?: number
+          price_child_7_11?: number
+          seats_available?: number
+          seats_total?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bus_trips_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "partner_agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       buses: {
         Row: {
           chauffeur: string | null
@@ -1970,6 +2363,8 @@ export type Database = {
       }
       partner_agencies: {
         Row: {
+          accepts_funeral: boolean
+          accepts_parcel: boolean
           category: Database["public"]["Enums"]["agency_category"] | null
           commission_percent: number
           created_at: string
@@ -1985,6 +2380,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepts_funeral?: boolean
+          accepts_parcel?: boolean
           category?: Database["public"]["Enums"]["agency_category"] | null
           commission_percent?: number
           created_at?: string
@@ -2000,6 +2397,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepts_funeral?: boolean
+          accepts_parcel?: boolean
           category?: Database["public"]["Enums"]["agency_category"] | null
           commission_percent?: number
           created_at?: string
@@ -4520,6 +4919,20 @@ export type Database = {
           paid_via_wallet: boolean
         }[]
       }
+      create_bus_booking: {
+        Args: {
+          _booker_name: string
+          _booker_phone: string
+          _id_document_url: string
+          _passengers: Json
+          _trip_id: string
+        }
+        Returns: {
+          booking_id: string
+          reservation_id: string
+          total: number
+        }[]
+      }
       credit_driver_earnings: {
         Args: {
           _driver_id: string
@@ -4561,6 +4974,8 @@ export type Database = {
       get_all_partner_agencies_admin: {
         Args: never
         Returns: {
+          accepts_funeral: boolean
+          accepts_parcel: boolean
           category: Database["public"]["Enums"]["agency_category"] | null
           commission_percent: number
           created_at: string
@@ -4678,6 +5093,8 @@ export type Database = {
       get_my_partner_agency: {
         Args: never
         Returns: {
+          accepts_funeral: boolean
+          accepts_parcel: boolean
           category: Database["public"]["Enums"]["agency_category"] | null
           commission_percent: number
           created_at: string
@@ -4877,6 +5294,10 @@ export type Database = {
           _payment_reference: string
           _proof_url?: string
         }
+        Returns: string
+      }
+      respond_bus_quote: {
+        Args: { _accept: boolean; _kind: string; _request_id: string }
         Returns: string
       }
       respond_flight_offer: {
