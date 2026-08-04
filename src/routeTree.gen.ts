@@ -14,6 +14,7 @@ import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as VtcRouteImport } from './routes/vtc'
 import { Route as TransportScolaireRouteImport } from './routes/transport-scolaire'
 import { Route as TransportPublicRouteImport } from './routes/transport-public'
+import { Route as TransportFuneraireRouteImport } from './routes/transport-funeraire'
 import { Route as TransportExtraScolaireRouteImport } from './routes/transport-extra-scolaire'
 import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as SupportRouteImport } from './routes/support'
@@ -127,6 +128,11 @@ const TransportScolaireRoute = TransportScolaireRouteImport.update({
 const TransportPublicRoute = TransportPublicRouteImport.update({
   id: '/transport-public',
   path: '/transport-public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransportFuneraireRoute = TransportFuneraireRouteImport.update({
+  id: '/transport-funeraire',
+  path: '/transport-funeraire',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransportExtraScolaireRoute = TransportExtraScolaireRouteImport.update({
@@ -610,6 +616,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
+  '/transport-funeraire': typeof TransportFuneraireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
@@ -702,6 +709,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
+  '/transport-funeraire': typeof TransportFuneraireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/wallet': typeof WalletRouteWithChildren
@@ -798,6 +806,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/tarifs': typeof TarifsRoute
   '/transport-extra-scolaire': typeof TransportExtraScolaireRoute
+  '/transport-funeraire': typeof TransportFuneraireRoute
   '/transport-public': typeof TransportPublicRoute
   '/transport-scolaire': typeof TransportScolaireRoute
   '/vtc': typeof VtcRouteWithChildren
@@ -896,6 +905,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
+    | '/transport-funeraire'
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
@@ -988,6 +998,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
+    | '/transport-funeraire'
     | '/transport-public'
     | '/transport-scolaire'
     | '/wallet'
@@ -1083,6 +1094,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tarifs'
     | '/transport-extra-scolaire'
+    | '/transport-funeraire'
     | '/transport-public'
     | '/transport-scolaire'
     | '/vtc'
@@ -1180,6 +1192,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TarifsRoute: typeof TarifsRoute
   TransportExtraScolaireRoute: typeof TransportExtraScolaireRoute
+  TransportFuneraireRoute: typeof TransportFuneraireRoute
   TransportPublicRoute: typeof TransportPublicRoute
   TransportScolaireRoute: typeof TransportScolaireRoute
   VtcRoute: typeof VtcRouteWithChildren
@@ -1230,6 +1243,13 @@ declare module '@tanstack/react-router' {
       path: '/transport-public'
       fullPath: '/transport-public'
       preLoaderRoute: typeof TransportPublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transport-funeraire': {
+      id: '/transport-funeraire'
+      path: '/transport-funeraire'
+      fullPath: '/transport-funeraire'
+      preLoaderRoute: typeof TransportFuneraireRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transport-extra-scolaire': {
@@ -2066,6 +2086,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TarifsRoute: TarifsRoute,
   TransportExtraScolaireRoute: TransportExtraScolaireRoute,
+  TransportFuneraireRoute: TransportFuneraireRoute,
   TransportPublicRoute: TransportPublicRoute,
   TransportScolaireRoute: TransportScolaireRoute,
   VtcRoute: VtcRouteWithChildren,
