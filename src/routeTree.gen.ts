@@ -34,6 +34,7 @@ import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as ConditionsRouteImport } from './routes/conditions'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as ColisRouteImport } from './routes/colis'
 import { Route as CircuitsRouteImport } from './routes/circuits'
 import { Route as ChauffeurVtcRouteImport } from './routes/chauffeur-vtc'
 import { Route as ChauffeurRouteImport } from './routes/chauffeur'
@@ -226,6 +227,11 @@ const ConditionsRoute = ConditionsRouteImport.update({
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ColisRoute = ColisRouteImport.update({
+  id: '/colis',
+  path: '/colis',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CircuitsRoute = CircuitsRouteImport.update({
@@ -583,6 +589,7 @@ export interface FileRoutesByFullPath {
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
+  '/colis': typeof ColisRoute
   '/compare': typeof CompareRoute
   '/conditions': typeof ConditionsRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -676,6 +683,7 @@ export interface FileRoutesByTo {
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
+  '/colis': typeof ColisRoute
   '/compare': typeof CompareRoute
   '/conditions': typeof ConditionsRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -769,6 +777,7 @@ export interface FileRoutesById {
   '/chauffeur': typeof ChauffeurRouteWithChildren
   '/chauffeur-vtc': typeof ChauffeurVtcRoute
   '/circuits': typeof CircuitsRouteWithChildren
+  '/colis': typeof ColisRoute
   '/compare': typeof CompareRoute
   '/conditions': typeof ConditionsRoute
   '/confidentialite': typeof ConfidentialiteRoute
@@ -866,6 +875,7 @@ export interface FileRouteTypes {
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
+    | '/colis'
     | '/compare'
     | '/conditions'
     | '/confidentialite'
@@ -959,6 +969,7 @@ export interface FileRouteTypes {
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
+    | '/colis'
     | '/compare'
     | '/conditions'
     | '/confidentialite'
@@ -1051,6 +1062,7 @@ export interface FileRouteTypes {
     | '/chauffeur'
     | '/chauffeur-vtc'
     | '/circuits'
+    | '/colis'
     | '/compare'
     | '/conditions'
     | '/confidentialite'
@@ -1147,6 +1159,7 @@ export interface RootRouteChildren {
   ChauffeurRoute: typeof ChauffeurRouteWithChildren
   ChauffeurVtcRoute: typeof ChauffeurVtcRoute
   CircuitsRoute: typeof CircuitsRouteWithChildren
+  ColisRoute: typeof ColisRoute
   CompareRoute: typeof CompareRoute
   ConditionsRoute: typeof ConditionsRoute
   ConfidentialiteRoute: typeof ConfidentialiteRoute
@@ -1357,6 +1370,13 @@ declare module '@tanstack/react-router' {
       path: '/compare'
       fullPath: '/compare'
       preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/colis': {
+      id: '/colis'
+      path: '/colis'
+      fullPath: '/colis'
+      preLoaderRoute: typeof ColisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/circuits': {
@@ -2025,6 +2045,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChauffeurRoute: ChauffeurRouteWithChildren,
   ChauffeurVtcRoute: ChauffeurVtcRoute,
   CircuitsRoute: CircuitsRouteWithChildren,
+  ColisRoute: ColisRoute,
   CompareRoute: CompareRoute,
   ConditionsRoute: ConditionsRoute,
   ConfidentialiteRoute: ConfidentialiteRoute,
