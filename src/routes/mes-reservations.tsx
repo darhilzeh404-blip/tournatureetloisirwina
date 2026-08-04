@@ -132,7 +132,7 @@ function formatXAF(amount: number) {
   return new Intl.NumberFormat("fr-FR").format(amount) + " XAF";
 }
 
-function summarize(details: Record<string, unknown> | null, type: ServiceType): string {
+function summarize(details: Record<string, unknown> | null, type: ServiceType | string): string {
   if (!details) return SERVICE_LABEL[type];
   const d = details as Record<string, string | number | boolean>;
   if (type === "VTC") {

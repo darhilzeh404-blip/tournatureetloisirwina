@@ -20,7 +20,7 @@ type ExtraActivity = {
   id: string;
   code: string;
   label: string;
-  description: string | null;
+  description?: string | null;
   price: number;
   is_active: boolean;
 };
@@ -108,7 +108,7 @@ function TransportScolaireAdmin() {
     }
 
 
-    setActivities((data ?? []) as ExtraActivity[]);
+    setActivities((data ?? []) as unknown as ExtraActivity[]);
 
   }
 

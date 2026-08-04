@@ -70,7 +70,7 @@ function AdminDemenagements() {
         const { data, error } = await supabase
           .from("reservations")
           .select("id, user_id, reservation_date, status, total_amount, paid_amount, details, created_at")
-          .eq("service_type", "DEMENAGEMENT")
+          .eq("service_type", "DEMENAGEMENT" as never)
           .order("created_at", { ascending: false });
 
         if (error) throw error;
