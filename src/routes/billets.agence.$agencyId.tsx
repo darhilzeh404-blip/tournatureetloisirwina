@@ -81,6 +81,13 @@ function AgencyTicketsPage() {
         return;
       }
 
+      // Les agences bus suivent le nouveau parcours de billetterie bus
+      if (ag?.category === "bus") {
+        navigate({ to: "/billets/bus/$agencyId", params: { agencyId }, replace: true });
+        return;
+      }
+
+
 
       const tRes = await supabase
         .from("partner_tickets" as any)
