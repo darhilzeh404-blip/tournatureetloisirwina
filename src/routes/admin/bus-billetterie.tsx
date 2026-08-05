@@ -146,48 +146,37 @@ function BusBilletterieAdmin() {
     if (!form.agency_id) return toast.error("Choisissez une agence partenaire");
     if (!form.origin.trim()) return toast.error("Ville de départ obligatoire");
     if (!form.destination.trim()) return toast.error("Ville d'arrivée obligatoire");
-    if (dates.length === 0) return toast.error("Sélectionnez au moins une date dans le calendrier");
-    if (dates.length > 31) return toast.error("Maximum 31 dates par programmation");
+    if (!form.date_start || !form.date_end) return toast.error("Renseignez la période (date de début et de fin)");
+    if (form.date_end < form.date_start) return toast.error("La date de fin doit suivre la date de début");
     if (!form.seats_total || form.seats_total < 1) return toast.error("Nombre de places invalide");
     if (form.price_adult <= 0) return toast.error("Le tarif adulte est obligatoire");
 
     setSaving(true);
     try {
-      const isoDates = dates.map(toISODate);
-      const existing = new Set(
-        trips
-          .filter((t) => t.agency_id === form.agency_id && t.origin === form.origin.trim() && t.destination === form.destination.trim())
-          .map((t) => t.departure_date),
-      );
-      const rows = isoDates
-        .filter((d) => !existing.has(d))
-        .map((departure_date) => ({
-          agency_id: form.agency_id,
-          origin: form.origin.trim(),
-          destination: form.destination.trim(),
-          departure_date,
-          seats_total: form.seats_total,
-          seats_available: form.seats_total,
-          price_adult: form.price_adult,
-          price_child_7_11: form.price_child_7_11,
-          price_child_0_6: form.price_child_0_6,
-          baggage_included_kg: form.baggage_included_kg,
-          baggage_extra_price_per_kg: form.baggage_extra_price_per_kg,
-          baggage_conditions: form.baggage_conditions,
-          status: "available",
-        }));
+      const row = {
+        agency_id: form.agency_id,
+        origin: form.origin.trim(),
+        destination: form.destination.trim(),
+        bus_type: form.bus_type.trim(),
+        departure_date: form.date_start,
+        date_start: form.date_start,
+        date_end: form.date_end,
+        seats_total: form.seats_total,
+        seats_available: form.seats_total,
+        price_adult: form.price_adult,
+        price_child_7_11: form.price_child_7_11,
+        price_child_0_6: form.price_child_0_6,
+        baggage_included_kg: form.baggage_included_kg,
+        baggage_extra_price_per_kg: form.baggage_extra_price_per_kg,
+        baggage_conditions: form.baggage_conditions,
+        status: "available",
+      };
 
-      if (rows.length === 0) {
-        toast.info("Ces départs existent déjà pour cet itinéraire");
-        return;
-      }
-
-      const { error } = await supabase.from("bus_trips" as any).insert(rows as any);
+      const { error } = await supabase.from("bus_trips" as any).insert(row as any);
       if (error) throw error;
 
-      toast.success(`${rows.length} départ(s) créé(s)`);
+      toast.success("Voyage programmé sur la période choisie");
       setForm({ ...emptyForm });
-      setDates([]);
       await loadAll();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erreur lors de la création");
@@ -195,6 +184,27 @@ function BusBilletterieAdmin() {
       setSaving(false);
     }
   };
+
+  const openDocument = async (path: string) => {
+    const { data, error } = await supabase.storage.from("bus-documents").createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) return toast.error("Document introuvable");
+    window.open(data.signedUrl, "_blank", "noopener");
+  };
+
+  const decide = async (b: Booking, approve: boolean) => {
+    setSaving(true);
+    try {
+      await adminDecideBusBooking(b.id, approve, (decisionComment[b.id] ?? "").trim());
+      toast.success(approve ? "Demande validée" : "Demande refusée");
+      setDecisionComment((d) => ({ ...d, [b.id]: "" }));
+      await loadAll();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de la décision");
+    } finally {
+      setSaving(false);
+    }
+  };
+
 
   const updateTrip = async (id: string, patch: Partial<Trip>) => {
     const { error } = await supabase.from("bus_trips" as any).update(patch as any).eq("id", id);
