@@ -642,9 +642,126 @@ function TransportScolaireAdmin() {
                       <span className="font-bold">
                         {route.monthly_price.toLocaleString()} FCFA / mois
                       </span>
+                      <div className="flex gap-2">
+                        <button
+                          className="rounded border px-3 py-1 text-sm"
+                          onClick={() => setEditingRoute(route)}
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          className="rounded bg-destructive px-3 py-1 text-sm text-destructive-foreground"
+                          onClick={() => deleteRoute(route)}
+                        >
+                          Supprimer
+                        </button>
+                      </div>
                     </div>
                   </div>
+
+                  {editingRoute?.id === route.id && (
+                    <div className="mt-3 grid gap-3 border-t pt-3 md:grid-cols-2">
+                      <select
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.school_id}
+                        onChange={(e) =>
+                          setEditingRoute({ ...editingRoute, school_id: e.target.value })
+                        }
+                      >
+                        {schools.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.name}
+                        onChange={(e) =>
+                          setEditingRoute({ ...editingRoute, name: e.target.value })
+                        }
+                      />
+                      <input
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.departure_point}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            departure_point: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.arrival_point}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            arrival_point: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="time"
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.departure_time ?? ""}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            departure_time: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="time"
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.return_time ?? ""}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            return_time: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="number"
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.monthly_price}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            monthly_price: Number(e.target.value),
+                          })
+                        }
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          className="rounded bg-primary px-3 py-1 text-primary-foreground"
+                          onClick={() =>
+                            saveRoute(route, {
+                              school_id: editingRoute.school_id,
+                              name: editingRoute.name,
+                              departure_point: editingRoute.departure_point,
+                              arrival_point: editingRoute.arrival_point,
+                              departure_time: editingRoute.departure_time || null as never,
+                              return_time: editingRoute.return_time || null as never,
+                              monthly_price: Number(editingRoute.monthly_price),
+                            })
+                          }
+                        >
+                          Enregistrer
+                        </button>
+                        <button
+                          className="rounded border px-3 py-1"
+                          onClick={() => setEditingRoute(null)}
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
               );
             })}
           </div>
