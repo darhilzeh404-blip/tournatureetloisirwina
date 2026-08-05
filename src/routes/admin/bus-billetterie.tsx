@@ -70,6 +70,14 @@ type Booking = {
 
 type QuoteRow = Record<string, any>;
 
+/** Période par défaut : 1 mois complet à partir d'aujourd'hui. */
+const addMonths = (iso: string, months: number) => {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setMonth(d.getMonth() + months);
+  d.setDate(d.getDate() - 1);
+  return toISODate(d);
+};
+
 const emptyForm = {
   agency_id: "",
   origin: "",
