@@ -84,7 +84,7 @@ const emptyForm = {
   destination: "",
   bus_type: "",
   date_start: toISODate(new Date()),
-  date_end: toISODate(new Date()),
+  date_end: addMonths(toISODate(new Date()), 1),
   seats_total: 50,
   price_adult: 0,
   price_child_7_11: 0,
