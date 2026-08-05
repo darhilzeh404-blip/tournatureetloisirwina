@@ -6,12 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
 
 import { toast } from "sonner";
 import { Bus, CalendarDays, Loader2, Package, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
 
-import { fmtXAF, formatDateFR, toISODate, TRIP_STATUS_LABEL, BOOKING_STATUS_LABEL, QUOTE_STATUS_LABEL } from "@/lib/bus";
+import {
+  adminDecideBusBooking, adminIssueBusTicket, fmtXAF, formatDateFR, toISODate,
+  TRIP_STATUS_LABEL, BOOKING_STATUS_LABEL, QUOTE_STATUS_LABEL,
+} from "@/lib/bus";
+
 
 export const Route = createFileRoute("/admin/bus-billetterie")({
   head: () => ({
