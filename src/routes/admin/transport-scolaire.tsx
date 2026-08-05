@@ -150,7 +150,7 @@ function TransportScolaireAdmin() {
 
     if (error) {
       console.error(error);
-      alert("Erreur création établissement");
+      alert(`Erreur création établissement : ${error.message}`);
       return;
     }
 
@@ -182,7 +182,7 @@ function TransportScolaireAdmin() {
 
     if (error) {
       console.error("Erreur création itinéraire :", error);
-      alert("Erreur création itinéraire");
+      alert(`Erreur création itinéraire : ${error.message}`);
       return;
     }
 
