@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useShareClientPosition } from "@/hooks/use-client-position";
 import { ReservationListSkeleton } from "@/components/skeletons";
 import { TripEtaInline } from "@/components/TripEtaInline";
+import { BusBookingsList } from "@/components/BusBookingsList";
+
 import { ClientNav } from "@/components/ClientNav";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -429,7 +431,10 @@ function MesReservationsPage() {
         </div>
       )}
 
+      {user && <BusBookingsList userId={user.id} />}
+
       <div className="mt-8">
+
         {loading ? (
           <ReservationListSkeleton count={4} />
         ) : error ? (

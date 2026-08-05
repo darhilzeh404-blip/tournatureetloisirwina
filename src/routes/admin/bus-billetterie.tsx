@@ -31,6 +31,9 @@ type Trip = {
   origin: string;
   destination: string;
   departure_date: string;
+  date_start: string;
+  date_end: string;
+  bus_type: string;
   seats_total: number;
   seats_available: number;
   price_adult: number;
@@ -48,9 +51,17 @@ type Booking = {
   reference_code: string;
   booker_name: string;
   booker_phone: string;
+  id_document_url: string | null;
   passengers_count: number;
+  adults_count: number;
+  children_count: number;
+  infants_count: number;
+  baggage_count: number;
+  baggage_notes: string | null;
+  travel_date: string | null;
   total_amount: number;
   status: string;
+  admin_comment: string | null;
   created_at: string;
 };
 
@@ -60,6 +71,9 @@ const emptyForm = {
   agency_id: "",
   origin: "",
   destination: "",
+  bus_type: "",
+  date_start: toISODate(new Date()),
+  date_end: toISODate(new Date()),
   seats_total: 50,
   price_adult: 0,
   price_child_7_11: 0,
@@ -68,6 +82,7 @@ const emptyForm = {
   baggage_extra_price_per_kg: 1000,
   baggage_conditions: "",
 };
+
 
 type Tab = "trips" | "bookings" | "parcel" | "funeral";
 
@@ -462,17 +477,31 @@ function BusBilletterieAdmin() {
       {tab === "bookings" && (
         <Card>
           <CardContent className="space-y-3 p-5">
-            <h2 className="text-lg font-semibold">Réservations clients</h2>
-            {bookings.length === 0 && <p className="text-sm text-muted-foreground">Aucune réservation.</p>}
+            <h2 className="text-lg font-semibold">Demandes de réservation</h2>
+            {bookings.length === 0 && <p className="text-sm text-muted-foreground">Aucune demande.</p>}
             {bookings.map((b) => (
               <div key={b.id} className="rounded-xl border p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">{b.reference_code}</p>
                     <p className="text-sm">{tripLabel[b.trip_id] ?? "Voyage supprimé"}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {b.booker_name} · {b.booker_phone} · {b.passengers_count} passager(s)
+                    <p className="text-sm text-muted-foreground">
+                      Date de voyage : <b className="text-foreground">{b.travel_date ? formatDateFR(b.travel_date) : "—"}</b>
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      {b.booker_name} · {b.booker_phone}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {b.adults_count ?? 0} adulte(s) · {b.children_count ?? 0} enfant(s) · {b.infants_count ?? 0} bébé(s) ·{" "}
+                      {b.baggage_count ?? 0} bagage(s)
+                      {b.baggage_notes ? ` — ${b.baggage_notes}` : ""}
+                    </p>
+                    {b.id_document_url && (
+                      <button type="button" onClick={() => void openDocument(b.id_document_url!)}
+                        className="mt-1 text-xs font-semibold text-primary underline">
+                        Voir la pièce d'identité
+                      </button>
+                    )}
                   </div>
                   <div className="text-right text-sm">
                     <p className="font-semibold">{fmtXAF(b.total_amount)}</p>
@@ -480,13 +509,27 @@ function BusBilletterieAdmin() {
                   </div>
                 </div>
 
-                {b.status === "paid" && (
+                {b.admin_comment && (
+                  <p className="mt-2 rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">{b.admin_comment}</p>
+                )}
+
+                {b.status === "pending" && (
+                  <div className="mt-3 space-y-2 rounded-lg bg-muted/40 p-3">
+                    <Input placeholder="Commentaire pour le client (facultatif)"
+                      value={decisionComment[b.id] ?? ""}
+                      onChange={(e) => setDecisionComment((d) => ({ ...d, [b.id]: e.target.value.slice(0, 400) }))} />
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" disabled={saving} onClick={() => void decide(b, true)}>Valider la demande</Button>
+                      <Button size="sm" variant="destructive" disabled={saving} onClick={() => void decide(b, false)}>Refuser</Button>
+                    </div>
+                  </div>
+                )}
+
+                {(b.status === "validated" || b.status === "paid") && (
                   <div className="mt-3">
                     {ticketFor === b.id ? (
                       <div className="space-y-2 rounded-lg bg-muted/50 p-3">
                         <div className="grid gap-2 md:grid-cols-2">
-                          <Input placeholder="Numéro du billet (auto si vide)" value={ticketForm.ticket_number}
-                            onChange={(e) => setTicketForm({ ...ticketForm, ticket_number: e.target.value })} />
                           <Input placeholder="Heure de départ (ex. 07h30)" value={ticketForm.departure_time}
                             onChange={(e) => setTicketForm({ ...ticketForm, departure_time: e.target.value })} />
                           <Input placeholder="Heure de convocation (ex. 06h30)" value={ticketForm.boarding_time}
@@ -497,8 +540,8 @@ function BusBilletterieAdmin() {
                         <Textarea placeholder="Informations complémentaires" value={ticketForm.extra_info}
                           onChange={(e) => setTicketForm({ ...ticketForm, extra_info: e.target.value })} />
                         <div className="flex gap-2">
-                          <Button onClick={() => issueTicket(b)} disabled={saving}>
-                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Envoyer le billet
+                          <Button onClick={() => void issueTicket(b)} disabled={saving}>
+                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Générer le billet (QR Code)
                           </Button>
                           <Button variant="ghost" onClick={() => setTicketFor(null)}>Annuler</Button>
                         </div>
@@ -515,6 +558,7 @@ function BusBilletterieAdmin() {
           </CardContent>
         </Card>
       )}
+
 
       {(tab === "parcel" || tab === "funeral") && (
         <Card>

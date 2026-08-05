@@ -1,25 +1,24 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, BadgeCheck, Bus, Loader2, MapPin, Minus, Package, Plus, ShieldCheck, Upload, Users } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Bus, CalendarDays, CheckCircle2, Loader2, Minus, Package, Plus, ShieldCheck, Upload, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AgencyLogo } from "@/components/AgencyLogo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
-  computeBusQuote, createBusBooking, fmtXAF, formatDateFR, FARE_LABEL,
-  toISODate, uploadBusDocument, type BusPassengerInput, type BusTrip,
+  computeCounterTotal, createBusReservationRequest, fetchBusTrips, fmtXAF, formatDateFR,
+  toISODate, tripDateOptions, uploadBusDocument, type BusTrip,
 } from "@/lib/bus";
 
 export const Route = createFileRoute("/billets/bus/$agencyId")({
   head: () => ({
     meta: [
       { title: "Réserver un billet de bus — Wina Tour" },
-      { name: "description", content: "Choisissez votre trajet, votre date de départ et réservez vos billets de bus au Gabon avec Wina Tour." },
+      { name: "description", content: "Choisissez votre voyage, votre date de départ et envoyez votre demande de réservation de bus au Gabon." },
       { property: "og:title", content: "Réserver un billet de bus — Wina Tour" },
-      { property: "og:description", content: "Trajets, tarifs par tranche d'âge et bagages : réservez votre bus en quelques minutes." },
+      { property: "og:description", content: "Voyages programmés, tarifs par tranche d'âge et bagages : réservez votre bus en quelques minutes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -46,13 +45,13 @@ function BusAgencyPage() {
   const [trips, setTrips] = useState<BusTrip[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [origin, setOrigin] = useState("");
-  const [destination, setDestination] = useState("");
-  const [month, setMonth] = useState<Date>(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [trip, setTrip] = useState<BusTrip | null>(null);
-
-  const [passengers, setPassengers] = useState<BusPassengerInput[]>([{ full_name: "", age: "", baggage_kg: "0" }]);
+  const [travelDate, setTravelDate] = useState("");
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
+  const [baggageCount, setBaggageCount] = useState(0);
+  const [baggageNotes, setBaggageNotes] = useState("");
   const [bookerName, setBookerName] = useState("");
   const [bookerPhone, setBookerPhone] = useState("");
   const [idFile, setIdFile] = useState<File | null>(null);
@@ -61,58 +60,36 @@ function BusAgencyPage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [{ data: ag }, { data: tr }] = await Promise.all([
-        supabase.from("partner_agencies_public" as any)
-          .select("id, name, logo_url, description, is_verified, accepts_parcel, accepts_funeral")
-          .eq("id", agencyId).maybeSingle(),
-        supabase.from("bus_trips" as any).select("*").eq("agency_id", agencyId)
-          .eq("status", "available").gte("departure_date", toISODate(new Date()))
-.lte(
-  "departure_date",
-  toISODate(
-    new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000
-    )
-  )
-)
-          .order("departure_date", { ascending: true }),
-      ]);
-      setAgency((ag as any) ?? null);
-      setTrips(((tr as any) ?? []) as BusTrip[]);
-      setLoading(false);
+      try {
+        const [{ data: ag }, tr] = await Promise.all([
+          supabase.from("partner_agencies_public" as any)
+            .select("id, name, logo_url, description, is_verified, accepts_parcel, accepts_funeral")
+            .eq("id", agencyId).maybeSingle(),
+          fetchBusTrips(agencyId),
+        ]);
+        setAgency((ag as any) ?? null);
+        const today = toISODate(new Date());
+        setTrips(tr.filter((t) => t.status === "available" && t.seats_available > 0 && (t.date_end ?? t.departure_date) >= today));
+      } catch {
+        toast.error("Impossible de charger les voyages de cette agence.");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [agencyId]);
 
-  const origins = useMemo(() => Array.from(new Set(trips.map((t) => t.origin))).sort(), [trips]);
-  const destinations = useMemo(
-    () => Array.from(new Set(trips.filter((t) => !origin || t.origin === origin).map((t) => t.destination))).sort(),
-    [trips, origin],
+  const dateOptions = useMemo(() => (trip ? tripDateOptions(trip) : []), [trip]);
+  const totals = useMemo(
+    () => computeCounterTotal(trip, { adults, children, infants }, baggageCount),
+    [trip, adults, children, infants, baggageCount],
   );
+  const seats = adults + children;
 
-  const matching = useMemo(
-    () => trips.filter((t) => (!origin || t.origin === origin) && (!destination || t.destination === destination) && t.seats_available > 0),
-    [trips, origin, destination],
-  );
-
-  const availableDates = useMemo(() => new Set(matching.map((t) => t.departure_date)), [matching]);
-  const dayTrips = useMemo(
-    () => (selectedDate ? matching.filter((t) => t.departure_date === toISODate(selectedDate)) : []),
-    [matching, selectedDate],
-  );
-
-  const quote = useMemo(() => computeBusQuote(trip, passengers), [trip, passengers]);
-
-  const setPassengerCount = (n: number) => {
-    const count = Math.min(Math.max(n, 1), 20);
-    setPassengers((prev) => {
-      const next = [...prev];
-      while (next.length < count) next.push({ full_name: "", age: "", baggage_kg: "0" });
-      return next.slice(0, count);
-    });
+  const selectTrip = (t: BusTrip) => {
+    setTrip(t);
+    const opts = tripDateOptions(t);
+    setTravelDate(opts[0] ?? "");
   };
-
-  const updatePassenger = (i: number, patch: Partial<BusPassengerInput>) =>
-    setPassengers((prev) => prev.map((p, j) => (j === i ? { ...p, ...patch } : p)));
 
   const submit = async () => {
     if (!trip) return;
@@ -121,31 +98,32 @@ function BusAgencyPage() {
       navigate({ to: "/connexion" });
       return;
     }
+    if (!travelDate) return toast.error("Choisissez votre date de voyage");
+    if (seats < 1) return toast.error("Au moins un voyageur (adulte ou enfant) est requis");
+    if (seats > trip.seats_available) return toast.error("Places insuffisantes sur ce voyage");
     if (!bookerName.trim()) return toast.error("Nom complet du réservant requis");
     if (!bookerPhone.trim()) return toast.error("Numéro de téléphone requis");
     if (!idFile) return toast.error("La pièce d'identité est obligatoire");
-    if (passengers.some((p) => !p.full_name.trim())) return toast.error("Nom complet requis pour chaque passager");
-    if (passengers.some((p) => p.age === "" || Number(p.age) < 0)) return toast.error("Âge requis pour chaque passager");
-    if (passengers.length > trip.seats_available) return toast.error("Places insuffisantes sur ce voyage");
 
     setSubmitting(true);
     try {
       const path = await uploadBusDocument(user.id, idFile);
-      const res = await createBusBooking({
+      const res = await createBusReservationRequest({
         tripId: trip.id,
+        travelDate,
+        adults,
+        children,
+        infants,
+        baggageCount,
+        baggageNotes: baggageNotes.trim(),
         bookerName: bookerName.trim(),
         bookerPhone: bookerPhone.trim(),
         idDocumentUrl: path,
-        passengers: passengers.map((p) => ({
-          full_name: p.full_name.trim(),
-          age: Number(p.age),
-          baggage_kg: Number(p.baggage_kg) || 0,
-        })),
       });
-      toast.success("Réservation enregistrée — procédez au paiement");
-      navigate({ to: "/paiement/$reservationId", params: { reservationId: res.reservation_id } });
+      toast.success(`Demande envoyée — référence ${res.reference_code}`);
+      navigate({ to: "/mes-reservations" });
     } catch (e: any) {
-      toast.error(errorMessage(e?.message));
+      toast.error(e?.message ?? "Impossible d'envoyer la demande");
     } finally {
       setSubmitting(false);
     }
@@ -153,7 +131,7 @@ function BusAgencyPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-5">
+      <div className="mx-auto max-w-4xl px-4 py-8 pb-28 sm:px-5">
         <Link to="/billets/categorie/$slug" params={{ slug: "bus" }} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Retour aux agences
         </Link>
@@ -169,7 +147,7 @@ function BusAgencyPage() {
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">{matching.length} départ(s) disponible(s)</p>
+            <p className="text-sm text-muted-foreground">{trips.length} voyage(s) programmé(s)</p>
           </div>
         </header>
 
@@ -190,174 +168,122 @@ function BusAgencyPage() {
 
         {loading ? (
           <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        ) : trips.length === 0 ? (
+          <div className="mt-8 rounded-2xl border bg-card p-10 text-center">
+            <Bus className="mx-auto h-10 w-10 text-muted-foreground/40" />
+            <p className="mt-3 text-sm text-muted-foreground">Aucun voyage programmé pour le moment chez cette agence.</p>
+          </div>
         ) : (
           <>
-            {/* Étape 1 — trajet */}
+            {/* Étape 1 — voyage */}
             <section className="mt-6 rounded-2xl border bg-card p-4 sm:p-5">
-              <h2 className="text-sm font-bold">1. Votre trajet</h2>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="space-y-1">
-                  <span className="text-[11px] font-semibold text-muted-foreground">Ville de départ</span>
-                  <select value={origin} onChange={(e) => { setOrigin(e.target.value); setDestination(""); setTrip(null); }}
-                    className="h-10 w-full rounded-xl border bg-background px-3 text-sm">
-                    <option value="">Toutes les villes</option>
-                    {origins.map((o) => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </label>
-                <label className="space-y-1">
-                  <span className="text-[11px] font-semibold text-muted-foreground">Ville d'arrivée</span>
-                  <select value={destination} onChange={(e) => { setDestination(e.target.value); setTrip(null); }}
-                    className="h-10 w-full rounded-xl border bg-background px-3 text-sm">
-                    <option value="">Toutes les destinations</option>
-                    {destinations.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </label>
+              <h2 className="text-sm font-bold">1. Choisissez votre voyage</h2>
+              <div className="mt-3 grid gap-2">
+                {trips.map((t) => (
+                  <button key={t.id} type="button" onClick={() => selectTrip(t)}
+                    className={`rounded-xl border p-3 text-left transition ${trip?.id === t.id ? "border-primary bg-primary/5" : "hover:bg-secondary/50"}`}>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 text-sm font-bold">
+                        <Bus className="h-4 w-4 text-primary" /> {t.origin} → {t.destination}
+                      </span>
+                      <span className="text-xs font-semibold text-muted-foreground">{t.seats_available} place(s)</span>
+                    </div>
+                    <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      Du {formatDateFR(t.date_start ?? t.departure_date)} au {formatDateFR(t.date_end ?? t.departure_date)}
+                      {t.bus_type ? ` · ${t.bus_type}` : ""}
+                    </p>
+                    <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
+                      <span>Adulte : <b className="text-foreground">{fmtXAF(t.price_adult)}</b></span>
+                      <span>Enfant 7–11 : <b className="text-foreground">{fmtXAF(t.price_child_7_11)}</b></span>
+                      <span>Bébé 0–6 : <b className="text-foreground">{fmtXAF(t.price_child_0_6)}</b></span>
+                    </div>
+                  </button>
+                ))}
               </div>
             </section>
 
-            {/* Étape 2 — calendrier mensuel */}
-            <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
-              <h2 className="text-sm font-bold">2. Date de départ</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Seules les dates avec des départs disponibles sont sélectionnables.</p>
-              <div className="mt-3 flex justify-center">
-                <Calendar
-                  mode="single"
-                  month={month}
-                  onMonthChange={setMonth}
-                  selected={selectedDate}
-                  onSelect={(d) => { setSelectedDate(d ?? undefined); setTrip(null); }}
-                  disabled={(d) => !availableDates.has(toISODate(d))}
-                  modifiers={{ hasTrip: (d) => availableDates.has(toISODate(d)) }}
-                  modifiersClassNames={{ hasTrip: "bg-primary/10 font-bold text-primary rounded-md" }}
-                  className="pointer-events-auto rounded-xl border p-3"
-                />
-              </div>
-            </section>
-
-            {/* Étape 3 — voyages du jour */}
-            {selectedDate && (
-              <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
-                <h2 className="text-sm font-bold">3. Départs du {formatDateFR(toISODate(selectedDate))}</h2>
-                {dayTrips.length === 0 ? (
-                  <p className="mt-3 text-sm text-muted-foreground">Aucun départ disponible à cette date.</p>
-                ) : (
-                  <div className="mt-3 grid gap-2">
-                    {dayTrips.map((t) => (
-                      <button key={t.id} type="button" onClick={() => setTrip(t)}
-                        className={`rounded-xl border p-3 text-left transition ${trip?.id === t.id ? "border-primary bg-primary/5" : "hover:bg-secondary/50"}`}>
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="inline-flex items-center gap-1.5 text-sm font-bold">
-                            <Bus className="h-4 w-4 text-primary" /> {t.origin} → {t.destination}
-                          </span>
-                          <span className="text-xs font-semibold text-muted-foreground">
-                            {t.seats_available} place(s) restante(s)
-                          </span>
-                        </div>
-                        <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
-                          <span>Adulte : <b className="text-foreground">{fmtXAF(t.price_adult)}</b></span>
-                          <span>7–11 ans : <b className="text-foreground">{fmtXAF(t.price_child_7_11)}</b></span>
-                          <span>0–6 ans : <b className="text-foreground">{fmtXAF(t.price_child_0_6)}</b></span>
-                        </div>
-                        <p className="mt-2 text-[11px] text-muted-foreground">
-                          Bagage inclus : {t.baggage_included_kg} kg · {fmtXAF(t.baggage_extra_price_per_kg)} / kg supplémentaire
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <p className="mt-3 text-[11px] text-muted-foreground">
-                  L'heure de départ et l'heure de convocation vous seront communiquées par l'agence avec votre billet définitif.
-                </p>
-              </section>
-            )}
-
-            {/* Étape 4 — passagers */}
             {trip && (
-              <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="inline-flex items-center gap-2 text-sm font-bold"><Users className="h-4 w-4" /> 4. Passagers</h2>
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => setPassengerCount(passengers.length - 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border"><Minus className="h-4 w-4" /></button>
-                    <span className="w-6 text-center text-sm font-bold">{passengers.length}</span>
-                    <button type="button" onClick={() => setPassengerCount(passengers.length + 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border"><Plus className="h-4 w-4" /></button>
+              <>
+                {/* Étape 2 — date */}
+                <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
+                  <h2 className="text-sm font-bold">2. Votre date de voyage</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">Choisissez n'importe quel jour de la période programmée par l'agence.</p>
+                  <select value={travelDate} onChange={(e) => setTravelDate(e.target.value)}
+                    className="mt-3 h-11 w-full rounded-xl border bg-background px-3 text-sm">
+                    {dateOptions.length === 0 && <option value="">Aucune date disponible</option>}
+                    {dateOptions.map((d) => <option key={d} value={d}>{formatDateFR(d)}</option>)}
+                  </select>
+                </section>
+
+                {/* Étape 3 — voyageurs */}
+                <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
+                  <h2 className="inline-flex items-center gap-2 text-sm font-bold"><Users className="h-4 w-4" /> 3. Voyageurs</h2>
+                  <div className="mt-3 space-y-2">
+                    <Counter label="Adultes" hint="12 ans et +" value={adults} min={0} onChange={setAdults} />
+                    <Counter label="Enfants" hint="7 à 11 ans" value={children} min={0} onChange={setChildren} />
+                    <Counter label="Bébés" hint="0 à 6 ans" value={infants} min={0} onChange={setInfants} />
                   </div>
-                </div>
+                </section>
 
-                <div className="mt-3 space-y-3">
-                  {passengers.map((p, i) => {
-                    const l = quote.lines[i];
-                    return (
-                      <div key={i} className="rounded-xl border p-3">
-                        <p className="text-[11px] font-bold text-muted-foreground">Passager {i + 1}</p>
-                        <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                          <Input placeholder="Nom complet" value={p.full_name} onChange={(e) => updatePassenger(i, { full_name: e.target.value })} />
-                          <Input type="number" min={0} placeholder="Âge" value={p.age} onChange={(e) => updatePassenger(i, { age: e.target.value })} />
-                          <Input type="number" min={0} placeholder="Poids bagage (kg)" value={p.baggage_kg} onChange={(e) => updatePassenger(i, { baggage_kg: e.target.value })} />
-                        </div>
-                        {l && p.age !== "" && (
-                          <p className="mt-2 text-[11px] text-muted-foreground">
-                            {FARE_LABEL[l.category]} · {fmtXAF(l.fare)}
-                            {l.extraKg > 0 ? ` · +${l.extraKg} kg = ${fmtXAF(l.baggageFee)}` : " · bagage inclus"}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {trip.baggage_conditions && (
-                  <div className="mt-3 rounded-xl bg-secondary/60 p-3 text-xs text-muted-foreground whitespace-pre-line">
-                    <b className="text-foreground">Conditions de bagages : </b>{trip.baggage_conditions}
+                {/* Étape 4 — bagages */}
+                <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
+                  <h2 className="text-sm font-bold">4. Bagages</h2>
+                  <div className="mt-3">
+                    <Counter label="Nombre de bagages" hint={`${trip.baggage_included_kg} kg inclus par voyageur`} value={baggageCount} min={0} onChange={setBaggageCount} />
                   </div>
-                )}
-              </section>
-            )}
+                  <Input className="mt-3" placeholder="Précisions sur vos bagages (facultatif)" value={baggageNotes}
+                    onChange={(e) => setBaggageNotes(e.target.value.slice(0, 300))} />
+                  {trip.baggage_conditions && (
+                    <div className="mt-3 whitespace-pre-line rounded-xl bg-secondary/60 p-3 text-xs text-muted-foreground">
+                      <b className="text-foreground">Conditions de bagages : </b>{trip.baggage_conditions}
+                    </div>
+                  )}
+                </section>
 
-            {/* Étape 5 — réservant */}
-            {trip && (
-              <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
-                <h2 className="text-sm font-bold">5. Informations du réservant</h2>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  <Input placeholder="Nom complet" value={bookerName} onChange={(e) => setBookerName(e.target.value)} />
-                  <Input placeholder="Numéro de téléphone" value={bookerPhone} onChange={(e) => setBookerPhone(e.target.value)} />
-                </div>
-                <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-3 text-sm">
-                  <Upload className="h-4 w-4 text-primary" />
-                  <span className="flex-1 truncate">{idFile ? idFile.name : "Pièce d'identité (obligatoire) — photo ou PDF"}</span>
-                  <input type="file" accept="image/*,application/pdf" className="hidden"
-                    onChange={(e) => setIdFile(e.target.files?.[0] ?? null)} />
-                  <span className="rounded-lg border px-2 py-1 text-xs font-semibold">Choisir</span>
-                </label>
-              </section>
-            )}
-
-            {/* Étape 6 — récapitulatif */}
-            {trip && (
-              <section className="mt-4 rounded-2xl border-2 border-primary/20 bg-primary/5 p-4 sm:p-5">
-                <h2 className="text-sm font-bold">6. Récapitulatif</h2>
-                <div className="mt-3 space-y-1.5 text-sm">
-                  <Row label="Agence" value={agency?.name ?? "—"} />
-                  <Row label="Trajet" value={`${trip.origin} → ${trip.destination}`} />
-                  <Row label="Date de départ" value={formatDateFR(trip.departure_date)} />
-                  <Row label="Passagers" value={String(passengers.length)} />
-                  <div className="my-2 border-t" />
-                  <Row label="Total des billets" value={fmtXAF(quote.ticketsTotal)} />
-                  <Row label="Supplément bagages" value={fmtXAF(quote.baggageTotal)} />
-                  <div className="flex items-center justify-between border-t pt-2">
-                    <span className="text-sm font-bold">Total général</span>
-                    <span className="text-2xl font-extrabold text-primary">{fmtXAF(quote.total)}</span>
+                {/* Étape 5 — réservant */}
+                <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
+                  <h2 className="text-sm font-bold">5. Informations du réservant</h2>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <Input placeholder="Nom complet" value={bookerName} onChange={(e) => setBookerName(e.target.value.slice(0, 120))} />
+                    <Input placeholder="Numéro de téléphone" value={bookerPhone} onChange={(e) => setBookerPhone(e.target.value.slice(0, 30))} />
                   </div>
-                </div>
-                <Button className="mt-4 w-full" onClick={submit} disabled={submitting}>
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Valider et payer"}
-                </Button>
-                <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                  <MapPin className="mr-1 inline h-3 w-3" />
-                  Le billet définitif (heure de départ, convocation, siège) vous sera envoyé après traitement par l'agence.
-                </p>
-              </section>
+                  <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed p-3 text-sm">
+                    <Upload className="h-4 w-4 text-primary" />
+                    <span className="flex-1 truncate">{idFile ? idFile.name : "Pièce d'identité (obligatoire) — photo ou PDF"}</span>
+                    <input type="file" accept="image/*,application/pdf" className="hidden"
+                      onChange={(e) => setIdFile(e.target.files?.[0] ?? null)} />
+                    <span className="rounded-lg border px-2 py-1 text-xs font-semibold">Choisir</span>
+                  </label>
+                </section>
+
+                {/* Étape 6 — récapitulatif */}
+                <section className="mt-4 rounded-2xl border-2 border-primary/20 bg-primary/5 p-4 sm:p-5">
+                  <h2 className="text-sm font-bold">6. Récapitulatif</h2>
+                  <div className="mt-3 space-y-1.5 text-sm">
+                    <Row label="Agence" value={agency?.name ?? "—"} />
+                    <Row label="Trajet" value={`${trip.origin} → ${trip.destination}`} />
+                    <Row label="Date de voyage" value={travelDate ? formatDateFR(travelDate) : "—"} />
+                    <Row label="Voyageurs" value={`${adults} adulte(s) · ${children} enfant(s) · ${infants} bébé(s)`} />
+                    <Row label="Bagages" value={`${baggageCount}`} />
+                    <div className="my-2 border-t" />
+                    <Row label="Total des billets" value={fmtXAF(totals.ticketsTotal)} />
+                    <Row label="Supplément bagages" value={fmtXAF(totals.baggageTotal)} />
+                    <div className="flex items-center justify-between border-t pt-2">
+                      <span className="font-bold">Total estimé</span>
+                      <span className="text-lg font-bold text-primary">{fmtXAF(totals.total)}</span>
+                    </div>
+                  </div>
+                  <p className="mt-3 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-700">
+                    Votre demande sera <b>en attente</b> jusqu'à validation par l'administration. Le billet définitif (heure de départ,
+                    convocation, sièges) sera ensuite disponible dans « Mes réservations ».
+                  </p>
+                  <Button className="mt-4 h-12 w-full" disabled={submitting} onClick={() => void submit()}>
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                    Envoyer ma demande de réservation
+                  </Button>
+                </section>
+              </>
             )}
           </>
         )}
@@ -366,21 +292,29 @@ function BusAgencyPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Counter({ label, hint, value, min, onChange }: { label: string; hint?: string; value: number; min: number; onChange: (n: number) => void }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-semibold">{value}</span>
+    <div className="flex items-center justify-between rounded-xl border p-3">
+      <div>
+        <p className="text-sm font-semibold">{label}</p>
+        {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
+      </div>
+      <div className="flex items-center gap-2">
+        <button type="button" aria-label={`Retirer ${label}`} onClick={() => onChange(Math.max(value - 1, min))}
+          className="flex h-9 w-9 items-center justify-center rounded-lg border"><Minus className="h-4 w-4" /></button>
+        <span className="w-6 text-center text-sm font-bold">{value}</span>
+        <button type="button" aria-label={`Ajouter ${label}`} onClick={() => onChange(Math.min(value + 1, 30))}
+          className="flex h-9 w-9 items-center justify-center rounded-lg border"><Plus className="h-4 w-4" /></button>
+      </div>
     </div>
   );
 }
 
-function errorMessage(code?: string) {
-  switch (code) {
-    case "NOT_ENOUGH_SEATS": return "Il ne reste plus assez de places sur ce départ.";
-    case "TRIP_NOT_AVAILABLE": return "Ce départ n'est plus disponible.";
-    case "ID_DOCUMENT_REQUIRED": return "La pièce d'identité est obligatoire.";
-    case "BOOKER_INFO_REQUIRED": return "Nom et téléphone du réservant requis.";
-    default: return code || "Erreur lors de la réservation";
-  }
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right font-semibold">{value}</span>
+    </div>
+  );
 }
