@@ -73,6 +73,8 @@ function TransportScolaireAdmin() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [editingSchool, setEditingSchool] = useState<School | null>(null);
+  const [editingRoute, setEditingRoute] = useState<SchoolRoute | null>(null);
 
   const [editingTariff, setEditingTariff] = useState<SchoolTariff | null>(null);
   const [tariffAmount, setTariffAmount] = useState("");
@@ -284,6 +286,62 @@ function TransportScolaireAdmin() {
     alert("Activité modifiée");
   }
 
+  async function saveSchool(school: School, patch: Partial<School>) {
+    const { error } = await supabase
+      .from("schools")
+      .update(patch as never)
+      .eq("id", school.id);
+    if (error) {
+      alert(`Erreur modification établissement : ${error.message}`);
+      return;
+    }
+    setEditingSchool(null);
+    loadSchools();
+  }
+
+  async function deleteSchool(school: School) {
+    if (
+      !confirm(
+        `Supprimer « ${school.name} » ? Ses itinéraires seront aussi supprimés.`,
+      )
+    )
+      return;
+    await supabase.from("school_routes").delete().eq("school_id", school.id);
+    const { error } = await supabase.from("schools").delete().eq("id", school.id);
+    if (error) {
+      alert(`Erreur suppression : ${error.message}`);
+      return;
+    }
+    loadSchools();
+    loadRoutes();
+  }
+
+  async function saveRoute(route: SchoolRoute, patch: Partial<SchoolRoute>) {
+    const { error } = await supabase
+      .from("school_routes")
+      .update(patch as never)
+      .eq("id", route.id);
+    if (error) {
+      alert(`Erreur modification itinéraire : ${error.message}`);
+      return;
+    }
+    setEditingRoute(null);
+    loadRoutes();
+  }
+
+  async function deleteRoute(route: SchoolRoute) {
+    if (!confirm(`Supprimer l'itinéraire « ${route.name} » ?`)) return;
+    const { error } = await supabase
+      .from("school_routes")
+      .delete()
+      .eq("id", route.id);
+    if (error) {
+      alert(`Erreur suppression : ${error.message}`);
+      return;
+    }
+    loadRoutes();
+  }
+
   return (
     <div className="space-y-8 p-4 lg:p-8">
       <div>
@@ -343,37 +401,122 @@ function TransportScolaireAdmin() {
           <p className="text-muted-foreground">Aucun établissement trouvé.</p>
         ) : (
           <div className="space-y-3">
-            {schools.map((school) => (
-              <div
-                key={school.id}
-                className="flex items-center justify-between rounded-lg border p-4"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold">{school.name}</p>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                      {SCHOOL_LEVELS.find((l) => l.value === school.level)?.label ?? "Primaire"}
-                    </span>
+            {schools.map((school) =>
+              editingSchool?.id === school.id ? (
+                <div key={school.id} className="space-y-3 rounded-lg border p-4">
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <input
+                      className="rounded border bg-background p-2 text-foreground"
+                      value={editingSchool.name}
+                      onChange={(e) =>
+                        setEditingSchool({ ...editingSchool, name: e.target.value })
+                      }
+                    />
+                    <input
+                      className="rounded border bg-background p-2 text-foreground"
+                      placeholder="Adresse"
+                      value={editingSchool.address ?? ""}
+                      onChange={(e) =>
+                        setEditingSchool({ ...editingSchool, address: e.target.value })
+                      }
+                    />
+                    <select
+                      className="rounded border bg-background p-2 text-foreground"
+                      value={editingSchool.level}
+                      onChange={(e) =>
+                        setEditingSchool({
+                          ...editingSchool,
+                          level: e.target.value as SchoolLevel,
+                        })
+                      }
+                    >
+                      {SCHOOL_LEVELS.map((l) => (
+                        <option key={l.value} value={l.value}>
+                          {l.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  {school.address && (
-                    <p className="text-sm text-muted-foreground">
-                      {school.address}
-                    </p>
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={editingSchool.is_active}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            is_active: e.target.checked,
+                          })
+                        }
+                      />
+                      Actif (visible côté client)
+                    </label>
+                    <button
+                      className="rounded bg-primary px-3 py-1 text-primary-foreground"
+                      onClick={() =>
+                        saveSchool(school, {
+                          name: editingSchool.name,
+                          address: editingSchool.address,
+                          level: editingSchool.level,
+                          is_active: editingSchool.is_active,
+                        })
+                      }
+                    >
+                      Enregistrer
+                    </button>
+                    <button
+                      className="rounded border px-3 py-1"
+                      onClick={() => setEditingSchool(null)}
+                    >
+                      Annuler
+                    </button>
+                  </div>
                 </div>
-
-                <span
-                  className={`text-sm ${
-                    school.is_active
-                      ? "text-green-600"
-                      : "text-muted-foreground"
-                  }`}
+              ) : (
+                <div
+                  key={school.id}
+                  className="flex items-center justify-between rounded-lg border p-4"
                 >
-                  {school.is_active ? "Actif" : "Inactif"}
-                </span>
-              </div>
-            ))}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">{school.name}</p>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        {SCHOOL_LEVELS.find((l) => l.value === school.level)?.label ?? "Primaire"}
+                      </span>
+                    </div>
+                    {school.address && (
+                      <p className="text-sm text-muted-foreground">
+                        {school.address}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-sm ${
+                        school.is_active ? "text-green-600" : "text-muted-foreground"
+                      }`}
+                    >
+                      {school.is_active ? "Actif" : "Inactif"}
+                    </span>
+                    <button
+                      className="rounded border px-3 py-1 text-sm"
+                      onClick={() => setEditingSchool(school)}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      className="rounded bg-destructive px-3 py-1 text-sm text-destructive-foreground"
+                      onClick={() => deleteSchool(school)}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ),
+            )}
           </div>
+
         )}
       </section>
 
@@ -499,9 +642,126 @@ function TransportScolaireAdmin() {
                       <span className="font-bold">
                         {route.monthly_price.toLocaleString()} FCFA / mois
                       </span>
+                      <div className="flex gap-2">
+                        <button
+                          className="rounded border px-3 py-1 text-sm"
+                          onClick={() => setEditingRoute(route)}
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          className="rounded bg-destructive px-3 py-1 text-sm text-destructive-foreground"
+                          onClick={() => deleteRoute(route)}
+                        >
+                          Supprimer
+                        </button>
+                      </div>
                     </div>
                   </div>
+
+                  {editingRoute?.id === route.id && (
+                    <div className="mt-3 grid gap-3 border-t pt-3 md:grid-cols-2">
+                      <select
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.school_id}
+                        onChange={(e) =>
+                          setEditingRoute({ ...editingRoute, school_id: e.target.value })
+                        }
+                      >
+                        {schools.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.name}
+                        onChange={(e) =>
+                          setEditingRoute({ ...editingRoute, name: e.target.value })
+                        }
+                      />
+                      <input
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.departure_point}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            departure_point: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.arrival_point}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            arrival_point: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="time"
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.departure_time ?? ""}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            departure_time: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="time"
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.return_time ?? ""}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            return_time: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="number"
+                        className="rounded border bg-background p-2 text-foreground"
+                        value={editingRoute.monthly_price}
+                        onChange={(e) =>
+                          setEditingRoute({
+                            ...editingRoute,
+                            monthly_price: Number(e.target.value),
+                          })
+                        }
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          className="rounded bg-primary px-3 py-1 text-primary-foreground"
+                          onClick={() =>
+                            saveRoute(route, {
+                              school_id: editingRoute.school_id,
+                              name: editingRoute.name,
+                              departure_point: editingRoute.departure_point,
+                              arrival_point: editingRoute.arrival_point,
+                              departure_time: editingRoute.departure_time || null as never,
+                              return_time: editingRoute.return_time || null as never,
+                              monthly_price: Number(editingRoute.monthly_price),
+                            })
+                          }
+                        >
+                          Enregistrer
+                        </button>
+                        <button
+                          className="rounded border px-3 py-1"
+                          onClick={() => setEditingRoute(null)}
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
               );
             })}
           </div>
