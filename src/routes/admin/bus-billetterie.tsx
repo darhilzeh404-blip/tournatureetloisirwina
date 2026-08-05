@@ -99,8 +99,7 @@ function BusBilletterieAdmin() {
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({ ...emptyForm });
-  const [dates, setDates] = useState<Date[]>([]);
-  const [month, setMonth] = useState<Date>(new Date());
+  const [decisionComment, setDecisionComment] = useState<Record<string, string>>({});
 
   const agencyName = useMemo(() => {
     const map: Record<string, string> = {};
@@ -110,9 +109,12 @@ function BusBilletterieAdmin() {
 
   const tripLabel = useMemo(() => {
     const map: Record<string, string> = {};
-    trips.forEach((t) => (map[t.id] = `${t.origin} → ${t.destination} · ${t.departure_date}`));
+    trips.forEach(
+      (t) => (map[t.id] = `${t.origin} → ${t.destination} · ${t.date_start ?? t.departure_date} → ${t.date_end ?? t.departure_date}`),
+    );
     return map;
   }, [trips]);
+
 
   const loadAll = async () => {
     setLoading(true);
