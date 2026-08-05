@@ -70,13 +70,21 @@ type Booking = {
 
 type QuoteRow = Record<string, any>;
 
+/** Période par défaut : 1 mois complet à partir d'aujourd'hui. */
+const addMonths = (iso: string, months: number) => {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setMonth(d.getMonth() + months);
+  d.setDate(d.getDate() - 1);
+  return toISODate(d);
+};
+
 const emptyForm = {
   agency_id: "",
   origin: "",
   destination: "",
   bus_type: "",
   date_start: toISODate(new Date()),
-  date_end: toISODate(new Date()),
+  date_end: addMonths(toISODate(new Date()), 1),
   seats_total: 50,
   price_adult: 0,
   price_child_7_11: 0,
@@ -383,6 +391,15 @@ function BusBilletterieAdmin() {
                   <label className="text-sm font-medium">Date de fin</label>
                   <Input className="mt-1.5" type="date" value={form.date_end}
                     onChange={(e) => setForm({ ...form, date_end: e.target.value })} />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {[1, 2, 3].map((m) => (
+                      <button key={m} type="button"
+                        onClick={() => setForm({ ...form, date_end: addMonths(form.date_start, m) })}
+                        className="rounded-full border border-border px-3 py-1 text-xs hover:bg-muted">
+                        {m} mois
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Type de bus</label>
