@@ -2975,6 +2975,56 @@ export type Database = {
         }
         Relationships: []
       }
+      school_routes: {
+        Row: {
+          arrival_point: string
+          created_at: string
+          departure_point: string
+          departure_time: string
+          id: string
+          is_active: boolean
+          monthly_price: number
+          name: string
+          return_time: string
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          arrival_point?: string
+          created_at?: string
+          departure_point?: string
+          departure_time?: string
+          id?: string
+          is_active?: boolean
+          monthly_price?: number
+          name: string
+          return_time?: string
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          arrival_point?: string
+          created_at?: string
+          departure_point?: string
+          departure_time?: string
+          id?: string
+          is_active?: boolean
+          monthly_price?: number
+          name?: string
+          return_time?: string
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_routes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_trip_tariffs: {
         Row: {
           amount: number
@@ -3004,6 +3054,33 @@ export type Database = {
           route_label?: string
           sort_order?: number
           standing?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      schools: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
           updated_at?: string
         }
         Relationships: []
