@@ -214,3 +214,112 @@ export function buildBusTicket(data: BusReceiptData): jsPDF {
 export function downloadBusTicket(data: BusReceiptData) {
   buildBusTicket(data).save(`billet-bus-wina-${data.finalTicket?.ticket_number ?? data.reference}.pdf`);
 }
+
+/* ------------------------------------------------------------------ */
+/*  Nouveau modèle : réservation par compteurs (adultes/enfants/bébés) */
+/* ------------------------------------------------------------------ */
+
+export type BusRequestTicketData = {
+  reference: string;
+  agency: string;
+  agencyLogo?: string | null;
+  origin: string;
+  destination: string;
+  travelDate: string;
+  busType?: string;
+  bookerName: string;
+  bookerPhone: string;
+  adults: number;
+  children: number;
+  infants: number;
+  baggageCount: number;
+  baggageNotes?: string;
+  baggageConditions?: string;
+  ticketsTotal: number;
+  baggageTotal: number;
+  total: number;
+  finalTicket: BusFinalTicket;
+  qrDataUrl?: string | null;
+};
+
+/** Billet définitif (nouveau parcours) avec QR Code de contrôle. */
+export function buildBusRequestTicket(d: BusRequestTicketData): jsPDF {
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  header(doc, "Billet de bus définitif");
+  const { M, W, state, line, section, paragraph } = makeWriter(doc);
+
+  doc.setTextColor(17, 24, 39);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.text(`Billet N° ${d.finalTicket.ticket_number}`, M, state.y);
+  state.y += 18;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(90, 90, 90);
+  doc.text(
+    `Réservation ${d.reference} · émis le ${new Date(d.finalTicket.issued_at).toLocaleString("fr-FR")}`,
+    M,
+    state.y,
+  );
+
+  if (d.qrDataUrl) {
+    try {
+      doc.addImage(d.qrDataUrl, "PNG", W - M - 110, 130, 110, 110);
+    } catch {
+      /* QR optionnel */
+    }
+  }
+
+  section("Voyage");
+  line("Agence partenaire", d.agency);
+  line("Trajet", `${d.origin} → ${d.destination}`);
+  line("Date de voyage", d.travelDate);
+  if (d.busType) line("Type de bus", d.busType);
+  line("Heure de départ", d.finalTicket.departure_time);
+  if (d.finalTicket.boarding_time) line("Heure de convocation", d.finalTicket.boarding_time);
+  if (d.finalTicket.seat_numbers) line("Numéro(s) de siège", d.finalTicket.seat_numbers);
+
+  section("Voyageurs");
+  line("Réservant", `${d.bookerName} · ${d.bookerPhone}`);
+  line("Adultes (12 ans et +)", String(d.adults));
+  line("Enfants (7 à 11 ans)", String(d.children));
+  line("Bébés (0 à 6 ans)", String(d.infants));
+  line("Bagages", `${d.baggageCount}${d.baggageNotes ? ` · ${d.baggageNotes}` : ""}`);
+
+  section("Montant réglé");
+  line("Total des billets", money(d.ticketsTotal));
+  line("Supplément bagages", money(d.baggageTotal));
+  line("Total", money(d.total));
+
+  if (d.finalTicket.extra_info) {
+    section("Informations de l'agence");
+    paragraph(d.finalTicket.extra_info);
+  }
+  if (d.baggageConditions) {
+    section("Conditions de bagages");
+    paragraph(d.baggageConditions);
+  }
+
+  doc.setTextColor(140, 140, 140);
+  doc.setFontSize(8);
+  doc.text(
+    "WINA TOUR — Gabon · Présentez ce billet (QR Code) et une pièce d'identité à l'embarquement.",
+    M,
+    doc.internal.pageSize.getHeight() - 40,
+  );
+  return doc;
+}
+
+export async function downloadBusRequestTicket(d: BusRequestTicketData) {
+  let qrDataUrl: string | null = null;
+  try {
+    const QR = (await import("qrcode")).default;
+    qrDataUrl = await QR.toDataURL(
+      `WINATOUR|BUS|${d.finalTicket.ticket_number}|${d.reference}|${d.travelDate}`,
+      { margin: 1, width: 320 },
+    );
+  } catch {
+    /* QR optionnel */
+  }
+  buildBusRequestTicket({ ...d, qrDataUrl }).save(`billet-bus-wina-${d.finalTicket.ticket_number}.pdf`);
+}

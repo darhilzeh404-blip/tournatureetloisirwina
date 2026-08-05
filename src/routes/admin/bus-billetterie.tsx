@@ -6,12 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
 
 import { toast } from "sonner";
 import { Bus, CalendarDays, Loader2, Package, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
 
-import { fmtXAF, formatDateFR, toISODate, TRIP_STATUS_LABEL, BOOKING_STATUS_LABEL, QUOTE_STATUS_LABEL } from "@/lib/bus";
+import {
+  adminDecideBusBooking, adminIssueBusTicket, fmtXAF, formatDateFR, toISODate,
+  TRIP_STATUS_LABEL, BOOKING_STATUS_LABEL, QUOTE_STATUS_LABEL,
+} from "@/lib/bus";
+
 
 export const Route = createFileRoute("/admin/bus-billetterie")({
   head: () => ({
@@ -31,6 +34,9 @@ type Trip = {
   origin: string;
   destination: string;
   departure_date: string;
+  date_start: string;
+  date_end: string;
+  bus_type: string;
   seats_total: number;
   seats_available: number;
   price_adult: number;
@@ -48,9 +54,17 @@ type Booking = {
   reference_code: string;
   booker_name: string;
   booker_phone: string;
+  id_document_url: string | null;
   passengers_count: number;
+  adults_count: number;
+  children_count: number;
+  infants_count: number;
+  baggage_count: number;
+  baggage_notes: string | null;
+  travel_date: string | null;
   total_amount: number;
   status: string;
+  admin_comment: string | null;
   created_at: string;
 };
 
@@ -60,6 +74,9 @@ const emptyForm = {
   agency_id: "",
   origin: "",
   destination: "",
+  bus_type: "",
+  date_start: toISODate(new Date()),
+  date_end: toISODate(new Date()),
   seats_total: 50,
   price_adult: 0,
   price_child_7_11: 0,
@@ -68,6 +85,7 @@ const emptyForm = {
   baggage_extra_price_per_kg: 1000,
   baggage_conditions: "",
 };
+
 
 type Tab = "trips" | "bookings" | "parcel" | "funeral";
 
@@ -84,8 +102,7 @@ function BusBilletterieAdmin() {
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({ ...emptyForm });
-  const [dates, setDates] = useState<Date[]>([]);
-  const [month, setMonth] = useState<Date>(new Date());
+  const [decisionComment, setDecisionComment] = useState<Record<string, string>>({});
 
   const agencyName = useMemo(() => {
     const map: Record<string, string> = {};
@@ -95,9 +112,12 @@ function BusBilletterieAdmin() {
 
   const tripLabel = useMemo(() => {
     const map: Record<string, string> = {};
-    trips.forEach((t) => (map[t.id] = `${t.origin} → ${t.destination} · ${t.departure_date}`));
+    trips.forEach(
+      (t) => (map[t.id] = `${t.origin} → ${t.destination} · ${t.date_start ?? t.departure_date} → ${t.date_end ?? t.departure_date}`),
+    );
     return map;
   }, [trips]);
+
 
   const loadAll = async () => {
     setLoading(true);
@@ -129,48 +149,37 @@ function BusBilletterieAdmin() {
     if (!form.agency_id) return toast.error("Choisissez une agence partenaire");
     if (!form.origin.trim()) return toast.error("Ville de départ obligatoire");
     if (!form.destination.trim()) return toast.error("Ville d'arrivée obligatoire");
-    if (dates.length === 0) return toast.error("Sélectionnez au moins une date dans le calendrier");
-    if (dates.length > 31) return toast.error("Maximum 31 dates par programmation");
+    if (!form.date_start || !form.date_end) return toast.error("Renseignez la période (date de début et de fin)");
+    if (form.date_end < form.date_start) return toast.error("La date de fin doit suivre la date de début");
     if (!form.seats_total || form.seats_total < 1) return toast.error("Nombre de places invalide");
     if (form.price_adult <= 0) return toast.error("Le tarif adulte est obligatoire");
 
     setSaving(true);
     try {
-      const isoDates = dates.map(toISODate);
-      const existing = new Set(
-        trips
-          .filter((t) => t.agency_id === form.agency_id && t.origin === form.origin.trim() && t.destination === form.destination.trim())
-          .map((t) => t.departure_date),
-      );
-      const rows = isoDates
-        .filter((d) => !existing.has(d))
-        .map((departure_date) => ({
-          agency_id: form.agency_id,
-          origin: form.origin.trim(),
-          destination: form.destination.trim(),
-          departure_date,
-          seats_total: form.seats_total,
-          seats_available: form.seats_total,
-          price_adult: form.price_adult,
-          price_child_7_11: form.price_child_7_11,
-          price_child_0_6: form.price_child_0_6,
-          baggage_included_kg: form.baggage_included_kg,
-          baggage_extra_price_per_kg: form.baggage_extra_price_per_kg,
-          baggage_conditions: form.baggage_conditions,
-          status: "available",
-        }));
+      const row = {
+        agency_id: form.agency_id,
+        origin: form.origin.trim(),
+        destination: form.destination.trim(),
+        bus_type: form.bus_type.trim(),
+        departure_date: form.date_start,
+        date_start: form.date_start,
+        date_end: form.date_end,
+        seats_total: form.seats_total,
+        seats_available: form.seats_total,
+        price_adult: form.price_adult,
+        price_child_7_11: form.price_child_7_11,
+        price_child_0_6: form.price_child_0_6,
+        baggage_included_kg: form.baggage_included_kg,
+        baggage_extra_price_per_kg: form.baggage_extra_price_per_kg,
+        baggage_conditions: form.baggage_conditions,
+        status: "available",
+      };
 
-      if (rows.length === 0) {
-        toast.info("Ces départs existent déjà pour cet itinéraire");
-        return;
-      }
-
-      const { error } = await supabase.from("bus_trips" as any).insert(rows as any);
+      const { error } = await supabase.from("bus_trips" as any).insert(row as any);
       if (error) throw error;
 
-      toast.success(`${rows.length} départ(s) créé(s)`);
+      toast.success("Voyage programmé sur la période choisie");
       setForm({ ...emptyForm });
-      setDates([]);
       await loadAll();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erreur lors de la création");
@@ -178,6 +187,27 @@ function BusBilletterieAdmin() {
       setSaving(false);
     }
   };
+
+  const openDocument = async (path: string) => {
+    const { data, error } = await supabase.storage.from("bus-documents").createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) return toast.error("Document introuvable");
+    window.open(data.signedUrl, "_blank", "noopener");
+  };
+
+  const decide = async (b: Booking, approve: boolean) => {
+    setSaving(true);
+    try {
+      await adminDecideBusBooking(b.id, approve, (decisionComment[b.id] ?? "").trim());
+      toast.success(approve ? "Demande validée" : "Demande refusée");
+      setDecisionComment((d) => ({ ...d, [b.id]: "" }));
+      await loadAll();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de la décision");
+    } finally {
+      setSaving(false);
+    }
+  };
+
 
   const updateTrip = async (id: string, patch: Partial<Trip>) => {
     const { error } = await supabase.from("bus_trips" as any).update(patch as any).eq("id", id);
@@ -187,7 +217,7 @@ function BusBilletterieAdmin() {
   };
 
   const deleteTrip = async (t: Trip) => {
-    if (!confirm(`Supprimer le départ ${t.origin} → ${t.destination} du ${t.departure_date} ?`)) return;
+    if (!confirm(`Supprimer le départ ${t.origin} → ${t.destination} du ${t.date_start ?? t.departure_date} au ${t.date_end ?? t.departure_date} ?`)) return;
     const { error } = await supabase.from("bus_trips" as any).delete().eq("id", t.id);
     if (error) return toast.error(error.message);
     toast.success("Départ supprimé");
@@ -209,22 +239,14 @@ function BusBilletterieAdmin() {
     if (!ticketForm.departure_time.trim()) return toast.error("Heure de départ obligatoire");
     setSaving(true);
     try {
-      const number = ticketForm.ticket_number.trim() || `BUS-${booking.reference_code}`;
-      const { error } = await supabase.from("bus_final_tickets" as any).insert({
-        booking_id: booking.id,
-        ticket_number: number,
-        departure_time: ticketForm.departure_time.trim(),
-        boarding_time: ticketForm.boarding_time.trim(),
-        seat_numbers: ticketForm.seat_numbers.trim(),
-        extra_info: ticketForm.extra_info.trim(),
-      } as any);
-      if (error) throw error;
-
-      const { error: e2 } = await supabase.from("bus_bookings" as any)
-        .update({ status: "ticket_sent" } as any).eq("id", booking.id);
-      if (e2) throw e2;
-
-      toast.success("Billet définitif envoyé au client");
+      const number = await adminIssueBusTicket({
+        bookingId: booking.id,
+        departureTime: ticketForm.departure_time.trim(),
+        boardingTime: ticketForm.boarding_time.trim(),
+        seatNumbers: ticketForm.seat_numbers.trim(),
+        extraInfo: ticketForm.extra_info.trim(),
+      });
+      toast.success(`Billet ${number} disponible pour le client`);
       setTicketFor(null);
       setTicketForm({ ticket_number: "", departure_time: "", boarding_time: "", seat_numbers: "", extra_info: "" });
       await loadAll();
@@ -234,6 +256,7 @@ function BusBilletterieAdmin() {
       setSaving(false);
     }
   };
+
 
   /* ---------------- Devis ---------------- */
 
@@ -350,25 +373,27 @@ function BusBilletterieAdmin() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium">Dates de départ (calendrier mensuel)</label>
-                <div className="mt-2 rounded-xl border p-2">
-                  <Calendar
-                    mode="multiple"
-                    month={month}
-                    onMonthChange={setMonth}
-                    selected={dates}
-                    onSelect={(d) => setDates((d as Date[]) ?? [])}
-                    disabled={{ before: new Date(new Date().toDateString()) }}
-                    className="pointer-events-auto"
-                  />
+              <div className="grid gap-3 md:grid-cols-3">
+                <div>
+                  <label className="text-sm font-medium">Date de début</label>
+                  <Input className="mt-1.5" type="date" value={form.date_start}
+                    onChange={(e) => setForm({ ...form, date_start: e.target.value })} />
                 </div>
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  {dates.length > 0
-                    ? `${dates.length} date(s) sélectionnée(s) : ${dates.map(toISODate).sort().join(", ")}`
-                    : "Cliquez sur chaque jour où le départ est proposé. Un voyage sera créé par date."}
-                </p>
+                <div>
+                  <label className="text-sm font-medium">Date de fin</label>
+                  <Input className="mt-1.5" type="date" value={form.date_end}
+                    onChange={(e) => setForm({ ...form, date_end: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Type de bus</label>
+                  <Input className="mt-1.5" value={form.bus_type} placeholder="Coaster 30 places"
+                    onChange={(e) => setForm({ ...form, bus_type: e.target.value })} />
+                </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Le client pourra réserver n'importe quel jour compris dans cette période.
+              </p>
+
 
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
@@ -428,7 +453,7 @@ function BusBilletterieAdmin() {
                     <div>
                       <p className="font-semibold">{t.origin} → {t.destination}</p>
                       <p className="text-xs text-muted-foreground">{agencyName[t.agency_id] ?? "—"}</p>
-                      <p className="mt-1 text-sm">{formatDateFR(t.departure_date)}</p>
+                      <p className="mt-1 text-sm">Du {formatDateFR(t.date_start ?? t.departure_date)} au {formatDateFR(t.date_end ?? t.departure_date)}</p>{t.bus_type && <p className="text-xs text-muted-foreground">{t.bus_type}</p>}
                     </div>
                     <div className="text-sm">
                       <p>Places : <b>{t.seats_available}</b> / {t.seats_total}</p>
@@ -462,17 +487,31 @@ function BusBilletterieAdmin() {
       {tab === "bookings" && (
         <Card>
           <CardContent className="space-y-3 p-5">
-            <h2 className="text-lg font-semibold">Réservations clients</h2>
-            {bookings.length === 0 && <p className="text-sm text-muted-foreground">Aucune réservation.</p>}
+            <h2 className="text-lg font-semibold">Demandes de réservation</h2>
+            {bookings.length === 0 && <p className="text-sm text-muted-foreground">Aucune demande.</p>}
             {bookings.map((b) => (
               <div key={b.id} className="rounded-xl border p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">{b.reference_code}</p>
                     <p className="text-sm">{tripLabel[b.trip_id] ?? "Voyage supprimé"}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {b.booker_name} · {b.booker_phone} · {b.passengers_count} passager(s)
+                    <p className="text-sm text-muted-foreground">
+                      Date de voyage : <b className="text-foreground">{b.travel_date ? formatDateFR(b.travel_date) : "—"}</b>
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      {b.booker_name} · {b.booker_phone}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {b.adults_count ?? 0} adulte(s) · {b.children_count ?? 0} enfant(s) · {b.infants_count ?? 0} bébé(s) ·{" "}
+                      {b.baggage_count ?? 0} bagage(s)
+                      {b.baggage_notes ? ` — ${b.baggage_notes}` : ""}
+                    </p>
+                    {b.id_document_url && (
+                      <button type="button" onClick={() => void openDocument(b.id_document_url!)}
+                        className="mt-1 text-xs font-semibold text-primary underline">
+                        Voir la pièce d'identité
+                      </button>
+                    )}
                   </div>
                   <div className="text-right text-sm">
                     <p className="font-semibold">{fmtXAF(b.total_amount)}</p>
@@ -480,13 +519,27 @@ function BusBilletterieAdmin() {
                   </div>
                 </div>
 
-                {b.status === "paid" && (
+                {b.admin_comment && (
+                  <p className="mt-2 rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">{b.admin_comment}</p>
+                )}
+
+                {b.status === "pending" && (
+                  <div className="mt-3 space-y-2 rounded-lg bg-muted/40 p-3">
+                    <Input placeholder="Commentaire pour le client (facultatif)"
+                      value={decisionComment[b.id] ?? ""}
+                      onChange={(e) => setDecisionComment((d) => ({ ...d, [b.id]: e.target.value.slice(0, 400) }))} />
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" disabled={saving} onClick={() => void decide(b, true)}>Valider la demande</Button>
+                      <Button size="sm" variant="destructive" disabled={saving} onClick={() => void decide(b, false)}>Refuser</Button>
+                    </div>
+                  </div>
+                )}
+
+                {(b.status === "validated" || b.status === "paid") && (
                   <div className="mt-3">
                     {ticketFor === b.id ? (
                       <div className="space-y-2 rounded-lg bg-muted/50 p-3">
                         <div className="grid gap-2 md:grid-cols-2">
-                          <Input placeholder="Numéro du billet (auto si vide)" value={ticketForm.ticket_number}
-                            onChange={(e) => setTicketForm({ ...ticketForm, ticket_number: e.target.value })} />
                           <Input placeholder="Heure de départ (ex. 07h30)" value={ticketForm.departure_time}
                             onChange={(e) => setTicketForm({ ...ticketForm, departure_time: e.target.value })} />
                           <Input placeholder="Heure de convocation (ex. 06h30)" value={ticketForm.boarding_time}
@@ -497,8 +550,8 @@ function BusBilletterieAdmin() {
                         <Textarea placeholder="Informations complémentaires" value={ticketForm.extra_info}
                           onChange={(e) => setTicketForm({ ...ticketForm, extra_info: e.target.value })} />
                         <div className="flex gap-2">
-                          <Button onClick={() => issueTicket(b)} disabled={saving}>
-                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Envoyer le billet
+                          <Button onClick={() => void issueTicket(b)} disabled={saving}>
+                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Générer le billet (QR Code)
                           </Button>
                           <Button variant="ghost" onClick={() => setTicketFor(null)}>Annuler</Button>
                         </div>
@@ -515,6 +568,7 @@ function BusBilletterieAdmin() {
           </CardContent>
         </Card>
       )}
+
 
       {(tab === "parcel" || tab === "funeral") && (
         <Card>

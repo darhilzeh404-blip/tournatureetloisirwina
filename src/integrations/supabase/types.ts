@@ -480,54 +480,72 @@ export type Database = {
       bus_bookings: {
         Row: {
           admin_comment: string | null
+          adults_count: number
+          baggage_count: number
+          baggage_notes: string
           baggage_total: number
           booker_name: string
           booker_phone: string
+          children_count: number
           created_at: string
           id: string
           id_document_url: string
+          infants_count: number
           passengers_count: number
           reference_code: string
           reservation_id: string | null
           status: string
           tickets_total: number
           total_amount: number
+          travel_date: string | null
           trip_id: string
           updated_at: string
           user_id: string
         }
         Insert: {
           admin_comment?: string | null
+          adults_count?: number
+          baggage_count?: number
+          baggage_notes?: string
           baggage_total?: number
           booker_name: string
           booker_phone: string
+          children_count?: number
           created_at?: string
           id?: string
           id_document_url: string
+          infants_count?: number
           passengers_count?: number
           reference_code: string
           reservation_id?: string | null
           status?: string
           tickets_total?: number
           total_amount?: number
+          travel_date?: string | null
           trip_id: string
           updated_at?: string
           user_id: string
         }
         Update: {
           admin_comment?: string | null
+          adults_count?: number
+          baggage_count?: number
+          baggage_notes?: string
           baggage_total?: number
           booker_name?: string
           booker_phone?: string
+          children_count?: number
           created_at?: string
           id?: string
           id_document_url?: string
+          infants_count?: number
           passengers_count?: number
           reference_code?: string
           reservation_id?: string | null
           status?: string
           tickets_total?: number
           total_amount?: number
+          travel_date?: string | null
           trip_id?: string
           updated_at?: string
           user_id?: string
@@ -758,8 +776,11 @@ export type Database = {
           baggage_conditions: string
           baggage_extra_price_per_kg: number
           baggage_included_kg: number
+          bus_type: string
           created_at: string
-          departure_date: string
+          date_end: string
+          date_start: string
+          departure_date: string | null
           destination: string
           id: string
           notes: string
@@ -777,8 +798,11 @@ export type Database = {
           baggage_conditions?: string
           baggage_extra_price_per_kg?: number
           baggage_included_kg?: number
+          bus_type?: string
           created_at?: string
-          departure_date: string
+          date_end: string
+          date_start: string
+          departure_date?: string | null
           destination: string
           id?: string
           notes?: string
@@ -796,8 +820,11 @@ export type Database = {
           baggage_conditions?: string
           baggage_extra_price_per_kg?: number
           baggage_included_kg?: number
+          bus_type?: string
           created_at?: string
-          departure_date?: string
+          date_end?: string
+          date_start?: string
+          departure_date?: string | null
           destination?: string
           id?: string
           notes?: string
@@ -4859,7 +4886,21 @@ export type Database = {
         }
         Returns: number
       }
+      admin_decide_bus_booking: {
+        Args: { _approve: boolean; _booking_id: string; _comment?: string }
+        Returns: undefined
+      }
       admin_draw_lottery: { Args: { _lottery_id: string }; Returns: string }
+      admin_issue_bus_ticket: {
+        Args: {
+          _boarding_time: string
+          _booking_id: string
+          _departure_time: string
+          _extra_info: string
+          _seat_numbers: string
+        }
+        Returns: string
+      }
       admin_validate_vtc_recharge: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: number
@@ -5010,6 +5051,25 @@ export type Database = {
         Returns: {
           booking_id: string
           reservation_id: string
+          total: number
+        }[]
+      }
+      create_bus_reservation_request: {
+        Args: {
+          _adults: number
+          _baggage_count: number
+          _baggage_notes: string
+          _booker_name: string
+          _booker_phone: string
+          _children: number
+          _id_document_url: string
+          _infants: number
+          _travel_date: string
+          _trip_id: string
+        }
+        Returns: {
+          booking_id: string
+          reference_code: string
           total: number
         }[]
       }
