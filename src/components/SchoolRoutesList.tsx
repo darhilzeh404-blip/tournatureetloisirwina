@@ -51,6 +51,7 @@ export function SchoolRoutesList() {
   const [schools, setSchools] = useState<School[]>([]);
   const [routes, setRoutes] = useState<SchoolRoute[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeLevel, setActiveLevel] = useState<SchoolLevel | null>(null);
 
   const [selected, setSelected] = useState<{ route: SchoolRoute; school?: School } | null>(null);
   const [childLastName, setChildLastName] = useState("");
