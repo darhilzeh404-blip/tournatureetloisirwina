@@ -16,7 +16,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type School = { id: string; name: string; address: string | null };
+type SchoolLevel = "maternelle" | "primaire" | "college" | "lycee";
+
+const LEVEL_LABELS: Record<SchoolLevel, string> = {
+  maternelle: "Maternelle",
+  primaire: "Primaire",
+  college: "Collège",
+  lycee: "Lycée",
+};
+
+type School = {
+  id: string;
+  name: string;
+  address: string | null;
+  level: SchoolLevel;
+};
 type SchoolRoute = {
   id: string;
   school_id: string;
@@ -50,7 +64,7 @@ export function SchoolRoutesList() {
   useEffect(() => {
     (async () => {
       const [{ data: s, error: se }, { data: r, error: re }] = await Promise.all([
-        supabase.from("schools").select("id,name,address").eq("is_active", true).order("name"),
+        supabase.from("schools").select("id,name,address,level").eq("is_active", true).order("name"),
         supabase.from("school_routes").select("*").eq("is_active", true).order("name"),
       ]);
       if (se || re) toast.error("Impossible de charger les établissements");
@@ -171,6 +185,9 @@ export function SchoolRoutesList() {
             <div className="flex items-center gap-2">
               <Bus className="h-4 w-4 text-primary" />
               <p className="font-semibold">{school.name}</p>
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                {LEVEL_LABELS[school.level] ?? "Primaire"}
+              </span>
             </div>
             {school.address && (
               <p className="mt-0.5 text-xs text-muted-foreground">{school.address}</p>

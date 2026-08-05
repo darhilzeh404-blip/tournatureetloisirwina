@@ -22,10 +22,20 @@ type ExtraActivity = {
   is_active: boolean;
 };
 
+type SchoolLevel = "maternelle" | "primaire" | "college" | "lycee";
+
+const SCHOOL_LEVELS: { value: SchoolLevel; label: string }[] = [
+  { value: "maternelle", label: "Maternelle" },
+  { value: "primaire", label: "Primaire" },
+  { value: "college", label: "Collège" },
+  { value: "lycee", label: "Lycée" },
+];
+
 type School = {
   id: string;
   name: string;
   address: string | null;
+  level: SchoolLevel;
   is_active: boolean;
 };
 
@@ -49,6 +59,7 @@ function TransportScolaireAdmin() {
   const [schoolForm, setSchoolForm] = useState({
     name: "",
     address: "",
+    level: "primaire" as SchoolLevel,
   });
 
   const [routeForm, setRouteForm] = useState({
@@ -88,7 +99,7 @@ function TransportScolaireAdmin() {
       return;
     }
 
-    setSchools(data ?? []);
+    setSchools((data ?? []) as unknown as School[]);
   }
 
   async function loadRoutes() {
@@ -145,6 +156,7 @@ function TransportScolaireAdmin() {
     const { error } = await supabase.from("schools").insert({
       name: schoolForm.name,
       address: schoolForm.address,
+      level: schoolForm.level,
       is_active: true,
     });
 
@@ -157,6 +169,7 @@ function TransportScolaireAdmin() {
     setSchoolForm({
       name: "",
       address: "",
+      level: "primaire",
     });
 
     loadSchools();
@@ -304,6 +317,19 @@ function TransportScolaireAdmin() {
             }
             className="w-full rounded border p-3"
           />
+          <select
+            value={schoolForm.level}
+            onChange={(e) =>
+              setSchoolForm((f) => ({ ...f, level: e.target.value as SchoolLevel }))
+            }
+            className="w-full rounded border bg-background p-3 text-foreground md:w-56"
+          >
+            {SCHOOL_LEVELS.map((l) => (
+              <option key={l.value} value={l.value}>
+                {l.label}
+              </option>
+            ))}
+          </select>
           <button
             className="rounded bg-primary px-4 py-2 text-white"
             onClick={createSchool}
@@ -323,7 +349,12 @@ function TransportScolaireAdmin() {
                 className="flex items-center justify-between rounded-lg border p-4"
               >
                 <div>
-                  <p className="font-semibold">{school.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold">{school.name}</p>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                      {SCHOOL_LEVELS.find((l) => l.value === school.level)?.label ?? "Primaire"}
+                    </span>
+                  </div>
                   {school.address && (
                     <p className="text-sm text-muted-foreground">
                       {school.address}
