@@ -3,6 +3,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/transport-scolaire")({
+  head: () => ({
+    meta: [
+      { title: "Transport scolaire — Administration Wina Tour" },
+      { name: "description", content: "Gérez les établissements, itinéraires et tarifs du transport scolaire Wina Tour." },
+      { property: "og:title", content: "Transport scolaire — Administration Wina Tour" },
+      { property: "og:description", content: "Gérez les établissements, itinéraires et tarifs du transport scolaire Wina Tour." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: TransportScolaireAdmin,
 });
 
@@ -48,6 +58,7 @@ type SchoolRoute = {
   departure_time: string;
   return_time: string;
   monthly_price: number;
+  is_active: boolean;
 };
 
 function TransportScolaireAdmin() {
@@ -287,16 +298,23 @@ function TransportScolaireAdmin() {
   }
 
   async function saveSchool(school: School, patch: Partial<School>) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("schools")
       .update(patch as never)
-      .eq("id", school.id);
+      .eq("id", school.id)
+      .select("id,name,address,level,is_active")
+      .maybeSingle();
     if (error) {
       alert(`Erreur modification établissement : ${error.message}`);
       return;
     }
+    if (!data) {
+      alert("Modification refusée : vérifiez que votre compte possède toujours le rôle administrateur.");
+      return;
+    }
     setEditingSchool(null);
-    loadSchools();
+    await loadSchools();
+    alert("Établissement modifié");
   }
 
   async function deleteSchool(school: School) {
@@ -317,16 +335,23 @@ function TransportScolaireAdmin() {
   }
 
   async function saveRoute(route: SchoolRoute, patch: Partial<SchoolRoute>) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("school_routes")
       .update(patch as never)
-      .eq("id", route.id);
+      .eq("id", route.id)
+      .select("id")
+      .maybeSingle();
     if (error) {
       alert(`Erreur modification itinéraire : ${error.message}`);
       return;
     }
+    if (!data) {
+      alert("Modification refusée : vérifiez que votre compte possède toujours le rôle administrateur.");
+      return;
+    }
     setEditingRoute(null);
-    loadRoutes();
+    await loadRoutes();
+    alert("Itinéraire modifié");
   }
 
   async function deleteRoute(route: SchoolRoute) {
@@ -734,6 +759,19 @@ function TransportScolaireAdmin() {
                           })
                         }
                       />
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={editingRoute.is_active}
+                          onChange={(e) =>
+                            setEditingRoute({
+                              ...editingRoute,
+                              is_active: e.target.checked,
+                            })
+                          }
+                        />
+                        Actif (visible côté client)
+                      </label>
                       <div className="flex gap-2">
                         <button
                           className="rounded bg-primary px-3 py-1 text-primary-foreground"
@@ -743,9 +781,10 @@ function TransportScolaireAdmin() {
                               name: editingRoute.name,
                               departure_point: editingRoute.departure_point,
                               arrival_point: editingRoute.arrival_point,
-                              departure_time: editingRoute.departure_time || null as never,
-                              return_time: editingRoute.return_time || null as never,
+                              departure_time: editingRoute.departure_time || "",
+                              return_time: editingRoute.return_time || "",
                               monthly_price: Number(editingRoute.monthly_price),
+                              is_active: editingRoute.is_active,
                             })
                           }
                         >
