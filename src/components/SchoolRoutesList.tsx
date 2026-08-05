@@ -180,49 +180,47 @@ export function SchoolRoutesList() {
   );
   const visibleSchools = activeLevel
     ? schools.filter((s) => (s.level ?? "primaire") === activeLevel)
-    : schools;
+    : [];
 
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold">Établissements & itinéraires desservis</h2>
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setActiveLevel(null)}
-          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-            activeLevel === null
-              ? "border-primary bg-primary text-primary-foreground"
-              : "bg-background text-muted-foreground hover:bg-muted"
-          }`}
+      <div>
+        <Label htmlFor="sr-level" className="mb-1.5 block text-sm font-medium">
+          Choisissez une catégorie d'établissement
+        </Label>
+        <select
+          id="sr-level"
+          value={activeLevel ?? ""}
+          onChange={(e) => setActiveLevel((e.target.value || null) as SchoolLevel | null)}
+          className="h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
         >
-          Tous ({schools.length})
-        </button>
-        {levels.map((lvl) => {
-          const count = schools.filter((s) => (s.level ?? "primaire") === lvl).length;
-          return (
-            <button
-              key={lvl}
-              type="button"
-              onClick={() => setActiveLevel(lvl)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                activeLevel === lvl
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "bg-background text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              {LEVEL_LABELS[lvl]} ({count})
-            </button>
-          );
-        })}
+          <option value="" disabled>
+            — Sélectionner une catégorie —
+          </option>
+          {levels.map((lvl) => {
+            const count = schools.filter((s) => (s.level ?? "primaire") === lvl).length;
+            return (
+              <option key={lvl} value={lvl}>
+                {LEVEL_LABELS[lvl]} ({count})
+              </option>
+            );
+          })}
+        </select>
       </div>
 
-      <div className="space-y-4">
-        {visibleSchools.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            Aucun établissement dans cette catégorie.
-          </p>
-        )}
+      {!activeLevel && (
+        <p className="text-sm text-muted-foreground">
+          Sélectionnez une catégorie pour afficher les établissements correspondants.
+        </p>
+      )}
+
+      {activeLevel && visibleSchools.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          Aucun établissement dans cette catégorie.
+        </p>
+      )}
         {visibleSchools.map((school) => (
           <div key={school.id} className="rounded-2xl border bg-card p-4">
             <div className="flex items-center gap-2">
