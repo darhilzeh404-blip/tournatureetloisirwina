@@ -284,6 +284,62 @@ function TransportScolaireAdmin() {
     alert("Activité modifiée");
   }
 
+  async function saveSchool(school: School, patch: Partial<School>) {
+    const { error } = await supabase
+      .from("schools")
+      .update(patch as never)
+      .eq("id", school.id);
+    if (error) {
+      alert(`Erreur modification établissement : ${error.message}`);
+      return;
+    }
+    setEditingSchool(null);
+    loadSchools();
+  }
+
+  async function deleteSchool(school: School) {
+    if (
+      !confirm(
+        `Supprimer « ${school.name} » ? Ses itinéraires seront aussi supprimés.`,
+      )
+    )
+      return;
+    await supabase.from("school_routes").delete().eq("school_id", school.id);
+    const { error } = await supabase.from("schools").delete().eq("id", school.id);
+    if (error) {
+      alert(`Erreur suppression : ${error.message}`);
+      return;
+    }
+    loadSchools();
+    loadRoutes();
+  }
+
+  async function saveRoute(route: SchoolRoute, patch: Partial<SchoolRoute>) {
+    const { error } = await supabase
+      .from("school_routes")
+      .update(patch as never)
+      .eq("id", route.id);
+    if (error) {
+      alert(`Erreur modification itinéraire : ${error.message}`);
+      return;
+    }
+    setEditingRoute(null);
+    loadRoutes();
+  }
+
+  async function deleteRoute(route: SchoolRoute) {
+    if (!confirm(`Supprimer l'itinéraire « ${route.name} » ?`)) return;
+    const { error } = await supabase
+      .from("school_routes")
+      .delete()
+      .eq("id", route.id);
+    if (error) {
+      alert(`Erreur suppression : ${error.message}`);
+      return;
+    }
+    loadRoutes();
+  }
+
   return (
     <div className="space-y-8 p-4 lg:p-8">
       <div>
