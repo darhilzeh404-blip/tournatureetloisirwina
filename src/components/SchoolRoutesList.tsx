@@ -1,6 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { Bus, Clock, MapPin } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
+import { Bus, Clock, Loader2, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type School = { id: string; name: string; address: string | null };
 type SchoolRoute = {
@@ -9,34 +23,144 @@ type SchoolRoute = {
   name: string;
   departure_point: string;
   arrival_point: string;
-  departure_time: string;
-  return_time: string;
+  departure_time: string | null;
+  return_time: string | null;
   monthly_price: number;
 };
 
+const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
+
 export function SchoolRoutesList() {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   const [schools, setSchools] = useState<School[]>([]);
   const [routes, setRoutes] = useState<SchoolRoute[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [selected, setSelected] = useState<{ route: SchoolRoute; school?: School } | null>(null);
+  const [childLastName, setChildLastName] = useState("");
+  const [childFirstName, setChildFirstName] = useState("");
+  const [childAge, setChildAge] = useState("");
+  const [children, setChildren] = useState(1);
+  const [months, setMonths] = useState(1);
+  const [startDate, setStartDate] = useState("");
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     (async () => {
-      const [{ data: s }, { data: r }] = await Promise.all([
+      const [{ data: s, error: se }, { data: r, error: re }] = await Promise.all([
         supabase.from("schools").select("id,name,address").eq("is_active", true).order("name"),
         supabase.from("school_routes").select("*").eq("is_active", true).order("name"),
       ]);
+      if (se || re) toast.error("Impossible de charger les établissements");
       setSchools((s ?? []) as School[]);
       setRoutes((r ?? []) as SchoolRoute[]);
       setLoading(false);
     })();
   }, []);
 
+  const total = useMemo(
+    () => (selected ? Number(selected.route.monthly_price) * months * children : 0),
+    [selected, months, children],
+  );
+
+  const openBooking = (route: SchoolRoute) => {
+    if (!isAuthenticated) {
+      toast.error("Veuillez vous connecter pour réserver");
+      navigate({ to: "/connexion" });
+      return;
+    }
+    setSelected({ route, school: schools.find((s) => s.id === route.school_id) });
+    setChildLastName("");
+    setChildFirstName("");
+    setChildAge("");
+    setChildren(1);
+    setMonths(1);
+    setStartDate("");
+  };
+
+  const submit = async () => {
+    if (!selected || !user) return;
+    const age = Number(childAge);
+    if (!childLastName.trim() || !childFirstName.trim()) {
+      toast.error("Nom et prénom de l'enfant obligatoires");
+      return;
+    }
+    if (!childAge || Number.isNaN(age) || age < 2 || age > 25) {
+      toast.error("Âge de l'enfant invalide");
+      return;
+    }
+    if (!startDate) {
+      toast.error("Choisissez une date de début");
+      return;
+    }
+    const min = new Date();
+    min.setDate(min.getDate() + 2);
+    if (new Date(startDate) < new Date(min.toISOString().split("T")[0])) {
+      toast.error("Réservation possible 48h à l'avance minimum");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { route, school } = selected;
+      const { error } = await supabase.from("reservations").insert({
+        user_id: user.id,
+        service_type: "TRANSPORT_SCOLAIRE",
+        reservation_date: startDate,
+        total_amount: total,
+        paid_amount: 0,
+        details: {
+          category: "scolaire",
+          school_route_id: route.id,
+          school_id: route.school_id,
+          school: school?.name,
+          route: route.name,
+          pickup: route.departure_point,
+          destination: route.arrival_point,
+          departure_time: route.departure_time,
+          return_time: route.return_time,
+          months,
+          children_count: children,
+          child_last_name: childLastName.trim(),
+          child_first_name: childFirstName.trim(),
+          child_age: age,
+          quote: [
+            {
+              label: `${route.name} — ${months} mois × ${children} enfant(s)`,
+              amount: total,
+            },
+          ],
+        },
+      });
+      if (error) throw error;
+      toast.success("Réservation créée ! Procédez au paiement.");
+      setSelected(null);
+      navigate({ to: "/mes-reservations" });
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la réservation");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return <p className="text-sm text-muted-foreground">Chargement des itinéraires…</p>;
   }
 
   const withRoutes = schools.filter((s) => routes.some((r) => r.school_id === s.id));
-  if (withRoutes.length === 0) return null;
+
+  if (withRoutes.length === 0) {
+    return (
+      <section className="rounded-2xl border bg-card p-4">
+        <h2 className="text-lg font-semibold">Établissements & itinéraires desservis</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Aucun itinéraire disponible pour le moment. Revenez bientôt.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4">
@@ -55,7 +179,7 @@ export function SchoolRoutesList() {
               {routes
                 .filter((r) => r.school_id === school.id)
                 .map((r) => (
-                  <div key={r.id} className="rounded-xl border bg-background p-3">
+                  <div key={r.id} className="flex flex-col rounded-xl border bg-background p-3">
                     <p className="text-sm font-medium">{r.name}</p>
                     <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3" />
@@ -70,14 +194,114 @@ export function SchoolRoutesList() {
                       </p>
                     )}
                     <p className="mt-2 text-sm font-bold text-primary">
-                      {Number(r.monthly_price).toLocaleString()} FCFA / mois
+                      {fmt(Number(r.monthly_price))} FCFA / mois
                     </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="mt-3 w-full"
+                      onClick={() => openBooking(r)}
+                    >
+                      Réserver cet itinéraire
+                    </Button>
                   </div>
                 ))}
             </div>
           </div>
         ))}
       </div>
+
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Réserver — {selected?.route.name}</DialogTitle>
+            <DialogDescription>
+              {selected?.school?.name} • {selected?.route.departure_point} →{" "}
+              {selected?.route.arrival_point}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="sr-last">Nom de l'enfant</Label>
+                <Input
+                  id="sr-last"
+                  value={childLastName}
+                  onChange={(e) => setChildLastName(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="sr-first">Prénom de l'enfant</Label>
+                <Input
+                  id="sr-first"
+                  value={childFirstName}
+                  onChange={(e) => setChildFirstName(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label htmlFor="sr-age">Âge</Label>
+                <Input
+                  id="sr-age"
+                  type="number"
+                  min={2}
+                  max={25}
+                  value={childAge}
+                  onChange={(e) => setChildAge(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="sr-kids">Enfants</Label>
+                <Input
+                  id="sr-kids"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={children}
+                  onChange={(e) => setChildren(Math.max(1, Number(e.target.value) || 1))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="sr-months">Mois</Label>
+                <Input
+                  id="sr-months"
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={months}
+                  onChange={(e) => setMonths(Math.max(1, Number(e.target.value) || 1))}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="sr-date">Date de début</Label>
+              <Input
+                id="sr-date"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-xl bg-muted p-3">
+              <span className="text-sm font-medium">Total à payer</span>
+              <span className="text-lg font-bold text-primary">{fmt(total)} FCFA</span>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setSelected(null)}>
+              Annuler
+            </Button>
+            <Button type="button" onClick={submit} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirmer la réservation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
