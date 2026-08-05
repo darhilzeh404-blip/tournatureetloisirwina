@@ -73,6 +73,8 @@ function TransportScolaireAdmin() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [editingSchool, setEditingSchool] = useState<School | null>(null);
+  const [editingRoute, setEditingRoute] = useState<SchoolRoute | null>(null);
 
   const [editingTariff, setEditingTariff] = useState<SchoolTariff | null>(null);
   const [tariffAmount, setTariffAmount] = useState("");
