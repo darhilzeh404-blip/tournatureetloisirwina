@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NumberInput } from "@/components/ui/number-input";
+import { SchoolRoutesList } from "@/components/SchoolRoutesList";
+
 import hiaceBg from "@/assets/hiace-navette.jpg";
 import icon3dScolaire from "@/assets/icons-3d/scolaire.png";
 import icon3dExtra from "@/assets/icons-3d/extra.png";
