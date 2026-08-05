@@ -268,7 +268,11 @@ function BusAgencyPage() {
                     <Row label="Bagages" value={`${baggageCount}`} />
                     <div className="my-2 border-t" />
                     <Row label="Total des billets" value={fmtXAF(totals.ticketsTotal)} />
-                    <Row label="Supplément bagages" value={fmtXAF(totals.baggageTotal)} />
+                    <Row
+                      label="Supplément bagages"
+                      value={totals.extraBags > 0 ? `${totals.extraBags} bagage(s) — confirmé par l'agence` : "Inclus"}
+                    />
+
                     <div className="flex items-center justify-between border-t pt-2">
                       <span className="font-bold">Total estimé</span>
                       <span className="text-lg font-bold text-primary">{fmtXAF(totals.total)}</span>
