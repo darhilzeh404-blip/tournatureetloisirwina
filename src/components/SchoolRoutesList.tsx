@@ -163,14 +163,12 @@ export function SchoolRoutesList() {
     return <p className="text-sm text-muted-foreground">Chargement des itinéraires…</p>;
   }
 
-  const withRoutes = schools.filter((s) => routes.some((r) => r.school_id === s.id));
-
-  if (withRoutes.length === 0) {
+  if (schools.length === 0) {
     return (
       <section className="rounded-2xl border bg-card p-4">
         <h2 className="text-lg font-semibold">Établissements & itinéraires desservis</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Aucun itinéraire disponible pour le moment. Revenez bientôt.
+          Aucun établissement disponible pour le moment. Revenez bientôt.
         </p>
       </section>
     );
@@ -180,7 +178,7 @@ export function SchoolRoutesList() {
     <section className="space-y-4">
       <h2 className="text-lg font-semibold">Établissements & itinéraires desservis</h2>
       <div className="space-y-4">
-        {withRoutes.map((school) => (
+        {schools.map((school) => (
           <div key={school.id} className="rounded-2xl border bg-card p-4">
             <div className="flex items-center gap-2">
               <Bus className="h-4 w-4 text-primary" />
