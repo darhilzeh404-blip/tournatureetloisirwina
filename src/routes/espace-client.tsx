@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Mountain } from "lucide-react";
+import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Mountain, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
