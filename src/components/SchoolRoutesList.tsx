@@ -190,6 +190,11 @@ export function SchoolRoutesList() {
             {school.address && (
               <p className="mt-0.5 text-xs text-muted-foreground">{school.address}</p>
             )}
+            {routes.filter((r) => r.school_id === school.id).length === 0 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Itinéraires en cours de préparation pour cet établissement.
+              </p>
+            )}
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {routes
                 .filter((r) => r.school_id === school.id)
