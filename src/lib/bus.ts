@@ -255,16 +255,17 @@ export function tripDateOptions(trip: BusTrip): string[] {
 
 export type BusCounters = { adults: number; children: number; infants: number };
 
-/** Aperçu client : adulte plein tarif, enfant 7-11 réduit, bébé 0-6 (souvent gratuit). */
+/** Aperçu client : adulte plein tarif, enfant 7-11 réduit, bébé 0-6 (souvent gratuit).
+ *  Les éventuels frais de bagages sont confirmés par l'agence avec le billet définitif. */
 export function computeCounterTotal(trip: BusTrip | null, c: BusCounters, baggageCount: number) {
   if (!trip) return { ticketsTotal: 0, extraBags: 0, baggageTotal: 0, total: 0 };
   const ticketsTotal =
     c.adults * trip.price_adult + c.children * trip.price_child_7_11 + c.infants * trip.price_child_0_6;
   const includedBags = c.adults + c.children;
   const extraBags = Math.max(baggageCount - includedBags, 0);
-  const baggageTotal = extraBags * (trip.baggage_extra_price_per_kg || 0);
-  return { ticketsTotal, extraBags, baggageTotal, total: ticketsTotal + baggageTotal };
+  return { ticketsTotal, extraBags, baggageTotal: 0, total: ticketsTotal };
 }
+
 
 
 export async function createBusReservationRequest(params: {
