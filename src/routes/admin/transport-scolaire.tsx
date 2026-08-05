@@ -401,37 +401,122 @@ function TransportScolaireAdmin() {
           <p className="text-muted-foreground">Aucun établissement trouvé.</p>
         ) : (
           <div className="space-y-3">
-            {schools.map((school) => (
-              <div
-                key={school.id}
-                className="flex items-center justify-between rounded-lg border p-4"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold">{school.name}</p>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                      {SCHOOL_LEVELS.find((l) => l.value === school.level)?.label ?? "Primaire"}
-                    </span>
+            {schools.map((school) =>
+              editingSchool?.id === school.id ? (
+                <div key={school.id} className="space-y-3 rounded-lg border p-4">
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <input
+                      className="rounded border bg-background p-2 text-foreground"
+                      value={editingSchool.name}
+                      onChange={(e) =>
+                        setEditingSchool({ ...editingSchool, name: e.target.value })
+                      }
+                    />
+                    <input
+                      className="rounded border bg-background p-2 text-foreground"
+                      placeholder="Adresse"
+                      value={editingSchool.address ?? ""}
+                      onChange={(e) =>
+                        setEditingSchool({ ...editingSchool, address: e.target.value })
+                      }
+                    />
+                    <select
+                      className="rounded border bg-background p-2 text-foreground"
+                      value={editingSchool.level}
+                      onChange={(e) =>
+                        setEditingSchool({
+                          ...editingSchool,
+                          level: e.target.value as SchoolLevel,
+                        })
+                      }
+                    >
+                      {SCHOOL_LEVELS.map((l) => (
+                        <option key={l.value} value={l.value}>
+                          {l.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  {school.address && (
-                    <p className="text-sm text-muted-foreground">
-                      {school.address}
-                    </p>
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={editingSchool.is_active}
+                        onChange={(e) =>
+                          setEditingSchool({
+                            ...editingSchool,
+                            is_active: e.target.checked,
+                          })
+                        }
+                      />
+                      Actif (visible côté client)
+                    </label>
+                    <button
+                      className="rounded bg-primary px-3 py-1 text-primary-foreground"
+                      onClick={() =>
+                        saveSchool(school, {
+                          name: editingSchool.name,
+                          address: editingSchool.address,
+                          level: editingSchool.level,
+                          is_active: editingSchool.is_active,
+                        })
+                      }
+                    >
+                      Enregistrer
+                    </button>
+                    <button
+                      className="rounded border px-3 py-1"
+                      onClick={() => setEditingSchool(null)}
+                    >
+                      Annuler
+                    </button>
+                  </div>
                 </div>
-
-                <span
-                  className={`text-sm ${
-                    school.is_active
-                      ? "text-green-600"
-                      : "text-muted-foreground"
-                  }`}
+              ) : (
+                <div
+                  key={school.id}
+                  className="flex items-center justify-between rounded-lg border p-4"
                 >
-                  {school.is_active ? "Actif" : "Inactif"}
-                </span>
-              </div>
-            ))}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">{school.name}</p>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        {SCHOOL_LEVELS.find((l) => l.value === school.level)?.label ?? "Primaire"}
+                      </span>
+                    </div>
+                    {school.address && (
+                      <p className="text-sm text-muted-foreground">
+                        {school.address}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`text-sm ${
+                        school.is_active ? "text-green-600" : "text-muted-foreground"
+                      }`}
+                    >
+                      {school.is_active ? "Actif" : "Inactif"}
+                    </span>
+                    <button
+                      className="rounded border px-3 py-1 text-sm"
+                      onClick={() => setEditingSchool(school)}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      className="rounded bg-destructive px-3 py-1 text-sm text-destructive-foreground"
+                      onClick={() => deleteSchool(school)}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ),
+            )}
           </div>
+
         )}
       </section>
 
