@@ -99,7 +99,7 @@ function TransportScolaireAdmin() {
       return;
     }
 
-    setSchools(data ?? []);
+    setSchools((data ?? []) as unknown as School[]);
   }
 
   async function loadRoutes() {
