@@ -1,725 +1,586 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
 
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Bus, CalendarDays, Loader2, Package, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
+
+import { fmtXAF, formatDateFR, toISODate, TRIP_STATUS_LABEL, BOOKING_STATUS_LABEL, QUOTE_STATUS_LABEL } from "@/lib/bus";
 
 export const Route = createFileRoute("/admin/bus-billetterie")({
+  head: () => ({
+    meta: [
+      { title: "Billetterie Bus — Administration Wina Tour" },
+      { name: "description", content: "Créez les départs de bus, traitez les réservations et envoyez les billets définitifs." },
+    ],
+  }),
   component: BusBilletterieAdmin,
 });
 
-type Agency = {
-  id: string;
-  name: string;
-  logo_url: string | null;
-};
+type Agency = { id: string; name: string; category: string | null; is_active: boolean };
 
-type BusTrip = {
+type Trip = {
   id: string;
+  agency_id: string;
   origin: string;
   destination: string;
   departure_date: string;
   seats_total: number;
   seats_available: number;
   price_adult: number;
-  status: string;
-  partner_agencies?: {
-    name: string;
-  };
-};
-
-type BusTripForm = {
-  agency_id: string;
-
-  origin: string;
-  destination: string;
-
-  start_date: string;
-  end_date: string;
-
-  seats_total: number;
-
-  price_adult: number;
   price_child_7_11: number;
   price_child_0_6: number;
-
   baggage_included_kg: number;
   baggage_extra_price_per_kg: number;
   baggage_conditions: string;
+  status: "available" | "full" | "cancelled";
 };
+
+type Booking = {
+  id: string;
+  trip_id: string;
+  reference_code: string;
+  booker_name: string;
+  booker_phone: string;
+  passengers_count: number;
+  total_amount: number;
+  status: string;
+  created_at: string;
+};
+
+type QuoteRow = Record<string, any>;
+
+const emptyForm = {
+  agency_id: "",
+  origin: "",
+  destination: "",
+  seats_total: 50,
+  price_adult: 0,
+  price_child_7_11: 0,
+  price_child_0_6: 0,
+  baggage_included_kg: 20,
+  baggage_extra_price_per_kg: 1000,
+  baggage_conditions: "",
+};
+
+type Tab = "trips" | "bookings" | "parcel" | "funeral";
 
 function BusBilletterieAdmin() {
-    const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState<Tab>("trips");
 
   const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [parcels, setParcels] = useState<QuoteRow[]>([]);
+  const [funerals, setFunerals] = useState<QuoteRow[]>([]);
 
-  const [trips, setTrips] = useState<BusTrip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState<BusTripForm>({
-    agency_id: "",
+  const [form, setForm] = useState({ ...emptyForm });
+  const [dates, setDates] = useState<Date[]>([]);
+  const [month, setMonth] = useState<Date>(new Date());
 
-    origin: "",
-    destination: "",
+  const agencyName = useMemo(() => {
+    const map: Record<string, string> = {};
+    agencies.forEach((a) => (map[a.id] = a.name));
+    return map;
+  }, [agencies]);
 
-    start_date: "",
-    end_date: "",
+  const tripLabel = useMemo(() => {
+    const map: Record<string, string> = {};
+    trips.forEach((t) => (map[t.id] = `${t.origin} → ${t.destination} · ${t.departure_date}`));
+    return map;
+  }, [trips]);
 
-    seats_total: 50,
+  const loadAll = async () => {
+    setLoading(true);
+    const [ag, tr, bk, pc, fn] = await Promise.all([
+      supabase.rpc("get_all_partner_agencies_admin"),
+      supabase.from("bus_trips" as any).select("*").order("departure_date"),
+      supabase.from("bus_bookings" as any).select("*").order("created_at", { ascending: false }),
+      supabase.from("bus_parcel_requests" as any).select("*").order("created_at", { ascending: false }),
+      supabase.from("bus_funeral_requests" as any).select("*").order("created_at", { ascending: false }),
+    ]);
 
-    price_adult: 0,
-    price_child_7_11: 0,
-    price_child_0_6: 0,
+    if (ag.error) toast.error(ag.error.message);
+    if (tr.error) toast.error(tr.error.message);
 
-    baggage_included_kg: 20,
-    baggage_extra_price_per_kg: 1000,
-    baggage_conditions: "",
-  });
-    const loadAgencies = async () => {
-
-    const { data, error } = await supabase
-      .from("partner_agencies")
-      .select("id,name,logo_url")
-      .eq("is_active", true)
-      .eq("is_verified", true)
-      .order("name");
-
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-
-    setAgencies(data || []);
+    const allAgencies = ((ag.data as any[]) ?? []) as Agency[];
+    setAgencies(allAgencies.filter((a) => a.category === "bus" && a.is_active !== false));
+    setTrips(((tr.data as any[]) ?? []) as Trip[]);
+    setBookings(((bk.data as any[]) ?? []) as Booking[]);
+    setParcels(((pc.data as any[]) ?? []) as QuoteRow[]);
+    setFunerals(((fn.data as any[]) ?? []) as QuoteRow[]);
+    setLoading(false);
   };
-    const loadTrips = async () => {
 
-    const { data, error } = await supabase
-      .from("bus_trips")
-      .select(`
-        id,
-        origin,
-        destination,
-        departure_date,
-        seats_total,
-        seats_available,
-        price_adult,
-        status,
-        partner_agencies(name)
-      `)
-      .order("departure_date");
+  useEffect(() => { loadAll(); }, []);
 
-    if (error) {
-      toast.error(error.message);
-      return;
+  /* ---------------- Voyages ---------------- */
+
+  const createTrips = async () => {
+    if (!form.agency_id) return toast.error("Choisissez une agence partenaire");
+    if (!form.origin.trim()) return toast.error("Ville de départ obligatoire");
+    if (!form.destination.trim()) return toast.error("Ville d'arrivée obligatoire");
+    if (dates.length === 0) return toast.error("Sélectionnez au moins une date dans le calendrier");
+    if (dates.length > 31) return toast.error("Maximum 31 dates par programmation");
+    if (!form.seats_total || form.seats_total < 1) return toast.error("Nombre de places invalide");
+    if (form.price_adult <= 0) return toast.error("Le tarif adulte est obligatoire");
+
+    setSaving(true);
+    try {
+      const isoDates = dates.map(toISODate);
+      const existing = new Set(
+        trips
+          .filter((t) => t.agency_id === form.agency_id && t.origin === form.origin.trim() && t.destination === form.destination.trim())
+          .map((t) => t.departure_date),
+      );
+      const rows = isoDates
+        .filter((d) => !existing.has(d))
+        .map((departure_date) => ({
+          agency_id: form.agency_id,
+          origin: form.origin.trim(),
+          destination: form.destination.trim(),
+          departure_date,
+          seats_total: form.seats_total,
+          seats_available: form.seats_total,
+          price_adult: form.price_adult,
+          price_child_7_11: form.price_child_7_11,
+          price_child_0_6: form.price_child_0_6,
+          baggage_included_kg: form.baggage_included_kg,
+          baggage_extra_price_per_kg: form.baggage_extra_price_per_kg,
+          baggage_conditions: form.baggage_conditions,
+          status: "available",
+        }));
+
+      if (rows.length === 0) {
+        toast.info("Ces départs existent déjà pour cet itinéraire");
+        return;
+      }
+
+      const { error } = await supabase.from("bus_trips" as any).insert(rows as any);
+      if (error) throw error;
+
+      toast.success(`${rows.length} départ(s) créé(s)`);
+      setForm({ ...emptyForm });
+      setDates([]);
+      await loadAll();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de la création");
+    } finally {
+      setSaving(false);
     }
-
-    setTrips(data || []);
   };
-    useEffect(() => {
 
-    loadAgencies();
+  const updateTrip = async (id: string, patch: Partial<Trip>) => {
+    const { error } = await supabase.from("bus_trips" as any).update(patch as any).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Voyage mis à jour");
+    loadAll();
+  };
 
-    loadTrips();
+  const deleteTrip = async (t: Trip) => {
+    if (!confirm(`Supprimer le départ ${t.origin} → ${t.destination} du ${t.departure_date} ?`)) return;
+    const { error } = await supabase.from("bus_trips" as any).delete().eq("id", t.id);
+    if (error) return toast.error(error.message);
+    toast.success("Départ supprimé");
+    loadAll();
+  };
 
-  }, []);
-  const createTrip = async () => {
+  /* ---------------- Billet définitif ---------------- */
 
-  if (!form.agency_id) {
-    toast.error("Choisissez une agence");
-    return;
-  }
-
-  if (!form.origin) {
-    toast.error("Ville de départ obligatoire");
-    return;
-  }
-
-  if (!form.destination) {
-    toast.error("Destination obligatoire");
-    return;
-  }
-
-  if (!form.start_date || !form.end_date) {
-    toast.error("Choisissez une période");
-    return;
-  }
-
-  const start = new Date(form.start_date);
-  const end = new Date(form.end_date);
-
-  if (start > end) {
-    toast.error("La date de début doit être avant la date de fin");
-    return;
-  }
-
-  const difference =
-    Math.floor(
-      (end.getTime() - start.getTime()) /
-      (1000 * 60 * 60 * 24)
-    ) + 1;
-
-  if (difference > 30) {
-    toast.error("Maximum 30 jours");
-    return;
-  }
-
-  setLoading(true);
-
-  let current = new Date(start);
-
-  while (current <= end) {
-
-    const departureDate =
-      current.toISOString().split("T")[0];
-
-    const { error } = await supabase
-      .from("bus_trips")
-      .insert({
-
-        agency_id: form.agency_id,
-
-        origin: form.origin,
-        destination: form.destination,
-
-        departure_date: departureDate,
-
-        seats_total: form.seats_total,
-        seats_available: form.seats_total,
-
-        price_adult: form.price_adult,
-        price_child_7_11: form.price_child_7_11,
-        price_child_0_6: form.price_child_0_6,
-
-        baggage_included_kg:
-          form.baggage_included_kg,
-
-        baggage_extra_price_per_kg:
-          form.baggage_extra_price_per_kg,
-
-        baggage_conditions:
-          form.baggage_conditions,
-
-        status: "available",
-
-      });
-
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-      return;
-    }
-
-    current.setDate(current.getDate() + 1);
-
-  }
-
-  toast.success("Programmation créée avec succès");
-
-  setForm({
-
-    agency_id: "",
-
-    origin: "",
-    destination: "",
-
-    start_date: "",
-    end_date: "",
-
-    seats_total: 50,
-
-    price_adult: 0,
-    price_child_7_11: 0,
-    price_child_0_6: 0,
-
-    baggage_included_kg: 20,
-    baggage_extra_price_per_kg: 1000,
-    baggage_conditions: "",
-
+  const [ticketFor, setTicketFor] = useState<string | null>(null);
+  const [ticketForm, setTicketForm] = useState({
+    ticket_number: "",
+    departure_time: "",
+    boarding_time: "",
+    seat_numbers: "",
+    extra_info: "",
   });
 
-  await loadTrips();
+  const issueTicket = async (booking: Booking) => {
+    if (!ticketForm.departure_time.trim()) return toast.error("Heure de départ obligatoire");
+    setSaving(true);
+    try {
+      const number = ticketForm.ticket_number.trim() || `BUS-${booking.reference_code}`;
+      const { error } = await supabase.from("bus_final_tickets" as any).insert({
+        booking_id: booking.id,
+        ticket_number: number,
+        departure_time: ticketForm.departure_time.trim(),
+        boarding_time: ticketForm.boarding_time.trim(),
+        seat_numbers: ticketForm.seat_numbers.trim(),
+        extra_info: ticketForm.extra_info.trim(),
+      } as any);
+      if (error) throw error;
 
-  setLoading(false);
+      const { error: e2 } = await supabase.from("bus_bookings" as any)
+        .update({ status: "ticket_sent" } as any).eq("id", booking.id);
+      if (e2) throw e2;
 
-};
-if (loading) {
+      toast.success("Billet définitif envoyé au client");
+      setTicketFor(null);
+      setTicketForm({ ticket_number: "", departure_time: "", boarding_time: "", seat_numbers: "", extra_info: "" });
+      await loadAll();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erreur d'envoi du billet");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* ---------------- Devis ---------------- */
+
+  const [quoteDraft, setQuoteDraft] = useState<Record<string, { price: string; a: string; b: string }>>({});
+
+  const draft = (id: string) => quoteDraft[id] ?? { price: "", a: "", b: "" };
+  const setDraft = (id: string, patch: Partial<{ price: string; a: string; b: string }>) =>
+    setQuoteDraft((d) => ({ ...d, [id]: { ...draft(id), ...patch } }));
+
+  const sendQuote = async (kind: "parcel" | "funeral", row: QuoteRow) => {
+    const d = draft(row.id);
+    const price = Number(d.price);
+    if (!price || price <= 0) return toast.error("Renseignez un prix valide");
+    setSaving(true);
+    try {
+      const table = kind === "parcel" ? "bus_parcel_requests" : "bus_funeral_requests";
+      const patch: any =
+        kind === "parcel"
+          ? { quote_price: price, quote_delay: d.a, quote_comment: d.b, status: "quoted", quoted_at: new Date().toISOString() }
+          : { quote_price: price, quote_available_date: d.a || null, quote_conditions: d.b, status: "quoted", quoted_at: new Date().toISOString() };
+      const { error } = await supabase.from(table as any).update(patch).eq("id", row.id);
+      if (error) throw error;
+      toast.success("Devis envoyé au client");
+      await loadAll();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de l'envoi du devis");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* ---------------- Rendu ---------------- */
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 p-8 text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" /> Chargement…
+      </div>
+    );
+  }
+
+  const tabs: { key: Tab; label: string; icon: typeof Bus; count: number }[] = [
+    { key: "trips", label: "Départs programmés", icon: CalendarDays, count: trips.length },
+    { key: "bookings", label: "Réservations", icon: Ticket, count: bookings.filter((b) => b.status !== "cancelled").length },
+    { key: "parcel", label: "Colis", icon: Package, count: parcels.filter((p) => p.status === "pending").length },
+    { key: "funeral", label: "Funéraire", icon: Flower2, count: funerals.filter((p) => p.status === "pending").length },
+  ];
+
   return (
-    <div className="p-8">
-      Chargement...
+    <div className="mx-auto max-w-6xl space-y-6 p-5">
+      <div>
+        <h1 className="text-2xl font-bold">Billetterie Bus</h1>
+        <p className="text-sm text-muted-foreground">
+          Créez les départs, traitez les réservations et envoyez les billets définitifs.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                active ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:border-primary"
+              }`}
+            >
+              <Icon className="h-4 w-4" /> {t.label}
+              <span className={`rounded-full px-1.5 text-[11px] ${active ? "bg-primary-foreground/20" : "bg-muted"}`}>{t.count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {tab === "trips" && (
+        <>
+          <Card>
+            <CardContent className="space-y-5 p-5">
+              <div className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                <h2 className="text-lg font-semibold">Nouvelle programmation de départs</h2>
+              </div>
+
+              {agencies.length === 0 && (
+                <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+                  Aucune agence de catégorie « Bus » active. Créez-en une dans « Agences partenaires ».
+                </p>
+              )}
+
+              <div>
+                <label className="text-sm font-medium">Agence partenaire</label>
+                <select
+                  className="mt-1.5 h-11 w-full rounded-md border bg-background px-3 text-sm"
+                  value={form.agency_id}
+                  onChange={(e) => setForm({ ...form, agency_id: e.target.value })}
+                >
+                  <option value="">Choisir une agence</option>
+                  {agencies.map((a) => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium">Ville de départ</label>
+                  <Input className="mt-1.5" value={form.origin} onChange={(e) => setForm({ ...form, origin: e.target.value })} placeholder="Libreville" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Ville d'arrivée</label>
+                  <Input className="mt-1.5" value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} placeholder="Franceville" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Dates de départ (calendrier mensuel)</label>
+                <div className="mt-2 rounded-xl border p-2">
+                  <Calendar
+                    mode="multiple"
+                    month={month}
+                    onMonthChange={setMonth}
+                    selected={dates}
+                    onSelect={(d) => setDates((d as Date[]) ?? [])}
+                    disabled={{ before: new Date(new Date().toDateString()) }}
+                    className="pointer-events-auto"
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {dates.length > 0
+                    ? `${dates.length} date(s) sélectionnée(s) : ${dates.map(toISODate).sort().join(", ")}`
+                    : "Cliquez sur chaque jour où le départ est proposé. Un voyage sera créé par date."}
+                </p>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="text-sm font-medium">Nombre total de places</label>
+                  <Input className="mt-1.5" type="number" min={1} value={form.seats_total}
+                    onChange={(e) => setForm({ ...form, seats_total: Number(e.target.value) })} />
+                </div>
+              </div>
+
+              <h3 className="font-semibold">Tarifs par tranche d'âge</h3>
+              <div className="grid gap-3 md:grid-cols-3">
+                <div>
+                  <label className="text-xs text-muted-foreground">Adulte (12 ans et +)</label>
+                  <Input type="number" min={0} value={form.price_adult} onChange={(e) => setForm({ ...form, price_adult: Number(e.target.value) })} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Enfant 7 à 11 ans</label>
+                  <Input type="number" min={0} value={form.price_child_7_11} onChange={(e) => setForm({ ...form, price_child_7_11: Number(e.target.value) })} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Enfant 0 à 6 ans</label>
+                  <Input type="number" min={0} value={form.price_child_0_6} onChange={(e) => setForm({ ...form, price_child_0_6: Number(e.target.value) })} />
+                </div>
+              </div>
+
+              <h3 className="font-semibold">Bagages</h3>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Kg inclus</label>
+                  <Input type="number" min={0} value={form.baggage_included_kg} onChange={(e) => setForm({ ...form, baggage_included_kg: Number(e.target.value) })} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Prix du kg supplémentaire</label>
+                  <Input type="number" min={0} value={form.baggage_extra_price_per_kg} onChange={(e) => setForm({ ...form, baggage_extra_price_per_kg: Number(e.target.value) })} />
+                </div>
+              </div>
+              <Textarea
+                placeholder="Conditions des bagages (visibles par le client avant paiement)"
+                value={form.baggage_conditions}
+                onChange={(e) => setForm({ ...form, baggage_conditions: e.target.value })}
+              />
+
+              <Button onClick={createTrips} disabled={saving} className="w-full">
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+                Créer les départs
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-3 p-5">
+              <h2 className="text-lg font-semibold">Départs programmés</h2>
+              {trips.length === 0 && <p className="text-sm text-muted-foreground">Aucun départ créé.</p>}
+              {trips.map((t) => (
+                <div key={t.id} className="rounded-xl border p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{t.origin} → {t.destination}</p>
+                      <p className="text-xs text-muted-foreground">{agencyName[t.agency_id] ?? "—"}</p>
+                      <p className="mt-1 text-sm">{formatDateFR(t.departure_date)}</p>
+                    </div>
+                    <div className="text-sm">
+                      <p>Places : <b>{t.seats_available}</b> / {t.seats_total}</p>
+                      <p>Adulte : {fmtXAF(t.price_adult)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        7-11 : {fmtXAF(t.price_child_7_11)} · 0-6 : {fmtXAF(t.price_child_0_6)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select
+                        className="h-9 rounded-md border bg-background px-2 text-sm"
+                        value={t.status}
+                        onChange={(e) => updateTrip(t.id, { status: e.target.value as Trip["status"] })}
+                      >
+                        {Object.entries(TRIP_STATUS_LABEL).map(([k, v]) => (
+                          <option key={k} value={k}>{v}</option>
+                        ))}
+                      </select>
+                      <Button variant="ghost" size="icon" onClick={() => deleteTrip(t)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {tab === "bookings" && (
+        <Card>
+          <CardContent className="space-y-3 p-5">
+            <h2 className="text-lg font-semibold">Réservations clients</h2>
+            {bookings.length === 0 && <p className="text-sm text-muted-foreground">Aucune réservation.</p>}
+            {bookings.map((b) => (
+              <div key={b.id} className="rounded-xl border p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold">{b.reference_code}</p>
+                    <p className="text-sm">{tripLabel[b.trip_id] ?? "Voyage supprimé"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {b.booker_name} · {b.booker_phone} · {b.passengers_count} passager(s)
+                    </p>
+                  </div>
+                  <div className="text-right text-sm">
+                    <p className="font-semibold">{fmtXAF(b.total_amount)}</p>
+                    <p className="text-xs text-muted-foreground">{BOOKING_STATUS_LABEL[b.status as keyof typeof BOOKING_STATUS_LABEL] ?? b.status}</p>
+                  </div>
+                </div>
+
+                {b.status === "paid" && (
+                  <div className="mt-3">
+                    {ticketFor === b.id ? (
+                      <div className="space-y-2 rounded-lg bg-muted/50 p-3">
+                        <div className="grid gap-2 md:grid-cols-2">
+                          <Input placeholder="Numéro du billet (auto si vide)" value={ticketForm.ticket_number}
+                            onChange={(e) => setTicketForm({ ...ticketForm, ticket_number: e.target.value })} />
+                          <Input placeholder="Heure de départ (ex. 07h30)" value={ticketForm.departure_time}
+                            onChange={(e) => setTicketForm({ ...ticketForm, departure_time: e.target.value })} />
+                          <Input placeholder="Heure de convocation (ex. 06h30)" value={ticketForm.boarding_time}
+                            onChange={(e) => setTicketForm({ ...ticketForm, boarding_time: e.target.value })} />
+                          <Input placeholder="Numéro(s) de siège (ex. 12, 13)" value={ticketForm.seat_numbers}
+                            onChange={(e) => setTicketForm({ ...ticketForm, seat_numbers: e.target.value })} />
+                        </div>
+                        <Textarea placeholder="Informations complémentaires" value={ticketForm.extra_info}
+                          onChange={(e) => setTicketForm({ ...ticketForm, extra_info: e.target.value })} />
+                        <div className="flex gap-2">
+                          <Button onClick={() => issueTicket(b)} disabled={saving}>
+                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Envoyer le billet
+                          </Button>
+                          <Button variant="ghost" onClick={() => setTicketFor(null)}>Annuler</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button size="sm" onClick={() => setTicketFor(b.id)}>
+                        <Ticket className="mr-2 h-4 w-4" /> Émettre le billet définitif
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {(tab === "parcel" || tab === "funeral") && (
+        <Card>
+          <CardContent className="space-y-3 p-5">
+            <h2 className="text-lg font-semibold">
+              {tab === "parcel" ? "Demandes d'expédition de colis" : "Demandes de transport funéraire"}
+            </h2>
+            {(tab === "parcel" ? parcels : funerals).length === 0 && (
+              <p className="text-sm text-muted-foreground">Aucune demande.</p>
+            )}
+            {(tab === "parcel" ? parcels : funerals).map((r) => {
+              const d = draft(r.id);
+              return (
+                <div key={r.id} className="rounded-xl border p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{r.reference_code}</p>
+                      <p className="text-sm">{r.origin} → {r.destination}</p>
+                      <p className="text-xs text-muted-foreground">{agencyName[r.agency_id] ?? "—"}</p>
+                      {tab === "parcel" ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {r.sender_name} ({r.sender_phone}) → {r.recipient_name} ({r.recipient_phone}) · {r.parcel_nature} · {r.weight_kg} kg
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {r.contact_name} ({r.contact_phone}) · Défunt : {r.deceased_name} · {r.transport_type}
+                        </p>
+                      )}
+                    </div>
+                    <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold">
+                      {QUOTE_STATUS_LABEL[r.status] ?? r.status}
+                    </span>
+                  </div>
+
+                  {r.status === "pending" ? (
+                    <div className="mt-3 space-y-2 rounded-lg bg-muted/50 p-3">
+                      <div className="grid gap-2 md:grid-cols-2">
+                        <Input type="number" placeholder="Prix du devis (FCFA)" value={d.price}
+                          onChange={(e) => setDraft(r.id, { price: e.target.value })} />
+                        <Input
+                          placeholder={tab === "parcel" ? "Délai de livraison" : "Date de disponibilité (AAAA-MM-JJ)"}
+                          type={tab === "parcel" ? "text" : "date"}
+                          value={d.a}
+                          onChange={(e) => setDraft(r.id, { a: e.target.value })}
+                        />
+                      </div>
+                      <Textarea placeholder={tab === "parcel" ? "Commentaire" : "Conditions"} value={d.b}
+                        onChange={(e) => setDraft(r.id, { b: e.target.value })} />
+                      <Button onClick={() => sendQuote(tab === "parcel" ? "parcel" : "funeral", r)} disabled={saving}>
+                        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Envoyer le devis
+                      </Button>
+                    </div>
+                  ) : (
+                    r.quote_price != null && (
+                      <p className="mt-2 text-sm">
+                        Devis : <b>{fmtXAF(Number(r.quote_price))}</b>
+                        {tab === "parcel" ? (r.quote_delay ? ` · ${r.quote_delay}` : "") : (r.quote_available_date ? ` · ${r.quote_available_date}` : "")}
+                      </p>
+                    )
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
-return (
-
-  <div className="space-y-6 p-6">
-
-    <div>
-
-      <h1 className="text-3xl font-bold">
-        Billetterie Bus
-      </h1>
-
-      <p className="text-muted-foreground">
-        Création des programmations de voyages
-      </p>
-
-    </div>
-
-    <Card>
-
-      <CardContent className="space-y-6 p-6">
-
-        <div className="flex items-center gap-2">
-
-          <Plus className="h-5 w-5"/>
-
-          <h2 className="text-xl font-semibold">
-            Nouvelle programmation
-          </h2>
-
-        </div>
-
-        {/* Agence */}
-
-        <div>
-
-          <label className="font-medium">
-            Agence partenaire
-          </label>
-
-          <select
-
-            className="mt-2 h-11 w-full rounded-md border px-3"
-
-            value={form.agency_id}
-
-            onChange={(e)=>
-              setForm({
-                ...form,
-                agency_id:e.target.value
-              })
-            }
-
-          >
-
-            <option value="">
-              Choisir une agence
-            </option>
-
-            {agencies.map((agency)=>(
-              <option
-                key={agency.id}
-                value={agency.id}
-              >
-                {agency.name}
-              </option>
-            ))}
-
-          </select>
-
-        </div>
-
-        {/* Départ / Arrivée */}
-
-        <div className="grid gap-4 md:grid-cols-2">
-
-          <Input
-
-            placeholder="Ville de départ"
-
-            value={form.origin}
-
-            onChange={(e)=>
-              setForm({
-                ...form,
-                origin:e.target.value
-              })
-            }
-
-          />
-
-          <Input
-
-            placeholder="Destination"
-
-            value={form.destination}
-
-            onChange={(e)=>
-              setForm({
-                ...form,
-                destination:e.target.value
-              })
-            }
-
-          />
-
-        </div>
-
-        {/* Calendrier */}
-
-        <div className="grid gap-4 md:grid-cols-2">
-
-          <div>
-
-            <label className="font-medium">
-              Date début
-            </label>
-
-            <Input
-
-              type="date"
-
-              min={new Date().toISOString().split("T")[0]}
-
-              value={form.start_date}
-
-              onChange={(e)=>
-                setForm({
-                  ...form,
-                  start_date:e.target.value
-                })
-              }
-
-            />
-
-          </div>
-
-          <div>
-
-            <label className="font-medium">
-              Date fin
-            </label>
-
-            <Input
-
-              type="date"
-
-              min={form.start_date || new Date().toISOString().split("T")[0]}
-
-              value={form.end_date}
-
-              onChange={(e)=>
-                setForm({
-                  ...form,
-                  end_date:e.target.value
-                })
-              }
-
-            />
-
-          </div>
-
-        </div>
-
-        <p className="text-sm text-muted-foreground">
-
-          Une programmation peut couvrir jusqu'à 30 jours.
-          Un voyage sera créé automatiquement pour chaque journée.
-
-        </p>
-
-        {/* Places */}
-
-        <Input
-
-          type="number"
-
-          placeholder="Nombre de places"
-
-          value={form.seats_total}
-
-          onChange={(e)=>
-            setForm({
-              ...form,
-              seats_total:Number(e.target.value)
-            })
-          }
-
-        />
-
-        <h3 className="font-semibold">
-          Tarifs
-        </h3>
-
-        <div className="grid gap-4 md:grid-cols-3">
-
-          <Input
-
-            type="number"
-
-            placeholder="Adulte"
-
-            value={form.price_adult}
-
-            onChange={(e)=>
-              setForm({
-                ...form,
-                price_adult:Number(e.target.value)
-              })
-            }
-
-          />
-
-          <Input
-
-            type="number"
-
-            placeholder="Enfant 7-11 ans"
-
-            value={form.price_child_7_11}
-
-            onChange={(e)=>
-              setForm({
-                ...form,
-                price_child_7_11:Number(e.target.value)
-              })
-            }
-
-          />
-
-          <Input
-
-            type="number"
-
-            placeholder="Enfant 0-6 ans"
-
-            value={form.price_child_0_6}
-
-            onChange={(e)=>
-              setForm({
-                ...form,
-                price_child_0_6:Number(e.target.value)
-              })
-            }
-
-          />
-
-        </div>
-                {/* Bagages */}
-
-        <h3 className="font-semibold">
-          Gestion des bagages
-        </h3>
-
-
-        <div className="grid gap-4 md:grid-cols-2">
-
-          <Input
-
-            type="number"
-
-            placeholder="Kg inclus"
-
-            value={form.baggage_included_kg}
-
-            onChange={(e)=>
-              setForm({
-                ...form,
-                baggage_included_kg:Number(e.target.value)
-              })
-            }
-
-          />
-
-
-          <Input
-
-            type="number"
-
-            placeholder="Prix kg supplémentaire"
-
-            value={form.baggage_extra_price_per_kg}
-
-            onChange={(e)=>
-              setForm({
-                ...form,
-                baggage_extra_price_per_kg:Number(e.target.value)
-              })
-            }
-
-          />
-
-        </div>
-
-
-        <textarea
-
-          className="min-h-28 w-full rounded-md border p-3"
-
-          placeholder="Conditions des bagages"
-
-          value={form.baggage_conditions}
-
-          onChange={(e)=>
-            setForm({
-              ...form,
-              baggage_conditions:e.target.value
-            })
-          }
-
-        />
-
-
-        {/* Bouton création */}
-
-        <Button
-
-          onClick={createTrip}
-
-          className="w-full"
-
-        >
-
-          Créer les voyages
-
-        </Button>
-
-
-      </CardContent>
-
-    </Card>
-
-
-
-    {/* Liste des voyages */}
-
-    <Card>
-
-      <CardContent className="p-6 space-y-4">
-
-
-        <h2 className="text-xl font-semibold">
-
-          Voyages programmés
-
-        </h2>
-
-
-
-        <div className="space-y-3">
-
-
-          {trips.length === 0 && (
-
-            <p className="text-muted-foreground">
-
-              Aucun voyage créé.
-
-            </p>
-
-          )}
-
-
-
-          {trips.map((trip)=>(
-
-
-            <div
-
-              key={trip.id}
-
-              className="rounded-lg border p-4"
-
-            >
-
-
-              <div className="flex flex-wrap justify-between gap-3">
-
-
-                <div>
-
-
-                  <p className="font-semibold">
-
-                    {trip.origin} → {trip.destination}
-
-                  </p>
-
-
-                  <p className="text-sm text-muted-foreground">
-
-                    {trip.partner_agencies?.name}
-
-                  </p>
-
-
-                </div>
-
-
-
-                <div>
-
-
-                  <p>
-
-                    Date :{" "}
-
-                    {trip.departure_date}
-
-                  </p>
-
-
-                  <p>
-
-                    Places :{" "}
-
-                    {trip.seats_available}
-
-                    /
-
-                    {trip.seats_total}
-
-                  </p>
-
-
-                </div>
-
-
-              </div>
-
-
-
-              <div className="mt-2">
-
-
-                <p className="font-semibold">
-
-                  Prix adulte : {trip.price_adult} FCFA
-
-                </p>
-
-
-                <p className="text-sm">
-
-                  Statut : {trip.status}
-
-                </p>
-
-
-              </div>
-
-
-
-            </div>
-
-
-          ))}
-
-
-        </div>
-
-
-      </CardContent>
-
-
-    </Card>
-
-
-  </div>
-
-); 
-}    

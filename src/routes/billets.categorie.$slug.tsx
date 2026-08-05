@@ -102,10 +102,11 @@ function CategoryPage() {
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {agencies.map((a) => {
               const count = ticketCounts[a.id] ?? 0;
+              const isBus = (a.category ?? slug) === "bus";
               return (
                 <Link
                   key={a.id}
-                  to="/billets/agence/$agencyId"
+                  to={isBus ? "/billets/bus/$agencyId" : "/billets/agence/$agencyId"}
                   params={{ agencyId: a.id }}
                   className="group flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition hover:border-primary hover:shadow-md"
                 >
