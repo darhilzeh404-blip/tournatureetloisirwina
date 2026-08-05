@@ -174,11 +174,55 @@ export function SchoolRoutesList() {
     );
   }
 
+  const levels = (Object.keys(LEVEL_LABELS) as SchoolLevel[]).filter((lvl) =>
+    schools.some((s) => (s.level ?? "primaire") === lvl),
+  );
+  const visibleSchools = activeLevel
+    ? schools.filter((s) => (s.level ?? "primaire") === activeLevel)
+    : schools;
+
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold">Établissements & itinéraires desservis</h2>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveLevel(null)}
+          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+            activeLevel === null
+              ? "border-primary bg-primary text-primary-foreground"
+              : "bg-background text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          Tous ({schools.length})
+        </button>
+        {levels.map((lvl) => {
+          const count = schools.filter((s) => (s.level ?? "primaire") === lvl).length;
+          return (
+            <button
+              key={lvl}
+              type="button"
+              onClick={() => setActiveLevel(lvl)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                activeLevel === lvl
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "bg-background text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {LEVEL_LABELS[lvl]} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       <div className="space-y-4">
-        {schools.map((school) => (
+        {visibleSchools.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            Aucun établissement dans cette catégorie.
+          </p>
+        )}
+        {visibleSchools.map((school) => (
           <div key={school.id} className="rounded-2xl border bg-card p-4">
             <div className="flex items-center gap-2">
               <Bus className="h-4 w-4 text-primary" />
@@ -230,6 +274,7 @@ export function SchoolRoutesList() {
           </div>
         ))}
       </div>
+
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
