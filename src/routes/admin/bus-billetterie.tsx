@@ -217,7 +217,7 @@ function BusBilletterieAdmin() {
   };
 
   const deleteTrip = async (t: Trip) => {
-    if (!confirm(`Supprimer le départ ${t.origin} → ${t.destination} du ${t.departure_date} ?`)) return;
+    if (!confirm(`Supprimer le départ ${t.origin} → ${t.destination} du ${t.date_start ?? t.departure_date} au ${t.date_end ?? t.departure_date} ?`)) return;
     const { error } = await supabase.from("bus_trips" as any).delete().eq("id", t.id);
     if (error) return toast.error(error.message);
     toast.success("Départ supprimé");
@@ -453,7 +453,7 @@ function BusBilletterieAdmin() {
                     <div>
                       <p className="font-semibold">{t.origin} → {t.destination}</p>
                       <p className="text-xs text-muted-foreground">{agencyName[t.agency_id] ?? "—"}</p>
-                      <p className="mt-1 text-sm">{formatDateFR(t.departure_date)}</p>
+                      <p className="mt-1 text-sm">Du {formatDateFR(t.date_start ?? t.departure_date)} au {formatDateFR(t.date_end ?? t.departure_date)}</p>{t.bus_type && <p className="text-xs text-muted-foreground">{t.bus_type}</p>}
                     </div>
                     <div className="text-sm">
                       <p>Places : <b>{t.seats_available}</b> / {t.seats_total}</p>
