@@ -430,6 +430,8 @@ function ReserverTransport() {
 
           {/* ─── SCOLAIRE ─── */}
           <TabsContent value="scolaire" className="mt-5 space-y-4">
+            <SchoolRoutesList />
+
             <Field label="Itinéraire">
               <select
                 value={scoRoute}
