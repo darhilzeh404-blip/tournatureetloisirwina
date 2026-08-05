@@ -239,22 +239,14 @@ function BusBilletterieAdmin() {
     if (!ticketForm.departure_time.trim()) return toast.error("Heure de départ obligatoire");
     setSaving(true);
     try {
-      const number = ticketForm.ticket_number.trim() || `BUS-${booking.reference_code}`;
-      const { error } = await supabase.from("bus_final_tickets" as any).insert({
-        booking_id: booking.id,
-        ticket_number: number,
-        departure_time: ticketForm.departure_time.trim(),
-        boarding_time: ticketForm.boarding_time.trim(),
-        seat_numbers: ticketForm.seat_numbers.trim(),
-        extra_info: ticketForm.extra_info.trim(),
-      } as any);
-      if (error) throw error;
-
-      const { error: e2 } = await supabase.from("bus_bookings" as any)
-        .update({ status: "ticket_sent" } as any).eq("id", booking.id);
-      if (e2) throw e2;
-
-      toast.success("Billet définitif envoyé au client");
+      const number = await adminIssueBusTicket({
+        bookingId: booking.id,
+        departureTime: ticketForm.departure_time.trim(),
+        boardingTime: ticketForm.boarding_time.trim(),
+        seatNumbers: ticketForm.seat_numbers.trim(),
+        extraInfo: ticketForm.extra_info.trim(),
+      });
+      toast.success(`Billet ${number} disponible pour le client`);
       setTicketFor(null);
       setTicketForm({ ticket_number: "", departure_time: "", boarding_time: "", seat_numbers: "", extra_info: "" });
       await loadAll();
@@ -264,6 +256,7 @@ function BusBilletterieAdmin() {
       setSaving(false);
     }
   };
+
 
   /* ---------------- Devis ---------------- */
 
