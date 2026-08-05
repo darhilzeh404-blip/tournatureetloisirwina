@@ -377,25 +377,27 @@ function BusBilletterieAdmin() {
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium">Dates de départ (calendrier mensuel)</label>
-                <div className="mt-2 rounded-xl border p-2">
-                  <Calendar
-                    mode="multiple"
-                    month={month}
-                    onMonthChange={setMonth}
-                    selected={dates}
-                    onSelect={(d) => setDates((d as Date[]) ?? [])}
-                    disabled={{ before: new Date(new Date().toDateString()) }}
-                    className="pointer-events-auto"
-                  />
+              <div className="grid gap-3 md:grid-cols-3">
+                <div>
+                  <label className="text-sm font-medium">Date de début</label>
+                  <Input className="mt-1.5" type="date" value={form.date_start}
+                    onChange={(e) => setForm({ ...form, date_start: e.target.value })} />
                 </div>
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  {dates.length > 0
-                    ? `${dates.length} date(s) sélectionnée(s) : ${dates.map(toISODate).sort().join(", ")}`
-                    : "Cliquez sur chaque jour où le départ est proposé. Un voyage sera créé par date."}
-                </p>
+                <div>
+                  <label className="text-sm font-medium">Date de fin</label>
+                  <Input className="mt-1.5" type="date" value={form.date_end}
+                    onChange={(e) => setForm({ ...form, date_end: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Type de bus</label>
+                  <Input className="mt-1.5" value={form.bus_type} placeholder="Coaster 30 places"
+                    onChange={(e) => setForm({ ...form, bus_type: e.target.value })} />
+                </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Le client pourra réserver n'importe quel jour compris dans cette période.
+              </p>
+
 
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
