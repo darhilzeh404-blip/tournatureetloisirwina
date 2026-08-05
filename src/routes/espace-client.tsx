@@ -334,31 +334,39 @@ function EspaceClient() {
         variants={stagger}
         className="px-5 pt-8"
       >
-        <motion.h2 variants={fadeUp} className="text-lg font-bold">
-          Que souhaitez-vous faire ?
-        </motion.h2>
-        <motion.div variants={stagger} className="mt-4 grid grid-cols-2 gap-3">
-          {[
-            { emoji: "🏞️", label: "Excursion", desc: "Nature & découverte" },
-            { emoji: "🎣", label: "Pêche", desc: "En mer ou rivière" },
-            { emoji: "🍽️", label: "Gastronomie", desc: "Saveurs locales" },
-            { emoji: "🥾", label: "Randonnée", desc: "Sentiers & forêts" },
-          ].map((act) => (
-            <motion.a
-              key={act.label}
-              variants={fadeUp}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              href="/activites"
-              className="flex items-center gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-muted"
-            >
-              <span className="text-2xl">{act.emoji}</span>
-              <div>
-                <div className="text-sm font-semibold">{act.label}</div>
-                <div className="text-[10px] text-muted-foreground">{act.desc}</div>
+        <motion.div variants={fadeUp} className="flex items-center gap-2">
+          <h2 className="text-lg font-bold">Que souhaitez-vous faire ?</h2>
+          <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+            <Lock className="h-3 w-3" />
+            Verrouillé
+          </span>
+        </motion.div>
+        <motion.div variants={fadeUp} className="relative mt-4">
+          <div className="grid grid-cols-2 gap-3 select-none blur-[2px] opacity-60" aria-hidden="true">
+            {[
+              { emoji: "🏞️", label: "Excursion", desc: "Nature & découverte" },
+              { emoji: "🎣", label: "Pêche", desc: "En mer ou rivière" },
+              { emoji: "🍽️", label: "Gastronomie", desc: "Saveurs locales" },
+              { emoji: "🥾", label: "Randonnée", desc: "Sentiers & forêts" },
+            ].map((act) => (
+              <div
+                key={act.label}
+                className="pointer-events-none flex items-center gap-3 rounded-xl border bg-card p-3"
+              >
+                <span className="text-2xl">{act.emoji}</span>
+                <div>
+                  <div className="text-sm font-semibold">{act.label}</div>
+                  <div className="text-[10px] text-muted-foreground">{act.desc}</div>
+                </div>
               </div>
-            </motion.a>
-          ))}
+            ))}
+          </div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl bg-background/70 backdrop-blur-[1px]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted">
+              <Lock className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <p className="text-xs font-semibold text-muted-foreground">Section indisponible</p>
+          </div>
         </motion.div>
       </motion.section>
 
