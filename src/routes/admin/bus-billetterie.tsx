@@ -391,6 +391,15 @@ function BusBilletterieAdmin() {
                   <label className="text-sm font-medium">Date de fin</label>
                   <Input className="mt-1.5" type="date" value={form.date_end}
                     onChange={(e) => setForm({ ...form, date_end: e.target.value })} />
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {[1, 2, 3].map((m) => (
+                      <button key={m} type="button"
+                        onClick={() => setForm({ ...form, date_end: addMonths(form.date_start, m) })}
+                        className="rounded-full border border-border px-3 py-1 text-xs hover:bg-muted">
+                        {m} mois
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Type de bus</label>
