@@ -221,6 +221,8 @@ export function SchoolRoutesList() {
           Aucun établissement dans cette catégorie.
         </p>
       )}
+
+      <div className="space-y-4">
         {visibleSchools.map((school) => (
           <div key={school.id} className="rounded-2xl border bg-card p-4">
             <div className="flex items-center gap-2">
