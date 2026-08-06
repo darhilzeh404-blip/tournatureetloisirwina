@@ -175,7 +175,7 @@ function BusBilletterieAdmin() {
         seats_total: form.seats_total,
         seats_available: form.seats_total,
         price_adult: form.price_adult,
-        price_child_7_11: form.price_child_7_11,
+        price_child_7_11: form.price_adult,
         price_child_0_6: form.price_child_0_6,
         baggage_included_kg: form.baggage_included_kg,
         baggage_extra_price_per_kg: form.baggage_extra_price_per_kg,
