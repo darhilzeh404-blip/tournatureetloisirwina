@@ -193,10 +193,9 @@ function BusAgencyPage() {
                       Du {formatDateFR(t.date_start ?? t.departure_date)} au {formatDateFR(t.date_end ?? t.departure_date)}
                       {t.bus_type ? ` · ${t.bus_type}` : ""}
                     </p>
-                    <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
-                      <span>Adulte : <b className="text-foreground">{fmtXAF(t.price_adult)}</b></span>
-                      <span>Enfant 7–11 : <b className="text-foreground">{fmtXAF(t.price_child_7_11)}</b></span>
-                      <span>Bébé 0–6 : <b className="text-foreground">{fmtXAF(t.price_child_0_6)}</b></span>
+                    <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                      <span>Adulte (6 ans et +) : <b className="text-foreground">{fmtXAF(t.price_adult)}</b></span>
+                      <span>Bébé 0–5 : <b className="text-foreground">{fmtXAF(t.price_child_0_6)}</b></span>
                     </div>
                   </button>
                 ))}
