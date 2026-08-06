@@ -421,17 +421,13 @@ function BusBilletterieAdmin() {
               </div>
 
               <h3 className="font-semibold">Tarifs par tranche d'âge</h3>
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <label className="text-xs text-muted-foreground">Adulte (12 ans et +)</label>
+                  <label className="text-xs text-muted-foreground">Adulte (6 ans et +)</label>
                   <Input type="number" min={0} value={form.price_adult} onChange={(e) => setForm({ ...form, price_adult: Number(e.target.value) })} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground">Enfant 7 à 11 ans</label>
-                  <Input type="number" min={0} value={form.price_child_7_11} onChange={(e) => setForm({ ...form, price_child_7_11: Number(e.target.value) })} />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">Enfant 0 à 6 ans</label>
+                  <label className="text-xs text-muted-foreground">Bébé 0 à 5 ans</label>
                   <Input type="number" min={0} value={form.price_child_0_6} onChange={(e) => setForm({ ...form, price_child_0_6: Number(e.target.value) })} />
                 </div>
               </div>
