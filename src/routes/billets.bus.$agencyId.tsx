@@ -48,7 +48,7 @@ function BusAgencyPage() {
   const [trip, setTrip] = useState<BusTrip | null>(null);
   const [travelDate, setTravelDate] = useState("");
   const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
+  const children = 0;
   const [infants, setInfants] = useState(0);
   const [baggageCount, setBaggageCount] = useState(0);
   const [baggageNotes, setBaggageNotes] = useState("");
@@ -193,10 +193,9 @@ function BusAgencyPage() {
                       Du {formatDateFR(t.date_start ?? t.departure_date)} au {formatDateFR(t.date_end ?? t.departure_date)}
                       {t.bus_type ? ` · ${t.bus_type}` : ""}
                     </p>
-                    <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
-                      <span>Adulte : <b className="text-foreground">{fmtXAF(t.price_adult)}</b></span>
-                      <span>Enfant 7–11 : <b className="text-foreground">{fmtXAF(t.price_child_7_11)}</b></span>
-                      <span>Bébé 0–6 : <b className="text-foreground">{fmtXAF(t.price_child_0_6)}</b></span>
+                    <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                      <span>Adulte (6 ans et +) : <b className="text-foreground">{fmtXAF(t.price_adult)}</b></span>
+                      <span>Bébé 0–5 : <b className="text-foreground">{fmtXAF(t.price_child_0_6)}</b></span>
                     </div>
                   </button>
                 ))}
@@ -220,9 +219,8 @@ function BusAgencyPage() {
                 <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
                   <h2 className="inline-flex items-center gap-2 text-sm font-bold"><Users className="h-4 w-4" /> 3. Voyageurs</h2>
                   <div className="mt-3 space-y-2">
-                    <Counter label="Adultes" hint="12 ans et +" value={adults} min={0} onChange={setAdults} />
-                    <Counter label="Enfants" hint="7 à 11 ans" value={children} min={0} onChange={setChildren} />
-                    <Counter label="Bébés" hint="0 à 6 ans" value={infants} min={0} onChange={setInfants} />
+                    <Counter label="Adultes" hint="6 ans et +" value={adults} min={0} onChange={setAdults} />
+                    <Counter label="Bébés" hint="0 à 5 ans" value={infants} min={0} onChange={setInfants} />
                   </div>
                 </section>
 
@@ -264,7 +262,8 @@ function BusAgencyPage() {
                     <Row label="Agence" value={agency?.name ?? "—"} />
                     <Row label="Trajet" value={`${trip.origin} → ${trip.destination}`} />
                     <Row label="Date de voyage" value={travelDate ? formatDateFR(travelDate) : "—"} />
-                    <Row label="Voyageurs" value={`${adults} adulte(s) · ${children} enfant(s) · ${infants} bébé(s)`} />
+                    <Row label="Voyageurs" value={`${adults} adulte(s) · ${infants} bébé(s)`} />
+                    <Row label="Note" value="Les 6 ans et + paient le tarif adulte" />
                     <Row label="Bagages" value={`${baggageCount}`} />
                     <div className="my-2 border-t" />
                     <Row label="Total des billets" value={fmtXAF(totals.ticketsTotal)} />

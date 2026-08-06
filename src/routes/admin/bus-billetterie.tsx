@@ -175,7 +175,7 @@ function BusBilletterieAdmin() {
         seats_total: form.seats_total,
         seats_available: form.seats_total,
         price_adult: form.price_adult,
-        price_child_7_11: form.price_child_7_11,
+        price_child_7_11: form.price_adult,
         price_child_0_6: form.price_child_0_6,
         baggage_included_kg: form.baggage_included_kg,
         baggage_extra_price_per_kg: form.baggage_extra_price_per_kg,
@@ -421,17 +421,13 @@ function BusBilletterieAdmin() {
               </div>
 
               <h3 className="font-semibold">Tarifs par tranche d'âge</h3>
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <label className="text-xs text-muted-foreground">Adulte (12 ans et +)</label>
+                  <label className="text-xs text-muted-foreground">Adulte (6 ans et +)</label>
                   <Input type="number" min={0} value={form.price_adult} onChange={(e) => setForm({ ...form, price_adult: Number(e.target.value) })} />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground">Enfant 7 à 11 ans</label>
-                  <Input type="number" min={0} value={form.price_child_7_11} onChange={(e) => setForm({ ...form, price_child_7_11: Number(e.target.value) })} />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">Enfant 0 à 6 ans</label>
+                  <label className="text-xs text-muted-foreground">Bébé 0 à 5 ans</label>
                   <Input type="number" min={0} value={form.price_child_0_6} onChange={(e) => setForm({ ...form, price_child_0_6: Number(e.target.value) })} />
                 </div>
               </div>
@@ -476,7 +472,7 @@ function BusBilletterieAdmin() {
                       <p>Places : <b>{t.seats_available}</b> / {t.seats_total}</p>
                       <p>Adulte : {fmtXAF(t.price_adult)}</p>
                       <p className="text-xs text-muted-foreground">
-                        7-11 : {fmtXAF(t.price_child_7_11)} · 0-6 : {fmtXAF(t.price_child_0_6)}
+                        Bébé 0-5 : {fmtXAF(t.price_child_0_6)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">

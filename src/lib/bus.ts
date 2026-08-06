@@ -93,9 +93,9 @@ export type BusFinalTicket = {
 export type FareCategory = "adult" | "child_7_11" | "child_0_6";
 
 export const FARE_LABEL: Record<FareCategory, string> = {
-  adult: "Adulte (12 ans et +)",
-  child_7_11: "Enfant (7 à 11 ans)",
-  child_0_6: "Enfant (0 à 6 ans)",
+  adult: "Adulte (6 ans et +)",
+  child_7_11: "Adulte (6 ans et +)",
+  child_0_6: "Bébé (0 à 5 ans)",
 };
 
 export const TRIP_STATUS_LABEL: Record<BusTrip["status"], string> = {
@@ -142,8 +142,7 @@ export const fmtXAF = (n: number) => `${Math.round(n || 0).toLocaleString("fr-FR
 
 /** Catégorie tarifaire déduite automatiquement de l'âge. */
 export function fareCategoryForAge(age: number): FareCategory {
-  if (age >= 12) return "adult";
-  if (age >= 7) return "child_7_11";
+  if (age >= 6) return "adult";
   return "child_0_6";
 }
 
