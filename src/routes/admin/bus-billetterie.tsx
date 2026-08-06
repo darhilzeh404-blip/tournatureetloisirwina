@@ -472,7 +472,7 @@ function BusBilletterieAdmin() {
                       <p>Places : <b>{t.seats_available}</b> / {t.seats_total}</p>
                       <p>Adulte : {fmtXAF(t.price_adult)}</p>
                       <p className="text-xs text-muted-foreground">
-                        7-11 : {fmtXAF(t.price_child_7_11)} · 0-6 : {fmtXAF(t.price_child_0_6)}
+                        Bébé 0-5 : {fmtXAF(t.price_child_0_6)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
