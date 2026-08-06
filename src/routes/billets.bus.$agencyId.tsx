@@ -220,9 +220,8 @@ function BusAgencyPage() {
                 <section className="mt-4 rounded-2xl border bg-card p-4 sm:p-5">
                   <h2 className="inline-flex items-center gap-2 text-sm font-bold"><Users className="h-4 w-4" /> 3. Voyageurs</h2>
                   <div className="mt-3 space-y-2">
-                    <Counter label="Adultes" hint="12 ans et +" value={adults} min={0} onChange={setAdults} />
-                    <Counter label="Enfants" hint="7 à 11 ans" value={children} min={0} onChange={setChildren} />
-                    <Counter label="Bébés" hint="0 à 6 ans" value={infants} min={0} onChange={setInfants} />
+                    <Counter label="Adultes" hint="6 ans et +" value={adults} min={0} onChange={setAdults} />
+                    <Counter label="Bébés" hint="0 à 5 ans" value={infants} min={0} onChange={setInfants} />
                   </div>
                 </section>
 
