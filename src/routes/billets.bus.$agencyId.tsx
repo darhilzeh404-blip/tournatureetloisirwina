@@ -48,7 +48,7 @@ function BusAgencyPage() {
   const [trip, setTrip] = useState<BusTrip | null>(null);
   const [travelDate, setTravelDate] = useState("");
   const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
+  const children = 0;
   const [infants, setInfants] = useState(0);
   const [baggageCount, setBaggageCount] = useState(0);
   const [baggageNotes, setBaggageNotes] = useState("");
