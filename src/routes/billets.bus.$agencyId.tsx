@@ -262,7 +262,8 @@ function BusAgencyPage() {
                     <Row label="Agence" value={agency?.name ?? "—"} />
                     <Row label="Trajet" value={`${trip.origin} → ${trip.destination}`} />
                     <Row label="Date de voyage" value={travelDate ? formatDateFR(travelDate) : "—"} />
-                    <Row label="Voyageurs" value={`${adults} adulte(s) · ${children} enfant(s) · ${infants} bébé(s)`} />
+                    <Row label="Voyageurs" value={`${adults} adulte(s) · ${infants} bébé(s)`} />
+                    <Row label="Note" value="Les 6 ans et + paient le tarif adulte" />
                     <Row label="Bagages" value={`${baggageCount}`} />
                     <div className="my-2 border-t" />
                     <Row label="Total des billets" value={fmtXAF(totals.ticketsTotal)} />
