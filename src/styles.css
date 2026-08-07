@@ -256,7 +256,7 @@
   .splash-dots > div { animation: splash-dot 1.2s ease-in-out infinite; }
   .splash-tagline { opacity: 0.35; animation: splash-fade-in 0.8s 1s ease both; }
 
-  /* Panthère qui court en bas du splash — durée pilotée par --splash-run-duration */
+  /* Panthère qui court — durée pilotée par --splash-run-duration */
   .splash-panther-track {
     position: absolute;
     left: 0;
@@ -265,8 +265,20 @@
     height: clamp(3rem, 14vw, 5rem);
     overflow: hidden;
     pointer-events: none;
-    --splash-run-duration: 1800ms;
+    --splash-run-duration: 3000ms;
     --splash-panther-size: clamp(2.75rem, 13vw, 4.5rem);
+    --splash-run-distance: calc(100vw + 20%);
+  }
+  /* Variante en ligne : la panthère court juste à côté du nom "Wina Tour" */
+  .splash-panther-track.is-inline {
+    position: relative;
+    inset: auto;
+    bottom: auto;
+    width: min(16rem, 74vw);
+    margin: 0 auto;
+    height: clamp(2rem, 9vw, 2.75rem);
+    --splash-panther-size: clamp(1.75rem, 8vw, 2.5rem);
+    --splash-run-distance: calc(min(16rem, 74vw) - var(--splash-panther-size));
   }
   .splash-panther {
     position: absolute;
@@ -282,7 +294,7 @@
     display: block;
     height: 100%;
     width: auto;
-    animation: splash-panther-bound calc(var(--splash-run-duration) / 5) ease-in-out infinite;
+    animation: splash-panther-bound calc(var(--splash-run-duration) / 8) ease-in-out infinite;
     transform-origin: 50% 90%;
   }
   .splash-panther-dust {
@@ -290,7 +302,7 @@
     bottom: 0.35rem;
     left: 0;
     height: 2px;
-    width: clamp(4rem, 30%, 12rem);
+    width: clamp(3rem, 30%, 12rem);
     border-radius: 999px;
     background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.35), transparent);
     animation: splash-panther-run var(--splash-run-duration) linear infinite;
@@ -301,8 +313,9 @@
     0% { transform: translateX(-120%); opacity: 0; }
     8% { opacity: 1; }
     92% { opacity: 1; }
-    100% { transform: translateX(calc(100vw + 20%)); opacity: 0; }
+    100% { transform: translateX(var(--splash-run-distance)); opacity: 0; }
   }
+
   @keyframes splash-panther-bound {
     0%, 100% { transform: translateY(0) rotate(-1.5deg) scaleY(1); }
     45% { transform: translateY(-8%) rotate(2deg) scaleY(1.04); }
