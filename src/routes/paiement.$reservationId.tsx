@@ -16,9 +16,23 @@ import { fetchBalance } from "@/lib/wina-coins";
 import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 import { WalletCheckout } from "@/components/WalletCheckout";
 
-// Codes agents marchands (à personnaliser depuis l'admin plus tard)
+// Codes marchands / coordonnées de paiement (à personnaliser depuis l'admin plus tard)
 const CODE_AGENT_MOOV = "TRANSPORT";
 const CODE_AGENT_AIRTEL = "BGG94";
+const BANK_NAME = "BGFI Bank Gabon";
+const BANK_IBAN = "GA21 4000 1000 0000 1234 5678 901";
+const CHEQUE_ORDRE = "AGENCE WINA TOUR";
+
+type PaymentMethod = "Airtel Money" | "Moov Money" | "Chèque" | "Carte Visa" | "Virement";
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: typeof Smartphone }[] = [
+  { value: "Airtel Money", label: "Airtel Money", icon: Smartphone },
+  { value: "Moov Money", label: "Moov Money", icon: Smartphone },
+  { value: "Chèque", label: "Chèque", icon: FileCheck },
+  { value: "Carte Visa", label: "Carte Visa", icon: CreditCard },
+  { value: "Virement", label: "Virement bancaire", icon: Landmark },
+];
+
 
 
 export const Route = createFileRoute("/paiement/$reservationId")({
