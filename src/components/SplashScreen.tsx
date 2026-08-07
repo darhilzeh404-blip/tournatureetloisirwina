@@ -129,6 +129,14 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             </div>
           </div>
 
+          {/* Panthère qui court */}
+          <div className="splash-panther-track" aria-hidden="true">
+            <div className="splash-panther-dust" />
+            <div className="splash-panther">
+              <img src={pantherRun} alt="" className="splash-panther-body" width={1024} height={512} />
+            </div>
+          </div>
+
           {/* Bottom tagline */}
           <p className="splash-tagline absolute bottom-8 text-[10px] font-medium tracking-widest text-white uppercase">
             Agence Wina
