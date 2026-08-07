@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { waitForAuth } from "@/hooks/use-auth";
+import pantherRun from "@/assets/panther-run.png";
 
 interface SplashScreenProps {
   onComplete: (session: { user: { id: string } | null; role: string | null } | null) => void;
