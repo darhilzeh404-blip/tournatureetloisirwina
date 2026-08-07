@@ -405,28 +405,41 @@ function PaiementPage() {
         </CardContent>
       </Card>
 
+      {isVtc ? (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
+          <p className="font-semibold">Portefeuille Wina uniquement</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Pour les courses VTC, le paiement se fait exclusivement depuis votre portefeuille Wina.
+            Rechargez-le si votre solde est insuffisant.
+          </p>
+        </div>
+      ) : (
+      <>
       <div className="flex items-center gap-3 py-2">
         <div className="h-px flex-1 bg-border" />
-        <span className="text-xs text-muted-foreground">ou paiement manuel avec justificatif</span>
+        <span className="text-xs text-muted-foreground">ou choisissez un autre moyen de paiement</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
       {/* Choix méthode */}
       <Card>
         <CardContent className="p-5 space-y-4">
-          <Label>Méthode de paiement</Label>
-          <RadioGroup value={method} onValueChange={(v) => setMethod(v as typeof method)} className="grid grid-cols-2 gap-3">
-            <label className={`flex items-center gap-2 rounded-lg border p-3 cursor-pointer ${method === "Moov Money" ? "border-primary bg-primary/5" : ""}`}>
-              <RadioGroupItem value="Moov Money" />
-              <Smartphone className="h-4 w-4" />
-              <span className="font-medium">Moov Money</span>
-            </label>
-            <label className={`flex items-center gap-2 rounded-lg border p-3 cursor-pointer ${method === "Airtel Money" ? "border-primary bg-primary/5" : ""}`}>
-              <RadioGroupItem value="Airtel Money" />
-              <Smartphone className="h-4 w-4" />
-              <span className="font-medium">Airtel Money</span>
-            </label>
+          <Label>Moyen de paiement</Label>
+          <RadioGroup value={method} onValueChange={(v) => setMethod(v as PaymentMethod)} className="grid gap-3 sm:grid-cols-2">
+            {PAYMENT_METHODS.map(({ value, label, icon: Icon }) => (
+              <label
+                key={value}
+                className={`flex items-center gap-2 rounded-lg border p-3 cursor-pointer ${method === value ? "border-primary bg-primary/5" : ""}`}
+              >
+                <RadioGroupItem value={value} />
+                <Icon className="h-4 w-4" />
+                <span className="font-medium">{label}</span>
+              </label>
+            ))}
           </RadioGroup>
+          <p className="text-xs text-muted-foreground">
+            Le portefeuille Wina (ci-dessus) reste le moyen le plus rapide : confirmation immédiate.
+          </p>
         </CardContent>
       </Card>
 
@@ -441,55 +454,102 @@ function PaiementPage() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Saisissez cette référence lors du paiement USSD pour qu'on retrouve votre versement.
+            Indiquez cette référence lors du paiement pour qu'on retrouve votre versement.
           </p>
         </CardContent>
       </Card>
 
-      {/* Instructions USSD */}
+      {/* Instructions par moyen de paiement */}
       <Card>
         <CardContent className="p-5 space-y-4">
-          <h2 className="font-bold text-lg">📱 PAYEZ DIRECT DEPUIS VOTRE TÉLÉPHONE</h2>
+          {isMobileMoney && (
+            <>
+              <h2 className="font-bold text-lg">📱 PAYEZ DIRECT DEPUIS VOTRE TÉLÉPHONE</h2>
+              {method === "Moov Money" ? (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-primary">Moov Money — code marchand</h3>
+                  <ol className="space-y-2 text-sm list-decimal list-inside">
+                    <li>Tapez <CodeChip text={ussdCode} onCopy={() => copy(ussdCode, "Code USSD")} /> sur votre téléphone.</li>
+                    <li>Choisissez <strong>"Paiement de services"</strong> ou <strong>"Marchand"</strong>.</li>
+                    <li>Saisissez le code marchand : <CodeChip text={codeAgent} onCopy={() => copy(codeAgent, "Code marchand")} /></li>
+                    <li>Entrez la référence : <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /></li>
+                    <li>Saisissez le montant : <CodeChip text={String(amount)} onCopy={() => copy(String(amount), "Montant")} /> FCFA exact.</li>
+                    <li>Confirmez avec votre <strong>PIN Moov Money</strong>.</li>
+                    <li>📸 <strong>Prenez une photo du reçu / SMS de confirmation.</strong></li>
+                  </ol>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-primary">Airtel Money — code marchand</h3>
+                  <ol className="space-y-2 text-sm list-decimal list-inside">
+                    <li>Tapez <CodeChip text={ussdCode} onCopy={() => copy(ussdCode, "Code USSD")} /> (paiement marchand).</li>
+                    <li>Choisissez <strong>"Paiement marchand"</strong>.</li>
+                    <li>Code marchand : <CodeChip text={codeAgent} onCopy={() => copy(codeAgent, "Code marchand")} /></li>
+                    <li>Référence : <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /></li>
+                    <li>Montant : <CodeChip text={String(amount)} onCopy={() => copy(String(amount), "Montant")} /> FCFA.</li>
+                    <li><strong>PIN Airtel</strong> → Confirmé !</li>
+                    <li>📸 <strong>Prenez une photo du reçu / SMS de confirmation.</strong></li>
+                  </ol>
+                </div>
+              )}
+              <div className="rounded-lg bg-muted p-3 text-xs font-mono">
+                {method === "Moov Money" ? "Moov" : "Airtel"}: {ussdCode} → Code marchand {codeAgent} → Ref {shortRef} → Montant {amount} → PIN
+              </div>
+            </>
+          )}
 
-          {method === "Moov Money" ? (
+          {method === "Virement" && (
             <div className="space-y-3">
-              <h3 className="font-semibold text-primary">Pour Moov Money</h3>
+              <h2 className="font-bold text-lg">🏦 Virement bancaire</h2>
               <ol className="space-y-2 text-sm list-decimal list-inside">
-                <li>Tapez <CodeChip text={ussdCode} onCopy={() => copy(ussdCode, "Code USSD")} /> sur votre téléphone.</li>
-                <li>Choisissez <strong>"Paiement de services"</strong> ou <strong>"Transfert"</strong>.</li>
-                <li>Sélectionnez <strong>"Code agent"</strong> ou <strong>"Marchand"</strong>.</li>
-                <li>Saisissez le code agent entreprise : <CodeChip text={codeAgent} onCopy={() => copy(codeAgent, "Code agent")} /></li>
-                <li>Entrez la référence : <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /></li>
-                <li>Saisissez le montant : <CodeChip text={String(amount)} onCopy={() => copy(String(amount), "Montant")} /> FCFA exact.</li>
-                <li>Confirmez avec votre <strong>PIN Moov Money</strong>.</li>
-                <li>📸 <strong>Prenez une photo du reçu / SMS de confirmation.</strong></li>
-              </ol>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-primary">Pour Airtel Money</h3>
-              <ol className="space-y-2 text-sm list-decimal list-inside">
-                <li>Tapez <CodeChip text={ussdCode} onCopy={() => copy(ussdCode, "Code USSD")} /> (retrait/paiement par code).</li>
-                <li>Choisissez <strong>"Retrait par code"</strong> ou paiement.</li>
-                <li>Code agent : <CodeChip text={codeAgent} onCopy={() => copy(codeAgent, "Code agent")} /></li>
-                <li>Référence : <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /></li>
+                <li>Banque : <strong>{BANK_NAME}</strong></li>
+                <li>Bénéficiaire : <CodeChip text={CHEQUE_ORDRE} onCopy={() => copy(CHEQUE_ORDRE, "Bénéficiaire")} /></li>
+                <li>IBAN : <CodeChip text={BANK_IBAN} onCopy={() => copy(BANK_IBAN, "IBAN")} /></li>
+                <li>Motif du virement : <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /></li>
                 <li>Montant : <CodeChip text={String(amount)} onCopy={() => copy(String(amount), "Montant")} /> FCFA.</li>
-                <li><strong>PIN Airtel</strong> → Confirmé !</li>
-                <li>📸 <strong>Prenez une photo du reçu / SMS de confirmation.</strong></li>
+                <li>📸 <strong>Photographiez l'avis de virement</strong> et joignez-le ci-dessous.</li>
               </ol>
             </div>
           )}
 
-          <div className="rounded-lg bg-muted p-3 text-xs font-mono">
-            {method === "Moov Money" ? "Moov" : "Airtel"}: {ussdCode} → Code agent {codeAgent} → Ref {shortRef} → Montant {amount} → PIN
-          </div>
+          {method === "Chèque" && (
+            <div className="space-y-3">
+              <h2 className="font-bold text-lg">🧾 Paiement par chèque</h2>
+              <ol className="space-y-2 text-sm list-decimal list-inside">
+                <li>Établissez le chèque à l'ordre de <CodeChip text={CHEQUE_ORDRE} onCopy={() => copy(CHEQUE_ORDRE, "Ordre")} /></li>
+                <li>Inscrivez la référence <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /> au dos du chèque.</li>
+                <li>Montant : <CodeChip text={String(amount)} onCopy={() => copy(String(amount), "Montant")} /> FCFA.</li>
+                <li>Déposez le chèque à l'agence Wina Tour.</li>
+                <li>📸 <strong>Photographiez le chèque / le reçu de dépôt</strong> et joignez-le ci-dessous.</li>
+              </ol>
+              <p className="text-xs text-muted-foreground">
+                La réservation est confirmée après encaissement et validation par l'administrateur.
+              </p>
+            </div>
+          )}
+
+          {method === "Carte Visa" && (
+            <div className="space-y-3">
+              <h2 className="font-bold text-lg">💳 Carte Visa</h2>
+              <ol className="space-y-2 text-sm list-decimal list-inside">
+                <li>Réglez par carte Visa au guichet Wina Tour ou via le terminal de paiement de l'agence.</li>
+                <li>Communiquez la référence <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /> à l'agent.</li>
+                <li>Montant : <CodeChip text={String(amount)} onCopy={() => copy(String(amount), "Montant")} /> FCFA.</li>
+                <li>📸 <strong>Photographiez le ticket de la carte</strong> et joignez-le ci-dessous.</li>
+              </ol>
+              <p className="text-xs text-muted-foreground">
+                Aucune donnée de carte n'est saisie ni conservée dans l'application.
+              </p>
+            </div>
+          )}
 
           <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs">
             <AlertCircle className="h-4 w-4 text-warning-foreground shrink-0 mt-0.5" />
-            <span><strong>Photo du reçu obligatoire</strong> pour la validation de votre paiement par l'admin.</span>
+            <span><strong>Photo du justificatif obligatoire</strong> pour la validation de votre paiement par l'admin.</span>
           </div>
         </CardContent>
       </Card>
+
 
       {/* Upload photo : 2 boutons (capture + galerie) */}
       <Card>
