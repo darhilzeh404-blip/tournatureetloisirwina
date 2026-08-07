@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Loader2, Smartphone, Camera, CheckCircle2, ArrowLeft, AlertCircle, Image as ImageIcon, MessageCircle } from "lucide-react";
+import { Copy, Loader2, Smartphone, Camera, CheckCircle2, ArrowLeft, AlertCircle, Image as ImageIcon, MessageCircle, FileCheck, CreditCard, Landmark } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
