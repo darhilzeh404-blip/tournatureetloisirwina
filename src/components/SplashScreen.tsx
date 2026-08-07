@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { waitForAuth } from "@/hooks/use-auth";
+import pantherRun from "@/assets/panther-run.png";
 
 interface SplashScreenProps {
   onComplete: (session: { user: { id: string } | null; role: string | null } | null) => void;
@@ -126,6 +127,14 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
                   style={{ animationDelay: `${i * 0.2}s` }}
                 />
               ))}
+            </div>
+          </div>
+
+          {/* Panthère qui court */}
+          <div className="splash-panther-track" aria-hidden="true">
+            <div className="splash-panther-dust" />
+            <div className="splash-panther">
+              <img src={pantherRun} alt="" className="splash-panther-body" width={1024} height={512} />
             </div>
           </div>
 
