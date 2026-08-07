@@ -68,6 +68,7 @@ function WalletRechargePage() {
     return "WLT" + raw.slice(0, 8);
   }, []);
 
+  const isMobileMoney = method === "Moov Money" || method === "Airtel Money";
   const codeAgent = method === "Moov Money" ? CODE_AGENT_MOOV : CODE_AGENT_AIRTEL;
   const ussdCode = method === "Moov Money" ? "*555#" : "*150*4#";
 
