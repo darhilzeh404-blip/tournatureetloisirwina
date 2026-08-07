@@ -131,6 +131,18 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
               </p>
             </div>
 
+            {/* Panthère qui court juste à côté du nom */}
+            <div
+              className="splash-panther-track is-inline"
+              aria-hidden="true"
+              style={{ ["--splash-run-duration" as string]: `${RUN_CYCLE_MS}ms` }}
+            >
+              <div className="splash-panther-dust" />
+              <div className="splash-panther">
+                <img src={pantherRun} alt="" className="splash-panther-body" width={1024} height={512} />
+              </div>
+            </div>
+
             {/* Loading dots / pulse indicator */}
             <div className="splash-dots mt-2 flex items-center gap-1.5">
               {[0, 1, 2].map((i) => (
@@ -143,17 +155,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             </div>
           </div>
 
-          {/* Panthère qui court */}
-          <div
-            className="splash-panther-track"
-            aria-hidden="true"
-            style={{ ["--splash-run-duration" as string]: `${RUN_CYCLE_MS}ms` }}
-          >
-            <div className="splash-panther-dust" />
-            <div className="splash-panther">
-              <img src={pantherRun} alt="" className="splash-panther-body" width={1024} height={512} />
-            </div>
-          </div>
+
 
           {/* Bottom tagline */}
           <p className="splash-tagline absolute bottom-8 text-[10px] font-medium tracking-widest text-white uppercase">
