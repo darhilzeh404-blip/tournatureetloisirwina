@@ -320,7 +320,7 @@ function PaiementPage() {
       </Link>
 
       <div>
-        <h1 className="text-2xl font-bold">Paiement Mobile Money</h1>
+        <h1 className="text-2xl font-bold">Paiement</h1>
         <p className="text-sm text-muted-foreground">Réservation #{reservation.id.slice(0, 8).toUpperCase()}</p>
       </div>
 
