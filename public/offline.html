@@ -37,14 +37,9 @@
         width: 72px;
         height: 72px;
         border-radius: 18px;
-        background: linear-gradient(135deg, #3b6cd6, #2d4ea8);
-        color: #fff;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 36px;
-        font-weight: 800;
-        letter-spacing: -1px;
+        display: inline-block;
+        object-fit: contain;
+        background: #fff;
         margin-bottom: 20px;
         box-shadow: 0 10px 30px -10px rgba(59, 108, 214, 0.5);
       }
@@ -67,7 +62,7 @@
   <body>
     <div class="wrap">
       <div class="card">
-        <div class="badge">W</div>
+        <img class="badge" src="/icon-192.png" alt="Wina Tour" width="72" height="72" />
         <h1>Vous êtes hors ligne</h1>
         <p>Vérifiez votre connexion internet et réessayez. Vos réservations restent en sécurité.</p>
         <button onclick="location.reload()">Réessayer</button>
