@@ -654,7 +654,10 @@ function PaiementPage() {
       <p className="text-xs text-center text-muted-foreground">
         Votre paiement passera en statut <strong>"En attente"</strong>. L'admin vérifiera la photo et la référence avant validation.
       </p>
+      </>
+      )}
     </div>
+
   );
 }
 
