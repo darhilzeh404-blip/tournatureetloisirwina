@@ -20,11 +20,11 @@ function hasSeenSplash() {
 
 const alreadySeen = hasSeenSplash();
 // Durée d'un cycle complet de course de la panthère (doit rester synchro avec le CSS)
-const RUN_CYCLE_MS = 1800;
+const RUN_CYCLE_MS = 3000;
 const EXIT_MS = 600;
-// Le splash dure toujours un nombre entier de cycles => bouclage propre, jamais coupé au milieu
+// Le splash dure toujours un cycle complet => la panthère court 3 secondes, jamais coupée
 const MIN_SPLASH_MS = alreadySeen ? 0 : RUN_CYCLE_MS;
-const MAX_SPLASH_MS = alreadySeen ? 100 : RUN_CYCLE_MS * 2;
+const MAX_SPLASH_MS = alreadySeen ? 100 : RUN_CYCLE_MS;
 
 function alignToCycle(elapsed: number) {
   if (alreadySeen) return Math.max(0, MIN_SPLASH_MS - elapsed);
