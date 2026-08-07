@@ -19,8 +19,21 @@ function hasSeenSplash() {
 }
 
 const alreadySeen = hasSeenSplash();
-const MIN_SPLASH_MS = alreadySeen ? 0 : 900;
-const MAX_SPLASH_MS = alreadySeen ? 100 : 2000;
+// Durée d'un cycle complet de course de la panthère (doit rester synchro avec le CSS)
+const RUN_CYCLE_MS = 1800;
+const EXIT_MS = 600;
+// Le splash dure toujours un nombre entier de cycles => bouclage propre, jamais coupé au milieu
+const MIN_SPLASH_MS = alreadySeen ? 0 : RUN_CYCLE_MS;
+const MAX_SPLASH_MS = alreadySeen ? 100 : RUN_CYCLE_MS * 2;
+
+function alignToCycle(elapsed: number) {
+  if (alreadySeen) return Math.max(0, MIN_SPLASH_MS - elapsed);
+  const target = Math.min(
+    MAX_SPLASH_MS,
+    Math.ceil(Math.max(elapsed, MIN_SPLASH_MS) / RUN_CYCLE_MS) * RUN_CYCLE_MS,
+  );
+  return Math.max(0, target - elapsed);
+}
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [phase, setPhase] = useState<"enter" | "hold" | "exit">("enter");
@@ -34,7 +47,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     const checkSession = async () => {
       const auth = await waitForAuth();
       const elapsed = performance.now() - startTime;
-      const remainingMin = Math.max(0, MIN_SPLASH_MS - elapsed);
+      const remainingMin = alignToCycle(elapsed);
 
       // Wait at least the minimum splash time
       await new Promise((r) => setTimeout(r, remainingMin));
@@ -49,7 +62,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         if (!cancelled) {
           onComplete(auth.user ? { user: auth.user, role: auth.role } : null);
         }
-      }, 600);
+      }, EXIT_MS);
     };
 
     // Small delay before starting "hold" animation feel
@@ -61,7 +74,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     const safetyTimer = setTimeout(() => {
       if (!cancelled) {
         setPhase("exit");
-        setTimeout(() => onComplete(null), 600);
+        setTimeout(() => onComplete(null), EXIT_MS);
       }
     }, MAX_SPLASH_MS + 200);
 
@@ -131,7 +144,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           </div>
 
           {/* Panthère qui court */}
-          <div className="splash-panther-track" aria-hidden="true">
+          <div
+            className="splash-panther-track"
+            aria-hidden="true"
+            style={{ ["--splash-run-duration" as string]: `${RUN_CYCLE_MS}ms` }}
+          >
             <div className="splash-panther-dust" />
             <div className="splash-panther">
               <img src={pantherRun} alt="" className="splash-panther-body" width={1024} height={512} />
