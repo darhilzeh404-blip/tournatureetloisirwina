@@ -17,9 +17,28 @@ import { formatPoints, formatXAF, requestRecharge } from "@/lib/vtc-wallet";
 
 const CODE_AGENT_MOOV = "TRANSPORT";
 const CODE_AGENT_AIRTEL = "BGG94";
+const BANK_NAME = "BGFI Bank Gabon";
+const BANK_IBAN = "GA21 4000 1000 0000 1234 5678 901";
+const CHEQUE_ORDRE = "AGENCE WINA TOUR";
 const QUICK_AMOUNTS = [2000, 5000, 10000, 20000, 50000];
 
-type Operator = "Moov Money" | "Airtel Money";
+type Operator = "Moov Money" | "Airtel Money" | "Chèque" | "Carte Visa" | "Virement";
+
+const PAYMENT_METHODS: { value: Operator; label: string; icon: typeof Smartphone }[] = [
+  { value: "Airtel Money", label: "Airtel Money", icon: Smartphone },
+  { value: "Moov Money", label: "Moov Money", icon: Smartphone },
+  { value: "Chèque", label: "Chèque", icon: FileCheck },
+  { value: "Carte Visa", label: "Carte Visa", icon: CreditCard },
+  { value: "Virement", label: "Virement bancaire", icon: Landmark },
+];
+
+const RECHARGE_ENUM: Record<Operator, string> = {
+  "Airtel Money": "airtel_money",
+  "Moov Money": "moov_money",
+  "Chèque": "other",
+  "Carte Visa": "other",
+  "Virement": "bank_transfer",
+};
 
 export const Route = createFileRoute("/wallet/recharger")({
   head: () => ({
