@@ -113,9 +113,9 @@ function WalletRechargePage() {
 
       await requestRecharge({
         amountPoints: amount,
-        method: method === "Moov Money" ? "moov_money" as never : "airtel_money" as never,
+        method: RECHARGE_ENUM[method] as never,
         paymentReference: shortRef,
-        agentCode: codeAgent,
+        agentCode: isMobileMoney ? codeAgent : method,
         proofUrl: path,
       });
       toast.success("Demande envoyée — en attente de validation administrateur.");
