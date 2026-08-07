@@ -68,7 +68,7 @@ function PaiementPage() {
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
-  const [method, setMethod] = useState<"Moov Money" | "Airtel Money">("Moov Money");
+  const [method, setMethod] = useState<PaymentMethod>("Airtel Money");
   const [amount, setAmount] = useState<number>(0);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
