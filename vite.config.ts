@@ -41,7 +41,7 @@ export default isSpa
           filename: 'sw.js',
           devOptions: { enabled: false },
           manifest: false,
-          includeAssets: ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'offline.html'],
+          includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'offline.html'],
           workbox: {
             globPatterns: ['**/*.{js,css,html,woff2}'],
             globIgnores: ['**/node_modules/**', 'assets/*.{png,jpg,jpeg,ico}'],
