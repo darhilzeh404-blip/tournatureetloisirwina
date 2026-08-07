@@ -135,6 +135,8 @@ function PaiementPage() {
     setAmount(net);
   }, [coinsEnabled, coinsAmount, reservation]);
 
+  const isMobileMoney = method === "Moov Money" || method === "Airtel Money";
+  const isVtc = reservation?.service_type === "VTC";
   const codeAgent = method === "Moov Money" ? CODE_AGENT_MOOV : CODE_AGENT_AIRTEL;
   const ussdCode = method === "Moov Money" ? "*555#" : "*150*4#";
 
