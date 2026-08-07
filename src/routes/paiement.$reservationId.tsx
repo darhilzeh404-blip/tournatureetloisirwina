@@ -39,7 +39,7 @@ export const Route = createFileRoute("/paiement/$reservationId")({
   head: () => ({
     meta: [
       { title: "Paiement — Agence Wina" },
-      { name: "description", content: "Payez votre réservation par Mobile Money (Moov / Airtel)." },
+      { name: "description", content: "Payez votre réservation : portefeuille Wina, Airtel Money, Moov Money, chèque, carte Visa ou virement." },
     ],
   }),
   component: PaiementPage,
