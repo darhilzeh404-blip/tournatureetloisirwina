@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Camera, CheckCircle2, Copy, Image as ImageIcon, Loader2,
-  Smartphone, AlertCircle, Wallet,
+  Smartphone, AlertCircle, Wallet, FileCheck, CreditCard, Landmark,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
