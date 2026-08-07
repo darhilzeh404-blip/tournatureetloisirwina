@@ -20,11 +20,11 @@ function hasSeenSplash() {
 
 const alreadySeen = hasSeenSplash();
 // Durée d'un cycle complet de course de la panthère (doit rester synchro avec le CSS)
-const RUN_CYCLE_MS = 1800;
+const RUN_CYCLE_MS = 3000;
 const EXIT_MS = 600;
-// Le splash dure toujours un nombre entier de cycles => bouclage propre, jamais coupé au milieu
+// Le splash dure toujours un cycle complet => la panthère court 3 secondes, jamais coupée
 const MIN_SPLASH_MS = alreadySeen ? 0 : RUN_CYCLE_MS;
-const MAX_SPLASH_MS = alreadySeen ? 100 : RUN_CYCLE_MS * 2;
+const MAX_SPLASH_MS = alreadySeen ? 100 : RUN_CYCLE_MS;
 
 function alignToCycle(elapsed: number) {
   if (alreadySeen) return Math.max(0, MIN_SPLASH_MS - elapsed);
@@ -131,6 +131,18 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
               </p>
             </div>
 
+            {/* Panthère qui court juste à côté du nom */}
+            <div
+              className="splash-panther-track is-inline"
+              aria-hidden="true"
+              style={{ ["--splash-run-duration" as string]: `${RUN_CYCLE_MS}ms` }}
+            >
+              <div className="splash-panther-dust" />
+              <div className="splash-panther">
+                <img src={pantherRun} alt="" className="splash-panther-body" width={1024} height={512} />
+              </div>
+            </div>
+
             {/* Loading dots / pulse indicator */}
             <div className="splash-dots mt-2 flex items-center gap-1.5">
               {[0, 1, 2].map((i) => (
@@ -143,17 +155,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             </div>
           </div>
 
-          {/* Panthère qui court */}
-          <div
-            className="splash-panther-track"
-            aria-hidden="true"
-            style={{ ["--splash-run-duration" as string]: `${RUN_CYCLE_MS}ms` }}
-          >
-            <div className="splash-panther-dust" />
-            <div className="splash-panther">
-              <img src={pantherRun} alt="" className="splash-panther-body" width={1024} height={512} />
-            </div>
-          </div>
+
 
           {/* Bottom tagline */}
           <p className="splash-tagline absolute bottom-8 text-[10px] font-medium tracking-widest text-white uppercase">
