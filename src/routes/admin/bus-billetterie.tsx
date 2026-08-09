@@ -110,7 +110,9 @@ function BusBilletterieAdmin() {
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({ ...emptyForm });
+  const [editId, setEditId] = useState<string | null>(null);
   const [decisionComment, setDecisionComment] = useState<Record<string, string>>({});
+
 
   const agencyName = useMemo(() => {
     const map: Record<string, string> = {};
