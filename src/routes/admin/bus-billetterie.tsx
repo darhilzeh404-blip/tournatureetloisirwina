@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 import { toast } from "sonner";
-import { Bus, CalendarDays, Loader2, Package, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
+import { Bus, CalendarDays, Loader2, Package, Pencil, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
 
 import {
   adminDecideBusBooking, adminIssueBusTicket, fmtXAF, formatDateFR, toISODate,
