@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 import { toast } from "sonner";
-import { Bus, CalendarDays, Loader2, Package, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
+import { Bus, CalendarDays, Loader2, Package, Pencil, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
 
 import {
   adminDecideBusBooking, adminIssueBusTicket, fmtXAF, formatDateFR, toISODate,
@@ -110,7 +110,9 @@ function BusBilletterieAdmin() {
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({ ...emptyForm });
+  const [editId, setEditId] = useState<string | null>(null);
   const [decisionComment, setDecisionComment] = useState<Record<string, string>>({});
+
 
   const agencyName = useMemo(() => {
     const map: Record<string, string> = {};
@@ -153,6 +155,31 @@ function BusBilletterieAdmin() {
 
   /* ---------------- Voyages ---------------- */
 
+  const startEdit = (t: Trip) => {
+    setEditId(t.id);
+    setForm({
+      agency_id: t.agency_id,
+      origin: t.origin ?? "",
+      destination: t.destination ?? "",
+      bus_type: t.bus_type ?? "",
+      date_start: t.date_start ?? t.departure_date,
+      date_end: t.date_end ?? t.departure_date,
+      seats_total: t.seats_total ?? 0,
+      price_adult: t.price_adult ?? 0,
+      price_child_7_11: t.price_adult ?? 0,
+      price_child_0_6: t.price_child_0_6 ?? 0,
+      baggage_included_kg: t.baggage_included_kg ?? 0,
+      baggage_extra_price_per_kg: t.baggage_extra_price_per_kg ?? 0,
+      baggage_conditions: t.baggage_conditions ?? "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const cancelEdit = () => {
+    setEditId(null);
+    setForm({ ...emptyForm });
+  };
+
   const createTrips = async () => {
     if (!form.agency_id) return toast.error("Choisissez une agence partenaire");
     if (!form.origin.trim()) return toast.error("Ville de départ obligatoire");
@@ -164,7 +191,7 @@ function BusBilletterieAdmin() {
 
     setSaving(true);
     try {
-      const row = {
+      const row: Record<string, unknown> = {
         agency_id: form.agency_id,
         origin: form.origin.trim(),
         destination: form.destination.trim(),
@@ -180,21 +207,32 @@ function BusBilletterieAdmin() {
         baggage_included_kg: form.baggage_included_kg,
         baggage_extra_price_per_kg: form.baggage_extra_price_per_kg,
         baggage_conditions: form.baggage_conditions,
-        status: "available",
       };
 
-      const { error } = await supabase.from("bus_trips" as any).insert(row as any);
-      if (error) throw error;
+      if (editId) {
+        const current = trips.find((t) => t.id === editId);
+        const booked = Math.max((current?.seats_total ?? 0) - (current?.seats_available ?? 0), 0);
+        row.seats_available = Math.max(form.seats_total - booked, 0);
+        const { error } = await supabase.from("bus_trips" as any).update(row as any).eq("id", editId);
+        if (error) throw error;
+        toast.success("Départ programmé mis à jour");
+        setEditId(null);
+      } else {
+        row.status = "available";
+        const { error } = await supabase.from("bus_trips" as any).insert(row as any);
+        if (error) throw error;
+        toast.success("Voyage programmé sur la période choisie");
+      }
 
-      toast.success("Voyage programmé sur la période choisie");
       setForm({ ...emptyForm });
       await loadAll();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erreur lors de la création");
+      toast.error(err instanceof Error ? err.message : "Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
   };
+
 
   const openDocument = async (path: string) => {
     const { data, error } = await supabase.storage.from("bus-documents").createSignedUrl(path, 3600);
@@ -345,10 +383,16 @@ function BusBilletterieAdmin() {
         <>
           <Card>
             <CardContent className="space-y-5 p-5">
-              <div className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                <h2 className="text-lg font-semibold">Nouvelle programmation de départs</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                {editId ? <Pencil className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+                <h2 className="text-lg font-semibold">
+                  {editId ? "Modifier le départ programmé" : "Nouvelle programmation de départs"}
+                </h2>
+                {editId && (
+                  <Button variant="ghost" size="sm" className="ml-auto" onClick={cancelEdit}>Annuler</Button>
+                )}
               </div>
+
 
               {agencies.length === 0 && (
                 <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
@@ -450,9 +494,10 @@ function BusBilletterieAdmin() {
               />
 
               <Button onClick={createTrips} disabled={saving} className="w-full">
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-                Créer les départs
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : editId ? <Pencil className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+                {editId ? "Enregistrer les modifications" : "Créer les départs"}
               </Button>
+
             </CardContent>
           </Card>
 
@@ -485,10 +530,14 @@ function BusBilletterieAdmin() {
                           <option key={k} value={k}>{v}</option>
                         ))}
                       </select>
+                      <Button variant="outline" size="sm" onClick={() => startEdit(t)}>
+                        <Pencil className="mr-1.5 h-3.5 w-3.5" /> Modifier
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => deleteTrip(t)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
+
                   </div>
                 </div>
               ))}

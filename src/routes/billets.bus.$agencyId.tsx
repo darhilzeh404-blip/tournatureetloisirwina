@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, BadgeCheck, Bus, CalendarDays, CheckCircle2, Loader2, Minus, Package, Plus, ShieldCheck, Upload, Users } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Bus, CalendarDays, CheckCircle2, Loader2, Minus, Plus, Upload, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AgencyLogo } from "@/components/AgencyLogo";
+import { BusQuoteForms } from "@/components/BusQuoteForms";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -151,20 +153,8 @@ function BusAgencyPage() {
           </div>
         </header>
 
-        {(agency?.accepts_parcel || agency?.accepts_funeral) && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {agency?.accepts_parcel && (
-              <Link to="/colis" className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-semibold hover:bg-secondary">
-                <Package className="h-3.5 w-3.5" /> Expédition de colis — demander un devis
-              </Link>
-            )}
-            {agency?.accepts_funeral && (
-              <Link to="/transport-funeraire" className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-semibold hover:bg-secondary">
-                <ShieldCheck className="h-3.5 w-3.5" /> Transport funéraire — demander un devis
-              </Link>
-            )}
-          </div>
-        )}
+        <BusQuoteForms agencyId={agencyId} acceptsParcel={agency?.accepts_parcel} acceptsFuneral={agency?.accepts_funeral} />
+
 
         {loading ? (
           <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
