@@ -383,10 +383,16 @@ function BusBilletterieAdmin() {
         <>
           <Card>
             <CardContent className="space-y-5 p-5">
-              <div className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                <h2 className="text-lg font-semibold">Nouvelle programmation de départs</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                {editId ? <Pencil className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+                <h2 className="text-lg font-semibold">
+                  {editId ? "Modifier le départ programmé" : "Nouvelle programmation de départs"}
+                </h2>
+                {editId && (
+                  <Button variant="ghost" size="sm" className="ml-auto" onClick={cancelEdit}>Annuler</Button>
+                )}
               </div>
+
 
               {agencies.length === 0 && (
                 <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
