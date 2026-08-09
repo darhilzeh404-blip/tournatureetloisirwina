@@ -155,6 +155,31 @@ function BusBilletterieAdmin() {
 
   /* ---------------- Voyages ---------------- */
 
+  const startEdit = (t: Trip) => {
+    setEditId(t.id);
+    setForm({
+      agency_id: t.agency_id,
+      origin: t.origin ?? "",
+      destination: t.destination ?? "",
+      bus_type: t.bus_type ?? "",
+      date_start: t.date_start ?? t.departure_date,
+      date_end: t.date_end ?? t.departure_date,
+      seats_total: t.seats_total ?? 0,
+      price_adult: t.price_adult ?? 0,
+      price_child_7_11: t.price_adult ?? 0,
+      price_child_0_6: t.price_child_0_6 ?? 0,
+      baggage_included_kg: t.baggage_included_kg ?? 0,
+      baggage_extra_price_per_kg: t.baggage_extra_price_per_kg ?? 0,
+      baggage_conditions: t.baggage_conditions ?? "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const cancelEdit = () => {
+    setEditId(null);
+    setForm({ ...emptyForm });
+  };
+
   const createTrips = async () => {
     if (!form.agency_id) return toast.error("Choisissez une agence partenaire");
     if (!form.origin.trim()) return toast.error("Ville de départ obligatoire");
@@ -166,7 +191,7 @@ function BusBilletterieAdmin() {
 
     setSaving(true);
     try {
-      const row = {
+      const row: Record<string, unknown> = {
         agency_id: form.agency_id,
         origin: form.origin.trim(),
         destination: form.destination.trim(),
@@ -182,21 +207,32 @@ function BusBilletterieAdmin() {
         baggage_included_kg: form.baggage_included_kg,
         baggage_extra_price_per_kg: form.baggage_extra_price_per_kg,
         baggage_conditions: form.baggage_conditions,
-        status: "available",
       };
 
-      const { error } = await supabase.from("bus_trips" as any).insert(row as any);
-      if (error) throw error;
+      if (editId) {
+        const current = trips.find((t) => t.id === editId);
+        const booked = Math.max((current?.seats_total ?? 0) - (current?.seats_available ?? 0), 0);
+        row.seats_available = Math.max(form.seats_total - booked, 0);
+        const { error } = await supabase.from("bus_trips" as any).update(row as any).eq("id", editId);
+        if (error) throw error;
+        toast.success("Départ programmé mis à jour");
+        setEditId(null);
+      } else {
+        row.status = "available";
+        const { error } = await supabase.from("bus_trips" as any).insert(row as any);
+        if (error) throw error;
+        toast.success("Voyage programmé sur la période choisie");
+      }
 
-      toast.success("Voyage programmé sur la période choisie");
       setForm({ ...emptyForm });
       await loadAll();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erreur lors de la création");
+      toast.error(err instanceof Error ? err.message : "Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
   };
+
 
   const openDocument = async (path: string) => {
     const { data, error } = await supabase.storage.from("bus-documents").createSignedUrl(path, 3600);
