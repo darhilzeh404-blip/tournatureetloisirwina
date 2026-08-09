@@ -530,10 +530,14 @@ function BusBilletterieAdmin() {
                           <option key={k} value={k}>{v}</option>
                         ))}
                       </select>
+                      <Button variant="outline" size="sm" onClick={() => startEdit(t)}>
+                        <Pencil className="mr-1.5 h-3.5 w-3.5" /> Modifier
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => deleteTrip(t)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
+
                   </div>
                 </div>
               ))}
