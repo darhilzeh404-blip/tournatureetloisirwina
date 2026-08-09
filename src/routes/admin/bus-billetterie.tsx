@@ -494,9 +494,10 @@ function BusBilletterieAdmin() {
               />
 
               <Button onClick={createTrips} disabled={saving} className="w-full">
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-                Créer les départs
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : editId ? <Pencil className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+                {editId ? "Enregistrer les modifications" : "Créer les départs"}
               </Button>
+
             </CardContent>
           </Card>
 
