@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { randomId } from "@/lib/random-id";
+import { BusQuoteForms } from "@/components/BusQuoteForms";
 import {
   fetchTrainReference, fetchTicketClassPrices, fetchTrainRoutes, computeTrainQuote,
   stationsForTrainType, baggageRuleForType, computeBaggageFee,
@@ -386,6 +387,7 @@ function TrainBookingWizard() {
         </div>
 
         <div className="mt-5 space-y-4">
+          {ticket && <BusQuoteForms agencyId={ticket.agency_id} agencyName={agencyName} />}
           {/* Étape 1 */}
           {step === 0 && (
             <div className={card}>

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { BusQuoteForms } from "@/components/BusQuoteForms";
 import {
   fetchBoatRoutes, fetchVessels, fetchVesselServices, fetchSailings,
   computeBoatQuote, baggageIncluded, effectivePrices, formatDuration, PASSENGER_LABEL,
@@ -279,6 +280,8 @@ function BoatBookingWizard() {
           </h1>
           <p className="text-sm text-muted-foreground">{agencyName}</p>
         </header>
+
+        <BusQuoteForms agencyId={agencyId} agencyName={agencyName} />
 
         <div className="mt-5 flex items-center gap-1.5">
           {STEPS.map((s, i) => (

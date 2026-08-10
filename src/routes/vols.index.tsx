@@ -47,6 +47,7 @@ function VolsSearch() {
   const [loading, setLoading] = useState(false);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [agencies, setAgencies] = useState<Record<string, Agency>>({});
+  const [airlinePartners, setAirlinePartners] = useState<Agency[]>([]);
 
   const [selected, setSelected] = useState<Program | null>(null);
   const [contact, setContact] = useState({ name: "", phone: "", email: "", note: "" });
@@ -54,6 +55,12 @@ function VolsSearch() {
 
   useEffect(() => {
     (async () => {
+      const { data: partnerRows } = await (supabase.from("partner_agencies_public") as any)
+        .select("id,name,logo_url")
+        .eq("category", "avion")
+        .order("name");
+      setAirlinePartners(((partnerRows as any) ?? []) as Agency[]);
+
       const { data } = await supabase.auth.getUser();
       const u = data.user;
       if (!u) return;
@@ -156,6 +163,18 @@ function VolsSearch() {
             </p>
           </div>
         </header>
+
+        <section className="mt-6">
+          <h2 className="text-sm font-bold">Nos compagnies aériennes partenaires</h2>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {airlinePartners.map((partner) => (
+              <div key={partner.id} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border bg-card p-3 text-center shadow-sm">
+                <AgencyLogo src={partner.logo_url} alt={`Logo ${partner.name}`} size={52} rounded="xl" />
+                <p className="text-xs font-semibold">{partner.name.trim()}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section className="mt-6 rounded-3xl border bg-card p-5 shadow-sm">
           <div className="grid gap-3 sm:grid-cols-2">

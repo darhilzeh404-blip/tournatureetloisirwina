@@ -34,8 +34,6 @@ type Agency = {
   logo_url: string | null;
   description: string | null;
   is_verified: boolean;
-  accepts_parcel?: boolean;
-  accepts_funeral?: boolean;
 };
 
 function BusAgencyPage() {
@@ -65,7 +63,7 @@ function BusAgencyPage() {
       try {
         const [{ data: ag }, tr] = await Promise.all([
           supabase.from("partner_agencies_public" as any)
-            .select("id, name, logo_url, description, is_verified, accepts_parcel, accepts_funeral")
+            .select("id, name, logo_url, description, is_verified")
             .eq("id", agencyId).maybeSingle(),
           fetchBusTrips(agencyId),
         ]);
@@ -153,7 +151,7 @@ function BusAgencyPage() {
           </div>
         </header>
 
-        <BusQuoteForms agencyId={agencyId} acceptsParcel={agency?.accepts_parcel} acceptsFuneral={agency?.accepts_funeral} />
+        <BusQuoteForms agencyId={agencyId} agencyName={agency?.name} />
 
 
         {loading ? (
