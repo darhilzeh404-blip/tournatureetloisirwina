@@ -19,17 +19,15 @@ const EMPTY_FUNERAL = {
   deceased_name: "", transport_type: "", documents: "", comments: "",
 };
 
-type Props = { agencyId: string; acceptsParcel?: boolean; acceptsFuneral?: boolean };
+type Props = { agencyId: string; agencyName?: string };
 
-export function BusQuoteForms({ agencyId, acceptsParcel, acceptsFuneral }: Props) {
+export function BusQuoteForms({ agencyId, agencyName }: Props) {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState<"parcel" | "funeral" | null>(null);
   const [parcel, setParcel] = useState({ ...EMPTY_PARCEL });
   const [funeral, setFuneral] = useState({ ...EMPTY_FUNERAL });
   const [saving, setSaving] = useState(false);
-
-  if (!acceptsParcel && !acceptsFuneral) return null;
 
   const requireAuth = () => {
     if (!isAuthenticated || !user) {
@@ -42,6 +40,7 @@ export function BusQuoteForms({ agencyId, acceptsParcel, acceptsFuneral }: Props
 
   const submitParcel = async () => {
     if (!requireAuth()) return;
+    if (!user) return;
     for (const [k, label] of [["origin", "Ville de départ"], ["destination", "Destination"],
       ["sender_name", "Nom expéditeur"], ["sender_phone", "Téléphone expéditeur"],
       ["recipient_name", "Nom destinataire"], ["recipient_phone", "Téléphone destinataire"],
@@ -50,7 +49,7 @@ export function BusQuoteForms({ agencyId, acceptsParcel, acceptsFuneral }: Props
     }
     setSaving(true);
     const { error } = await supabase.from("bus_parcel_requests" as any).insert({
-      ...parcel, weight_kg: Number(parcel.weight_kg) || 0, agency_id: agencyId, user_id: user!.id,
+      ...parcel, weight_kg: Number(parcel.weight_kg) || 0, agency_id: agencyId, user_id: user.id,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -61,6 +60,7 @@ export function BusQuoteForms({ agencyId, acceptsParcel, acceptsFuneral }: Props
 
   const submitFuneral = async () => {
     if (!requireAuth()) return;
+    if (!user) return;
     for (const [k, label] of [["origin", "Ville de départ"], ["destination", "Destination"],
       ["contact_name", "Nom du contact"], ["contact_phone", "Téléphone"],
       ["deceased_name", "Nom du défunt"], ["transport_type", "Type de transport"]] as const) {
@@ -68,7 +68,7 @@ export function BusQuoteForms({ agencyId, acceptsParcel, acceptsFuneral }: Props
     }
     setSaving(true);
     const { error } = await supabase.from("bus_funeral_requests" as any).insert({
-      ...funeral, agency_id: agencyId, user_id: user!.id,
+      ...funeral, agency_id: agencyId, user_id: user.id,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -79,8 +79,11 @@ export function BusQuoteForms({ agencyId, acceptsParcel, acceptsFuneral }: Props
 
   return (
     <section className="mt-4 space-y-3">
-      {acceptsParcel && (
-        <div className="overflow-hidden rounded-2xl border bg-card">
+      <div>
+        <h2 className="text-sm font-bold">Services additionnels{agencyName ? ` · ${agencyName}` : ""}</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">Demandez un devis directement à cette agence.</p>
+      </div>
+      <div className="overflow-hidden rounded-2xl border bg-card">
           <button type="button" onClick={() => setOpen(open === "parcel" ? null : "parcel")}
             className="flex w-full items-center gap-2 p-4 text-left text-sm font-bold">
             <Package className="h-4 w-4 text-primary" /> Expédition de colis — demander un devis
@@ -105,11 +108,9 @@ export function BusQuoteForms({ agencyId, acceptsParcel, acceptsFuneral }: Props
               </Button>
             </div>
           )}
-        </div>
-      )}
+      </div>
 
-      {acceptsFuneral && (
-        <div className="overflow-hidden rounded-2xl border bg-card">
+      <div className="overflow-hidden rounded-2xl border bg-card">
           <button type="button" onClick={() => setOpen(open === "funeral" ? null : "funeral")}
             className="flex w-full items-center gap-2 p-4 text-left text-sm font-bold">
             <ShieldCheck className="h-4 w-4 text-primary" /> Transport funéraire — demander un devis
@@ -132,8 +133,7 @@ export function BusQuoteForms({ agencyId, acceptsParcel, acceptsFuneral }: Props
               </Button>
             </div>
           )}
-        </div>
-      )}
+      </div>
     </section>
   );
 }

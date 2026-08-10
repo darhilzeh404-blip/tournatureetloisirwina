@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { AgencyLogo } from "@/components/AgencyLogo";
+import { BusQuoteForms } from "@/components/BusQuoteForms";
 import {
   fetchTrainReference, fetchTicketClassPrices, computeTrainQuote,
   type TrainClass, type TrainDiscountRule, type TrainType, type TrainTicketClass,
@@ -292,6 +293,8 @@ function AgencyTicketsPage() {
         {agency?.description && (
           <p className="mt-3 text-sm text-muted-foreground">{agency.description}</p>
         )}
+
+        {agency && <BusQuoteForms agencyId={agency.id} agencyName={agency.name} />}
 
         <div className="mt-5 grid gap-2 sm:grid-cols-3">
           <Input type="number" placeholder="Prix min" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
