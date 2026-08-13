@@ -17,6 +17,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
     "@cloudflare/vite-plugin": "^1.42.3",
     "@hookform/resolvers": "^5.2.2",
     "@playwright/test": "^1.59.1",
