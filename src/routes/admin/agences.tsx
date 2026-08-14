@@ -160,12 +160,24 @@ function AdminAgences() {
   };
 
   const remove = async (a: Agency) => {
-    if (!confirm(`Supprimer l'agence "${a.name}" ?`)) return;
-    const { error } = await supabase.from("partner_agencies").delete().eq("id", a.id);
-    if (error) { toast.error(error.message); return; }
+    if (!confirm(
+      `Supprimer l'agence "${a.name}" ?\n\nCela supprimera aussi ses navires, trajets et programmes de vols associés.`,
+    )) return;
+    const { error } = await supabase.rpc("admin_delete_partner_agency" as never, {
+      _agency_id: a.id,
+    } as never);
+    if (error) {
+      toast.error(
+        error.message.includes("Accès refusé")
+          ? "Action réservée aux administrateurs"
+          : `Suppression impossible : ${error.message}`,
+      );
+      return;
+    }
     toast.success("Agence supprimée");
     load();
   };
+
 
   const toggleVerified = async (a: Agency) => {
     const { error } = await supabase.from("partner_agencies").update({ is_verified: !a.is_verified }).eq("id", a.id);
