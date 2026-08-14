@@ -4890,6 +4890,10 @@ export type Database = {
         Args: { _approve: boolean; _booking_id: string; _comment?: string }
         Returns: undefined
       }
+      admin_delete_partner_agency: {
+        Args: { _agency_id: string }
+        Returns: undefined
+      }
       admin_draw_lottery: { Args: { _lottery_id: string }; Returns: string }
       admin_issue_bus_ticket: {
         Args: {
