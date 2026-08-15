@@ -17,8 +17,9 @@ import { formatPoints, formatXAF, requestRecharge } from "@/lib/vtc-wallet";
 
 const CODE_AGENT_MOOV = "TRANSPORT";
 const CODE_AGENT_AIRTEL = "BGG94";
-const BANK_NAME = "BGFI Bank Gabon";
-const BANK_IBAN = "GA21 4000 1000 0000 1234 5678 901";
+const BANK_ACCOUNT_NAME = "Agence Wina";
+const BANK_NAME = "AFG";
+const BANK_ACCOUNT_NUMBER = "10122312301";
 const CHEQUE_ORDRE = "AGENCE WINA TOUR";
 const QUICK_AMOUNTS = [2000, 5000, 10000, 20000, 50000];
 
