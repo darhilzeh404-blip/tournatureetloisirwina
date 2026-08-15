@@ -5074,13 +5074,22 @@ export type Database = {
           paid_via_wallet: boolean
         }[]
       }
-      compute_reservation_amount: {
-        Args: {
-          p_details: Json
-          p_service_type: Database["public"]["Enums"]["service_type"]
-        }
-        Returns: number
-      }
+      compute_reservation_amount:
+        | {
+            Args: {
+              p_details: Json
+              p_service_type: Database["public"]["Enums"]["service_type"]
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              p_details: Json
+              p_service_type: Database["public"]["Enums"]["service_type"]
+              p_user_id?: string
+            }
+            Returns: number
+          }
       create_bus_booking: {
         Args: {
           _booker_name: string
