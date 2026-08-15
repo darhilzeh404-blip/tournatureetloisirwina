@@ -502,14 +502,41 @@ function PaiementPage() {
           {method === "Virement" && (
             <div className="space-y-3">
               <h2 className="font-bold text-lg">🏦 Virement bancaire</h2>
-              <ol className="space-y-2 text-sm list-decimal list-inside">
-                <li>Banque : <strong>{BANK_NAME}</strong></li>
-                <li>Bénéficiaire : <CodeChip text={CHEQUE_ORDRE} onCopy={() => copy(CHEQUE_ORDRE, "Bénéficiaire")} /></li>
-                <li>IBAN : <CodeChip text={BANK_IBAN} onCopy={() => copy(BANK_IBAN, "IBAN")} /></li>
-                <li>Motif du virement : <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /></li>
-                <li>Montant : <CodeChip text={String(amount)} onCopy={() => copy(String(amount), "Montant")} /> FCFA.</li>
-                <li>📸 <strong>Photographiez l'avis de virement</strong> et joignez-le ci-dessous.</li>
-              </ol>
+              <p className="text-sm text-muted-foreground">
+                Effectuez votre virement avec les coordonnées suivantes :
+              </p>
+
+              <Card className="border border-border bg-muted/40">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                    <span className="text-xs text-muted-foreground">Dénomination</span>
+                    <span className="font-semibold text-sm">{BANK_ACCOUNT_NAME}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                    <span className="text-xs text-muted-foreground">Banque</span>
+                    <span className="font-semibold text-sm">{BANK_NAME}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                    <span className="text-xs text-muted-foreground">Numéro de compte</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-sm">{BANK_ACCOUNT_NUMBER}</span>
+                      <button
+                        onClick={() => copy(BANK_ACCOUNT_NUMBER, "Numéro de compte")}
+                        className="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/20"
+                      >
+                        <Copy className="h-3 w-3" /> Copier
+                      </button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <p className="text-sm text-muted-foreground">
+                Motif du virement : <strong>{shortRef}</strong> · Montant : <strong>{formatXAF(amount)}</strong>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                📸 <strong>Photographiez l'avis de virement</strong> et joignez-le ci-dessous.
+              </p>
             </div>
           )}
 
