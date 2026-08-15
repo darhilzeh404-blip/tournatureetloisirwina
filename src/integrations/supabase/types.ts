@@ -4296,6 +4296,36 @@ export type Database = {
         }
         Relationships: []
       }
+      vtc_fares: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          mode: string
+          price: number
+          updated_at: string
+          zone_key: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          mode: string
+          price: number
+          updated_at?: string
+          zone_key: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          mode?: string
+          price?: number
+          updated_at?: string
+          zone_key?: string
+        }
+        Relationships: []
+      }
       vtc_recharge_requests: {
         Row: {
           admin_note: string | null
@@ -5043,6 +5073,13 @@ export type Database = {
           driver_net: number
           paid_via_wallet: boolean
         }[]
+      }
+      compute_reservation_amount: {
+        Args: {
+          p_details: Json
+          p_service_type: Database["public"]["Enums"]["service_type"]
+        }
+        Returns: number
       }
       create_bus_booking: {
         Args: {
