@@ -128,7 +128,7 @@ function WalletRechargePage() {
         method: RECHARGE_ENUM[method] as never,
         paymentReference: shortRef,
         agentCode: isMobileMoney ? codeAgent : method,
-        proofUrl: path,
+        proofUrl: path ?? undefined,
       });
       toast.success("Demande envoyée — en attente de validation administrateur.");
       navigate({ to: "/wallet" });
