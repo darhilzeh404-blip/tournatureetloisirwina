@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Loader2, Smartphone, Camera, CheckCircle2, ArrowLeft, AlertCircle, Image as ImageIcon, MessageCircle, FileCheck, CreditCard, Landmark } from "lucide-react";
+import { Copy, Loader2, Smartphone, Camera, CheckCircle2, ArrowLeft, AlertCircle, Image as ImageIcon, MessageCircle, FileCheck, CreditCard, Landmark, Banknote } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { NumberInput } from "@/components/ui/number-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { prepareReceiptImage, buildWhatsappLink } from "@/lib/image-upload";
+import { copyText } from "@/lib/clipboard";
 import { UseCoinsToggle } from "@/components/wina-coins/UseCoinsToggle";
 import { fetchBalance } from "@/lib/wina-coins";
 import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
@@ -24,11 +25,14 @@ const BANK_NAME = "AFG";
 const BANK_ACCOUNT_NUMBER = "10122312301";
 const CHEQUE_ORDRE = "AGENCE WINA TOUR";
 
-type PaymentMethod = "Airtel Money" | "Moov Money" | "Chèque" | "Carte Visa" | "Virement";
+type PaymentMethod = "Airtel Money" | "Moov Money" | "Espèces" | "Chèque" | "Carte Visa" | "Virement";
+
+const AGENCE_ADRESSE = "Agence Wina Tour — guichet, aux heures d'ouverture";
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: typeof Smartphone }[] = [
   { value: "Airtel Money", label: "Airtel Money", icon: Smartphone },
   { value: "Moov Money", label: "Moov Money", icon: Smartphone },
+  { value: "Espèces", label: "Espèces (en agence)", icon: Banknote },
   { value: "Chèque", label: "Chèque", icon: FileCheck },
   { value: "Carte Visa", label: "Carte Visa", icon: CreditCard },
   { value: "Virement", label: "Virement bancaire", icon: Landmark },
@@ -138,12 +142,14 @@ function PaiementPage() {
 
   const isMobileMoney = method === "Moov Money" || method === "Airtel Money";
   const isVtc = reservation?.service_type === "VTC";
+  const isCash = method === "Espèces";
   const codeAgent = method === "Moov Money" ? CODE_AGENT_MOOV : CODE_AGENT_AIRTEL;
   const ussdCode = method === "Moov Money" ? "*555#" : "*150*4#";
 
-  const copy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(`${label} copié`);
+  const copy = async (text: string, label: string) => {
+    const ok = await copyText(text);
+    if (ok) toast.success(`${label} copié`);
+    else toast.error("Copie impossible — sélectionnez le texte manuellement");
   };
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,7 +187,7 @@ function PaiementPage() {
 
   const handleSubmit = async () => {
     if (!user || !reservation) return;
-    if (!receiptFile) {
+    if (!receiptFile && !isCash) {
       toast.error("Veuillez joindre la photo du reçu / SMS de confirmation");
       return;
     }
@@ -214,12 +220,15 @@ function PaiementPage() {
       }
 
       // Upload photo dans le bucket privé sous le dossier de l'utilisateur
-      const ext = (receiptFile.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${user.id}/${transactionUuid}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("payment-receipts")
-        .upload(path, receiptFile, { upsert: false, contentType: receiptFile.type || "image/jpeg" });
-      if (upErr) throw upErr;
+      let path: string | null = null;
+      if (receiptFile) {
+        const ext = (receiptFile.name.split(".").pop() || "jpg").toLowerCase();
+        path = `${user.id}/${transactionUuid}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("payment-receipts")
+          .upload(path, receiptFile, { upsert: false, contentType: receiptFile.type || "image/jpeg" });
+        if (upErr) throw upErr;
+      }
 
       // Insert paiement en attente
       const { error: payErr } = await supabase.from("payments").insert({
@@ -540,6 +549,24 @@ function PaiementPage() {
             </div>
           )}
 
+          {isCash && (
+            <div className="space-y-3">
+              <h2 className="font-bold text-lg">💵 Paiement en espèces — en agence</h2>
+              <p className="text-sm text-muted-foreground">
+                Tous les règlements en espèces s'effectuent <strong>uniquement en agence</strong>.
+              </p>
+              <ol className="space-y-2 text-sm list-decimal list-inside">
+                <li>Présentez-vous à l'agence : <strong>{AGENCE_ADRESSE}</strong>.</li>
+                <li>Communiquez la référence <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /> à l'agent.</li>
+                <li>Réglez le montant : <CodeChip text={String(amount)} onCopy={() => copy(String(amount), "Montant")} /> FCFA.</li>
+                <li>Conservez le reçu remis par l'agent — vous pourrez le photographier plus tard (facultatif).</li>
+              </ol>
+              <p className="text-xs text-muted-foreground">
+                Votre réservation reste <strong>en attente</strong> jusqu'à l'encaissement en agence et la validation par l'administrateur.
+              </p>
+            </div>
+          )}
+
           {method === "Chèque" && (
             <div className="space-y-3">
               <h2 className="font-bold text-lg">🧾 Paiement par chèque</h2>
@@ -573,7 +600,9 @@ function PaiementPage() {
 
           <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs">
             <AlertCircle className="h-4 w-4 text-warning-foreground shrink-0 mt-0.5" />
-            <span><strong>Photo du justificatif obligatoire</strong> pour la validation de votre paiement par l'admin.</span>
+            <span>{isCash
+              ? <><strong>Paiement en espèces :</strong> aucun justificatif requis maintenant. Le règlement se fait en agence.</>
+              : <><strong>Photo du justificatif obligatoire</strong> pour la validation de votre paiement par l'admin.</>}</span>
           </div>
         </CardContent>
       </Card>
@@ -582,7 +611,9 @@ function PaiementPage() {
       {/* Upload photo : 2 boutons (capture + galerie) */}
       <Card>
         <CardContent className="p-5 space-y-4">
-          <Label className="font-semibold">📸 Photo du reçu / SMS de confirmation</Label>
+          <Label className="font-semibold">
+            📸 Photo du reçu / SMS de confirmation{isCash ? " (facultatif)" : ""}
+          </Label>
 
           {/* Inputs cachés — un par mode pour qu'iOS Safari respecte 'capture' */}
           <input
@@ -648,7 +679,7 @@ function PaiementPage() {
         size="lg"
         className="w-full"
         onClick={handleSubmit}
-        disabled={submitting || preparing || !receiptFile}
+        disabled={submitting || preparing || (!receiptFile && !isCash)}
       >
         {submitting ? (
           <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>

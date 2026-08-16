@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, Camera, CheckCircle2, Copy, Image as ImageIcon, Loader2,
-  Smartphone, AlertCircle, Wallet, FileCheck, CreditCard, Landmark,
+  Smartphone, AlertCircle, Wallet, FileCheck, CreditCard, Landmark, Banknote,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import { NumberInput } from "@/components/ui/number-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { prepareReceiptImage } from "@/lib/image-upload";
 import { formatPoints, formatXAF, requestRecharge } from "@/lib/vtc-wallet";
+import { copyText } from "@/lib/clipboard";
 
 const CODE_AGENT_MOOV = "TRANSPORT";
 const CODE_AGENT_AIRTEL = "BGG94";
@@ -23,11 +24,14 @@ const BANK_ACCOUNT_NUMBER = "10122312301";
 const CHEQUE_ORDRE = "AGENCE WINA TOUR";
 const QUICK_AMOUNTS = [2000, 5000, 10000, 20000, 50000];
 
-type Operator = "Moov Money" | "Airtel Money" | "Chèque" | "Carte Visa" | "Virement";
+type Operator = "Moov Money" | "Airtel Money" | "Espèces" | "Chèque" | "Carte Visa" | "Virement";
+
+const AGENCE_ADRESSE = "Agence Wina Tour — guichet, aux heures d'ouverture";
 
 const PAYMENT_METHODS: { value: Operator; label: string; icon: typeof Smartphone }[] = [
   { value: "Airtel Money", label: "Airtel Money", icon: Smartphone },
   { value: "Moov Money", label: "Moov Money", icon: Smartphone },
+  { value: "Espèces", label: "Espèces (en agence)", icon: Banknote },
   { value: "Chèque", label: "Chèque", icon: FileCheck },
   { value: "Carte Visa", label: "Carte Visa", icon: CreditCard },
   { value: "Virement", label: "Virement bancaire", icon: Landmark },
@@ -35,6 +39,7 @@ const PAYMENT_METHODS: { value: Operator; label: string; icon: typeof Smartphone
 
 const RECHARGE_ENUM: Record<Operator, string> = {
   "Airtel Money": "airtel_money",
+  "Espèces": "cash_agent",
   "Moov Money": "moov_money",
   "Chèque": "other",
   "Carte Visa": "other",
@@ -70,11 +75,14 @@ function WalletRechargePage() {
   }, []);
 
   const isMobileMoney = method === "Moov Money" || method === "Airtel Money";
+  const isCash = method === "Espèces";
   const codeAgent = method === "Moov Money" ? CODE_AGENT_MOOV : CODE_AGENT_AIRTEL;
   const ussdCode = method === "Moov Money" ? "*555#" : "*150*4#";
 
-  const copy = (text: string, label: string) => {
-    try { navigator.clipboard.writeText(text); toast.success(`${label} copié`); } catch { /* noop */ }
+  const copy = async (text: string, label: string) => {
+    const ok = await copyText(text);
+    if (ok) toast.success(`${label} copié`);
+    else toast.error("Copie impossible — sélectionnez le texte manuellement");
   };
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,15 +110,18 @@ function WalletRechargePage() {
   const handleSubmit = async () => {
     if (!user) return;
     if (amount <= 0) { toast.error("Montant invalide"); return; }
-    if (!receiptFile) { toast.error("Veuillez joindre la preuve de paiement"); return; }
+    if (!receiptFile && !isCash) { toast.error("Veuillez joindre la preuve de paiement"); return; }
     setSubmitting(true);
     try {
-      const ext = (receiptFile.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${user.id}/wallet-${shortRef}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("payment-receipts")
-        .upload(path, receiptFile, { upsert: false, contentType: receiptFile.type || "image/jpeg" });
-      if (upErr) throw upErr;
+      let path: string | null = null;
+      if (receiptFile) {
+        const ext = (receiptFile.name.split(".").pop() || "jpg").toLowerCase();
+        path = `${user.id}/wallet-${shortRef}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("payment-receipts")
+          .upload(path, receiptFile, { upsert: false, contentType: receiptFile.type || "image/jpeg" });
+        if (upErr) throw upErr;
+      }
 
       await requestRecharge({
         amountPoints: amount,
@@ -270,6 +281,24 @@ function WalletRechargePage() {
             </>
           )}
 
+          {isCash && (
+            <div className="space-y-3">
+              <h2 className="font-bold text-lg">💵 Recharge en espèces — en agence</h2>
+              <p className="text-sm text-muted-foreground">
+                Tous les règlements en espèces s'effectuent <strong>uniquement en agence</strong>.
+              </p>
+              <ol className="space-y-2 text-sm list-decimal list-inside">
+                <li>Présentez-vous à l'agence : <strong>{AGENCE_ADRESSE}</strong>.</li>
+                <li>Communiquez la référence <CodeChip text={shortRef} onCopy={() => copy(shortRef, "Référence")} /> à l'agent.</li>
+                <li>Remettez le montant : <strong>{formatXAF(amount)}</strong>.</li>
+                <li>Conservez le reçu remis par l'agent (photo facultative ci-dessous).</li>
+              </ol>
+              <p className="text-xs text-muted-foreground">
+                Votre portefeuille est crédité après encaissement et validation par l'administrateur.
+              </p>
+            </div>
+          )}
+
           {method === "Chèque" && (
             <div className="space-y-3">
               <h2 className="font-bold text-lg">🧾 Paiement par chèque</h2>
@@ -337,7 +366,9 @@ function WalletRechargePage() {
 
           <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs">
             <AlertCircle className="h-4 w-4 text-warning-foreground shrink-0 mt-0.5" />
-            <span><strong>Photo du justificatif obligatoire</strong> pour la validation de votre recharge par l'admin.</span>
+            <span>{isCash
+              ? <><strong>Paiement en espèces :</strong> aucun justificatif requis maintenant. Le règlement se fait en agence.</>
+              : <><strong>Photo du justificatif obligatoire</strong> pour la validation de votre recharge par l'admin.</>}</span>
           </div>
         </CardContent>
       </Card>
@@ -346,7 +377,7 @@ function WalletRechargePage() {
       {/* Preuve de paiement */}
       <Card>
         <CardContent className="p-5 space-y-4">
-          <Label className="font-semibold">📸 Preuve de paiement</Label>
+          <Label className="font-semibold">📸 Preuve de paiement{isCash ? " (facultatif)" : ""}</Label>
           <p className="text-xs text-muted-foreground">
             Téléversez la photo du reçu ou la capture d'écran du SMS de confirmation.
             Formats acceptés : JPG, PNG, HEIC, HEIF. Taille max : 5 Mo.
@@ -398,7 +429,7 @@ function WalletRechargePage() {
         size="lg"
         className="w-full"
         onClick={handleSubmit}
-        disabled={submitting || preparing || !receiptFile || amount <= 0}
+        disabled={submitting || preparing || (!receiptFile && !isCash) || amount <= 0}
       >
         {submitting ? (
           <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
