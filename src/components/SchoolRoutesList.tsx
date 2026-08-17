@@ -59,8 +59,10 @@ export function SchoolRoutesList() {
   const [childAge, setChildAge] = useState("");
   const [children, setChildren] = useState(1);
   const [months, setMonths] = useState(1);
+  const [tripType, setTripType] = useState<TripType>("aller_retour");
   const [startDate, setStartDate] = useState("");
   const [saving, setSaving] = useState(false);
+
 
   useEffect(() => {
     (async () => {
