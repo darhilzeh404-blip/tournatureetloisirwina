@@ -104,6 +104,12 @@ function ConnexionPage() {
             </div>
           </div>
 
+          <div className="text-right">
+            <Link to="/mot-de-passe-oublie" className="text-sm font-medium text-primary hover:underline">
+              Mot de passe oublié ?
+            </Link>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
@@ -112,6 +118,7 @@ function ConnexionPage() {
             {loading ? "Connexion en cours..." : "Se connecter"}
           </button>
         </form>
+
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Pas encore de compte ?{" "}

@@ -20,6 +20,7 @@ import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitesTouristiquesRouteImport } from './routes/sites-touristiques'
 import { Route as ReserverTransportRouteImport } from './routes/reserver-transport'
+import { Route as ReinitialiserMotDePasseRouteImport } from './routes/reinitialiser-mot-de-passe'
 import { Route as PromosRouteImport } from './routes/promos'
 import { Route as MotDePasseOublieRouteImport } from './routes/mot-de-passe-oublie'
 import { Route as MonCompteRouteImport } from './routes/mon-compte'
@@ -160,6 +161,11 @@ const SitesTouristiquesRoute = SitesTouristiquesRouteImport.update({
 const ReserverTransportRoute = ReserverTransportRouteImport.update({
   id: '/reserver-transport',
   path: '/reserver-transport',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReinitialiserMotDePasseRoute = ReinitialiserMotDePasseRouteImport.update({
+  id: '/reinitialiser-mot-de-passe',
+  path: '/reinitialiser-mot-de-passe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PromosRoute = PromosRouteImport.update({
@@ -624,6 +630,7 @@ export interface FileRoutesByFullPath {
   '/mon-compte': typeof MonCompteRoute
   '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/promos': typeof PromosRoute
+  '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
   '/reserver-transport': typeof ReserverTransportRoute
   '/sites-touristiques': typeof SitesTouristiquesRoute
   '/support': typeof SupportRoute
@@ -719,6 +726,7 @@ export interface FileRoutesByTo {
   '/mon-compte': typeof MonCompteRoute
   '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/promos': typeof PromosRoute
+  '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
   '/reserver-transport': typeof ReserverTransportRoute
   '/sites-touristiques': typeof SitesTouristiquesRoute
   '/support': typeof SupportRoute
@@ -818,6 +826,7 @@ export interface FileRoutesById {
   '/mon-compte': typeof MonCompteRoute
   '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/promos': typeof PromosRoute
+  '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
   '/reserver-transport': typeof ReserverTransportRoute
   '/sites-touristiques': typeof SitesTouristiquesRoute
   '/support': typeof SupportRoute
@@ -919,6 +928,7 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/mot-de-passe-oublie'
     | '/promos'
+    | '/reinitialiser-mot-de-passe'
     | '/reserver-transport'
     | '/sites-touristiques'
     | '/support'
@@ -1014,6 +1024,7 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/mot-de-passe-oublie'
     | '/promos'
+    | '/reinitialiser-mot-de-passe'
     | '/reserver-transport'
     | '/sites-touristiques'
     | '/support'
@@ -1112,6 +1123,7 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/mot-de-passe-oublie'
     | '/promos'
+    | '/reinitialiser-mot-de-passe'
     | '/reserver-transport'
     | '/sites-touristiques'
     | '/support'
@@ -1212,6 +1224,7 @@ export interface RootRouteChildren {
   MonCompteRoute: typeof MonCompteRoute
   MotDePasseOublieRoute: typeof MotDePasseOublieRoute
   PromosRoute: typeof PromosRoute
+  ReinitialiserMotDePasseRoute: typeof ReinitialiserMotDePasseRoute
   ReserverTransportRoute: typeof ReserverTransportRoute
   SitesTouristiquesRoute: typeof SitesTouristiquesRoute
   SupportRoute: typeof SupportRoute
@@ -1310,6 +1323,13 @@ declare module '@tanstack/react-router' {
       path: '/reserver-transport'
       fullPath: '/reserver-transport'
       preLoaderRoute: typeof ReserverTransportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reinitialiser-mot-de-passe': {
+      id: '/reinitialiser-mot-de-passe'
+      path: '/reinitialiser-mot-de-passe'
+      fullPath: '/reinitialiser-mot-de-passe'
+      preLoaderRoute: typeof ReinitialiserMotDePasseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/promos': {
@@ -2123,6 +2143,7 @@ const rootRouteChildren: RootRouteChildren = {
   MonCompteRoute: MonCompteRoute,
   MotDePasseOublieRoute: MotDePasseOublieRoute,
   PromosRoute: PromosRoute,
+  ReinitialiserMotDePasseRoute: ReinitialiserMotDePasseRoute,
   ReserverTransportRoute: ReserverTransportRoute,
   SitesTouristiquesRoute: SitesTouristiquesRoute,
   SupportRoute: SupportRoute,
