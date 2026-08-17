@@ -92,9 +92,10 @@ export function SchoolRoutesList() {
   }, []);
 
   const total = useMemo(
-    () => (selected ? Number(selected.route.monthly_price) * months * children : 0),
-    [selected, months, children],
+    () => (selected ? unitPrice(Number(selected.route.monthly_price), tripType) * months * children : 0),
+    [selected, months, children, tripType],
   );
+
 
   const openBooking = (route: SchoolRoute) => {
     if (!isAuthenticated) {
