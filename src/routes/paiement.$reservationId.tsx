@@ -18,6 +18,8 @@ import { fetchBalance } from "@/lib/wina-coins";
 import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 import { WalletCheckout } from "@/components/WalletCheckout";
 import { PaymentMethodSelector } from "@/components/payment/PaymentMethodSelector";
+import { MobileMoneyDetails } from "@/components/payment/MobileMoneyDetails";
+
 import { BankTransferDetails } from "@/components/payment/BankTransferDetails";
 import { AgencyCashInfo } from "@/components/payment/AgencyCashInfo";
 import { PAYMENT_CHANNEL_LABEL, type PaymentChannel } from "@/lib/payment-methods";
@@ -126,6 +128,9 @@ function PaiementPage() {
 
   const isVtc = reservation?.service_type === "VTC";
   const isCash = channel === "cash";
+  const isMobileMoney = channel === "airtel_money" || channel === "moov_money";
+  const needsProof = channel === "bank_transfer" || isMobileMoney;
+
 
   const copy = async (text: string, label: string) => {
     const ok = await copyText(text);
@@ -371,7 +376,7 @@ function PaiementPage() {
       {/* Étape 1 — choix du moyen de paiement */}
       {channel === null ? (
         <PaymentMethodSelector
-          allowed={isVtc ? ["wallet"] : ["bank_transfer", "cash", "wallet"]}
+          allowed={isVtc ? ["wallet"] : ["airtel_money", "moov_money", "bank_transfer", "cash", "wallet"]}
           note={
             isVtc
               ? "Pour les courses VTC, le règlement se fait exclusivement depuis le portefeuille WINA TOUR."
@@ -414,7 +419,7 @@ function PaiementPage() {
           )}
 
           {/* Virement bancaire & espèces */}
-          {(channel === "bank_transfer" || channel === "cash") && (
+          {(channel === "bank_transfer" || channel === "cash" || isMobileMoney) && (
             <>
               {/* Montant du versement */}
               <Card>
@@ -474,6 +479,11 @@ function PaiementPage() {
                 </Card>
               )}
 
+              {isMobileMoney && (
+                <MobileMoneyDetails channel={channel as "airtel_money" | "moov_money"} amount={amount} />
+              )}
+
+
               {isCash && (
                 <>
                   <AgencyCashInfo />
@@ -496,8 +506,9 @@ function PaiementPage() {
                 </>
               )}
 
-              {/* Justificatif — virement uniquement */}
-              {channel === "bank_transfer" && (
+              {/* Justificatif — virement & mobile money */}
+              {needsProof && (
+
                 <Card>
                   <CardContent className="p-5 space-y-4">
                     <Label className="font-semibold">📸 Justificatif de virement</Label>
@@ -561,7 +572,7 @@ function PaiementPage() {
                 size="lg"
                 className="w-full"
                 onClick={handleSubmit}
-                disabled={submitting || preparing || (channel === "bank_transfer" && !receiptFile) || amount <= 0}
+                disabled={submitting || preparing || (needsProof && !receiptFile) || amount <= 0}
               >
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
@@ -573,7 +584,7 @@ function PaiementPage() {
               </Button>
 
               {/* Fallback WhatsApp si l'upload a échoué (iOS PWA) */}
-              {channel === "bank_transfer" && whatsappEnabled && (uploadFailed || !receiptFile) && whatsappNumber && (
+              {needsProof && whatsappEnabled && (uploadFailed || !receiptFile) && whatsappNumber && (
                 <Card className="border-success/40 bg-success/5">
                   <CardContent className="p-4 space-y-2">
                     <div className="flex items-start gap-2 text-xs">

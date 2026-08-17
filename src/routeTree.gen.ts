@@ -20,7 +20,9 @@ import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SitesTouristiquesRouteImport } from './routes/sites-touristiques'
 import { Route as ReserverTransportRouteImport } from './routes/reserver-transport'
+import { Route as ReinitialiserMotDePasseRouteImport } from './routes/reinitialiser-mot-de-passe'
 import { Route as PromosRouteImport } from './routes/promos'
+import { Route as MotDePasseOublieRouteImport } from './routes/mot-de-passe-oublie'
 import { Route as MonCompteRouteImport } from './routes/mon-compte'
 import { Route as MesReservationsRouteImport } from './routes/mes-reservations'
 import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
@@ -161,9 +163,19 @@ const ReserverTransportRoute = ReserverTransportRouteImport.update({
   path: '/reserver-transport',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReinitialiserMotDePasseRoute = ReinitialiserMotDePasseRouteImport.update({
+  id: '/reinitialiser-mot-de-passe',
+  path: '/reinitialiser-mot-de-passe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PromosRoute = PromosRouteImport.update({
   id: '/promos',
   path: '/promos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MotDePasseOublieRoute = MotDePasseOublieRouteImport.update({
+  id: '/mot-de-passe-oublie',
+  path: '/mot-de-passe-oublie',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MonCompteRoute = MonCompteRouteImport.update({
@@ -616,7 +628,9 @@ export interface FileRoutesByFullPath {
   '/mentions-legales': typeof MentionsLegalesRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
+  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/promos': typeof PromosRoute
+  '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
   '/reserver-transport': typeof ReserverTransportRoute
   '/sites-touristiques': typeof SitesTouristiquesRoute
   '/support': typeof SupportRoute
@@ -710,7 +724,9 @@ export interface FileRoutesByTo {
   '/mentions-legales': typeof MentionsLegalesRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
+  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/promos': typeof PromosRoute
+  '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
   '/reserver-transport': typeof ReserverTransportRoute
   '/sites-touristiques': typeof SitesTouristiquesRoute
   '/support': typeof SupportRoute
@@ -808,7 +824,9 @@ export interface FileRoutesById {
   '/mentions-legales': typeof MentionsLegalesRoute
   '/mes-reservations': typeof MesReservationsRoute
   '/mon-compte': typeof MonCompteRoute
+  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/promos': typeof PromosRoute
+  '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
   '/reserver-transport': typeof ReserverTransportRoute
   '/sites-touristiques': typeof SitesTouristiquesRoute
   '/support': typeof SupportRoute
@@ -908,7 +926,9 @@ export interface FileRouteTypes {
     | '/mentions-legales'
     | '/mes-reservations'
     | '/mon-compte'
+    | '/mot-de-passe-oublie'
     | '/promos'
+    | '/reinitialiser-mot-de-passe'
     | '/reserver-transport'
     | '/sites-touristiques'
     | '/support'
@@ -1002,7 +1022,9 @@ export interface FileRouteTypes {
     | '/mentions-legales'
     | '/mes-reservations'
     | '/mon-compte'
+    | '/mot-de-passe-oublie'
     | '/promos'
+    | '/reinitialiser-mot-de-passe'
     | '/reserver-transport'
     | '/sites-touristiques'
     | '/support'
@@ -1099,7 +1121,9 @@ export interface FileRouteTypes {
     | '/mentions-legales'
     | '/mes-reservations'
     | '/mon-compte'
+    | '/mot-de-passe-oublie'
     | '/promos'
+    | '/reinitialiser-mot-de-passe'
     | '/reserver-transport'
     | '/sites-touristiques'
     | '/support'
@@ -1198,7 +1222,9 @@ export interface RootRouteChildren {
   MentionsLegalesRoute: typeof MentionsLegalesRoute
   MesReservationsRoute: typeof MesReservationsRoute
   MonCompteRoute: typeof MonCompteRoute
+  MotDePasseOublieRoute: typeof MotDePasseOublieRoute
   PromosRoute: typeof PromosRoute
+  ReinitialiserMotDePasseRoute: typeof ReinitialiserMotDePasseRoute
   ReserverTransportRoute: typeof ReserverTransportRoute
   SitesTouristiquesRoute: typeof SitesTouristiquesRoute
   SupportRoute: typeof SupportRoute
@@ -1299,11 +1325,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReserverTransportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reinitialiser-mot-de-passe': {
+      id: '/reinitialiser-mot-de-passe'
+      path: '/reinitialiser-mot-de-passe'
+      fullPath: '/reinitialiser-mot-de-passe'
+      preLoaderRoute: typeof ReinitialiserMotDePasseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/promos': {
       id: '/promos'
       path: '/promos'
       fullPath: '/promos'
       preLoaderRoute: typeof PromosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mot-de-passe-oublie': {
+      id: '/mot-de-passe-oublie'
+      path: '/mot-de-passe-oublie'
+      fullPath: '/mot-de-passe-oublie'
+      preLoaderRoute: typeof MotDePasseOublieRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mon-compte': {
@@ -2101,7 +2141,9 @@ const rootRouteChildren: RootRouteChildren = {
   MentionsLegalesRoute: MentionsLegalesRoute,
   MesReservationsRoute: MesReservationsRoute,
   MonCompteRoute: MonCompteRoute,
+  MotDePasseOublieRoute: MotDePasseOublieRoute,
   PromosRoute: PromosRoute,
+  ReinitialiserMotDePasseRoute: ReinitialiserMotDePasseRoute,
   ReserverTransportRoute: ReserverTransportRoute,
   SitesTouristiquesRoute: SitesTouristiquesRoute,
   SupportRoute: SupportRoute,

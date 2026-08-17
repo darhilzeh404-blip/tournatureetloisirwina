@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
-import { Bus, Clock, Loader2, MapPin } from "lucide-react";
+import { Bus, Clock, Loader2, MapPin, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,20 @@ type SchoolRoute = {
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
 
+type TripType = "aller_retour" | "aller_simple" | "retour_simple";
+
+const TRIP_TYPES: { value: TripType; label: string; hint: string }[] = [
+  { value: "aller_retour", label: "Aller-Retour", hint: "Tarif plein" },
+  { value: "aller_simple", label: "Aller simple", hint: "Moitié + 10 000 F" },
+  { value: "retour_simple", label: "Retour simple", hint: "Moitié + 10 000 F" },
+];
+
+/** Tarif mensuel par enfant selon le type de trajet (identique au calcul serveur). */
+function unitPrice(monthly: number, trip: TripType): number {
+  return trip === "aller_retour" ? monthly : Math.floor(monthly / 2) + 10000;
+}
+
+
 export function SchoolRoutesList() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -59,8 +73,10 @@ export function SchoolRoutesList() {
   const [childAge, setChildAge] = useState("");
   const [children, setChildren] = useState(1);
   const [months, setMonths] = useState(1);
+  const [tripType, setTripType] = useState<TripType>("aller_retour");
   const [startDate, setStartDate] = useState("");
   const [saving, setSaving] = useState(false);
+
 
   useEffect(() => {
     (async () => {
@@ -76,9 +92,10 @@ export function SchoolRoutesList() {
   }, []);
 
   const total = useMemo(
-    () => (selected ? Number(selected.route.monthly_price) * months * children : 0),
-    [selected, months, children],
+    () => (selected ? unitPrice(Number(selected.route.monthly_price), tripType) * months * children : 0),
+    [selected, months, children, tripType],
   );
+
 
   const openBooking = (route: SchoolRoute) => {
     if (!isAuthenticated) {
@@ -92,7 +109,9 @@ export function SchoolRoutesList() {
     setChildAge("");
     setChildren(1);
     setMonths(1);
+    setTripType("aller_retour");
     setStartDate("");
+
   };
 
   const submit = async () => {
@@ -138,15 +157,18 @@ export function SchoolRoutesList() {
           return_time: route.return_time,
           months,
           children_count: children,
+          trip_type: tripType,
+          trip_type_label: TRIP_TYPES.find((t) => t.value === tripType)?.label,
           child_last_name: childLastName.trim(),
           child_first_name: childFirstName.trim(),
           child_age: age,
           quote: [
             {
-              label: `${route.name} — ${months} mois × ${children} enfant(s)`,
+              label: `${route.name} — ${TRIP_TYPES.find((t) => t.value === tripType)?.label} — ${months} mois × ${children} enfant(s)`,
               amount: total,
             },
           ],
+
         },
       });
       if (error) throw error;
@@ -306,7 +328,31 @@ export function SchoolRoutesList() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label>Type de trajet</Label>
+              <div className="mt-1.5 grid gap-2 sm:grid-cols-3">
+                {TRIP_TYPES.map((t) => {
+                  const active = tripType === t.value;
+                  const price = selected ? unitPrice(Number(selected.route.monthly_price), t.value) : 0;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setTripType(t.value)}
+                      className={`rounded-xl border p-3 text-left transition ${
+                        active ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="block text-sm font-semibold">{t.label}</span>
+                      <span className="block text-xs text-muted-foreground">{t.hint}</span>
+                      <span className="mt-1 block text-sm font-bold text-primary">{fmt(price)} F / mois</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="sr-age">Âge</Label>
                 <Input
@@ -316,17 +362,6 @@ export function SchoolRoutesList() {
                   max={25}
                   value={childAge}
                   onChange={(e) => setChildAge(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="sr-kids">Enfants</Label>
-                <Input
-                  id="sr-kids"
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={children}
-                  onChange={(e) => setChildren(Math.max(1, Number(e.target.value) || 1))}
                 />
               </div>
               <div>
@@ -341,6 +376,34 @@ export function SchoolRoutesList() {
                 />
               </div>
             </div>
+
+            <div>
+              <Label>Nombre d'enfants</Label>
+              <div className="mt-1.5 flex items-center justify-between rounded-xl border p-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Retirer un enfant"
+                  onClick={() => setChildren((c) => Math.max(1, c - 1))}
+                  disabled={children <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="text-lg font-bold">{children}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Ajouter un enfant"
+                  onClick={() => setChildren((c) => Math.min(10, c + 1))}
+                  disabled={children >= 10}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="sr-date">Date de début</Label>
               <Input
@@ -355,6 +418,7 @@ export function SchoolRoutesList() {
               <span className="text-sm font-medium">Total à payer</span>
               <span className="text-lg font-bold text-primary">{fmt(total)} FCFA</span>
             </div>
+
           </div>
 
           <DialogFooter>
