@@ -278,7 +278,7 @@ function WalletRechargePage() {
             size="lg"
             className="w-full"
             onClick={handleSubmit}
-            disabled={submitting || preparing || amount <= 0 || (channel === "bank_transfer" && !receiptFile)}
+            disabled={submitting || preparing || amount <= 0 || (needsProof && !receiptFile)}
           >
             {submitting ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
