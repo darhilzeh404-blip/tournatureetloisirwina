@@ -328,7 +328,31 @@ export function SchoolRoutesList() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label>Type de trajet</Label>
+              <div className="mt-1.5 grid gap-2 sm:grid-cols-3">
+                {TRIP_TYPES.map((t) => {
+                  const active = tripType === t.value;
+                  const price = selected ? unitPrice(Number(selected.route.monthly_price), t.value) : 0;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setTripType(t.value)}
+                      className={`rounded-xl border p-3 text-left transition ${
+                        active ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="block text-sm font-semibold">{t.label}</span>
+                      <span className="block text-xs text-muted-foreground">{t.hint}</span>
+                      <span className="mt-1 block text-sm font-bold text-primary">{fmt(price)} F / mois</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="sr-age">Âge</Label>
                 <Input
@@ -338,17 +362,6 @@ export function SchoolRoutesList() {
                   max={25}
                   value={childAge}
                   onChange={(e) => setChildAge(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="sr-kids">Enfants</Label>
-                <Input
-                  id="sr-kids"
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={children}
-                  onChange={(e) => setChildren(Math.max(1, Number(e.target.value) || 1))}
                 />
               </div>
               <div>
@@ -363,6 +376,34 @@ export function SchoolRoutesList() {
                 />
               </div>
             </div>
+
+            <div>
+              <Label>Nombre d'enfants</Label>
+              <div className="mt-1.5 flex items-center justify-between rounded-xl border p-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Retirer un enfant"
+                  onClick={() => setChildren((c) => Math.max(1, c - 1))}
+                  disabled={children <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="text-lg font-bold">{children}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Ajouter un enfant"
+                  onClick={() => setChildren((c) => Math.min(10, c + 1))}
+                  disabled={children >= 10}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="sr-date">Date de début</Label>
               <Input
@@ -377,6 +418,7 @@ export function SchoolRoutesList() {
               <span className="text-sm font-medium">Total à payer</span>
               <span className="text-lg font-bold text-primary">{fmt(total)} FCFA</span>
             </div>
+
           </div>
 
           <DialogFooter>
