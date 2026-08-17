@@ -34,13 +34,9 @@ function TransportScolairePage() {
       </section>
 
       <div className="mx-auto max-w-3xl space-y-8 px-5 pt-6 lg:px-10">
-        <TransportBookingForm
-          categorySlug="scolaire"
-          serviceType="TRANSPORT_SCOLAIRE"
-          showChildren
-        />
         <SchoolRoutesList />
       </div>
+
 
       <ClientNav />
     </div>
