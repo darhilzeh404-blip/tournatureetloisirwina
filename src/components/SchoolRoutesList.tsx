@@ -44,6 +44,20 @@ type SchoolRoute = {
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
 
+type TripType = "aller_retour" | "aller_simple" | "retour_simple";
+
+const TRIP_TYPES: { value: TripType; label: string; hint: string }[] = [
+  { value: "aller_retour", label: "Aller-Retour", hint: "Tarif plein" },
+  { value: "aller_simple", label: "Aller simple", hint: "Moitié + 10 000 F" },
+  { value: "retour_simple", label: "Retour simple", hint: "Moitié + 10 000 F" },
+];
+
+/** Tarif mensuel par enfant selon le type de trajet (identique au calcul serveur). */
+function unitPrice(monthly: number, trip: TripType): number {
+  return trip === "aller_retour" ? monthly : Math.floor(monthly / 2) + 10000;
+}
+
+
 export function SchoolRoutesList() {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
