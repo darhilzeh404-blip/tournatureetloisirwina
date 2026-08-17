@@ -109,7 +109,9 @@ export function SchoolRoutesList() {
     setChildAge("");
     setChildren(1);
     setMonths(1);
+    setTripType("aller_retour");
     setStartDate("");
+
   };
 
   const submit = async () => {
