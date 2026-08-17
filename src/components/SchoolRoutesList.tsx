@@ -157,15 +157,18 @@ export function SchoolRoutesList() {
           return_time: route.return_time,
           months,
           children_count: children,
+          trip_type: tripType,
+          trip_type_label: TRIP_TYPES.find((t) => t.value === tripType)?.label,
           child_last_name: childLastName.trim(),
           child_first_name: childFirstName.trim(),
           child_age: age,
           quote: [
             {
-              label: `${route.name} — ${months} mois × ${children} enfant(s)`,
+              label: `${route.name} — ${TRIP_TYPES.find((t) => t.value === tripType)?.label} — ${months} mois × ${children} enfant(s)`,
               amount: total,
             },
           ],
+
         },
       });
       if (error) throw error;
