@@ -4,13 +4,21 @@
  * portefeuille Wina. La carte bancaire est temporairement indisponible.
  */
 
-export type PaymentChannel = "bank_transfer" | "cash" | "wallet" | "card";
+export type PaymentChannel = "bank_transfer" | "cash" | "wallet" | "card" | "airtel_money" | "moov_money";
 
 export const PAYMENT_CHANNEL_LABEL: Record<PaymentChannel, string> = {
   bank_transfer: "Virement bancaire",
   cash: "Paiement en espèces",
   wallet: "Portefeuille WINA TOUR",
   card: "Carte bancaire",
+  airtel_money: "Airtel Money",
+  moov_money: "Moov Money",
+};
+
+/** Codes marchands officiels pour le mobile money. */
+export const MERCHANT_CODES: Record<"airtel_money" | "moov_money", string> = {
+  airtel_money: "BGG94",
+  moov_money: "TRANSPORT",
 };
 
 /** Libellé de statut affiché selon le moyen de paiement retenu. */
@@ -19,7 +27,10 @@ export const PAYMENT_CHANNEL_PENDING_STATUS: Record<PaymentChannel, string> = {
   cash: "Paiement en agence en attente",
   wallet: "Payé",
   card: "Indisponible",
+  airtel_money: "En attente de validation du paiement Airtel Money",
+  moov_money: "En attente de validation du paiement Moov Money",
 };
+
 
 /** Coordonnées bancaires officielles WINA TOUR. */
 export const BANK_DETAILS = {
@@ -49,9 +60,12 @@ export function telHref(phone: string): string {
 /** Correspondance vers l'enum de recharge du portefeuille (vtc_recharge_method). */
 export const CHANNEL_TO_RECHARGE_METHOD: Record<
   Exclude<PaymentChannel, "wallet">,
-  "bank_transfer" | "cash_agent" | "other"
+  "bank_transfer" | "cash_agent" | "other" | "airtel_money" | "moov_money"
 > = {
   bank_transfer: "bank_transfer",
   cash: "cash_agent",
   card: "other",
+  airtel_money: "airtel_money",
+  moov_money: "moov_money",
+
 };

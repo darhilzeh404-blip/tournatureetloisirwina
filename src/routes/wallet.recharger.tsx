@@ -17,6 +17,8 @@ import { copyText } from "@/lib/clipboard";
 import { PaymentMethodSelector } from "@/components/payment/PaymentMethodSelector";
 import { BankTransferDetails } from "@/components/payment/BankTransferDetails";
 import { AgencyCashInfo } from "@/components/payment/AgencyCashInfo";
+import { MobileMoneyDetails } from "@/components/payment/MobileMoneyDetails";
+
 import { CHANNEL_TO_RECHARGE_METHOD, PAYMENT_CHANNEL_LABEL, type PaymentChannel } from "@/lib/payment-methods";
 
 const QUICK_AMOUNTS = [2000, 5000, 10000, 20000, 50000];
@@ -57,6 +59,9 @@ function WalletRechargePage() {
   }, []);
 
   const isCash = channel === "cash";
+  const isMobileMoney = channel === "airtel_money" || channel === "moov_money";
+  const needsProof = channel === "bank_transfer" || isMobileMoney;
+
 
   const copy = async (text: string, label: string) => {
     const ok = await copyText(text);
@@ -228,8 +233,13 @@ function WalletRechargePage() {
             <AgencyCashInfo intro="Rendez-vous à l'agence WINA TOUR pour déposer le montant de votre recharge en espèces. Votre portefeuille est crédité après encaissement." />
           )}
 
-          {/* Justificatif — virement uniquement */}
-          {channel === "bank_transfer" && (
+          {isMobileMoney && (
+            <MobileMoneyDetails channel={channel as "airtel_money" | "moov_money"} amount={amount} />
+          )}
+
+          {/* Justificatif — virement & mobile money */}
+          {needsProof && (
+
             <Card>
               <CardContent className="p-5 space-y-4">
                 <Label className="font-semibold">📸 Justificatif de virement</Label>

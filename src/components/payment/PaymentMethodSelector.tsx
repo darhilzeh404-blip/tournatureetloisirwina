@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Banknote, CreditCard, Landmark, Wallet, ArrowRight } from "lucide-react";
+import { Banknote, CreditCard, Landmark, Smartphone, Wallet, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { PaymentChannel } from "@/lib/payment-methods";
@@ -14,6 +14,18 @@ interface Option {
 }
 
 const BASE_OPTIONS: Option[] = [
+  {
+    value: "airtel_money",
+    label: "Airtel Money",
+    description: "Payez via le code marchand Airtel Money BGG94.",
+    icon: Smartphone,
+  },
+  {
+    value: "moov_money",
+    label: "Moov Money",
+    description: "Payez via le code marchand Moov Money TRANSPORT.",
+    icon: Smartphone,
+  },
   {
     value: "bank_transfer",
     label: "Virement bancaire",
@@ -41,6 +53,7 @@ const BASE_OPTIONS: Option[] = [
     badge: "Bientôt disponible",
   },
 ];
+
 
 interface Props {
   /** Moyens autorisés pour ce service (ex. VTC = portefeuille uniquement). */
