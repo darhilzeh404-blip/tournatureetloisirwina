@@ -408,7 +408,9 @@ function EspaceClient() {
       </motion.section>
 
       {target && <BookingDialog target={target} onClose={() => setTarget(null)} />}
+      <VtcUnavailableDialog open={vtcNoticeOpen} onClose={() => setVtcNoticeOpen(false)} />
       <ClientNav />
+
     </div>
   );
 }

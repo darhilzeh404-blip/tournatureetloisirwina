@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, CalendarCheck, Gift, User, CarFront, Wallet, LayoutGrid } from "lucide-react";
+import { Home, CalendarCheck, Gift, User, CarFront, Wallet, LayoutGrid, Lock } from "lucide-react";
 import { useEffect } from "react";
+import { isVtcAvailable } from "@/lib/vtc-availability";
 
 const NAV_ITEMS = [
   { to: "/espace-client", label: "Accueil", icon: Home },
@@ -10,6 +11,7 @@ const NAV_ITEMS = [
   { to: "/mes-reservations", label: "Réserv.", icon: CalendarCheck },
   { to: "/mon-compte", label: "Profil", icon: User },
 ] as const;
+
 
 export function ClientNav() {
   const location = useLocation();
