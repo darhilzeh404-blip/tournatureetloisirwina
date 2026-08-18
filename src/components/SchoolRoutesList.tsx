@@ -364,18 +364,38 @@ export function SchoolRoutesList() {
                   onChange={(e) => setChildAge(e.target.value)}
                 />
               </div>
-              <div>
-                <Label htmlFor="sr-months">Mois</Label>
-                <Input
-                  id="sr-months"
-                  type="number"
-                  min={1}
-                  max={12}
-                  value={months}
-                  onChange={(e) => setMonths(Math.max(1, Number(e.target.value) || 1))}
-                />
+              <div />
+            </div>
+
+            <div>
+              <Label>Nombre de mois</Label>
+              <div className="mt-1.5 flex items-center justify-between rounded-xl border p-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Retirer un mois"
+                  onClick={() => setMonths((m) => Math.max(1, m - 1))}
+                  disabled={months <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="text-lg font-bold">
+                  {months} mois
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Ajouter un mois"
+                  onClick={() => setMonths((m) => Math.min(24, m + 1))}
+                  disabled={months >= 24}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
             </div>
+
 
             <div>
               <Label>Nombre d'enfants</Label>
