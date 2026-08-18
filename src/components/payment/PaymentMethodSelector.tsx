@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { Banknote, CreditCard, Landmark, Smartphone, Wallet, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { PaymentChannel } from "@/lib/payment-methods";
+import airtel3d from "@/assets/pay/airtel-money-3d.png";
+import moov3d from "@/assets/pay/moov-money-3d.png";
+import bank3d from "@/assets/pay/bank-transfer-3d.png";
+import cash3d from "@/assets/pay/cash-3d.png";
+import wallet3d from "@/assets/pay/wallet-3d.png";
+import card3d from "@/assets/pay/card-3d.png";
 
 interface Option {
   value: PaymentChannel;
   label: string;
   description: string;
-  icon: typeof Wallet;
+  image: string;
   disabled?: boolean;
   badge?: string;
 }
@@ -18,41 +24,42 @@ const BASE_OPTIONS: Option[] = [
     value: "airtel_money",
     label: "Airtel Money",
     description: "Payez via le code marchand Airtel Money BGG94.",
-    icon: Smartphone,
+    image: airtel3d,
   },
   {
     value: "moov_money",
     label: "Moov Money",
     description: "Payez via le code marchand Moov Money TRANSPORT.",
-    icon: Smartphone,
+    image: moov3d,
   },
   {
     value: "bank_transfer",
     label: "Virement bancaire",
     description: "Effectuez votre virement et envoyez votre justificatif.",
-    icon: Landmark,
+    image: bank3d,
   },
   {
     value: "cash",
     label: "Paiement en espèces",
     description: "Rendez-vous dans une agence WINA TOUR pour régler votre réservation.",
-    icon: Banknote,
+    image: cash3d,
   },
   {
     value: "wallet",
     label: "Portefeuille WINA TOUR",
     description: "Payez directement avec votre solde disponible.",
-    icon: Wallet,
+    image: wallet3d,
   },
   {
     value: "card",
     label: "Carte bancaire",
     description: "Temporairement indisponible",
-    icon: CreditCard,
+    image: card3d,
     disabled: true,
     badge: "Bientôt disponible",
   },
 ];
+
 
 
 interface Props {
@@ -82,7 +89,6 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
 
       <div className="grid gap-3">
         {options.map((o) => {
-          const Icon = o.icon;
           const active = selected === o.value;
           return (
             <button
@@ -91,7 +97,7 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
               disabled={o.disabled}
               aria-disabled={o.disabled}
               onClick={() => !o.disabled && setSelected(o.value)}
-              className={`w-full rounded-2xl border p-4 text-left transition ${
+              className={`w-full rounded-2xl border p-4 text-left transition-all duration-150 active:scale-[0.99] ${
                 o.disabled
                   ? "cursor-not-allowed border-border bg-muted/40 opacity-60"
                   : active
@@ -101,12 +107,21 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
             >
               <div className="flex items-start gap-3">
                 <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                    active ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                    active ? "bg-primary/10 ring-1 ring-primary/30" : "bg-muted/60"
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
+                  <img
+                    src={o.image}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    width={512}
+                    height={512}
+                    className="h-9 w-9 object-contain"
+                  />
                 </span>
+
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold">{o.label}</span>

@@ -1,5 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Mountain, Lock } from "lucide-react";
+import { isVtcAvailable } from "@/lib/vtc-availability";
+import { VtcUnavailableDialog } from "@/components/VtcUnavailableDialog";
+
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -77,6 +80,9 @@ function EspaceClient() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
   const [target, setTarget] = useState<BookingTarget | null>(null);
+  const [vtcNoticeOpen, setVtcNoticeOpen] = useState(false);
+  const vtcAvailable = isVtcAvailable();
+
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -158,8 +164,10 @@ function EspaceClient() {
       label: "VTC",
       desc: "Course privée",
       image: vtc3d,
-      tint: "from-primary/15 to-accent/10"
+      tint: "from-primary/15 to-accent/10",
+      locked: !vtcAvailable,
     },
+
     {
       to: "/demenagement",
       label: "Déménagement",
@@ -203,34 +211,63 @@ function EspaceClient() {
   tint: "from-accent/15 to-accent/5"
 },
 
-  ].map((srv) => (
-    <motion.div
-      key={srv.to}
-      variants={fadeUp}
-      whileHover={{ y: -4, scale: 1.03 }}
-      whileTap={{ scale: 0.96 }}
-    >
-      <Link
-        to={srv.to}
-        className={`relative flex h-full flex-col items-center gap-2 overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${srv.tint} p-3 shadow-sm`}
-      >
+  ].map((srv) => {
+    const locked = "locked" in srv && srv.locked === true;
+    const inner = (
+      <>
         <img
           src={srv.image}
           alt={srv.label}
-          className="h-12 w-12 object-contain"
+          loading="lazy"
+          className={`h-12 w-12 object-contain ${locked ? "opacity-50 grayscale" : ""}`}
         />
 
         <div className="text-center">
           <div className="text-sm font-bold leading-tight">
             {srv.label}
           </div>
-          <div className="text-[10px] text-muted-foreground">
-            {srv.desc}
+          <div className={`text-[10px] ${locked ? "font-semibold text-muted-foreground" : "text-muted-foreground"}`}>
+            {locked ? "Indisponible" : srv.desc}
           </div>
         </div>
-      </Link>
-    </motion.div>
-  ))}
+
+        {locked && (
+          <span
+            aria-hidden="true"
+            className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/80 text-background shadow-sm"
+          >
+            <Lock className="h-3 w-3" />
+          </span>
+        )}
+      </>
+    );
+    const cardClass = `relative flex h-full w-full flex-col items-center gap-2 overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${srv.tint} p-3 shadow-sm transition-all duration-150 ${locked ? "opacity-80" : ""}`;
+
+    return (
+      <motion.div
+        key={srv.to}
+        variants={fadeUp}
+        whileHover={locked ? undefined : { y: -4, scale: 1.03 }}
+        whileTap={{ scale: 0.96 }}
+      >
+        {locked ? (
+          <button
+            type="button"
+            onClick={() => setVtcNoticeOpen(true)}
+            aria-label={`${srv.label} — service indisponible pour le moment`}
+            className={cardClass}
+          >
+            {inner}
+          </button>
+        ) : (
+          <Link to={srv.to} className={cardClass}>
+            {inner}
+          </Link>
+        )}
+      </motion.div>
+    );
+  })}
+
 </motion.div>
 </motion.section>
 
@@ -371,7 +408,9 @@ function EspaceClient() {
       </motion.section>
 
       {target && <BookingDialog target={target} onClose={() => setTarget(null)} />}
+      <VtcUnavailableDialog open={vtcNoticeOpen} onClose={() => setVtcNoticeOpen(false)} />
       <ClientNav />
+
     </div>
   );
 }
