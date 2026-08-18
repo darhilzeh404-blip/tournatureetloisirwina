@@ -77,7 +77,15 @@ function DefaultPendingComponent() {
 export const getRouter = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: { staleTime: 30_000 },
+      queries: {
+        // Les données déjà chargées restent affichées : pas d'écran blanc
+        // ni de clignotement lors d'un retour sur une page déjà visitée.
+        staleTime: 5 * 60_000,
+        gcTime: 30 * 60_000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        retry: 1,
+      },
     },
   });
 
@@ -86,10 +94,11 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreload: "intent",
-    defaultPreloadStaleTime: 0,
+    defaultPreloadStaleTime: 30_000,
     defaultPendingComponent: DefaultPendingComponent,
-    defaultPendingMs: 200,
-    defaultPendingMinMs: 300,
+    defaultPendingMs: 400,
+    defaultPendingMinMs: 200,
+
     defaultErrorComponent: DefaultErrorComponent,
   });
 

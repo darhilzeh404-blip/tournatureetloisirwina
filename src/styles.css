@@ -387,7 +387,57 @@
   h5, h6 { font-size: 14px; line-height: 1.4; font-weight: 600; }
   p, li, label, input, textarea, select, button { font-size: 14px; }
   small, .text-small { font-size: 12px; }
+
+  /* ──────────────────────────────────────────────────────────────
+     Anti-zoom automatique sur mobile (iOS/Android)
+     Safari zoome dès qu'un champ a une police < 16px. On force donc
+     16px sur les appareils tactiles UNIQUEMENT — le zoom manuel de
+     l'utilisateur reste possible (aucun maximum-scale/user-scalable).
+     ────────────────────────────────────────────────────────────── */
+  @media (pointer: coarse) {
+    input,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="search"],
+    input[type="url"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    textarea,
+    select,
+    [contenteditable="true"] {
+      font-size: 16px !important;
+      line-height: 1.4;
+    }
+  }
+
+  /* Stabilité de l'échelle pendant la saisie */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  /* Aucun scroll horizontal parasite */
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Respect des préférences d'accessibilité */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
+
 
 @layer utilities {
   .hero-gradient {
