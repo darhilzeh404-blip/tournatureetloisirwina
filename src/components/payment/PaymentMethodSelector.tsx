@@ -89,7 +89,6 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
 
       <div className="grid gap-3">
         {options.map((o) => {
-          const Icon = o.icon;
           const active = selected === o.value;
           return (
             <button
@@ -98,7 +97,7 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
               disabled={o.disabled}
               aria-disabled={o.disabled}
               onClick={() => !o.disabled && setSelected(o.value)}
-              className={`w-full rounded-2xl border p-4 text-left transition ${
+              className={`w-full rounded-2xl border p-4 text-left transition-all duration-150 active:scale-[0.99] ${
                 o.disabled
                   ? "cursor-not-allowed border-border bg-muted/40 opacity-60"
                   : active
@@ -108,12 +107,21 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
             >
               <div className="flex items-start gap-3">
                 <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                    active ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                    active ? "bg-primary/10 ring-1 ring-primary/30" : "bg-muted/60"
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
+                  <img
+                    src={o.image}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    width={512}
+                    height={512}
+                    className="h-9 w-9 object-contain"
+                  />
                 </span>
+
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold">{o.label}</span>
