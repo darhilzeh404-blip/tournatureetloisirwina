@@ -158,8 +158,10 @@ function EspaceClient() {
       label: "VTC",
       desc: "Course privée",
       image: vtc3d,
-      tint: "from-primary/15 to-accent/10"
+      tint: "from-primary/15 to-accent/10",
+      locked: !vtcAvailable,
     },
+
     {
       to: "/demenagement",
       label: "Déménagement",
