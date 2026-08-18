@@ -1,5 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Mountain, Lock } from "lucide-react";
+import { isVtcAvailable } from "@/lib/vtc-availability";
+import { VtcUnavailableDialog } from "@/components/VtcUnavailableDialog";
+
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -77,6 +80,9 @@ function EspaceClient() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
   const [target, setTarget] = useState<BookingTarget | null>(null);
+  const [vtcNoticeOpen, setVtcNoticeOpen] = useState(false);
+  const vtcAvailable = isVtcAvailable();
+
 
   // Redirect to login if not authenticated
   useEffect(() => {
