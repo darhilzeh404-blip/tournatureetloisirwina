@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { Banknote, CreditCard, Landmark, Smartphone, Wallet, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { PaymentChannel } from "@/lib/payment-methods";
+import airtel3d from "@/assets/pay/airtel-money-3d.png";
+import moov3d from "@/assets/pay/moov-money-3d.png";
+import bank3d from "@/assets/pay/bank-transfer-3d.png";
+import cash3d from "@/assets/pay/cash-3d.png";
+import wallet3d from "@/assets/pay/wallet-3d.png";
+import card3d from "@/assets/pay/card-3d.png";
 
 interface Option {
   value: PaymentChannel;
   label: string;
   description: string;
-  icon: typeof Wallet;
+  image: string;
   disabled?: boolean;
   badge?: string;
 }
@@ -18,41 +24,42 @@ const BASE_OPTIONS: Option[] = [
     value: "airtel_money",
     label: "Airtel Money",
     description: "Payez via le code marchand Airtel Money BGG94.",
-    icon: Smartphone,
+    image: airtel3d,
   },
   {
     value: "moov_money",
     label: "Moov Money",
     description: "Payez via le code marchand Moov Money TRANSPORT.",
-    icon: Smartphone,
+    image: moov3d,
   },
   {
     value: "bank_transfer",
     label: "Virement bancaire",
     description: "Effectuez votre virement et envoyez votre justificatif.",
-    icon: Landmark,
+    image: bank3d,
   },
   {
     value: "cash",
     label: "Paiement en espèces",
     description: "Rendez-vous dans une agence WINA TOUR pour régler votre réservation.",
-    icon: Banknote,
+    image: cash3d,
   },
   {
     value: "wallet",
     label: "Portefeuille WINA TOUR",
     description: "Payez directement avec votre solde disponible.",
-    icon: Wallet,
+    image: wallet3d,
   },
   {
     value: "card",
     label: "Carte bancaire",
     description: "Temporairement indisponible",
-    icon: CreditCard,
+    image: card3d,
     disabled: true,
     badge: "Bientôt disponible",
   },
 ];
+
 
 
 interface Props {
