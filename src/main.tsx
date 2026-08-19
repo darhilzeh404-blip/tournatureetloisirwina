@@ -7,6 +7,11 @@ import { installRecoveryErrorLogging, logRecovery } from "./lib/recovery-log";
 if (typeof window !== "undefined") {
   installRecoveryErrorLogging();
   logRecovery("info", "app.boot", { ua: navigator.userAgent });
+  // Allègement des effets graphiques coûteux sur Android (flou, ombres,
+  // animations longues) : la navigation entre les pages y reste fluide.
+  if (/android/i.test(navigator.userAgent)) {
+    document.documentElement.classList.add("is-android");
+  }
 }
 
 const rootElement = document.getElementById('root');
