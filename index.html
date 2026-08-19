@@ -31,7 +31,10 @@
       body {
         margin: 0;
         background-color: #ffffff;
-        overscroll-behavior-y: none;
+        /* Scroll vertical à un doigt garanti (Android WebView inclus).
+           Pas d'overscroll-behavior ici : il coupait le chaînage du scroll
+           des conteneurs internes vers la page. */
+        touch-action: pan-x pan-y pinch-zoom;
         -webkit-tap-highlight-color: transparent;
       }
       /* Écran de démarrage natif : visible dès le lancement, retiré à l'hydratation */
