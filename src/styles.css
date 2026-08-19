@@ -922,3 +922,35 @@
 .btn-refresh:hover {
   background: #1d4ed8;
 }
+/* ──────────────────────────────────────────────────────────────
+   Optimisation Android (WebView / Chrome mobile)
+   Les effets backdrop-filter, les grandes ombres et les longues
+   transitions provoquent des saccades lors de la navigation sur
+   Android. On les allège uniquement sur ces appareils : le rendu
+   reste identique visuellement (fond opaque au lieu du flou).
+   ────────────────────────────────────────────────────────────── */
+html.is-android [class*="backdrop-blur"],
+html.is-android .backdrop-blur,
+html.is-android .backdrop-blur-sm,
+html.is-android .backdrop-blur-md,
+html.is-android .backdrop-blur-lg,
+html.is-android .backdrop-blur-xl,
+html.is-android .backdrop-blur-2xl,
+html.is-android .backdrop-blur-3xl {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.is-android body {
+  /* évite les repaints coûteux du dégradé de fond pendant le scroll */
+  background-attachment: scroll !important;
+}
+
+html.is-android * {
+  transition-duration: 140ms;
+  animation-duration: 220ms;
+}
+
+html.is-android .shadow-2xl {
+  box-shadow: 0 10px 20px -8px rgb(0 0 0 / 0.25) !important;
+}
