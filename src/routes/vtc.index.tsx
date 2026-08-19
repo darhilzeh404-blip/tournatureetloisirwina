@@ -93,8 +93,8 @@ const WEDDING_FARES = {
   berline: { h12: 100_000, h24: 200_000, label: "Berline VIP" },
   suv:     { h12: 200_000, h24: 400_000, label: "SUV VIP" },
 } as const;
-const VTC_SLEEP_UNTIL = new Date(2026, 7, 14, 0, 0, 0);
-const VTC_SLEEP_LABEL = "jeudi 13 août 2026";
+const VTC_SLEEP_UNTIL = new Date(2026, 8, 2, 0, 0, 0);
+const VTC_SLEEP_LABEL = "mercredi 2 septembre 2026";
 
 type WeddingVehicle = keyof typeof WEDDING_FARES;
 type WeddingDuration = "h12" | "h24";
