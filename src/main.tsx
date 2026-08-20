@@ -28,7 +28,18 @@ function hideBootSplash() {
 }
 
 async function startApp() {
-  const { router } = await import('./routes');
+  // Un import dynamique peut échouer si un chunk a été remplacé (nouveau
+  // déploiement) ou sur un réseau instable : on retente avant d'abandonner.
+  let mod: typeof import('./routes');
+  try {
+    mod = await import('./routes');
+  } catch (error) {
+    logRecovery("warn", "app.routes-import-failed", { error: String(error) });
+    await new Promise((r) => setTimeout(r, 400));
+    mod = await import(/* @vite-ignore */ `./routes.tsx?retry=${Date.now()}`);
+  }
+  const { router } = mod;
+
   const app = <ErrorBoundary><RouterProvider router={router} /></ErrorBoundary>;
 
   if (root.hasChildNodes()) {
