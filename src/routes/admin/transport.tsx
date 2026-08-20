@@ -533,7 +533,7 @@ function SettingsTab({ data }: { data: ReturnType<typeof useTransportData> }) {
             <p className="font-medium">{key}</p>
             <p className="text-xs text-muted-foreground">Valeur actuelle : {value}</p>
           </div>
-          <NumberInput allowDecimal defaultValue={value}
+          <NumberInput allowDecimal value={edits[key] ?? Number(value) ?? 0}
             onChange={(v: number) => setEdits({ ...edits, [key]: v })}
             className="w-32 rounded-lg border bg-background px-3 py-2 text-sm" />
           {edits[key] !== undefined && (
