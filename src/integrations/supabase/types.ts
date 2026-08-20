@@ -5133,6 +5133,10 @@ export type Database = {
         }
         Returns: number
       }
+      driver_near_pending_trip: {
+        Args: { _created_at: string; _lat: number; _lng: number }
+        Returns: boolean
+      }
       enter_wina_lottery: {
         Args: { _lottery_id: string; _quantity?: number }
         Returns: number
