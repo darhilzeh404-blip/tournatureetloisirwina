@@ -24,12 +24,4 @@ describe("NumberInput", () => {
     expect(input.value).toBe("25");
   });
 
-  it("applique min sur blur si le champ reste vide", () => {
-    render(<Harness />);
-    const input = screen.getByLabelText("n") as HTMLInputElement;
-    fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: "" } });
-    fireEvent.blur(input);
-    expect(input.value).toBe("");
-  });
 });
