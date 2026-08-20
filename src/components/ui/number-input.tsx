@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useNumericInput } from "@/hooks/use-numeric-input";
 
 type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
   value: number;
@@ -11,96 +12,34 @@ type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChan
 };
 
 /**
- * Mobile-friendly numeric input.
- * - Fully editable & clearable (no aggressive min-clamping while typing)
- * - Selects content on focus to avoid "1 → 14" concatenation bugs
+ * Mobile-friendly numeric input (plain <input>).
+ * - Fully editable & clearable (backspace / select-all delete work)
+ * - Never re-injects the previous value while typing
  * - Numeric mobile keyboard (inputMode + pattern)
- * - Min/Max are enforced on blur, not on every keystroke
+ * - Min/Max enforced on blur only
  */
 export const NumberInput = React.forwardRef<HTMLInputElement, Props>(function NumberInput(
-  {
-    value,
-    onChange,
-    min,
-    max,
-    allowDecimal = false,
-    emptyAsZero = true,
-    onFocus,
-    onBlur,
-    ...rest
-  },
+  { value, onChange, min, max, allowDecimal = false, emptyAsZero = true, onFocus, onBlur, ...rest },
   ref,
 ) {
-  const toText = React.useCallback(
-    (v: number) => (emptyAsZero && v === 0 ? "" : Number.isFinite(v) ? String(v) : ""),
-    [emptyAsZero],
-  );
-
-  const [text, setText] = React.useState<string>(() => toText(value));
-  const focusedRef = React.useRef(false);
-
-  // Sync from parent only when not focused, to avoid clobbering typing.
-  React.useEffect(() => {
-    if (focusedRef.current) return;
-    const parsed = text === "" ? 0 : Number(text);
-    if (parsed !== value) setText(toText(value));
-  }, [value, text, toText]);
-
-  const sanitize = (s: string) => {
-    const cleaned = allowDecimal ? s.replace(/,/g, ".").replace(/[^\d.]/g, "") : s.replace(/[^\d]/g, "");
-    if (!allowDecimal) return cleaned;
-    const i = cleaned.indexOf(".");
-    return i === -1 ? cleaned : cleaned.slice(0, i + 1) + cleaned.slice(i + 1).replace(/\./g, "");
-  };
+  const n = useNumericInput({ value, onChange, min, max, allowDecimal, emptyAsZero });
 
   return (
     <input
       ref={ref}
       type="text"
-      inputMode={allowDecimal ? "decimal" : "numeric"}
-      pattern={allowDecimal ? "[0-9.]*" : "[0-9]*"}
+      inputMode={n.inputMode}
+      pattern={n.pattern}
       autoComplete="off"
       {...rest}
-      value={text}
+      value={n.text}
       onFocus={(e) => {
-        focusedRef.current = true;
-        // Select all so any keystroke replaces the default value cleanly.
-        requestAnimationFrame(() => {
-          try {
-            e.target.select();
-          } catch {}
-        });
+        n.handleFocus();
         onFocus?.(e);
       }}
-      onChange={(e) => {
-        const s = sanitize(e.target.value);
-        setText(s);
-        if (s === "" || s === ".") {
-          onChange(0);
-          return;
-        }
-        const n = Number(s);
-        if (Number.isFinite(n)) onChange(n);
-      }}
+      onChange={(e) => n.handleChange(e.target.value)}
       onBlur={(e) => {
-        focusedRef.current = false;
-        if (text === "") {
-          onChange(emptyAsZero ? 0 : (min ?? 0));
-          if (!emptyAsZero && min !== undefined) setText(String(min));
-          onBlur?.(e);
-          return;
-        }
-        let n = Number(text);
-        if (!Number.isFinite(n)) {
-          setText("");
-          onChange(0);
-          onBlur?.(e);
-          return;
-        }
-        if (min !== undefined && n < min) n = min;
-        if (max !== undefined && n > max) n = max;
-        setText(String(n));
-        onChange(n);
+        n.handleBlur();
         onBlur?.(e);
       }}
     />
