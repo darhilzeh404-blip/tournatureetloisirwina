@@ -17,6 +17,7 @@ import suvIcon from "@/assets/catalog-icon-suv.png";
 import utilitaireIcon from "@/assets/catalog-icon-utilitaire.png";
 import vipIcon from "@/assets/catalog-icon-vip.png";
 import autocarIcon from "@/assets/catalog-icon-autocar.png";
+import { NumericField } from "@/components/ui/numeric-field";
 
 const categoryIcons: Record<string, string> = {
   "Berline": berlineIcon,
@@ -420,10 +421,9 @@ function BookingForm({ vehicle, onDone }: { vehicle: CatalogVehicle; onDone: () 
         </div>
         <div>
           <label className="text-[11px] font-medium">Quantité</label>
-          <Input
-            type="number" min={1} max={20}
+          <NumericField min={1} max={20}
             value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+            onChange={(v: number) => setQuantity(Math.max(1, v || 1))}
           />
         </div>
       </div>

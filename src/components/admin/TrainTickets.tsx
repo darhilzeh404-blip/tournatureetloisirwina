@@ -1,3 +1,4 @@
+import { NumericField } from "@/components/ui/numeric-field";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -325,7 +326,7 @@ export function TrainTickets({
           </div>
           <div>
             <Label>Places totales</Label>
-            <Input type="number" min={0} value={form.seats_total} onChange={(e) => setForm({ ...form, seats_total: Number(e.target.value) })} />
+            <NumericField min={0} value={form.seats_total} onChange={(v: number) => setForm({ ...form, seats_total: v })} />
           </div>
           <div className="sm:col-span-2">
             <Label>Tarifs par classe (FCFA)</Label>
@@ -333,8 +334,8 @@ export function TrainTickets({
               {activeClasses.map((c) => (
                 <div key={c.id}>
                   <p className="text-xs text-muted-foreground">{c.name}</p>
-                  <Input type="number" min={0} value={form.prices[c.id] ?? ""}
-                    onChange={(e) => setForm({ ...form, prices: { ...form.prices, [c.id]: Number(e.target.value) } })} />
+                  <NumericField min={0} value={Number(form.prices[c.id] ?? 0)}
+                    onChange={(v: number) => setForm({ ...form, prices: { ...form.prices, [c.id]: v } })} />
                 </div>
               ))}
             </div>

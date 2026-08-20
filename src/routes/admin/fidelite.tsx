@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { VipBadge } from "@/components/wina-coins/VipBadge";
 import { formatCoins, fetchLevels, type VipLevel } from "@/lib/wina-coins";
 import { AdminLevelsManager } from "@/components/wina-coins/AdminLevelsManager";
+import { NumericField } from "@/components/ui/numeric-field";
 
 export const Route = createFileRoute("/admin/fidelite")({
   component: AdminFidelitePage,
@@ -202,10 +203,9 @@ function AdminFidelitePage() {
                 <Button variant="outline" size="icon" onClick={() => setDelta((d) => d - 50)}>
                   <Minus className="h-4 w-4" />
                 </Button>
-                <Input
-                  type="number"
+                <NumericField
                   value={delta}
-                  onChange={(e) => setDelta(Number(e.target.value) || 0)}
+                  onChange={(v: number) => setDelta(v || 0)}
                   className="text-center font-bold"
                 />
                 <Button variant="outline" size="icon" onClick={() => setDelta((d) => d + 50)}>

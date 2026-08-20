@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { NumericField } from "@/components/ui/numeric-field";
 
 export const Route = createFileRoute("/admin/offres")({
   component: AdminOffres,
@@ -113,7 +114,7 @@ function OfferFormDialog({
           </div>
           <div className="space-y-1">
             <Label>Prix (FCFA)</Label>
-            <Input type="text" inputMode="numeric" value={form.price || ""} onChange={(e) => setForm({ ...form, price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) })} min={0} />
+            <NumericField value={form.price} onChange={(v: number) => setForm({ ...form, price: (v || 0) })} min={0} />
           </div>
           <div className="space-y-1">
             <Label>URL de l'image</Label>

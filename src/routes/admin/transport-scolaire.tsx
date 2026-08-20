@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { NumberInput } from "@/components/ui/number-input";
 
 export const Route = createFileRoute("/admin/transport-scolaire")({
   head: () => ({
@@ -614,14 +615,13 @@ function TransportScolaireAdmin() {
             className="w-full rounded border p-3"
           />
 
-          <input
-            type="number"
+          <NumberInput
             placeholder="Prix mensuel (FCFA)"
-            value={routeForm.monthly_price || ""}
-            onChange={(e) =>
+            value={routeForm.monthly_price}
+            onChange={(v: number) =>
               setRouteForm((f) => ({
                 ...f,
-                monthly_price: Number(e.target.value),
+                monthly_price: v,
               }))
             }
             className="w-full rounded border p-3"
@@ -748,14 +748,13 @@ function TransportScolaireAdmin() {
                           })
                         }
                       />
-                      <input
-                        type="number"
+                      <NumberInput
                         className="rounded border bg-background p-2 text-foreground"
                         value={editingRoute.monthly_price}
-                        onChange={(e) =>
+                        onChange={(v: number) =>
                           setEditingRoute({
                             ...editingRoute,
-                            monthly_price: Number(e.target.value),
+                            monthly_price: v,
                           })
                         }
                       />

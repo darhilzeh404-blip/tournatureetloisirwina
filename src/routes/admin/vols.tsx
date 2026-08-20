@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { FCFA, fmtDate, PROGRAM_STATUS_LABEL } from "@/lib/flight-quotes";
+import { NumericField } from "@/components/ui/numeric-field";
 
 export const Route = createFileRoute("/admin/vols")({
   component: AdminVols,
@@ -193,8 +194,8 @@ function AdminVols() {
             </div>
             <div>
               <Label>Prix « à partir de » (FCFA, indicatif)</Label>
-              <Input type="number" min={0} value={editing.price_from ?? 0}
-                onChange={(e) => setEditing((s) => ({ ...s, price_from: Number(e.target.value) }))} />
+              <NumericField min={0} value={editing.price_from ?? 0}
+                onChange={(v: number) => setEditing((s) => ({ ...s, price_from: v }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 import { randomId } from "@/lib/random-id";
 import { AgencyLogo } from "@/components/AgencyLogo";
+import { NumericField } from "@/components/ui/numeric-field";
 
 export const Route = createFileRoute("/admin/agences")({
   component: AdminAgences,
@@ -227,10 +228,9 @@ function AdminAgences() {
             </div>
             <div>
               <label className="text-xs font-medium">Commission (%)</label>
-              <Input
-                type="number" min={0} max={100} step={0.5}
+              <NumericField min={0} max={100} step={0.5}
                 value={form.commission_percent}
-                onChange={(e) => setForm({ ...form, commission_percent: Number(e.target.value) })}
+                onChange={(v: number) => setForm({ ...form, commission_percent: v })}
               />
             </div>
           </div>
