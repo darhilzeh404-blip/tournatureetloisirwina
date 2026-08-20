@@ -4,8 +4,10 @@ import { RouterProvider } from '@tanstack/react-router';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import './styles.css';
 import { installRecoveryErrorLogging, logRecovery } from "./lib/recovery-log";
+import { installDynamicImportRecovery } from "./lib/dynamic-import-recovery";
 if (typeof window !== "undefined") {
   installRecoveryErrorLogging();
+  installDynamicImportRecovery();
   logRecovery("info", "app.boot", { ua: navigator.userAgent });
   // Allègement des effets graphiques coûteux sur Android (flou, ombres,
   // animations longues) : la navigation entre les pages y reste fluide.
