@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Bus, CalendarDays, Loader2, Package, Pencil, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
 
 import {
+import { NumericField } from "@/components/ui/numeric-field";
   adminDecideBusBooking, adminIssueBusTicket, fmtXAF, formatDateFR, toISODate,
   TRIP_STATUS_LABEL, BOOKING_STATUS_LABEL, QUOTE_STATUS_LABEL,
 } from "@/lib/bus";
@@ -459,8 +460,8 @@ function BusBilletterieAdmin() {
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium">Nombre total de places</label>
-                  <Input className="mt-1.5" type="number" min={1} value={form.seats_total}
-                    onChange={(e) => setForm({ ...form, seats_total: Number(e.target.value) })} />
+                  <NumericField className="mt-1.5" min={1} value={form.seats_total}
+                    onChange={(v: number) => setForm({ ...form, seats_total: v })} />
                 </div>
               </div>
 
@@ -468,11 +469,11 @@ function BusBilletterieAdmin() {
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <label className="text-xs text-muted-foreground">Adulte (6 ans et +)</label>
-                  <Input type="number" min={0} value={form.price_adult} onChange={(e) => setForm({ ...form, price_adult: Number(e.target.value) })} />
+                  <NumericField min={0} value={form.price_adult} onChange={(v: number) => setForm({ ...form, price_adult: v })} />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Bébé 0 à 5 ans</label>
-                  <Input type="number" min={0} value={form.price_child_0_6} onChange={(e) => setForm({ ...form, price_child_0_6: Number(e.target.value) })} />
+                  <NumericField min={0} value={form.price_child_0_6} onChange={(v: number) => setForm({ ...form, price_child_0_6: v })} />
                 </div>
               </div>
 
@@ -480,11 +481,11 @@ function BusBilletterieAdmin() {
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <label className="text-xs text-muted-foreground">Kg inclus</label>
-                  <Input type="number" min={0} value={form.baggage_included_kg} onChange={(e) => setForm({ ...form, baggage_included_kg: Number(e.target.value) })} />
+                  <NumericField min={0} value={form.baggage_included_kg} onChange={(v: number) => setForm({ ...form, baggage_included_kg: v })} />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Prix du kg supplémentaire</label>
-                  <Input type="number" min={0} value={form.baggage_extra_price_per_kg} onChange={(e) => setForm({ ...form, baggage_extra_price_per_kg: Number(e.target.value) })} />
+                  <NumericField min={0} value={form.baggage_extra_price_per_kg} onChange={(v: number) => setForm({ ...form, baggage_extra_price_per_kg: v })} />
                 </div>
               </div>
               <Textarea

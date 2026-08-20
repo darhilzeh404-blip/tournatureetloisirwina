@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { FCFA, fmtDate, fmtDateTime, REQUEST_STATUS_CLASS, REQUEST_STATUS_LABEL } from "@/lib/flight-quotes";
+import { NumericField } from "@/components/ui/numeric-field";
 
 export const Route = createFileRoute("/admin/vols-demandes")({
   component: AdminFlightRequests,
@@ -256,9 +257,9 @@ function AdminFlightRequests() {
                   <div><Label>Bagages soute</Label>
                     <Input placeholder="2 x 23 kg" value={offer.checked_baggage} onChange={(e) => setOffer({ ...offer, checked_baggage: e.target.value })} /></div>
                   <div><Label>Prix unitaire (FCFA)</Label>
-                    <Input type="number" min={0} value={offer.unit_price} onChange={(e) => setOffer({ ...offer, unit_price: Number(e.target.value) })} /></div>
+                    <NumericField min={0} value={offer.unit_price} onChange={(v: number) => setOffer({ ...offer, unit_price: v })} /></div>
                   <div><Label>Prix final total (FCFA)</Label>
-                    <Input type="number" min={0} value={offer.total_amount} onChange={(e) => setOffer({ ...offer, total_amount: Number(e.target.value) })} /></div>
+                    <NumericField min={0} value={offer.total_amount} onChange={(v: number) => setOffer({ ...offer, total_amount: v })} /></div>
                   <div className="sm:col-span-2"><Label>Validité de l'offre</Label>
                     <Input type="datetime-local" value={offer.valid_until} onChange={(e) => setOffer({ ...offer, valid_until: e.target.value })} /></div>
                   <div className="sm:col-span-2"><Label>Conditions</Label>

@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { LayoutGrid, Plus, Pencil, Trash2, Upload, X, ImagePlus, Car } from "lucide-react";
 import { toast } from "sonner";
 import { uploadCatalogImage, type CatalogCategory, type CatalogVehicle } from "@/lib/catalog";
+import { NumericField } from "@/components/ui/numeric-field";
 
 export const Route = createFileRoute("/admin/catalogue")({
   head: () => ({ meta: [{ title: "Catalogue véhicules — Admin" }] }),
@@ -378,10 +379,9 @@ function CategoryDialog({
           </div>
           <div>
             <Label>Ordre d'affichage</Label>
-            <Input
-              type="number"
+            <NumericField
               value={sortOrder}
-              onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)}
+              onChange={(v: number) => setSortOrder(v || 0)}
             />
           </div>
         </div>
@@ -553,7 +553,7 @@ function VehicleDialog({
             </div>
             <div>
               <Label>Ordre</Label>
-              <Input type="number" value={sortOrder} onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)} />
+              <NumericField value={sortOrder} onChange={(v: number) => setSortOrder(v || 0)} />
             </div>
           </div>
           <div>

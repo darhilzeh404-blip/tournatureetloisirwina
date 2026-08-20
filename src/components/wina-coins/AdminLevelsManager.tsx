@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchLevels, type VipLevel, formatCoins } from "@/lib/wina-coins";
 import { VipBadge } from "@/components/wina-coins/VipBadge";
+import { NumericField } from "@/components/ui/numeric-field";
 
 type Draft = {
   id?: string;
@@ -202,26 +203,23 @@ export function AdminLevelsManager() {
               </label>
               <label className="text-xs font-medium">
                 Seuil (min. coins cumulés)
-                <Input
-                  type="number"
+                <NumericField
                   value={draft.min_coins}
-                  onChange={(e) => setDraft({ ...draft, min_coins: Number(e.target.value) })}
+                  onChange={(v: number) => setDraft({ ...draft, min_coins: v })}
                 />
               </label>
               <label className="text-xs font-medium">
                 Bonus (%)
-                <Input
-                  type="number"
+                <NumericField
                   value={draft.bonus_percentage}
-                  onChange={(e) => setDraft({ ...draft, bonus_percentage: Number(e.target.value) })}
+                  onChange={(v: number) => setDraft({ ...draft, bonus_percentage: v })}
                 />
               </label>
               <label className="text-xs font-medium">
                 Ordre d'affichage
-                <Input
-                  type="number"
+                <NumericField
                   value={draft.sort_order}
-                  onChange={(e) => setDraft({ ...draft, sort_order: Number(e.target.value) })}
+                  onChange={(v: number) => setDraft({ ...draft, sort_order: v })}
                 />
               </label>
             </div>

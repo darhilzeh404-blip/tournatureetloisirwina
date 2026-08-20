@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Ticket, Plus, Trash2, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
+import { NumericField } from "@/components/ui/numeric-field";
   fetchTrainRoutes, stationsForTrainType,
   type TrainType, type TrainStation, type TrainClass,
   type TrainRoute, type TrainRouteStation,
@@ -325,7 +326,7 @@ export function TrainTickets({
           </div>
           <div>
             <Label>Places totales</Label>
-            <Input type="number" min={0} value={form.seats_total} onChange={(e) => setForm({ ...form, seats_total: Number(e.target.value) })} />
+            <NumericField min={0} value={form.seats_total} onChange={(v: number) => setForm({ ...form, seats_total: v })} />
           </div>
           <div className="sm:col-span-2">
             <Label>Tarifs par classe (FCFA)</Label>
@@ -333,8 +334,8 @@ export function TrainTickets({
               {activeClasses.map((c) => (
                 <div key={c.id}>
                   <p className="text-xs text-muted-foreground">{c.name}</p>
-                  <Input type="number" min={0} value={form.prices[c.id] ?? ""}
-                    onChange={(e) => setForm({ ...form, prices: { ...form.prices, [c.id]: Number(e.target.value) } })} />
+                  <NumericField min={0} value={form.prices[c.id] ?? ""}
+                    onChange={(v: number) => setForm({ ...form, prices: { ...form.prices, [c.id]: v } })} />
                 </div>
               ))}
             </div>

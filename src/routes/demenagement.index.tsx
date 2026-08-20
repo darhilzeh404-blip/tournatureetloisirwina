@@ -22,6 +22,7 @@ import {
   type MovingVolume, type PackingType,
 } from "@/lib/moving";
 import truck3d from "@/assets/icons/demenagement-3d.png";
+import { NumericField } from "@/components/ui/numeric-field";
 
 export const Route = createFileRoute("/demenagement/")({
   head: () => ({
@@ -493,8 +494,8 @@ export function MovingPage() {
           {acDismount && (
             <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
               <Label htmlFor="acUnits">Nombre de climatiseurs</Label>
-              <Input id="acUnits" type="number" min={1} value={acUnits}
-                onChange={(e) => setAcUnits(Math.max(1, Number(e.target.value) || 1))} className="mt-1.5 max-w-[160px]" />
+              <NumericField id="acUnits" min={1} value={acUnits}
+                onChange={(v: number) => setAcUnits(Math.max(1, v || 1))} className="mt-1.5 max-w-[160px]" />
             </motion.div>
           )}
         </Section>
@@ -531,8 +532,8 @@ export function MovingPage() {
           </div>
           <div>
             <Label htmlFor="boxes">Nombre approximatif de cartons</Label>
-            <Input id="boxes" type="number" min={0} value={boxes}
-              onChange={(e) => setBoxes(Math.max(0, Number(e.target.value) || 0))} className="mt-1.5 max-w-[160px]" />
+            <NumericField id="boxes" min={0} value={boxes}
+              onChange={(v: number) => setBoxes(Math.max(0, v || 0))} className="mt-1.5 max-w-[160px]" />
           </div>
         </Section>
 

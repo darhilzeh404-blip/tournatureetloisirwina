@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, X, Users, Sparkles, Upload, Loader2 } from "lucid
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
+import { NumberInput } from "@/components/ui/number-input";
 
 export const Route = createFileRoute("/admin/circuits")({
   component: AdminCircuits,
@@ -439,15 +440,15 @@ function AdminCircuits() {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="mb-1 block text-xs font-medium">Prix /pers (FCFA)</label>
-                  <input type="text" inputMode="numeric" value={form.base_price || ""} onChange={(e) => setForm((p) => ({ ...p, base_price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                  <NumberInput value={form.base_price} onChange={(v: number) => setForm((p) => ({ ...p, base_price: (v || 0) }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium">Durée (jours)</label>
-                  <input type="text" inputMode="numeric" value={form.duration_days || ""} onChange={(e) => setForm((p) => ({ ...p, duration_days: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                  <NumberInput value={form.duration_days} onChange={(v: number) => setForm((p) => ({ ...p, duration_days: (v || 0) }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium">Ordre</label>
-                  <input type="text" inputMode="numeric" value={form.sort_order || ""} onChange={(e) => setForm((p) => ({ ...p, sort_order: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                  <NumberInput value={form.sort_order} onChange={(v: number) => setForm((p) => ({ ...p, sort_order: (v || 0) }))} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
                 </div>
               </div>
               <div className="space-y-2 rounded-lg border p-3">
@@ -456,14 +457,14 @@ function AdminCircuits() {
                   Hébergement disponible
                 </label>
                 {form.includes_lodging && (
-                  <input type="text" inputMode="numeric" value={form.lodging_price || ""} onChange={(e) => setForm((p) => ({ ...p, lodging_price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) }))} placeholder="Prix logement /pers" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                  <NumberInput value={form.lodging_price} onChange={(v: number) => setForm((p) => ({ ...p, lodging_price: (v || 0) }))} placeholder="Prix logement /pers" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
                 )}
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={form.includes_guide} onChange={(e) => setForm((p) => ({ ...p, includes_guide: e.target.checked }))} />
                   Guide accompagnateur disponible
                 </label>
                 {form.includes_guide && (
-                  <input type="text" inputMode="numeric" value={form.guide_price || ""} onChange={(e) => setForm((p) => ({ ...p, guide_price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) }))} placeholder="Prix guide forfait" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                  <NumberInput value={form.guide_price} onChange={(v: number) => setForm((p) => ({ ...p, guide_price: (v || 0) }))} placeholder="Prix guide forfait" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
                 )}
               </div>
               <label className="flex items-center gap-2 text-sm">
@@ -511,7 +512,7 @@ function AdminCircuits() {
               <p className="text-xs font-bold uppercase text-muted-foreground">Ajouter une activité</p>
               <input value={actForm.name} onChange={(e) => setActForm((p) => ({ ...p, name: e.target.value }))} placeholder="Nom (ex: Kayak)" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
               <div className="flex items-center gap-2">
-                <input type="text" inputMode="numeric" value={actForm.price || ""} onChange={(e) => setActForm((p) => ({ ...p, price: (Number(e.target.value.replace(/[^\d.-]/g,'')) || 0) }))} placeholder="Prix /pers" className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm" />
+                <NumberInput value={actForm.price} onChange={(v: number) => setActForm((p) => ({ ...p, price: (v || 0) }))} placeholder="Prix /pers" className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm" />
                 <label className="flex items-center gap-1 text-xs">
                   <input type="checkbox" checked={actForm.is_default} onChange={(e) => setActForm((p) => ({ ...p, is_default: e.target.checked }))} />
                   Par défaut
