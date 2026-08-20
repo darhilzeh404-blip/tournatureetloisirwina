@@ -334,7 +334,7 @@ export function TrainTickets({
               {activeClasses.map((c) => (
                 <div key={c.id}>
                   <p className="text-xs text-muted-foreground">{c.name}</p>
-                  <NumericField min={0} value={form.prices[c.id] ?? ""}
+                  <NumericField min={0} value={Number(form.prices[c.id] ?? 0)}
                     onChange={(v: number) => setForm({ ...form, prices: { ...form.prices, [c.id]: v } })} />
                 </div>
               ))}
