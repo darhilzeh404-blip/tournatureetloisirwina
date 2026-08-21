@@ -671,7 +671,7 @@ function BusBilletterieAdmin() {
                     <div className="mt-3 space-y-2 rounded-lg bg-muted/50 p-3">
                       <div className="grid gap-2 md:grid-cols-2">
                         <NumericTextField placeholder="Prix du devis (FCFA)" value={d.price}
-                          onChange={(e) => setDraft(r.id, { price: e.target.value })} />
+                          onChange={(val) => setDraft(r.id, { price: val })} />
                         <Input
                           placeholder={tab === "parcel" ? "Délai de livraison" : "Date de disponibilité (AAAA-MM-JJ)"}
                           type={tab === "parcel" ? "text" : "date"}

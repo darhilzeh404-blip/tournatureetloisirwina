@@ -100,7 +100,7 @@ export function BusQuoteForms({ agencyId, agencyName }: Props) {
                 <Input placeholder="Nom destinataire *" value={parcel.recipient_name} onChange={(e) => setParcel({ ...parcel, recipient_name: e.target.value })} />
                 <Input placeholder="Téléphone destinataire *" value={parcel.recipient_phone} onChange={(e) => setParcel({ ...parcel, recipient_phone: e.target.value })} />
                 <Input placeholder="Nature du colis *" value={parcel.parcel_nature} onChange={(e) => setParcel({ ...parcel, parcel_nature: e.target.value })} />
-                <NumericTextField allowDecimal placeholder="Poids (kg)" value={parcel.weight_kg} onChange={(e) => setParcel({ ...parcel, weight_kg: e.target.value })} />
+                <NumericTextField allowDecimal placeholder="Poids (kg)" value={parcel.weight_kg} onChange={(val) => setParcel({ ...parcel, weight_kg: val })} />
                 <Input placeholder="Dimensions (L × l × H)" value={parcel.dimensions} onChange={(e) => setParcel({ ...parcel, dimensions: e.target.value })} />
               </div>
               <Textarea placeholder="Description du colis" value={parcel.description} onChange={(e) => setParcel({ ...parcel, description: e.target.value })} />

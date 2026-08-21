@@ -132,7 +132,7 @@ function FraisAdminPage() {
           </div>
           <div className="space-y-1.5">
             <Label>{form.fee_type === "percentage" ? "Pourcentage" : "Montant (FCFA)"}</Label>
-            <NumericTextField allowDecimal value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+            <NumericTextField allowDecimal value={form.amount} onChange={(val) => setForm({ ...form, amount: val })} />
           </div>
           <div className="space-y-1.5 md:col-span-2">
             <Label>Description (optionnel)</Label>
