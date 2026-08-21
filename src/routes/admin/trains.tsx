@@ -13,6 +13,7 @@ import {
 } from "@/lib/train";
 import { TrainRoutesBaggage } from "@/components/admin/TrainRoutesBaggage";
 import { TrainTickets } from "@/components/admin/TrainTickets";
+import { NumericBlurField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/admin/trains")({
   head: () => ({ meta: [{ title: "Configuration Train — Admin" }] }),
@@ -203,13 +204,10 @@ function AdminTrainsPage() {
           <div key={d.id} className="flex flex-wrap items-center gap-2 rounded-xl border p-3">
             <Input className="w-64" defaultValue={d.label} onBlur={(e) => e.target.value !== d.label && patch("train_discount_rules", d.id, { label: e.target.value })} />
             <span className="text-xs text-muted-foreground">{d.applies_to === "main" ? "Voyageur principal" : "Enfant"}</span>
-            <Input className="w-20" type="number" placeholder="Âge min" defaultValue={d.min_age ?? ""}
-              onBlur={(e) => patch("train_discount_rules", d.id, { min_age: e.target.value === "" ? null : Number(e.target.value) })} />
-            <Input className="w-20" type="number" placeholder="Âge max" defaultValue={d.max_age ?? ""}
-              onBlur={(e) => patch("train_discount_rules", d.id, { max_age: e.target.value === "" ? null : Number(e.target.value) })} />
+            <NumericBlurField className="w-20" placeholder="Âge min" allowEmpty defaultValue={d.min_age} onCommit={(n) => patch("train_discount_rules", d.id, { min_age: n })} />
+            <NumericBlurField className="w-20" placeholder="Âge max" allowEmpty defaultValue={d.max_age} onCommit={(n) => patch("train_discount_rules", d.id, { max_age: n })} />
             <div className="flex items-center gap-1">
-              <Input className="w-20" type="number" defaultValue={d.percent}
-                onBlur={(e) => patch("train_discount_rules", d.id, { percent: Number(e.target.value) })} />
+              <NumericBlurField className="w-20" defaultValue={d.percent} onCommit={(n) => patch("train_discount_rules", d.id, { percent: n ?? 0 })} />
               <span className="text-xs">%</span>
             </div>
             <label className="flex items-center gap-2 text-xs">

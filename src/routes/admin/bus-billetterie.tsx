@@ -1,4 +1,3 @@
-import { NumericField } from "@/components/ui/numeric-field";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +14,8 @@ import {
   adminDecideBusBooking, adminIssueBusTicket, fmtXAF, formatDateFR, toISODate,
   TRIP_STATUS_LABEL, BOOKING_STATUS_LABEL, QUOTE_STATUS_LABEL,
 } from "@/lib/bus";
+import { NumericField } from "@/components/ui/numeric-field";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 
 export const Route = createFileRoute("/admin/bus-billetterie")({
@@ -669,8 +670,8 @@ function BusBilletterieAdmin() {
                   {r.status === "pending" ? (
                     <div className="mt-3 space-y-2 rounded-lg bg-muted/50 p-3">
                       <div className="grid gap-2 md:grid-cols-2">
-                        <Input type="number" placeholder="Prix du devis (FCFA)" value={d.price}
-                          onChange={(e) => setDraft(r.id, { price: e.target.value })} />
+                        <NumericTextField placeholder="Prix du devis (FCFA)" value={d.price}
+                          onChange={(val) => setDraft(r.id, { price: val })} />
                         <Input
                           placeholder={tab === "parcel" ? "Délai de livraison" : "Date de disponibilité (AAAA-MM-JJ)"}
                           type={tab === "parcel" ? "text" : "date"}

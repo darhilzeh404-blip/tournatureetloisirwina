@@ -11,6 +11,8 @@ import {
   fetchBoatRoutes, fetchVessels, fetchVesselServices, fetchSailings,
   type BoatRoute, type Vessel, type VesselService, type BoatSailing,
 } from "@/lib/boat";
+import { NumericBlurField } from "@/components/ui/numeric-text-field";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/admin/navires")({
   head: () => ({ meta: [{ title: "Navires & Billetterie — Admin" }] }),
@@ -183,8 +185,8 @@ function AdminBoatsPage() {
             <span className="w-40 truncate text-xs text-muted-foreground">{agencyName(r.agency_id)}</span>
             <Input className="w-40" defaultValue={r.origin} onBlur={(e) => e.target.value !== r.origin && patch("boat_routes", r.id, { origin: e.target.value })} />
             <Input className="w-40" defaultValue={r.destination} onBlur={(e) => e.target.value !== r.destination && patch("boat_routes", r.id, { destination: e.target.value })} />
-            <Input className="w-28" type="number" defaultValue={r.distance_km} onBlur={(e) => patch("boat_routes", r.id, { distance_km: Number(e.target.value) || 0 })} placeholder="km" />
-            <Input className="w-28" type="number" defaultValue={r.duration_minutes} onBlur={(e) => patch("boat_routes", r.id, { duration_minutes: Number(e.target.value) || 0 })} placeholder="minutes" />
+            <NumericBlurField className="w-28" defaultValue={r.distance_km} onCommit={(n) => patch("boat_routes", r.id, { distance_km: n ?? 0 })} placeholder="km" />
+            <NumericBlurField className="w-28" defaultValue={r.duration_minutes} onCommit={(n) => patch("boat_routes", r.id, { duration_minutes: n ?? 0 })} placeholder="minutes" />
             <label className="flex items-center gap-2 text-xs">
               <Switch checked={r.is_active} onCheckedChange={(v) => patch("boat_routes", r.id, { is_active: v })} />
               {r.is_active ? "Active" : "Inactive"}
@@ -201,8 +203,8 @@ function AdminBoatsPage() {
           </select>
           <Input className="w-40" placeholder="Origine" value={newRoute.origin} onChange={(e) => setNewRoute({ ...newRoute, origin: e.target.value })} />
           <Input className="w-40" placeholder="Destination" value={newRoute.destination} onChange={(e) => setNewRoute({ ...newRoute, destination: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="km" value={newRoute.distance_km} onChange={(e) => setNewRoute({ ...newRoute, distance_km: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="minutes" value={newRoute.duration_minutes} onChange={(e) => setNewRoute({ ...newRoute, duration_minutes: e.target.value })} />
+          <NumericTextField className="w-28" placeholder="km" value={newRoute.distance_km} onChange={(val) => setNewRoute({ ...newRoute, distance_km: val })} />
+          <NumericTextField className="w-28" placeholder="minutes" value={newRoute.duration_minutes} onChange={(val) => setNewRoute({ ...newRoute, duration_minutes: val })} />
           <Button onClick={addRoute} disabled={busy}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Ajouter</Button>
         </div>
       </CardContent></Card>
@@ -215,7 +217,7 @@ function AdminBoatsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="w-40 truncate text-xs text-muted-foreground">{agencyName(v.agency_id)}</span>
               <Input className="w-44" defaultValue={v.name} onBlur={(e) => e.target.value !== v.name && patch("vessels", v.id, { name: e.target.value })} />
-              <Input className="w-28" type="number" defaultValue={v.capacity} onBlur={(e) => patch("vessels", v.id, { capacity: Number(e.target.value) || 0 })} placeholder="Capacité" />
+              <NumericBlurField className="w-28" defaultValue={v.capacity} onCommit={(n) => patch("vessels", v.id, { capacity: n ?? 0 })} placeholder="Capacité" />
               <label className="flex items-center gap-2 text-xs">
                 <Switch checked={v.is_active} onCheckedChange={(x) => patch("vessels", v.id, { is_active: x })} />
                 {v.is_active ? "Actif" : "Inactif"}
@@ -240,15 +242,15 @@ function AdminBoatsPage() {
             <Input defaultValue={v.description} placeholder="Description" onBlur={(e) => e.target.value !== v.description && patch("vessels", v.id, { description: e.target.value })} />
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold uppercase text-muted-foreground">Tarifs (FCFA)</span>
-              <Input className="w-28" type="number" defaultValue={v.price_adult} placeholder="Adulte" onBlur={(e) => patch("vessels", v.id, { price_adult: Number(e.target.value) || 0 })} />
-              <Input className="w-28" type="number" defaultValue={v.price_child} placeholder="Enfant" onBlur={(e) => patch("vessels", v.id, { price_child: Number(e.target.value) || 0 })} />
-              <Input className="w-28" type="number" defaultValue={v.price_infant} placeholder="Bébé" onBlur={(e) => patch("vessels", v.id, { price_infant: Number(e.target.value) || 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.price_adult} placeholder="Adulte" onCommit={(n) => patch("vessels", v.id, { price_adult: n ?? 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.price_child} placeholder="Enfant" onCommit={(n) => patch("vessels", v.id, { price_child: n ?? 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.price_infant} placeholder="Bébé" onCommit={(n) => patch("vessels", v.id, { price_infant: n ?? 0 })} />
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold uppercase text-muted-foreground">Bagages</span>
-              <Input className="w-28" type="number" defaultValue={v.baggage_free_count} placeholder="Inclus" onBlur={(e) => patch("vessels", v.id, { baggage_free_count: Number(e.target.value) || 0 })} />
-              <Input className="w-36" type="number" defaultValue={v.baggage_fee_per_extra} placeholder="FCFA / suppl." onBlur={(e) => patch("vessels", v.id, { baggage_fee_per_extra: Number(e.target.value) || 0 })} />
-              <Input className="w-28" type="number" defaultValue={v.baggage_max_count} placeholder="Max" onBlur={(e) => patch("vessels", v.id, { baggage_max_count: Number(e.target.value) || 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.baggage_free_count} placeholder="Inclus" onCommit={(n) => patch("vessels", v.id, { baggage_free_count: n ?? 0 })} />
+              <NumericBlurField className="w-36" defaultValue={v.baggage_fee_per_extra} placeholder="FCFA / suppl." onCommit={(n) => patch("vessels", v.id, { baggage_fee_per_extra: n ?? 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.baggage_max_count} placeholder="Max" onCommit={(n) => patch("vessels", v.id, { baggage_max_count: n ?? 0 })} />
               <Input className="flex-1 min-w-[200px]" defaultValue={v.baggage_conditions} placeholder="Conditions de bagages" onBlur={(e) => e.target.value !== v.baggage_conditions && patch("vessels", v.id, { baggage_conditions: e.target.value })} />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -267,10 +269,10 @@ function AdminBoatsPage() {
             {agencies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
           <Input className="w-44" placeholder="Nom du navire" value={newVessel.name} onChange={(e) => setNewVessel({ ...newVessel, name: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Capacité" value={newVessel.capacity} onChange={(e) => setNewVessel({ ...newVessel, capacity: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Prix adulte" value={newVessel.price_adult} onChange={(e) => setNewVessel({ ...newVessel, price_adult: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Prix enfant" value={newVessel.price_child} onChange={(e) => setNewVessel({ ...newVessel, price_child: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Prix bébé" value={newVessel.price_infant} onChange={(e) => setNewVessel({ ...newVessel, price_infant: e.target.value })} />
+          <NumericTextField className="w-28" placeholder="Capacité" value={newVessel.capacity} onChange={(val) => setNewVessel({ ...newVessel, capacity: val })} />
+          <NumericTextField className="w-28" placeholder="Prix adulte" value={newVessel.price_adult} onChange={(val) => setNewVessel({ ...newVessel, price_adult: val })} />
+          <NumericTextField className="w-28" placeholder="Prix enfant" value={newVessel.price_child} onChange={(val) => setNewVessel({ ...newVessel, price_child: val })} />
+          <NumericTextField className="w-28" placeholder="Prix bébé" value={newVessel.price_infant} onChange={(val) => setNewVessel({ ...newVessel, price_infant: val })} />
           <Button onClick={addVessel} disabled={busy}><Plus className="h-4 w-4" /> Ajouter</Button>
         </div>
       </CardContent></Card>
@@ -286,7 +288,7 @@ function AdminBoatsPage() {
             {vessels.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
           </select>
           <Input className="w-52" placeholder="Service (WiFi, repas, salon VIP…)" value={newService.name} onChange={(e) => setNewService({ ...newService, name: e.target.value })} />
-          <Input className="w-32" type="number" placeholder="Prix" value={newService.price} onChange={(e) => setNewService({ ...newService, price: e.target.value })} />
+          <NumericTextField className="w-32" placeholder="Prix" value={newService.price} onChange={(val) => setNewService({ ...newService, price: val })} />
           <Button onClick={addService} disabled={busy}><Plus className="h-4 w-4" /> Ajouter</Button>
         </div>
       </CardContent></Card>
@@ -312,7 +314,7 @@ function AdminBoatsPage() {
             </label>
             <Input className="w-28" type="time" defaultValue={s.departure_time?.slice(0, 5)} onBlur={(e) => patch("boat_sailings", s.id, { departure_time: e.target.value })} />
             <label className="flex items-center gap-1 text-xs">Places
-              <Input className="w-24" type="number" defaultValue={s.seats_total} onBlur={(e) => patch("boat_sailings", s.id, { seats_total: Number(e.target.value) || 0, seats_available: Number(e.target.value) || 0 })} />
+              <NumericBlurField className="w-24" defaultValue={s.seats_total} onCommit={(n) => patch("boat_sailings", s.id, { seats_total: n ?? 0, seats_available: n ?? 0 })} />
             </label>
             <span className="text-xs text-muted-foreground">
               {(s.seats_total ?? 0) > 0 ? `${s.seats_available}/${s.seats_total} places` : "Illimité"}
@@ -343,7 +345,7 @@ function AdminBoatsPage() {
             <Input className="w-36" type="date" value={newSailing.period_end} onChange={(e) => setNewSailing({ ...newSailing, period_end: e.target.value })} />
           </label>
           <Input className="w-28" type="time" value={newSailing.departure_time} onChange={(e) => setNewSailing({ ...newSailing, departure_time: e.target.value })} />
-          <Input className="w-32" type="number" placeholder="Places (0 = illimité)" value={newSailing.seats_total} onChange={(e) => setNewSailing({ ...newSailing, seats_total: e.target.value })} />
+          <NumericTextField className="w-32" placeholder="Places (0 = illimité)" value={newSailing.seats_total} onChange={(val) => setNewSailing({ ...newSailing, seats_total: val })} />
           <Button onClick={addSailing} disabled={busy}><Plus className="h-4 w-4" /> Programmer</Button>
         </div>
       </CardContent></Card>

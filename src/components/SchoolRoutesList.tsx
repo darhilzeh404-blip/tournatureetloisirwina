@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 type SchoolLevel = "maternelle" | "primaire" | "college" | "lycee";
 
@@ -355,13 +356,10 @@ export function SchoolRoutesList() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="sr-age">Âge</Label>
-                <Input
+                <NumericTextField
                   id="sr-age"
-                  type="number"
-                  min={2}
-                  max={25}
                   value={childAge}
-                  onChange={(e) => setChildAge(e.target.value)}
+                  onChange={setChildAge}
                 />
               </div>
               <div />

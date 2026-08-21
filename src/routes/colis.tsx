@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { fmtXAF, QUOTE_STATUS_LABEL, respondBusQuote } from "@/lib/bus";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/colis")({
   head: () => ({
@@ -115,7 +116,7 @@ function ParcelPage() {
             <Input placeholder="Nom destinataire *" value={form.recipient_name} onChange={(e) => setForm({ ...form, recipient_name: e.target.value })} />
             <Input placeholder="Téléphone destinataire *" value={form.recipient_phone} onChange={(e) => setForm({ ...form, recipient_phone: e.target.value })} />
             <Input placeholder="Nature du colis *" value={form.parcel_nature} onChange={(e) => setForm({ ...form, parcel_nature: e.target.value })} />
-            <Input type="number" min={0} placeholder="Poids (kg)" value={form.weight_kg} onChange={(e) => setForm({ ...form, weight_kg: e.target.value })} />
+            <NumericTextField allowDecimal placeholder="Poids (kg)" value={form.weight_kg} onChange={(val) => setForm({ ...form, weight_kg: val })} />
             <Input placeholder="Dimensions (L × l × H)" value={form.dimensions} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} />
           </div>
           <Textarea placeholder="Description du colis" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />

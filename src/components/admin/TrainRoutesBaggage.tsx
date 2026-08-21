@@ -11,6 +11,7 @@ import {
   type TrainRoute, type TrainRouteStation, type TrainBaggageRule,
   type TrainType, type TrainStation,
 } from "@/lib/train";
+import { NumericBlurField } from "@/components/ui/numeric-text-field";
 
 type Props = { types: TrainType[]; stations: TrainStation[] };
 
@@ -129,15 +130,15 @@ export function TrainRoutesBaggage({ types, stations }: Props) {
               </select>
               <label className="flex items-center gap-1 text-xs">
                 Inclus
-                <Input className="w-16" type="number" defaultValue={r.free_count} onBlur={(e) => patchRule(r.id, { free_count: Number(e.target.value) })} />
+                <NumericBlurField className="w-16" defaultValue={r.free_count} onCommit={(n) => patchRule(r.id, { free_count: n ?? 0 })} />
               </label>
               <label className="flex items-center gap-1 text-xs">
                 Frais/suppl.
-                <Input className="w-24" type="number" defaultValue={r.fee_per_extra} onBlur={(e) => patchRule(r.id, { fee_per_extra: Number(e.target.value) })} />
+                <NumericBlurField className="w-24" defaultValue={r.fee_per_extra} onCommit={(n) => patchRule(r.id, { fee_per_extra: n ?? 0 })} />
               </label>
               <label className="flex items-center gap-1 text-xs">
                 Max
-                <Input className="w-16" type="number" defaultValue={r.max_count} onBlur={(e) => patchRule(r.id, { max_count: Number(e.target.value) })} />
+                <NumericBlurField className="w-16" defaultValue={r.max_count} onCommit={(n) => patchRule(r.id, { max_count: n ?? 0 })} />
               </label>
               <label className="flex items-center gap-2 text-xs">
                 <Switch checked={r.is_active} onCheckedChange={(v) => patchRule(r.id, { is_active: v })} />

@@ -11,6 +11,7 @@ import {
   fetchTrainReference, fetchTicketClassPrices, computeTrainQuote,
   type TrainClass, type TrainDiscountRule, type TrainType, type TrainTicketClass,
 } from "@/lib/train";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/billets/agence/$agencyId")({
   component: AgencyTicketsPage,
@@ -297,8 +298,8 @@ function AgencyTicketsPage() {
         {agency && <BusQuoteForms agencyId={agency.id} agencyName={agency.name} />}
 
         <div className="mt-5 grid gap-2 sm:grid-cols-3">
-          <Input type="number" placeholder="Prix min" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
-          <Input type="number" placeholder="Prix max" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+          <NumericTextField placeholder="Prix min" value={minPrice} onChange={setMinPrice} />
+          <NumericTextField placeholder="Prix max" value={maxPrice} onChange={setMaxPrice} />
           <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} />
         </div>
 
@@ -389,7 +390,7 @@ function AgencyTicketsPage() {
 
                 <div>
                   <label className="text-[11px] font-semibold text-muted-foreground">Âge du voyageur principal *</label>
-                  <Input type="number" min={0} value={mainAge} onChange={(e) => setMainAge(e.target.value)} placeholder="ex: 34" />
+                  <NumericTextField value={mainAge} onChange={setMainAge} placeholder="ex: 34" />
                 </div>
 
                 <div>
@@ -403,8 +404,8 @@ function AgencyTicketsPage() {
                   <div className="mt-2 space-y-2">
                     {childrenAges.map((age, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <Input type="number" min={0} value={age} placeholder={`Âge enfant ${i + 1}`}
-                          onChange={(e) => setChildrenAges(childrenAges.map((a, j) => (j === i ? e.target.value : a)))} />
+                        <NumericTextField value={age} placeholder={`Âge enfant ${i + 1}`}
+                          onChange={(v) => setChildrenAges(childrenAges.map((a, j) => (j === i ? v : a)))} />
                         <button type="button" onClick={() => setChildrenAges(childrenAges.filter((_, j) => j !== i))}
                           className="flex h-9 w-9 items-center justify-center rounded-lg border text-muted-foreground">
                           <X className="h-4 w-4" />

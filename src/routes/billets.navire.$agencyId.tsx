@@ -12,6 +12,7 @@ import {
   type BoatRoute, type Vessel, type VesselService, type BoatSailing,
   type BoatPassengerInput, type PassengerCategory,
 } from "@/lib/boat";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/billets/navire/$agencyId")({
   head: () => ({
@@ -441,8 +442,7 @@ function BoatBookingWizard() {
                 </div>
                 <div>
                   <span className={labelCls}>Nombre total de bagages</span>
-                  <Input type="number" min={0} max={vessel?.baggage_max_count || undefined} className="mt-1"
-                    value={baggageKg} onChange={(e) => setBaggageKg(e.target.value)} />
+                  <NumericTextField className="mt-1" value={baggageKg} onChange={setBaggageKg} />
                   {extraBags > 0 && (
                     <p className="mt-1 text-xs font-semibold text-amber-600">
                       {extraBags} bagage(s) au-delà de la franchise → supplément {fmt(baggageFee)}

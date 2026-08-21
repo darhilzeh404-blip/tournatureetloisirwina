@@ -13,6 +13,7 @@ import { LayoutGrid, Plus, Pencil, Trash2, Upload, X, ImagePlus, Car } from "luc
 import { toast } from "sonner";
 import { uploadCatalogImage, type CatalogCategory, type CatalogVehicle } from "@/lib/catalog";
 import { NumericField } from "@/components/ui/numeric-field";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/admin/catalogue")({
   head: () => ({ meta: [{ title: "Catalogue véhicules — Admin" }] }),
@@ -529,19 +530,19 @@ function VehicleDialog({
             </div>
             <div>
               <Label>Année</Label>
-              <Input type="number" value={year} onChange={(e) => setYear(e.target.value)} placeholder="2024" />
+              <NumericTextField value={year} onChange={setYear} placeholder="2024" />
             </div>
             <div>
               <Label>Places</Label>
-              <Input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} placeholder="4" />
+              <NumericTextField value={seats} onChange={setSeats} placeholder="4" />
             </div>
             <div>
               <Label>Tarif journalier (FCFA)</Label>
-              <Input type="number" value={dailyRate} onChange={(e) => setDailyRate(e.target.value)} placeholder="50000" />
+              <NumericTextField value={dailyRate} onChange={setDailyRate} placeholder="50000" />
             </div>
             <div>
               <Label>Nombre de jours</Label>
-              <Input type="number" min={1} value={rentalDays} onChange={(e) => setRentalDays(e.target.value)} placeholder="3" />
+              <NumericTextField value={rentalDays} onChange={setRentalDays} placeholder="3" />
             </div>
             <div>
               <Label>Heure de début</Label>

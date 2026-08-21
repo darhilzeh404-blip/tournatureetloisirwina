@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { NumberInput } from "@/components/ui/number-input";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/admin/transport-scolaire")({
   head: () => ({
@@ -889,10 +890,9 @@ function TransportScolaireAdmin() {
         <section className="rounded-lg border p-5 space-y-4">
           <h2 className="font-semibold">Modifier tarif scolaire</h2>
 
-          <input
-            type="number"
+          <NumericTextField
             value={tariffAmount}
-            onChange={(e) => setTariffAmount(e.target.value)}
+            onChange={setTariffAmount}
             className="w-full rounded border p-3"
           />
 
@@ -912,10 +912,9 @@ function TransportScolaireAdmin() {
 
           <p>{editingActivity.label}</p>
 
-          <input
-            type="number"
+          <NumericTextField
             value={activityPrice}
-            onChange={(e) => setActivityPrice(e.target.value)}
+            onChange={setActivityPrice}
             className="w-full rounded border p-3"
           />
 

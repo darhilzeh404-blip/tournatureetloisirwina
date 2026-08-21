@@ -16,6 +16,7 @@ import {
   type TrainType, type TrainStation, type TrainClass, type TrainDiscountRule,
   type TrainTicketClass, type TrainRoute, type TrainRouteStation, type TrainBaggageRule,
 } from "@/lib/train";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/billets/train/$ticketId")({
   head: () => ({
@@ -535,8 +536,7 @@ function TrainBookingWizard() {
                 <div className="mt-4 space-y-3">
                   <div>
                     <span className={labelCls}>Nombre de bagages *</span>
-                    <Input type="number" min={1} max={baggageRule?.max_count ?? 10} className="mt-1"
-                      value={baggageCount} onChange={(e) => setBaggageCount(e.target.value)} />
+                    <NumericTextField className="mt-1" value={baggageCount} onChange={setBaggageCount} />
                   </div>
                   {baggageRule ? (
                     <div className="rounded-xl border bg-muted/40 p-3 text-xs">
@@ -616,7 +616,7 @@ function TrainBookingWizard() {
               <h2 className="text-sm font-bold">Étape 6 — Réduction</h2>
               <div className="mt-3">
                 <span className={labelCls}>Âge du voyageur principal *</span>
-                <Input type="number" min={0} className="mt-1" value={mainAge} onChange={(e) => setMainAge(e.target.value)} placeholder="ex : 57" />
+                <NumericTextField className="mt-1" value={mainAge} onChange={setMainAge} placeholder="ex : 57" />
               </div>
               <div className="mt-4 space-y-1.5 rounded-xl border bg-muted/40 p-3 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Prix normal</span><span>{fmt(quote.grossTotal)}</span></div>
