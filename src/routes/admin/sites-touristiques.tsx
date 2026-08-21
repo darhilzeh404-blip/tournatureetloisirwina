@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Upload, X, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { randomId } from "@/lib/random-id";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/admin/sites-touristiques")({
   component: AdminSitesTouristiques,
@@ -181,11 +182,11 @@ function AdminSitesTouristiques() {
             </div>
             <div>
               <label className="text-xs font-medium">Prix (FCFA)</label>
-              <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+              <NumericTextField value={form.price} onChange={(v) => setForm({ ...form, price: v })} />
             </div>
             <div>
               <label className="text-xs font-medium">Ordre d'affichage</label>
-              <Input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} />
+              <NumericTextField value={form.sort_order} onChange={(v) => setForm({ ...form, sort_order: v })} />
             </div>
             <div className="flex items-end">
               <label className="inline-flex items-center gap-2 text-sm">

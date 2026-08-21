@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Bus, CalendarDays, Loader2, Package, Pencil, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
 
 import {
+import { NumericTextField } from "@/components/ui/numeric-text-field";
   adminDecideBusBooking, adminIssueBusTicket, fmtXAF, formatDateFR, toISODate,
   TRIP_STATUS_LABEL, BOOKING_STATUS_LABEL, QUOTE_STATUS_LABEL,
 } from "@/lib/bus";
@@ -669,7 +670,7 @@ function BusBilletterieAdmin() {
                   {r.status === "pending" ? (
                     <div className="mt-3 space-y-2 rounded-lg bg-muted/50 p-3">
                       <div className="grid gap-2 md:grid-cols-2">
-                        <Input type="number" placeholder="Prix du devis (FCFA)" value={d.price}
+                        <NumericTextField placeholder="Prix du devis (FCFA)" value={d.price}
                           onChange={(e) => setDraft(r.id, { price: e.target.value })} />
                         <Input
                           placeholder={tab === "parcel" ? "Délai de livraison" : "Date de disponibilité (AAAA-MM-JJ)"}

@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Trash2, Plus, Percent, Coins as CoinsIcon } from "lucide-react";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/admin/frais")({
   component: FraisAdminPage,
@@ -131,7 +132,7 @@ function FraisAdminPage() {
           </div>
           <div className="space-y-1.5">
             <Label>{form.fee_type === "percentage" ? "Pourcentage" : "Montant (FCFA)"}</Label>
-            <Input type="number" min="0" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+            <NumericTextField allowDecimal value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
           </div>
           <div className="space-y-1.5 md:col-span-2">
             <Label>Description (optionnel)</Label>

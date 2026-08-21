@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTransportData, computeQuote, type QuoteInput } from "@/hooks/use-transport-data";
 import { TransportQuote } from "./TransportQuote";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 type Props = {
   categorySlug: "scolaire" | "extra-scolaire" | "evenementiel";
@@ -346,12 +347,9 @@ export function TransportBookingForm({ categorySlug, serviceType, showChildren, 
                   maxLength={80}
                   className="rounded-xl border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-                <input
-                  type="number"
-                  min={1}
-                  max={25}
+                <NumericTextField
                   value={childAge}
-                  onChange={e => setChildAge(e.target.value)}
+                  onChange={setChildAge}
                   placeholder="Âge *"
                   className="rounded-xl border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
