@@ -8,10 +8,10 @@ import { toast } from "sonner";
 import { AgencyLogo } from "@/components/AgencyLogo";
 import { BusQuoteForms } from "@/components/BusQuoteForms";
 import {
-import { NumericTextField } from "@/components/ui/numeric-text-field";
   fetchTrainReference, fetchTicketClassPrices, computeTrainQuote,
   type TrainClass, type TrainDiscountRule, type TrainType, type TrainTicketClass,
 } from "@/lib/train";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/billets/agence/$agencyId")({
   component: AgencyTicketsPage,

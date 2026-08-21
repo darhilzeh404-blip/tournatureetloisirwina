@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-import { NumericTextField } from "@/components/ui/numeric-text-field";
   Dialog,
   DialogContent,
   DialogDescription,
@@ -16,6 +15,7 @@ import { NumericTextField } from "@/components/ui/numeric-text-field";
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 type SchoolLevel = "maternelle" | "primaire" | "college" | "lycee";
 

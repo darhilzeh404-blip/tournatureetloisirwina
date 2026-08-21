@@ -1,4 +1,3 @@
-import { NumericField } from "@/components/ui/numeric-field";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,10 +11,11 @@ import { toast } from "sonner";
 import { Bus, CalendarDays, Loader2, Package, Pencil, Plus, Ticket, Trash2, Flower2 } from "lucide-react";
 
 import {
-import { NumericTextField } from "@/components/ui/numeric-text-field";
   adminDecideBusBooking, adminIssueBusTicket, fmtXAF, formatDateFR, toISODate,
   TRIP_STATUS_LABEL, BOOKING_STATUS_LABEL, QUOTE_STATUS_LABEL,
 } from "@/lib/bus";
+import { NumericField } from "@/components/ui/numeric-field";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 
 export const Route = createFileRoute("/admin/bus-billetterie")({

@@ -7,11 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-import { NumericBlurField } from "@/components/ui/numeric-text-field";
   fetchTrainRoutes,
   type TrainRoute, type TrainRouteStation, type TrainBaggageRule,
   type TrainType, type TrainStation,
 } from "@/lib/train";
+import { NumericBlurField } from "@/components/ui/numeric-text-field";
 
 type Props = { types: TrainType[]; stations: TrainStation[] };
 

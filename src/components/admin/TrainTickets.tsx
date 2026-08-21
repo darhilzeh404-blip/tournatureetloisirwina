@@ -1,4 +1,3 @@
-import { NumericField } from "@/components/ui/numeric-field";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import {
   type TrainType, type TrainStation, type TrainClass,
   type TrainRoute, type TrainRouteStation,
 } from "@/lib/train";
+import { NumericField } from "@/components/ui/numeric-field";
 
 type Agency = { id: string; name: string };
 

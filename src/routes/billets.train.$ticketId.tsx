@@ -10,13 +10,13 @@ import { toast } from "sonner";
 import { randomId } from "@/lib/random-id";
 import { BusQuoteForms } from "@/components/BusQuoteForms";
 import {
-import { NumericTextField } from "@/components/ui/numeric-text-field";
   fetchTrainReference, fetchTicketClassPrices, fetchTrainRoutes, computeTrainQuote,
   stationsForTrainType, baggageRuleForType, computeBaggageFee,
   ID_DOCUMENT_TYPES, CHILD_MIN_AGE, CHILD_MAX_AGE,
   type TrainType, type TrainStation, type TrainClass, type TrainDiscountRule,
   type TrainTicketClass, type TrainRoute, type TrainRouteStation, type TrainBaggageRule,
 } from "@/lib/train";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/billets/train/$ticketId")({
   head: () => ({

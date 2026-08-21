@@ -7,12 +7,12 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { BusQuoteForms } from "@/components/BusQuoteForms";
 import {
-import { NumericTextField } from "@/components/ui/numeric-text-field";
   fetchBoatRoutes, fetchVessels, fetchVesselServices, fetchSailings,
   computeBoatQuote, baggageIncluded, effectivePrices, formatDuration, PASSENGER_LABEL,
   type BoatRoute, type Vessel, type VesselService, type BoatSailing,
   type BoatPassengerInput, type PassengerCategory,
 } from "@/lib/boat";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/billets/navire/$agencyId")({
   head: () => ({

@@ -8,11 +8,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Ship, Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
-import { NumericBlurField } from "@/components/ui/numeric-text-field";
-import { NumericTextField } from "@/components/ui/numeric-text-field";
   fetchBoatRoutes, fetchVessels, fetchVesselServices, fetchSailings,
   type BoatRoute, type Vessel, type VesselService, type BoatSailing,
 } from "@/lib/boat";
+import { NumericBlurField } from "@/components/ui/numeric-text-field";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
 
 export const Route = createFileRoute("/admin/navires")({
   head: () => ({ meta: [{ title: "Navires & Billetterie — Admin" }] }),
