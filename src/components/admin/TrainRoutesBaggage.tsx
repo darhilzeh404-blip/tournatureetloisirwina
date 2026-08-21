@@ -130,15 +130,15 @@ export function TrainRoutesBaggage({ types, stations }: Props) {
               </select>
               <label className="flex items-center gap-1 text-xs">
                 Inclus
-                <NumericBlurField className="w-16" defaultValue={r.free_count} onCommit={(v) => patchRule(r.id, { free_count: v ?? 0 })} />
+                <NumericBlurField className="w-16" defaultValue={r.free_count} onCommit={(n) => patchRule(r.id, { free_count: n ?? 0 })} />
               </label>
               <label className="flex items-center gap-1 text-xs">
                 Frais/suppl.
-                <NumericBlurField className="w-24" defaultValue={r.fee_per_extra} onCommit={(v) => patchRule(r.id, { fee_per_extra: v ?? 0 })} />
+                <NumericBlurField className="w-24" defaultValue={r.fee_per_extra} onCommit={(n) => patchRule(r.id, { fee_per_extra: n ?? 0 })} />
               </label>
               <label className="flex items-center gap-1 text-xs">
                 Max
-                <NumericBlurField className="w-16" defaultValue={r.max_count} onCommit={(v) => patchRule(r.id, { max_count: v ?? 0 })} />
+                <NumericBlurField className="w-16" defaultValue={r.max_count} onCommit={(n) => patchRule(r.id, { max_count: n ?? 0 })} />
               </label>
               <label className="flex items-center gap-2 text-xs">
                 <Switch checked={r.is_active} onCheckedChange={(v) => patchRule(r.id, { is_active: v })} />

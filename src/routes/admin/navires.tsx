@@ -184,8 +184,8 @@ function AdminBoatsPage() {
             <span className="w-40 truncate text-xs text-muted-foreground">{agencyName(r.agency_id)}</span>
             <Input className="w-40" defaultValue={r.origin} onBlur={(e) => e.target.value !== r.origin && patch("boat_routes", r.id, { origin: e.target.value })} />
             <Input className="w-40" defaultValue={r.destination} onBlur={(e) => e.target.value !== r.destination && patch("boat_routes", r.id, { destination: e.target.value })} />
-            <NumericBlurField className="w-28" defaultValue={r.distance_km} onCommit={(v) => patch("boat_routes", r.id, { distance_km: v ?? 0 })} placeholder="km" />
-            <Input className="w-28" type="number" defaultValue={r.duration_minutes} onBlur={(e) => patch("boat_routes", r.id, { duration_minutes: v ?? 0 })} placeholder="minutes" />
+            <NumericBlurField className="w-28" defaultValue={r.distance_km} onCommit={(n) => patch("boat_routes", r.id, { distance_km: n ?? 0 })} placeholder="km" />
+            <NumericBlurField className="w-28" defaultValue={r.duration_minutes} onCommit={(n) => patch("boat_routes", r.id, { duration_minutes: n ?? 0 })} placeholder="minutes" />
             <label className="flex items-center gap-2 text-xs">
               <Switch checked={r.is_active} onCheckedChange={(v) => patch("boat_routes", r.id, { is_active: v })} />
               {r.is_active ? "Active" : "Inactive"}
@@ -216,7 +216,7 @@ function AdminBoatsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="w-40 truncate text-xs text-muted-foreground">{agencyName(v.agency_id)}</span>
               <Input className="w-44" defaultValue={v.name} onBlur={(e) => e.target.value !== v.name && patch("vessels", v.id, { name: e.target.value })} />
-              <NumericBlurField className="w-28" defaultValue={v.capacity} onCommit={(v) => patch("vessels", v.id, { capacity: v ?? 0 })} placeholder="Capacité" />
+              <NumericBlurField className="w-28" defaultValue={v.capacity} onCommit={(n) => patch("vessels", v.id, { capacity: n ?? 0 })} placeholder="Capacité" />
               <label className="flex items-center gap-2 text-xs">
                 <Switch checked={v.is_active} onCheckedChange={(x) => patch("vessels", v.id, { is_active: x })} />
                 {v.is_active ? "Actif" : "Inactif"}
@@ -241,15 +241,15 @@ function AdminBoatsPage() {
             <Input defaultValue={v.description} placeholder="Description" onBlur={(e) => e.target.value !== v.description && patch("vessels", v.id, { description: e.target.value })} />
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold uppercase text-muted-foreground">Tarifs (FCFA)</span>
-              <Input className="w-28" type="number" defaultValue={v.price_adult} placeholder="Adulte" onBlur={(e) => patch("vessels", v.id, { price_adult: Number(e.target.value) || 0 })} />
-              <Input className="w-28" type="number" defaultValue={v.price_child} placeholder="Enfant" onBlur={(e) => patch("vessels", v.id, { price_child: Number(e.target.value) || 0 })} />
-              <Input className="w-28" type="number" defaultValue={v.price_infant} placeholder="Bébé" onBlur={(e) => patch("vessels", v.id, { price_infant: Number(e.target.value) || 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.price_adult} placeholder="Adulte" onCommit={(n) => patch("vessels", v.id, { price_adult: n ?? 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.price_child} placeholder="Enfant" onCommit={(n) => patch("vessels", v.id, { price_child: n ?? 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.price_infant} placeholder="Bébé" onCommit={(n) => patch("vessels", v.id, { price_infant: n ?? 0 })} />
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold uppercase text-muted-foreground">Bagages</span>
-              <Input className="w-28" type="number" defaultValue={v.baggage_free_count} placeholder="Inclus" onBlur={(e) => patch("vessels", v.id, { baggage_free_count: Number(e.target.value) || 0 })} />
-              <Input className="w-36" type="number" defaultValue={v.baggage_fee_per_extra} placeholder="FCFA / suppl." onBlur={(e) => patch("vessels", v.id, { baggage_fee_per_extra: Number(e.target.value) || 0 })} />
-              <Input className="w-28" type="number" defaultValue={v.baggage_max_count} placeholder="Max" onBlur={(e) => patch("vessels", v.id, { baggage_max_count: Number(e.target.value) || 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.baggage_free_count} placeholder="Inclus" onCommit={(n) => patch("vessels", v.id, { baggage_free_count: n ?? 0 })} />
+              <NumericBlurField className="w-36" defaultValue={v.baggage_fee_per_extra} placeholder="FCFA / suppl." onCommit={(n) => patch("vessels", v.id, { baggage_fee_per_extra: n ?? 0 })} />
+              <NumericBlurField className="w-28" defaultValue={v.baggage_max_count} placeholder="Max" onCommit={(n) => patch("vessels", v.id, { baggage_max_count: n ?? 0 })} />
               <Input className="flex-1 min-w-[200px]" defaultValue={v.baggage_conditions} placeholder="Conditions de bagages" onBlur={(e) => e.target.value !== v.baggage_conditions && patch("vessels", v.id, { baggage_conditions: e.target.value })} />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -313,7 +313,7 @@ function AdminBoatsPage() {
             </label>
             <Input className="w-28" type="time" defaultValue={s.departure_time?.slice(0, 5)} onBlur={(e) => patch("boat_sailings", s.id, { departure_time: e.target.value })} />
             <label className="flex items-center gap-1 text-xs">Places
-              <NumericBlurField className="w-24" defaultValue={s.seats_total} onCommit={(v) => patch("boat_sailings", s.id, { seats_total: v ?? 0, seats_available: v ?? 0 })} />
+              <NumericBlurField className="w-24" defaultValue={s.seats_total} onCommit={(n) => patch("boat_sailings", s.id, { seats_total: n ?? 0, seats_available: n ?? 0 })} />
             </label>
             <span className="text-xs text-muted-foreground">
               {(s.seats_total ?? 0) > 0 ? `${s.seats_available}/${s.seats_total} places` : "Illimité"}
