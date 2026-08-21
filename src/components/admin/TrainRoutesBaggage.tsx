@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
+import { NumericBlurField } from "@/components/ui/numeric-text-field";
   fetchTrainRoutes,
   type TrainRoute, type TrainRouteStation, type TrainBaggageRule,
   type TrainType, type TrainStation,
@@ -129,15 +130,15 @@ export function TrainRoutesBaggage({ types, stations }: Props) {
               </select>
               <label className="flex items-center gap-1 text-xs">
                 Inclus
-                <Input className="w-16" type="number" defaultValue={r.free_count} onBlur={(e) => patchRule(r.id, { free_count: Number(e.target.value) })} />
+                <NumericBlurField className="w-16" defaultValue={r.free_count} onCommit={(v) => patchRule(r.id, { free_count: v ?? 0 })} />
               </label>
               <label className="flex items-center gap-1 text-xs">
                 Frais/suppl.
-                <Input className="w-24" type="number" defaultValue={r.fee_per_extra} onBlur={(e) => patchRule(r.id, { fee_per_extra: Number(e.target.value) })} />
+                <NumericBlurField className="w-24" defaultValue={r.fee_per_extra} onCommit={(v) => patchRule(r.id, { fee_per_extra: v ?? 0 })} />
               </label>
               <label className="flex items-center gap-1 text-xs">
                 Max
-                <Input className="w-16" type="number" defaultValue={r.max_count} onBlur={(e) => patchRule(r.id, { max_count: Number(e.target.value) })} />
+                <NumericBlurField className="w-16" defaultValue={r.max_count} onCommit={(v) => patchRule(r.id, { max_count: v ?? 0 })} />
               </label>
               <label className="flex items-center gap-2 text-xs">
                 <Switch checked={r.is_active} onCheckedChange={(v) => patchRule(r.id, { is_active: v })} />

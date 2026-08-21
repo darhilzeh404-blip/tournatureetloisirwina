@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Ship, Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
+import { NumericBlurField } from "@/components/ui/numeric-text-field";
   fetchBoatRoutes, fetchVessels, fetchVesselServices, fetchSailings,
   type BoatRoute, type Vessel, type VesselService, type BoatSailing,
 } from "@/lib/boat";
@@ -183,8 +184,8 @@ function AdminBoatsPage() {
             <span className="w-40 truncate text-xs text-muted-foreground">{agencyName(r.agency_id)}</span>
             <Input className="w-40" defaultValue={r.origin} onBlur={(e) => e.target.value !== r.origin && patch("boat_routes", r.id, { origin: e.target.value })} />
             <Input className="w-40" defaultValue={r.destination} onBlur={(e) => e.target.value !== r.destination && patch("boat_routes", r.id, { destination: e.target.value })} />
-            <Input className="w-28" type="number" defaultValue={r.distance_km} onBlur={(e) => patch("boat_routes", r.id, { distance_km: Number(e.target.value) || 0 })} placeholder="km" />
-            <Input className="w-28" type="number" defaultValue={r.duration_minutes} onBlur={(e) => patch("boat_routes", r.id, { duration_minutes: Number(e.target.value) || 0 })} placeholder="minutes" />
+            <NumericBlurField className="w-28" defaultValue={r.distance_km} onCommit={(v) => patch("boat_routes", r.id, { distance_km: v ?? 0 })} placeholder="km" />
+            <Input className="w-28" type="number" defaultValue={r.duration_minutes} onBlur={(e) => patch("boat_routes", r.id, { duration_minutes: v ?? 0 })} placeholder="minutes" />
             <label className="flex items-center gap-2 text-xs">
               <Switch checked={r.is_active} onCheckedChange={(v) => patch("boat_routes", r.id, { is_active: v })} />
               {r.is_active ? "Active" : "Inactive"}
@@ -215,7 +216,7 @@ function AdminBoatsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="w-40 truncate text-xs text-muted-foreground">{agencyName(v.agency_id)}</span>
               <Input className="w-44" defaultValue={v.name} onBlur={(e) => e.target.value !== v.name && patch("vessels", v.id, { name: e.target.value })} />
-              <Input className="w-28" type="number" defaultValue={v.capacity} onBlur={(e) => patch("vessels", v.id, { capacity: Number(e.target.value) || 0 })} placeholder="Capacité" />
+              <NumericBlurField className="w-28" defaultValue={v.capacity} onCommit={(v) => patch("vessels", v.id, { capacity: v ?? 0 })} placeholder="Capacité" />
               <label className="flex items-center gap-2 text-xs">
                 <Switch checked={v.is_active} onCheckedChange={(x) => patch("vessels", v.id, { is_active: x })} />
                 {v.is_active ? "Actif" : "Inactif"}
@@ -312,7 +313,7 @@ function AdminBoatsPage() {
             </label>
             <Input className="w-28" type="time" defaultValue={s.departure_time?.slice(0, 5)} onBlur={(e) => patch("boat_sailings", s.id, { departure_time: e.target.value })} />
             <label className="flex items-center gap-1 text-xs">Places
-              <Input className="w-24" type="number" defaultValue={s.seats_total} onBlur={(e) => patch("boat_sailings", s.id, { seats_total: Number(e.target.value) || 0, seats_available: Number(e.target.value) || 0 })} />
+              <NumericBlurField className="w-24" defaultValue={s.seats_total} onCommit={(v) => patch("boat_sailings", s.id, { seats_total: v ?? 0, seats_available: v ?? 0 })} />
             </label>
             <span className="text-xs text-muted-foreground">
               {(s.seats_total ?? 0) > 0 ? `${s.seats_available}/${s.seats_total} places` : "Illimité"}

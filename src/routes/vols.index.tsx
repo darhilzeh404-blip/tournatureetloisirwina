@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { FCFA, PROGRAM_STATUS_LABEL } from "@/lib/flight-quotes";
+import { NumericField } from "@/components/ui/numeric-field";
 
 export const Route = createFileRoute("/vols/")({
   head: () => ({
@@ -233,11 +234,11 @@ function VolsSearch() {
 
           <div className="mt-3 grid grid-cols-3 gap-3">
             <div><Label>Adultes</Label>
-              <Input type="number" min={1} value={criteria.adults} onChange={(e) => setCriteria({ ...criteria, adults: num(e.target.value, 1) })} /></div>
+              <NumericField min={1} value={criteria.adults} onChange={(v) => setCriteria({ ...criteria, adults: v })} /></div>
             <div><Label>Enfants</Label>
-              <Input type="number" min={0} value={criteria.children} onChange={(e) => setCriteria({ ...criteria, children: num(e.target.value, 0) })} /></div>
+              <NumericField min={0} value={criteria.children} onChange={(v) => setCriteria({ ...criteria, children: v })} /></div>
             <div><Label>Bébés</Label>
-              <Input type="number" min={0} value={criteria.infants} onChange={(e) => setCriteria({ ...criteria, infants: num(e.target.value, 0) })} /></div>
+              <NumericField min={0} value={criteria.infants} onChange={(v) => setCriteria({ ...criteria, infants: v })} /></div>
           </div>
 
           <Button className="mt-4 w-full" onClick={runSearch} disabled={loading}>
