@@ -9,6 +9,7 @@ import { Ship, Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
 import { NumericBlurField } from "@/components/ui/numeric-text-field";
+import { NumericTextField } from "@/components/ui/numeric-text-field";
   fetchBoatRoutes, fetchVessels, fetchVesselServices, fetchSailings,
   type BoatRoute, type Vessel, type VesselService, type BoatSailing,
 } from "@/lib/boat";
@@ -202,8 +203,8 @@ function AdminBoatsPage() {
           </select>
           <Input className="w-40" placeholder="Origine" value={newRoute.origin} onChange={(e) => setNewRoute({ ...newRoute, origin: e.target.value })} />
           <Input className="w-40" placeholder="Destination" value={newRoute.destination} onChange={(e) => setNewRoute({ ...newRoute, destination: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="km" value={newRoute.distance_km} onChange={(e) => setNewRoute({ ...newRoute, distance_km: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="minutes" value={newRoute.duration_minutes} onChange={(e) => setNewRoute({ ...newRoute, duration_minutes: e.target.value })} />
+          <NumericTextField className="w-28" placeholder="km" value={newRoute.distance_km} onChange={(val) => setNewRoute({ ...newRoute, distance_km: val })} />
+          <NumericTextField className="w-28" placeholder="minutes" value={newRoute.duration_minutes} onChange={(val) => setNewRoute({ ...newRoute, duration_minutes: val })} />
           <Button onClick={addRoute} disabled={busy}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Ajouter</Button>
         </div>
       </CardContent></Card>
@@ -268,10 +269,10 @@ function AdminBoatsPage() {
             {agencies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
           <Input className="w-44" placeholder="Nom du navire" value={newVessel.name} onChange={(e) => setNewVessel({ ...newVessel, name: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Capacité" value={newVessel.capacity} onChange={(e) => setNewVessel({ ...newVessel, capacity: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Prix adulte" value={newVessel.price_adult} onChange={(e) => setNewVessel({ ...newVessel, price_adult: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Prix enfant" value={newVessel.price_child} onChange={(e) => setNewVessel({ ...newVessel, price_child: e.target.value })} />
-          <Input className="w-28" type="number" placeholder="Prix bébé" value={newVessel.price_infant} onChange={(e) => setNewVessel({ ...newVessel, price_infant: e.target.value })} />
+          <NumericTextField className="w-28" placeholder="Capacité" value={newVessel.capacity} onChange={(val) => setNewVessel({ ...newVessel, capacity: val })} />
+          <NumericTextField className="w-28" placeholder="Prix adulte" value={newVessel.price_adult} onChange={(val) => setNewVessel({ ...newVessel, price_adult: val })} />
+          <NumericTextField className="w-28" placeholder="Prix enfant" value={newVessel.price_child} onChange={(val) => setNewVessel({ ...newVessel, price_child: val })} />
+          <NumericTextField className="w-28" placeholder="Prix bébé" value={newVessel.price_infant} onChange={(val) => setNewVessel({ ...newVessel, price_infant: val })} />
           <Button onClick={addVessel} disabled={busy}><Plus className="h-4 w-4" /> Ajouter</Button>
         </div>
       </CardContent></Card>
@@ -287,7 +288,7 @@ function AdminBoatsPage() {
             {vessels.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
           </select>
           <Input className="w-52" placeholder="Service (WiFi, repas, salon VIP…)" value={newService.name} onChange={(e) => setNewService({ ...newService, name: e.target.value })} />
-          <Input className="w-32" type="number" placeholder="Prix" value={newService.price} onChange={(e) => setNewService({ ...newService, price: e.target.value })} />
+          <NumericTextField className="w-32" placeholder="Prix" value={newService.price} onChange={(val) => setNewService({ ...newService, price: val })} />
           <Button onClick={addService} disabled={busy}><Plus className="h-4 w-4" /> Ajouter</Button>
         </div>
       </CardContent></Card>
@@ -344,7 +345,7 @@ function AdminBoatsPage() {
             <Input className="w-36" type="date" value={newSailing.period_end} onChange={(e) => setNewSailing({ ...newSailing, period_end: e.target.value })} />
           </label>
           <Input className="w-28" type="time" value={newSailing.departure_time} onChange={(e) => setNewSailing({ ...newSailing, departure_time: e.target.value })} />
-          <Input className="w-32" type="number" placeholder="Places (0 = illimité)" value={newSailing.seats_total} onChange={(e) => setNewSailing({ ...newSailing, seats_total: e.target.value })} />
+          <NumericTextField className="w-32" placeholder="Places (0 = illimité)" value={newSailing.seats_total} onChange={(val) => setNewSailing({ ...newSailing, seats_total: val })} />
           <Button onClick={addSailing} disabled={busy}><Plus className="h-4 w-4" /> Programmer</Button>
         </div>
       </CardContent></Card>
