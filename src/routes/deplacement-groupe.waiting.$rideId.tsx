@@ -18,6 +18,7 @@ import { ClientNav } from "@/components/ClientNav";
 import { LazyLiveMap, type MapMarker } from "@/components/LazyLiveMap";
 import { useAuth } from "@/hooks/use-auth";
 import { useDriverPosition } from "@/hooks/use-driver-position";
+import { useSharedClock } from "@/lib/shared-clock";
 import { supabase as supabaseTyped } from "@/integrations/supabase/client";
 import { formatXAF } from "@/lib/vtc-zones";
 import { GROUP_MAX_SEATS, GROUP_RIDE_STATUS_LABEL, estimateTrip } from "@/lib/group-ride";
