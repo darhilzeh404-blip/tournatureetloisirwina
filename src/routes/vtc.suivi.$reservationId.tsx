@@ -10,6 +10,11 @@ import { useShareClientPosition } from "@/hooks/use-client-position";
 import { distanceKm, estimateEtaMinutes } from "@/hooks/use-geolocation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { appToast } from "@/lib/app-toast";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 export const Route = createFileRoute("/vtc/suivi/$reservationId")({
@@ -601,7 +606,43 @@ function VtcTrackingPage() {
             </div>
           </div>
         </section>
+        {canCancel && (
+          <section className="border-t bg-background p-4">
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-destructive/40 text-destructive"
+              onClick={() => setCancelOpen(true)}
+            >
+              <XCircle className="h-4 w-4" /> Annuler ma course
+            </Button>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              Annulation possible tant qu'aucun chauffeur n'est assigné — 20 % du montant sont retenus.
+            </p>
+          </section>
+        )}
       </main>
+
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler cette course VTC ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {paidAmount > 0
+                ? `Des frais d'annulation de 20 % (${cancelFee.toLocaleString("fr-FR")} FCFA) seront retenus. ${cancelRefund.toLocaleString("fr-FR")} FCFA seront recrédités sur votre portefeuille WINA.`
+                : "Votre demande sera annulée définitivement."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Garder ma course</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={cancelling}
+              onClick={(e) => { e.preventDefault(); void confirmCancel(); }}
+            >
+              {cancelling ? "Annulation…" : "Confirmer l'annulation"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
