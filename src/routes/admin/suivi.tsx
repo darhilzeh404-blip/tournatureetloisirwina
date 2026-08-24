@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAllDriverPositions } from "@/hooks/use-driver-position";
 import { LazyLiveMap, type MapMarker } from "@/components/LazyLiveMap";
@@ -179,7 +179,7 @@ function AdminTrackingPage() {
               </div>
             ) : (
               filteredPositions.map((p) => {
-                const trip = trips.find((t) => t.driver_id === p.driver_id);
+                const trip = tripByDriver.get(p.driver_id);
                 const isSelected = selectedDriver === p.driver_id;
                 return (
                   <button
