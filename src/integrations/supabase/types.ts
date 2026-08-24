@@ -5102,6 +5102,14 @@ export type Database = {
         Args: { _client_id: string; _driver_id: string }
         Returns: boolean
       }
+      cancel_vtc_reservation: {
+        Args: { _reservation_id: string }
+        Returns: {
+          fee: number
+          new_balance: number
+          refunded: number
+        }[]
+      }
       complete_ride: {
         Args: { _ride_id: string }
         Returns: {
