@@ -207,7 +207,8 @@ function MesReservationsPage() {
         .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at, reference_code, agent_code")
         .eq("user_id", user.id)
         .is("archived_at", null)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(100);
       if (cancelled) return;
       if (error) {
         setError(error.message);
