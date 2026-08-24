@@ -26,6 +26,10 @@ export function useShareClientPosition(
 
   const { position, error } = useGeolocation({
     enabled,
+    // Un upsert réseau par point GPS saturait la file de requêtes de la WebView
+    // Android. On ne pousse qu'au maximum toutes les 8 s ou tous les 25 m.
+    minIntervalMs: 8000,
+    minDistanceM: 25,
     onUpdate: async (pos) => {
       if (!clientId || !activeTripId) return;
       const { error: upErr } = await supabase.from("client_positions").upsert(
