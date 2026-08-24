@@ -13,6 +13,15 @@ interface UseGeolocationOptions {
   enabled: boolean;
   intervalMs?: number;
   onUpdate?: (pos: GeoPosition) => void;
+  /**
+   * Intervalle minimum entre deux mises à jour propagées (état + onUpdate).
+   * `watchPosition` en haute précision émet jusqu'à ~1 point/seconde sur
+   * Android : sans ce filtre chaque point déclenchait un rendu complet de la
+   * page (carte, marqueurs, itinéraire) — d'où les gels de la WebView.
+   */
+  minIntervalMs?: number;
+  /** Distance minimale (en mètres) pour propager une mise à jour hors intervalle. */
+  minDistanceM?: number;
 }
 
 /**
@@ -27,10 +36,16 @@ export interface GeoError {
   message: string;
 }
 
-export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
+export function useGeolocation({
+  enabled,
+  onUpdate,
+  minIntervalMs = 3000,
+  minDistanceM = 15,
+}: UseGeolocationOptions) {
   const [position, setPosition] = useState<GeoPosition | null>(null);
   const [error, setError] = useState<GeoError | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const lastEmittedRef = useRef<{ at: number; pos: GeoPosition } | null>(null);
   const onUpdateRef = useRef(onUpdate);
 
   useEffect(() => {
@@ -75,6 +90,15 @@ export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
           speed: pos.coords.speed,
           timestamp: pos.timestamp,
         };
+        // Filtre temps + distance : on ne propage un point que s'il est
+        // significativement nouveau. Évite le « render storm » Android.
+        const last = lastEmittedRef.current;
+        if (last) {
+          const elapsed = Date.now() - last.at;
+          const movedM = distanceKm(last.pos, next) * 1000;
+          if (elapsed < minIntervalMs && movedM < minDistanceM) return;
+        }
+        lastEmittedRef.current = { at: Date.now(), pos: next };
         setPosition(next);
         setError(null);
         onUpdateRef.current?.(next);
@@ -103,7 +127,7 @@ export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
         watchIdRef.current = null;
       }
     };
-  }, [enabled]);
+  }, [enabled, minIntervalMs, minDistanceM]);
 
   return { position, error };
 }

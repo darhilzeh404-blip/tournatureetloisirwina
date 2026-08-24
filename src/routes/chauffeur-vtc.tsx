@@ -505,11 +505,26 @@ function ChauffeurVtcPage() {
     let lastPushAt = 0;
     let lastLat: number | null = null;
     let lastLng: number | null = null;
+    let lastRenderAt = 0;
+    let lastRenderLat: number | null = null;
+    let lastRenderLng: number | null = null;
     const id = navigator.geolocation.watchPosition(
       (p) => {
         const lat = p.coords.latitude;
         const lng = p.coords.longitude;
-        setDriverPos({ lat, lng });
+        // Throttle du state local : chaque setDriverPos re-rendait tout le
+        // tableau de bord (carte, liste du pool, tri par distance). Avec un
+        // point GPS par seconde sur Android, la WebView gelait.
+        const movedForRender =
+          lastRenderLat == null || lastRenderLng == null
+            ? true
+            : haversineKm(lastRenderLat, lastRenderLng, lat, lng) * 1000 >= 25;
+        if (Date.now() - lastRenderAt >= 4000 || movedForRender) {
+          lastRenderAt = Date.now();
+          lastRenderLat = lat;
+          lastRenderLng = lng;
+          setDriverPos({ lat, lng });
+        }
         if (!user || !isOnlineRef.current) return;
         // Throttle: push at most every 5 s OR when the driver has moved >= 20 m.
         const now = Date.now();
