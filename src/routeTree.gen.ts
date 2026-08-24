@@ -77,6 +77,7 @@ import { Route as AdminTransportRouteImport } from './routes/admin/transport'
 import { Route as AdminTrainsRouteImport } from './routes/admin/trains'
 import { Route as AdminSuiviRouteImport } from './routes/admin/suivi'
 import { Route as AdminSitesTouristiquesRouteImport } from './routes/admin/sites-touristiques'
+import { Route as AdminRetraitsRouteImport } from './routes/admin/retraits'
 import { Route as AdminReservationsRouteImport } from './routes/admin/reservations'
 import { Route as AdminRechargesRouteImport } from './routes/admin/recharges'
 import { Route as AdminPaiementsRouteImport } from './routes/admin/paiements'
@@ -451,6 +452,11 @@ const AdminSitesTouristiquesRoute = AdminSitesTouristiquesRouteImport.update({
   path: '/sites-touristiques',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminRetraitsRoute = AdminRetraitsRouteImport.update({
+  id: '/retraits',
+  path: '/retraits',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminReservationsRoute = AdminReservationsRouteImport.update({
   id: '/reservations',
   path: '/reservations',
@@ -669,6 +675,7 @@ export interface FileRoutesByFullPath {
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/retraits': typeof AdminRetraitsRoute
   '/admin/sites-touristiques': typeof AdminSitesTouristiquesRoute
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/trains': typeof AdminTrainsRoute
@@ -765,6 +772,7 @@ export interface FileRoutesByTo {
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/retraits': typeof AdminRetraitsRoute
   '/admin/sites-touristiques': typeof AdminSitesTouristiquesRoute
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/trains': typeof AdminTrainsRoute
@@ -867,6 +875,7 @@ export interface FileRoutesById {
   '/admin/paiements': typeof AdminPaiementsRoute
   '/admin/recharges': typeof AdminRechargesRoute
   '/admin/reservations': typeof AdminReservationsRoute
+  '/admin/retraits': typeof AdminRetraitsRoute
   '/admin/sites-touristiques': typeof AdminSitesTouristiquesRoute
   '/admin/suivi': typeof AdminSuiviRoute
   '/admin/trains': typeof AdminTrainsRoute
@@ -970,6 +979,7 @@ export interface FileRouteTypes {
     | '/admin/paiements'
     | '/admin/recharges'
     | '/admin/reservations'
+    | '/admin/retraits'
     | '/admin/sites-touristiques'
     | '/admin/suivi'
     | '/admin/trains'
@@ -1066,6 +1076,7 @@ export interface FileRouteTypes {
     | '/admin/paiements'
     | '/admin/recharges'
     | '/admin/reservations'
+    | '/admin/retraits'
     | '/admin/sites-touristiques'
     | '/admin/suivi'
     | '/admin/trains'
@@ -1167,6 +1178,7 @@ export interface FileRouteTypes {
     | '/admin/paiements'
     | '/admin/recharges'
     | '/admin/reservations'
+    | '/admin/retraits'
     | '/admin/sites-touristiques'
     | '/admin/suivi'
     | '/admin/trains'
@@ -1738,6 +1750,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSitesTouristiquesRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/retraits': {
+      id: '/admin/retraits'
+      path: '/retraits'
+      fullPath: '/admin/retraits'
+      preLoaderRoute: typeof AdminRetraitsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/reservations': {
       id: '/admin/reservations'
       path: '/reservations'
@@ -1979,6 +1998,7 @@ interface AdminRouteRouteChildren {
   AdminPaiementsRoute: typeof AdminPaiementsRoute
   AdminRechargesRoute: typeof AdminRechargesRoute
   AdminReservationsRoute: typeof AdminReservationsRoute
+  AdminRetraitsRoute: typeof AdminRetraitsRoute
   AdminSitesTouristiquesRoute: typeof AdminSitesTouristiquesRoute
   AdminSuiviRoute: typeof AdminSuiviRoute
   AdminTrainsRoute: typeof AdminTrainsRoute
@@ -2015,6 +2035,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminPaiementsRoute: AdminPaiementsRoute,
   AdminRechargesRoute: AdminRechargesRoute,
   AdminReservationsRoute: AdminReservationsRoute,
+  AdminRetraitsRoute: AdminRetraitsRoute,
   AdminSitesTouristiquesRoute: AdminSitesTouristiquesRoute,
   AdminSuiviRoute: AdminSuiviRoute,
   AdminTrainsRoute: AdminTrainsRoute,
