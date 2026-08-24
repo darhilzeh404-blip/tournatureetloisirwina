@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   CarFront,
   GraduationCap,
+  Download,
   Loader2,
   Package,
   Plane,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SuccessScreen, type SuccessDetail } from "@/components/SuccessScreen";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/confirmation/$reservationId")({
   head: () => ({
@@ -129,6 +131,7 @@ function ConfirmationPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [row, setRow] = useState<any>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -191,6 +194,34 @@ function ConfirmationPage() {
   }
   if (row?.total_amount != null) items.push({ label: "Montant", value: fmt(Number(row.total_amount)) });
 
+  const isConfirmed = String(row?.status ?? "").toUpperCase() === "CONFIRMED";
+  const reference = row?.reference_code ?? String(reservationId).slice(0, 8).toUpperCase();
+
+  const downloadReceipt = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const { downloadReservationReceipt } = await import("@/lib/reservation-receipt");
+      downloadReservationReceipt({
+        reference,
+        serviceLabel: ctx.label,
+        status: "Confirmée",
+        issuedAt: row?.created_at ?? null,
+        rows: items
+          .filter((d) => d.label !== "Montant")
+          .map((d) => [d.label, String(d.value ?? "—")] as [string, string]),
+        totalAmount: Number(row?.total_amount ?? 0),
+        paidAmount: row?.paid_amount != null ? Number(row.paid_amount) : null,
+      });
+      toast.success("Reçu PDF téléchargé");
+    } catch (e) {
+      console.error("[confirmation] reçu PDF", e);
+      toast.error("Impossible de générer le reçu PDF");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <SuccessScreen
       icon={ctx.icon}
@@ -199,7 +230,15 @@ function ConfirmationPage() {
       details={items}
       note="Vous pouvez suivre l'avancement de cette réservation à tout moment depuis « Mes réservations »."
       actions={[
-        { label: "Voir mes réservations", onClick: () => navigate({ to: "/mes-reservations" }) },
+        ...(isConfirmed
+          ? [
+              {
+                label: downloading ? "Génération du reçu…" : "Télécharger le reçu PDF",
+                onClick: downloadReceipt,
+              },
+            ]
+          : []),
+        { label: "Voir mes réservations", variant: isConfirmed ? ("ghost" as const) : undefined, onClick: () => navigate({ to: "/mes-reservations" }) },
         { label: "Retour à l'accueil", variant: "ghost", onClick: () => navigate({ to: "/espace-client" }) },
       ]}
     />
