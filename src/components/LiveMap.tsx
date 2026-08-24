@@ -36,7 +36,7 @@ function buildDriverIcon(service: "vtc" | "bus" = "bus", heading: number | null 
   const glow = active
     ? `box-shadow:0 0 0 6px ${color}33, 0 0 18px 4px ${color}66, 0 4px 14px rgba(0,0,0,.35);`
     : `box-shadow:0 4px 10px rgba(0,0,0,.25);`;
-  return L.divIcon({
+  const icon = L.divIcon({
     className: `driver-marker driver-marker--${service}${active ? " driver-marker--active" : ""}`,
     html: `
       <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
