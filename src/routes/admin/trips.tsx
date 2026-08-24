@@ -86,13 +86,15 @@ function AdminTripsPage() {
         .eq("status", "CONFIRMED")
         .in("service_type", ADMIN_DISPATCH_SERVICE_LIST)
         .is("archived_at", null)
-        .order("reservation_date"),
+        .order("reservation_date")
+        .limit(300),
       supabase
         .from("trips")
         .select("*, reservations!inner(service_type)")
         .in("reservations.service_type", ADMIN_DISPATCH_SERVICE_LIST)
         .is("archived_at", null)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(300),
       supabase.from("user_roles").select("user_id").eq("role", "chauffeur"),
     ]);
 

@@ -65,7 +65,7 @@ function AdminVols() {
   const load = async () => {
     setLoading(true);
     const [{ data: p }, { data: a }] = await Promise.all([
-      (supabase.from("flight_programs") as any).select("*").order("created_at", { ascending: false }),
+      (supabase.from("flight_programs") as any).select("*").order("created_at", { ascending: false }).limit(300),
       (supabase.from("partner_agencies") as any).select("id,name").eq("category", "avion").eq("is_active", true).order("name"),
     ]);
     setPrograms(((p as any) ?? []) as Program[]);

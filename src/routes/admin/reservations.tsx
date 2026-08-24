@@ -120,7 +120,9 @@ function AdminReservations() {
       const { data: resData } = await supabase
         .from("reservations")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(300);
+
       const reservs = (resData as Reservation[]) ?? [];
       setReservations(reservs);
 
@@ -199,21 +201,32 @@ function AdminReservations() {
   // Realtime: reservations + trips + payments (notif sur new upload)
   useEffect(() => {
     if (!user || role !== "admin") return;
+    // Anti-rebond : une validation de paiement émet plusieurs événements
+    // (payment + reservation + trip). Sans regroupement, `loadAll()` (qui
+    // recharge des centaines de lignes) était relancé 3-4 fois de suite et
+    // gelait l'écran admin sur mobile.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleReload = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void loadAll(), 600);
+    };
     const channel = supabase
       .channel("admin-reservations-trips-payments")
-      .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, () => loadAll())
-      .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => loadAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, scheduleReload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, scheduleReload)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "payments" }, (payload) => {
         const p = payload.new as { receipt_url?: string | null };
         if (p?.receipt_url) toast.info("📸 Nouvelle preuve de paiement reçue");
-        loadAll();
+        scheduleReload();
       })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "payments" }, () => loadAll())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "payments" }, scheduleReload)
       .subscribe();
     return () => {
+      if (timer) clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, [user, role, loadAll]);
+
 
   const filtered = reservations.filter((r) => {
     const p = profiles.get(r.user_id);

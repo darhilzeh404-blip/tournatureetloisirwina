@@ -207,7 +207,8 @@ function MesReservationsPage() {
         .select("id, service_type, reservation_date, total_amount, paid_amount, status, details, created_at, reference_code, agent_code")
         .eq("user_id", user.id)
         .is("archived_at", null)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(100);
       if (cancelled) return;
       if (error) {
         setError(error.message);
@@ -334,14 +335,24 @@ function MesReservationsPage() {
     };
     void loadGroupRides();
 
+    // La table `group_rides` n'est pas filtrable côté serveur pour ce client :
+    // chaque modification de n'importe quel trajet groupé déclenchait un
+    // rechargement complet. Anti-rebond pour éviter les rafales sur mobile.
+    let groupReloadTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleGroupReload = () => {
+      if (groupReloadTimer) clearTimeout(groupReloadTimer);
+      groupReloadTimer = setTimeout(() => { void loadGroupRides(); }, 700);
+    };
+
     const groupChannel = supabase
       .channel(`group-rides-user-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers", filter: `user_id=eq.${user.id}` }, () => { void loadGroupRides(); })
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_rides" }, () => { void loadGroupRides(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers", filter: `user_id=eq.${user.id}` }, scheduleGroupReload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_rides" }, scheduleGroupReload)
       .subscribe();
 
     return () => {
       cancelled = true;
+      if (groupReloadTimer) clearTimeout(groupReloadTimer);
       supabase.removeChannel(channel);
       supabase.removeChannel(tripsChannel);
       supabase.removeChannel(groupChannel);

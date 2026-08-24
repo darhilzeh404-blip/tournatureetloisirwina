@@ -65,7 +65,14 @@ function AdminPaiements() {
   useEffect(() => {
     void loadPayments();
 
-    // Realtime: rafraîchit la liste quand un paiement est créé/modifié
+    // Realtime: rafraîchit la liste quand un paiement est créé/modifié.
+    // Les événements arrivent par rafales → anti-rebond pour éviter de
+    // relancer plusieurs chargements complets simultanés.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleReload = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void loadPayments(), 600);
+    };
     const channel = supabase
       .channel("admin-payments")
       .on(
@@ -75,12 +82,13 @@ function AdminPaiements() {
           if (payload.eventType === "INSERT") {
             toast.info("Nouveau paiement reçu");
           }
-          void loadPayments();
+          scheduleReload();
         }
       )
       .subscribe();
 
     return () => {
+      if (timer) clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, []);
@@ -90,7 +98,9 @@ function AdminPaiements() {
     const { data, error } = await supabase
       .from("payments")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(300);
+
 
     if (error) {
       toast.error("Erreur de chargement: " + error.message);

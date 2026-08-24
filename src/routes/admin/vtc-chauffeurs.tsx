@@ -86,7 +86,7 @@ function AdminVtcChauffeurs() {
 
   const load = async () => {
     setLoading(true);
-    const { data: ds } = await supabase.from("drivers" as any).select("*").order("created_at", { ascending: false });
+    const { data: ds } = await supabase.from("drivers" as any).select("*").order("created_at", { ascending: false }).limit(300);
     setDrivers((ds as any) ?? []);
     await loadStats((ds as any) ?? []);
     setLoading(false);

@@ -77,7 +77,7 @@ function AdminFlightRequests() {
 
   const load = async () => {
     setLoading(true);
-    let q = (supabase.from("flight_quote_requests") as any).select("*").order("created_at", { ascending: false });
+    let q = (supabase.from("flight_quote_requests") as any).select("*").order("created_at", { ascending: false }).limit(200);
     if (filter !== "all") q = q.eq("status", filter);
     const { data, error } = await q;
     if (error) toast.error(error.message);

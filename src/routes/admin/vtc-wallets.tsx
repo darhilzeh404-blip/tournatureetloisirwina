@@ -43,7 +43,7 @@ function AdminVtcWalletsPage() {
   const load = async () => {
     setLoading(true);
     const [{ data: walletsData }, { data: txData }] = await Promise.all([
-      supabase.from("driver_wallets").select("*").order("balance_earnings", { ascending: false }),
+      supabase.from("driver_wallets").select("*").order("balance_earnings", { ascending: false }).limit(300),
       supabase
         .from("driver_wallet_transactions")
         .select("id, driver_id, gross_amount, net_amount, platform_fee, payment_method, created_at, trip_id")

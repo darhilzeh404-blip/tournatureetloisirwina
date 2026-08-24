@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAllDriverPositions } from "@/hooks/use-driver-position";
 import { LazyLiveMap, type MapMarker } from "@/components/LazyLiveMap";
@@ -32,14 +32,18 @@ function AdminTrackingPage() {
 
   useEffect(() => {
     let mounted = true;
+    let reloadTimer: ReturnType<typeof setTimeout> | null = null;
     const load = async () => {
       const { data: tripsData } = await supabase
         .from("trips")
-        .select("*")
+        .select("id,driver_id,client_id,origin_address,destination_address,status")
         .in("status", ["pending", "assigned", "active"])
-        .is("archived_at", null);
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (!mounted) return;
       setTrips((tripsData as Trip[]) || []);
+
 
       const ids = new Set<string>();
       (tripsData || []).forEach((t: Trip) => {
@@ -69,38 +73,62 @@ function AdminTrackingPage() {
         setVtcDriverIds(new Set(data.map((d: { user_id: string }) => d.user_id)));
       });
 
+    // Anti-rebond : les courses génèrent des rafales d'événements temps réel.
+    const scheduleLoad = () => {
+      if (reloadTimer) clearTimeout(reloadTimer);
+      reloadTimer = setTimeout(() => void load(), 600);
+    };
+
     const channel = supabase
       .channel("admin-trips")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "trips" },
-        () => load()
+        scheduleLoad
       )
       .subscribe();
     return () => {
       mounted = false;
+      if (reloadTimer) clearTimeout(reloadTimer);
       supabase.removeChannel(channel);
     };
   }, []);
 
-  const filteredPositions = positions.filter((p) => {
-    if (!filter) return true;
-    const name = profiles[p.driver_id]?.toLowerCase() ?? "";
-    return name.includes(filter.toLowerCase());
-  });
+  const filteredPositions = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return positions;
+    return positions.filter((p) => (profiles[p.driver_id]?.toLowerCase() ?? "").includes(q));
+  }, [positions, profiles, filter]);
 
-  const markers: MapMarker[] = filteredPositions.map((p) => ({
-    id: p.driver_id,
-    lat: Number(p.latitude),
-    lng: Number(p.longitude),
-    type: "driver",
-    label: profiles[p.driver_id] ?? "Chauffeur",
-    service: vtcDriverIds.has(p.driver_id) ? "vtc" : "bus",
-    heading: p.heading,
-  }));
+  const markers: MapMarker[] = useMemo(
+    () =>
+      filteredPositions.map((p) => ({
+        id: p.driver_id,
+        lat: Number(p.latitude),
+        lng: Number(p.longitude),
+        type: "driver" as const,
+        label: profiles[p.driver_id] ?? "Chauffeur",
+        service: (vtcDriverIds.has(p.driver_id) ? "vtc" : "bus") as "vtc" | "bus",
+        heading: p.heading,
+      })),
+    [filteredPositions, profiles, vtcDriverIds],
+  );
 
-  const activeTrips = trips.filter((t) => t.status === "active");
-  const pendingTrips = trips.filter((t) => t.status === "pending" || t.status === "assigned");
+  // Index O(1) : évite un `trips.find()` par ligne à chaque flush GPS (1 s).
+  const tripByDriver = useMemo(() => {
+    const map = new Map<string, Trip>();
+    trips.forEach((t) => {
+      if (t.driver_id && !map.has(t.driver_id)) map.set(t.driver_id, t);
+    });
+    return map;
+  }, [trips]);
+
+  const activeTrips = useMemo(() => trips.filter((t) => t.status === "active"), [trips]);
+  const pendingTrips = useMemo(
+    () => trips.filter((t) => t.status === "pending" || t.status === "assigned"),
+    [trips],
+  );
+
 
   return (
     <div className="p-4 lg:p-6 h-screen flex flex-col">
@@ -151,7 +179,7 @@ function AdminTrackingPage() {
               </div>
             ) : (
               filteredPositions.map((p) => {
-                const trip = trips.find((t) => t.driver_id === p.driver_id);
+                const trip = tripByDriver.get(p.driver_id);
                 const isSelected = selectedDriver === p.driver_id;
                 return (
                   <button

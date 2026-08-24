@@ -375,6 +375,14 @@ function ChauffeurVtcPage() {
   useEffect(() => {
     if (!user) return;
     load();
+    // Anti-rebond : pendant une course, les mises à jour temps réel arrivent
+    // par rafales. Sans regroupement, `load()` était relancé plusieurs fois
+    // par seconde et figeait l'écran chauffeur sur Android.
+    let reloadTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleLoad = () => {
+      if (reloadTimer) clearTimeout(reloadTimer);
+      reloadTimer = setTimeout(() => void load(), 500);
+    };
     // Listen to ALL trip changes (RLS filters; pool + own trips visible).
     const ch = supabase
       .channel(`chauffeur-vtc-${user.id}`)
@@ -431,13 +439,13 @@ function ChauffeurVtcPage() {
               });
             }
           }
-          load();
+          scheduleLoad();
         },
       )
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "trips" },
-        () => load(),
+        scheduleLoad,
       )
       .on(
         "postgres_changes",
@@ -471,16 +479,19 @@ function ChauffeurVtcPage() {
           } catch (e) {
             console.error("[vtc] payment notification", e);
           }
-          load();
+          scheduleLoad();
         },
       )
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "reservations" },
-        () => load(),
+        scheduleLoad,
       )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      if (reloadTimer) clearTimeout(reloadTimer);
+      supabase.removeChannel(ch);
+    };
     // IMPORTANT: deps are only [user, load] — isOnline / driverPos are read via
     // refs above so GPS updates do NOT re-subscribe (which used to cause an
     // infinite reload loop on the chauffeur screen).
