@@ -5,6 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/")({
+  head: () => ({
+    meta: [
+      { title: "Administration — WINA TOUR" },
+      { name: "description", content: "Tableau de bord administratif WINA TOUR." },
+      { property: "og:title", content: "Administration — WINA TOUR" },
+      { property: "og:description", content: "Tableau de bord administratif WINA TOUR." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminDashboard,
 });
 

@@ -45,7 +45,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Agence Wina — Transport & Tourisme au Gabon" },
       { name: "description", content: "Réservez votre transport scolaire, location de bus et circuits touristiques au Gabon avec Agence Wina." },
-      { name: "theme-color", content: "#3b6cd6" },
+      { name: "theme-color", content: "#064E3B" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "Tour Wina" },
