@@ -179,7 +179,7 @@
       /* status bar iOS translucide : on peint la zone haute avec le fond de l'app */
       background-color: var(--color-background);
       padding-bottom: env(safe-area-inset-bottom, 0px);
-      overscroll-behavior-y: none;
+      /* pas d'overscroll-behavior : il cassait le chaînage du scroll natif */
     }
     /* pas de sélection/loupe intempestive comme sur une app native */
     body:not(input):not(textarea) {
