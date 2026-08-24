@@ -345,16 +345,13 @@ function VtcTrackingPage() {
       </header>
 
       <main className="flex flex-1 flex-col">
-        {(details.payment_mode === "cash" || isNightHoursNow()) && (
-          <div className="border-b bg-amber-500/10 px-4 py-3 text-sm">
-            <p className="font-semibold text-amber-700">💵 Paiement en espèces</p>
-            <p className="text-xs text-amber-700/80">
-              {details.payment_mode === "cash"
-                ? "Course de nuit (22h–06h) : réglez le montant total directement au chauffeur à l'arrivée."
-                : "Il est entre 22h et 06h : prévoyez de régler en espèces directement au chauffeur si votre course se déroule cette nuit."}
-            </p>
-          </div>
-        )}
+        <div className="border-b bg-primary/5 px-4 py-3 text-sm">
+          <p className="font-semibold text-primary">Paiement par portefeuille WINA</p>
+          <p className="text-xs text-muted-foreground">
+            Toutes les courses VTC, y compris de nuit (21h–06h), sont réglées par portefeuille. Aucun règlement en espèces au chauffeur.
+          </p>
+        </div>
+
 
         <section className="grid gap-3 border-b bg-card/60 p-4 text-sm sm:grid-cols-3">
           <div className="rounded-xl border bg-background p-3">
