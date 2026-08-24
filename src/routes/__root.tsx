@@ -86,7 +86,10 @@ function RootComponent() {
   const navigate = useNavigate();
   const [splashDone, setSplashDone] = useState(false);
 
-  const isFullScreenRoute = location.pathname.startsWith("/admin") ||
+  const AUTH_ROUTES = ["/", "/connexion", "/inscription", "/mot-de-passe-oublie", "/reinitialiser-mot-de-passe"];
+
+  const isFullScreenRoute = AUTH_ROUTES.includes(location.pathname) ||
+    location.pathname.startsWith("/admin") ||
     location.pathname.startsWith("/chauffeur") ||
     location.pathname.startsWith("/gerant") ||
     

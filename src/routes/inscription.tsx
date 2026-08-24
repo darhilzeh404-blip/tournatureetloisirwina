@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import { FlagGabon } from "@/components/FlagGabon";
+import { SuccessScreen } from "@/components/SuccessScreen";
 
 export const Route = createFileRoute("/inscription")({
   head: () => ({
@@ -41,6 +42,7 @@ function InscriptionPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [created, setCreated] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) navigate({ to: "/espace-client" });
@@ -95,8 +97,7 @@ function InscriptionPage() {
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
       await signUp(email.trim(), password, fullName, `${country.dial}${digits}`);
-      toast.success("Compte créé avec succès !");
-      navigate({ to: "/espace-client" });
+      setCreated(true);
     } catch (e: any) {
       const msg = e?.message || "Erreur lors de l'inscription";
       setError(msg);
@@ -104,6 +105,21 @@ function InscriptionPage() {
       setLoading(false);
     }
   };
+
+  if (created) {
+    return (
+      <SuccessScreen
+        title="Bienvenue chez Agence Wina !"
+        message="Votre compte a été créé avec succès. Vous pouvez maintenant effectuer et suivre vos réservations."
+        details={[
+          { label: "Nom", value: `${firstName.trim()} ${lastName.trim()}` },
+          { label: "Email", value: email.trim() },
+          { label: "Téléphone", value: `${country.dial} ${digits}` },
+        ]}
+        actions={[{ label: "Continuer", onClick: () => navigate({ to: "/espace-client" }) }]}
+      />
+    );
+  }
 
   const inputClass =
     "w-full rounded-2xl border bg-background px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50";
