@@ -89,10 +89,14 @@ function BilletConfirmationPage() {
 
 
 
-  const download = () => {
-    if (boatReceipt) downloadBoatReceipt(boatReceipt);
-    else if (receipt) downloadTrainReceipt(receipt);
-    else return;
+  const download = async () => {
+    if (boatReceipt) {
+      const { downloadBoatReceipt } = await import("@/lib/boat-receipt");
+      downloadBoatReceipt(boatReceipt);
+    } else if (receipt) {
+      const { downloadTrainReceipt } = await import("@/lib/train-receipt");
+      downloadTrainReceipt(receipt);
+    } else return;
     toast.success("Reçu PDF téléchargé");
   };
 
