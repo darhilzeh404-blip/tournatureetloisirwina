@@ -231,8 +231,17 @@ function ChauffeurVtcPage() {
       }
     };
     ping();
-    const id = window.setInterval(ping, 30_000);
-    return () => { window.clearInterval(id); };
+    // Le ping GPS ne tourne plus quand l'app est en arrière-plan sur Android.
+    let id: number | null = null;
+    const startPing = () => { if (id === null) id = window.setInterval(ping, 30_000); };
+    const stopPing = () => { if (id !== null) { window.clearInterval(id); id = null; } };
+    const onVisibility = () => { if (document.hidden) stopPing(); else { ping(); startPing(); } };
+    if (!document.hidden) startPing();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      stopPing();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [user, isOnline]);
 
   useEffect(() => {

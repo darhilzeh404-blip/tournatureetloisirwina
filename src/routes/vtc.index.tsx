@@ -12,7 +12,7 @@ import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
-import { VtcZoneMap, type AvailableDriver } from "@/components/VtcZoneMap";
+import { LazyVtcZoneMap, type AvailableDriver } from "@/components/LazyVtcZoneMap";
 import { VtcDestinationSearch } from "@/components/VtcDestinationSearch";
 import { NumberInput } from "@/components/ui/number-input";
 import {
@@ -620,8 +620,18 @@ function CourseFlow({ forcedCategory }: { forcedCategory?: VehicleCategory } = {
       } catch { /* silencieux */ }
     };
     load();
-    const t = window.setInterval(load, 15000);
-    return () => { cancelled = true; window.clearInterval(t); };
+    // Pause du sondage quand la WebView passe en arrière-plan (gel Android).
+    let t: number | null = null;
+    const startPoll = () => { if (t === null) t = window.setInterval(load, 15000); };
+    const stopPoll = () => { if (t !== null) { window.clearInterval(t); t = null; } };
+    const onVisibility = () => { if (document.hidden) stopPoll(); else { load(); startPoll(); } };
+    if (!document.hidden) startPoll();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      cancelled = true;
+      stopPoll();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [pickup, category]);
 
   // Distance haversine pour chaque chauffeur, triés du plus proche au plus loin
@@ -926,7 +936,7 @@ function CourseFlow({ forcedCategory }: { forcedCategory?: VehicleCategory } = {
           </button>
         </div>
 
-        <VtcZoneMap
+        <LazyVtcZoneMap
           pickup={pickup}
           destination={destination}
           selecting={selecting}
