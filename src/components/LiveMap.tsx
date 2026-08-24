@@ -26,7 +26,13 @@ const driverIconCache = new Map<string, L.DivIcon>();
 function buildDriverIcon(service: "vtc" | "bus" = "bus", heading: number | null = null, active = false) {
   const svg = service === "vtc" ? CAR_SVG : BUS_SVG;
   const color = service === "vtc" ? "#0ea5e9" : "#16a34a";
-  const rotation = typeof heading === "number" && !Number.isNaN(heading) ? heading : 0;
+  // Cap de rotation à 5° : évite un nouvel icône pour chaque micro-variation
+  // du cap renvoyé par le GPS.
+  const rotation =
+    typeof heading === "number" && !Number.isNaN(heading) ? Math.round(heading / 5) * 5 : 0;
+  const cacheKey = `${service}|${rotation}|${active ? 1 : 0}`;
+  const cached = driverIconCache.get(cacheKey);
+  if (cached) return cached;
   const glow = active
     ? `box-shadow:0 0 0 6px ${color}33, 0 0 18px 4px ${color}66, 0 4px 14px rgba(0,0,0,.35);`
     : `box-shadow:0 4px 10px rgba(0,0,0,.25);`;
