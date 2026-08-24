@@ -35,6 +35,7 @@ interface VtcReservation {
   reservation_date: string;
   status: ReservationStatus;
   total_amount: number;
+  paid_amount: number | null;
   details: Record<string, unknown> | null;
 }
 
@@ -95,7 +96,7 @@ function VtcTrackingPage() {
     setLoading(true);
     const { data: reservationData } = await supabase
       .from("reservations")
-      .select("id, user_id, reservation_date, status, total_amount, details")
+      .select("id, user_id, reservation_date, status, total_amount, paid_amount, details")
       .eq("id", reservationId)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -279,7 +280,7 @@ function VtcTrackingPage() {
       trip?.status !== "active" &&
       trip?.status !== "completed",
   );
-  const paidAmount = Number(reservation?.total_amount ?? 0);
+  const paidAmount = Number(reservation?.paid_amount ?? 0);
   const cancelFee = Math.ceil(paidAmount * 0.2);
   const cancelRefund = Math.max(paidAmount - cancelFee, 0);
 
