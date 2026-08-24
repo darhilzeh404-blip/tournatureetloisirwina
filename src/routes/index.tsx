@@ -1,26 +1,32 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { Compass, Bus, ArrowRight, Sparkles } from "lucide-react";
-import { useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Car, Plane, Compass, Bus, PackageOpen, ArrowRight, Check } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuth, getRoleRedirectPath, waitForAuth } from "@/hooks/use-auth";
 import heroImg from "@/assets/hero-transport.jpg";
+import panther from "@/assets/panther-run.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Agence Wina — Bus & Circuits au Gabon" },
+      { title: "WINA TOUR — Mobilité, voyages & tourisme au Gabon" },
       {
         name: "description",
-        content: "Réservez bus et circuits touristiques au Gabon en 1 clic. Inscription gratuite.",
+        content:
+          "VTC, voyages, tourisme, transport et déménagement au Gabon : une seule application pour tous vos déplacements.",
       },
-      { property: "og:title", content: "Agence Wina — Bus & Circuits au Gabon" },
-      { property: "og:description", content: "Réservez bus et circuits touristiques au Gabon en 1 clic." },
+      { property: "og:title", content: "WINA TOUR — Mobilité, voyages & tourisme au Gabon" },
+      {
+        property: "og:description",
+        content: "Une seule application pour vos déplacements, voyages et découvertes au Gabon.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:image", content: heroImg },
       { name: "twitter:image", content: heroImg },
     ],
   }),
   // Bloque le rendu de la landing tant qu'on ne sait pas si l'utilisateur est connecté.
-  // Évite le flash de la page publique dans Median/PWA quand la session est déjà en localStorage.
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     const auth = await waitForAuth();
@@ -32,11 +38,27 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
+const SERVICES = [
+  { icon: Car, title: "VTC", desc: "Se déplacer facilement en ville." },
+  { icon: Plane, title: "Voyages", desc: "Organiser ses déplacements." },
+  { icon: Compass, title: "Tourisme", desc: "Sites, circuits & expériences." },
+  { icon: Bus, title: "Transport", desc: "Bus, navettes et trajets." },
+  { icon: PackageOpen, title: "Déménagement", desc: "Transporter ses biens." },
+] as const;
+
+const BENEFITS = [
+  "Une seule application pour tous vos besoins",
+  "Réservation simple et centralisée",
+  "Gain de temps au quotidien",
+  "Découverte du Gabon et de ses circuits",
+  "Expérience pensée pour le mobile",
+] as const;
+
 function HomePage() {
   const { isAuthenticated, role, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [step, setStep] = useState<0 | 1>(0);
 
-  // Client-side guard: si la session est restaurée après le SSR, on redirige aussi
   useEffect(() => {
     if (!isLoading && isAuthenticated && role) {
       const path = role === "client" ? "/espace-client" : getRoleRedirectPath(role);
@@ -44,134 +66,166 @@ function HomePage() {
     }
   }, [isLoading, isAuthenticated, role, navigate]);
 
-  // Pendant la restauration de session (Median/PWA/WebView natives où
-  // localStorage met parfois >2s à hydrater) ET pendant la redirection,
-  // on ne flash JAMAIS la landing non-connectée.
   if (isLoading || isAuthenticated) return null;
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      {/* Background image */}
+    <main className="relative min-h-[100dvh] overflow-hidden">
       <div className="absolute inset-0">
-        <motion.img
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.4, ease: "easeOut" }}
+        <img
           src={heroImg}
-          alt="Voyagez et explorez le Gabon avec Agence Wina"
+          alt="Voyagez et explorez le Gabon avec WINA TOUR"
           className="h-full w-full object-cover"
           width={1920}
           height={1080}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-foreground/85 via-foreground/65 to-foreground/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-foreground/90 via-foreground/75 to-foreground/95" />
       </div>
 
-      {/* Content */}
-      <div className="relative mx-auto flex min-h-screen max-w-3xl flex-col justify-between px-5 py-10 lg:px-8">
-        <motion.header
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-primary-foreground"
-        >
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-medium backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5" /> Agence Wina · Gabon
-          </span>
-        </motion.header>
-
-        {/* Hero + 2 CTAs */}
-        <section className="flex flex-1 flex-col items-center justify-center py-12 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl font-extrabold leading-tight text-primary-foreground lg:text-5xl"
-          >
-            Voyagez. Explorez.
-            <br />
-            <span className="text-accent">Vivez le Gabon.</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-3 max-w-md text-sm text-primary-foreground/85 lg:text-base"
-          >
-            Réservez bus & circuits touristiques en 1 clic. Inscription gratuite.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-            className="mt-6 grid w-full max-w-md gap-2.5 sm:grid-cols-2"
-          >
-            <Link
-              to="/circuits"
-              className="group flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-accent px-4 py-4 text-accent-foreground shadow-xl transition-transform hover:scale-105"
-            >
-              <Compass className="h-6 w-6" />
-              <span className="text-sm font-bold">Circuits Touristiques</span>
-              <span className="text-[11px] opacity-80">Découvrir le Gabon</span>
-            </Link>
-            <Link
-              to="/transport-public"
-              className="group flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-primary px-4 py-4 text-primary-foreground shadow-xl transition-transform hover:scale-105"
-            >
-              <Bus className="h-6 w-6" />
-              <span className="text-sm font-bold">Transport</span>
-              <span className="text-[11px] opacity-80">Bus & trajets</span>
-            </Link>
-          </motion.div>
-
-          {/* Avantages plateforme */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            className="mt-8 grid w-full max-w-md grid-cols-3 gap-2"
-          >
-            {[
-              { label: "Réservation rapide", desc: "En 1 clic" },
-              { label: "Paiement sécurisé", desc: "Mobile money" },
-              { label: "Support 24/7", desc: "À votre écoute" },
-            ].map((adv) => (
-              <div
-                key={adv.label}
-                className="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 px-2 py-3 text-center text-primary-foreground backdrop-blur-md"
-              >
-                <div className="text-[11px] font-bold leading-tight">{adv.label}</div>
-                <div className="mt-1 text-[10px] opacity-75">{adv.desc}</div>
-              </div>
-            ))}
-          </motion.div>
-        </section>
-
-        {/* Footer login/signup */}
-        <motion.footer
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="rounded-2xl border border-primary-foreground/20 bg-primary-foreground/10 p-5 text-center backdrop-blur-md"
-        >
-          <p className="text-sm font-medium text-primary-foreground">
-            Réservez bus & circuits en 1 clic ✨
-          </p>
-          <div className="mt-3 flex flex-wrap justify-center gap-2">
-            <Link
-              to="/connexion"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-background px-5 py-2.5 text-sm font-semibold text-foreground shadow transition-transform hover:scale-105"
-            >
-              Se connecter <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            <Link
-              to="/inscription"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-primary-foreground/40 px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              Créer un compte
-            </Link>
+      <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-5 pb-8 pt-6">
+        {/* Logo */}
+        <div className="flex items-center gap-3 text-primary-foreground">
+          <img src="/icon-192.png" alt="WINA TOUR" className="h-11 w-11 rounded-2xl shadow-lg" />
+          <div className="leading-tight">
+            <p className="text-base font-extrabold tracking-tight">WINA TOUR</p>
+            <p className="text-[11px] text-primary-foreground/70">Gabon · Mobilité & Tourisme</p>
           </div>
-        </motion.footer>
+        </div>
+
+        <div className="flex flex-1 flex-col justify-center py-8">
+          <AnimatePresence mode="wait" initial={false}>
+            {step === 0 ? (
+              <motion.section
+                key="s1"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <h1 className="text-3xl font-extrabold leading-tight text-primary-foreground">
+                  Tout le Gabon,
+                  <br />
+                  <span className="text-accent">dans une seule app.</span>
+                </h1>
+                <p className="mt-2 text-sm text-primary-foreground/80">
+                  Déplacements, voyages, découvertes et déménagement.
+                </p>
+
+                <div className="mt-6 space-y-2.5">
+                  {SERVICES.map(({ icon: Icon, title, desc }, i) => (
+                    <motion.div
+                      key={title}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.05 * i, ease: "easeOut" }}
+                      className="flex items-center gap-3 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 p-3 backdrop-blur-md"
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/20 text-accent">
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <span className="min-w-0 text-primary-foreground">
+                        <span className="block text-sm font-bold">{title}</span>
+                        <span className="block text-[11px] text-primary-foreground/70">{desc}</span>
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.section>
+            ) : (
+              <motion.section
+                key="s2"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <h2 className="text-3xl font-extrabold leading-tight text-primary-foreground">
+                  Une expérience
+                  <br />
+                  <span className="text-accent">centralisée.</span>
+                </h2>
+                <p className="mt-2 text-sm text-primary-foreground/80">
+                  Mobilité, voyages, tourisme, transport et déménagement : réservez tout depuis WINA
+                  TOUR.
+                </p>
+
+                <div className="mt-6 space-y-2.5">
+                  {BENEFITS.map((b, i) => (
+                    <motion.div
+                      key={b}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.05 * i, ease: "easeOut" }}
+                      className="flex items-center gap-3 rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 px-3 py-2.5 backdrop-blur-md"
+                    >
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/25 text-accent">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-sm font-medium text-primary-foreground">{b}</span>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="mt-6 flex justify-center">
+                  <motion.img
+                    src={panther}
+                    alt=""
+                    aria-hidden="true"
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 0.9, x: 0 }}
+                    transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                    className="h-14 w-auto drop-shadow-xl"
+                  />
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Indicateur + actions */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-center gap-2">
+            {[0, 1].map((i) => (
+              <span
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  step === i ? "w-6 bg-accent" : "w-1.5 bg-primary-foreground/35"
+                }`}
+              />
+            ))}
+          </div>
+
+          {step === 0 ? (
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent py-3.5 text-sm font-bold text-accent-foreground shadow-xl"
+            >
+              Suivant <ArrowRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <div className="space-y-2.5">
+              <Link
+                to="/connexion"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-accent py-3.5 text-sm font-bold text-accent-foreground shadow-xl"
+              >
+                Se connecter
+              </Link>
+              <Link
+                to="/inscription"
+                className="flex w-full items-center justify-center rounded-2xl border border-primary-foreground/35 py-3.5 text-sm font-bold text-primary-foreground backdrop-blur-md"
+              >
+                S'inscrire
+              </Link>
+              <button
+                type="button"
+                onClick={() => setStep(0)}
+                className="w-full py-1 text-xs font-medium text-primary-foreground/60"
+              >
+                Retour
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
