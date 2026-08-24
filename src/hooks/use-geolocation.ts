@@ -127,7 +127,7 @@ export function useGeolocation({
         watchIdRef.current = null;
       }
     };
-  }, [enabled]);
+  }, [enabled, minIntervalMs, minDistanceM]);
 
   return { position, error };
 }
