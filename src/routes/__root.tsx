@@ -174,7 +174,14 @@ function RootComponent() {
         <NotificationCenter />
         <ActiveGroupRideGuard />
         <AdminPreviewBanner />
-        <Toaster position="top-right" richColors />
+        <Toaster
+          position="top-center"
+          expand={false}
+          visibleToasts={3}
+          offset={16}
+          mobileOffset={12}
+          toastOptions={{ unstyled: true, classNames: { toast: "w-full flex justify-center" } }}
+        />
       </QueryClientProvider>
     </ErrorBoundary>
   );

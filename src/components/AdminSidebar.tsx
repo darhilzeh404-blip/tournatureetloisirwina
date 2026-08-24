@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain, LayoutGrid, Eye, Plane, TrainFront, Ship } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain, LayoutGrid, Eye, Plane, TrainFront, Ship, ArrowDownToLine } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { setClientPreview } from "@/lib/admin-preview";
@@ -13,6 +13,7 @@ const adminLinks = [
   { to: "/admin/frais", label: "Frais application", icon: Percent, exact: false },
   { to: "/admin/recharges", label: "Recharges portefeuille", icon: Wallet, exact: false },
   { to: "/admin/vtc-wallets", label: "Portefeuilles VTC", icon: Wallet, exact: false },
+  { to: "/admin/retraits", label: "Retraits chauffeurs", icon: ArrowDownToLine, exact: false },
   { to: "/admin/fidelite", label: "Wina Coins", icon: Coins, exact: false },
   { to: "/admin/clients", label: "Clients", icon: Users, exact: false },
   { to: "/admin/bus", label: "Flotte Bus", icon: Bus, exact: false },

@@ -1251,10 +1251,12 @@ export type Database = {
           driver_id: string
           gross_amount: number
           id: string
+          kind: string
           net_amount: number
           note: string | null
           payment_method: string
           platform_fee: number
+          reference: string | null
           reservation_id: string | null
           status: string
           trip_id: string | null
@@ -1264,10 +1266,12 @@ export type Database = {
           driver_id: string
           gross_amount: number
           id?: string
+          kind?: string
           net_amount: number
           note?: string | null
           payment_method: string
           platform_fee: number
+          reference?: string | null
           reservation_id?: string | null
           status?: string
           trip_id?: string | null
@@ -1277,10 +1281,12 @@ export type Database = {
           driver_id?: string
           gross_amount?: number
           id?: string
+          kind?: string
           net_amount?: number
           note?: string | null
           payment_method?: string
           platform_fee?: number
+          reference?: string | null
           reservation_id?: string | null
           status?: string
           trip_id?: string | null
@@ -1310,6 +1316,51 @@ export type Database = {
           driver_id?: string
           total_commission_paid?: number
           total_earned?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      driver_withdrawals: {
+        Row: {
+          admin_note: string | null
+          amount: number
+          created_at: string
+          deposit_number: string
+          driver_id: string
+          id: string
+          method: string
+          processed_at: string | null
+          processed_by: string | null
+          reference: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount: number
+          created_at?: string
+          deposit_number: string
+          driver_id: string
+          id?: string
+          method?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reference?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount?: number
+          created_at?: string
+          deposit_number?: string
+          driver_id?: string
+          id?: string
+          method?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reference?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -4920,6 +4971,13 @@ export type Database = {
         Args: { _approve: boolean; _booking_id: string; _comment?: string }
         Returns: undefined
       }
+      admin_decide_withdrawal: {
+        Args: { _approve: boolean; _note?: string; _withdrawal_id: string }
+        Returns: {
+          new_balance: number
+          status: string
+        }[]
+      }
       admin_delete_partner_agency: {
         Args: { _agency_id: string }
         Returns: undefined
@@ -5478,6 +5536,10 @@ export type Database = {
           _user_agent: string
         }
         Returns: undefined
+      }
+      request_driver_withdrawal: {
+        Args: { _amount: number; _deposit_number: string; _method?: string }
+        Returns: string
       }
       request_vtc_recharge: {
         Args: {
