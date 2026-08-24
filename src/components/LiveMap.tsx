@@ -49,6 +49,9 @@ function buildDriverIcon(service: "vtc" | "bus" = "bus", heading: number | null 
     iconSize: [36, 36],
     iconAnchor: [18, 18],
   });
+  if (driverIconCache.size > 200) driverIconCache.clear();
+  driverIconCache.set(cacheKey, icon);
+  return icon;
 }
 
 
