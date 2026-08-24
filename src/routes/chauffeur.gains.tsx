@@ -39,7 +39,7 @@ function ChauffeurGainsPage() {
   const [loading, setLoading] = useState(true);
 
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState<number | null>(null);
+  const [amountText, setAmountText] = useState("");
   const [depositNumber, setDepositNumber] = useState("");
   const [method, setMethod] = useState("airtel_money");
   const [submitting, setSubmitting] = useState(false);
@@ -98,7 +98,7 @@ function ChauffeurGainsPage() {
 
   const submitWithdrawal = async () => {
     if (submitting) return;
-    const value = amount ?? 0;
+    const value = Number(amountText || 0);
     if (value < MIN_WITHDRAWAL) {
       appToast.warning("Montant trop faible", `Le retrait minimum est de ${fmtXAF(MIN_WITHDRAWAL)}.`);
       return;
@@ -119,7 +119,7 @@ function ChauffeurGainsPage() {
         `${fmtXAF(value)} — un administrateur validera votre paiement sous peu.`,
       );
       setOpen(false);
-      setAmount(null);
+      setAmountText("");
       setDepositNumber("");
       if (user) await reload(user.id);
     } catch (err) {
@@ -185,9 +185,8 @@ function ChauffeurGainsPage() {
                       <Label htmlFor="wd-amount">Montant à retirer (FCFA)</Label>
                       <NumericTextField
                         id="wd-amount"
-                        value={amount}
-                        onValueChange={setAmount}
-                        min={0}
+                        value={amountText}
+                        onChange={setAmountText}
                         placeholder={`Minimum ${MIN_WITHDRAWAL}`}
                         className="h-12 text-base"
                       />

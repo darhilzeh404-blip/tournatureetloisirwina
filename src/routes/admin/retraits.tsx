@@ -209,7 +209,6 @@ function AdminWithdrawalsPage() {
               {busy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Traitement…</> : "Confirmer"}
             </Button>
           </DialogFooter>
-        </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
