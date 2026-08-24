@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createSignedUrlMap } from "@/lib/signed-urls";
+
 import { z } from "zod";
 import { Bus, CheckCircle, Eye, ImageIcon, Loader2, MapPin, MessageSquare, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -82,30 +84,51 @@ function AdminBusReservations() {
   const [saving, setSaving] = useState<"CONFIRMED" | "REJECTED" | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const loadingRef = useRef(false);
+  const pendingRef = useRef(false);
+  const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadRef = useRef<() => Promise<void>>(async () => {});
+
   useEffect(() => {
-    void loadReservations();
+    void loadRef.current();
+    // Les événements temps réel arrivent par rafales (une réservation + son
+    // paiement). Sans anti-rebond, chaque événement relançait un rechargement
+    // complet : l'écran se figeait sur les WebView Android.
+    const scheduleReload = () => {
+      if (reloadTimer.current) clearTimeout(reloadTimer.current);
+      reloadTimer.current = setTimeout(() => void loadRef.current(), 600);
+    };
     const channel = supabase
       .channel("admin-group-bus-reservations")
-      .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, () => void loadReservations())
-      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, () => void loadReservations())
+      .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, scheduleReload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, scheduleReload)
       .subscribe();
     return () => {
+      if (reloadTimer.current) clearTimeout(reloadTimer.current);
       supabase.removeChannel(channel);
     };
   }, []);
 
   async function loadReservations() {
+    // Évite les rechargements concurrents (rafales temps réel).
+    if (loadingRef.current) {
+      pendingRef.current = true;
+      return;
+    }
+    loadingRef.current = true;
     setLoading(true);
     const { data, error } = await supabase
       .from("reservations")
       .select("id,user_id,status,reservation_date,total_amount,paid_amount,paiement_valide,details,created_at,admin_comment")
       .eq("service_type", "LOCATION_BUS")
       .is("archived_at", null)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(200);
 
     if (error) {
       toast.error("Impossible de charger les réservations bus.");
       setLoading(false);
+      loadingRef.current = false;
       return;
     }
 
@@ -128,21 +151,34 @@ function AdminBusReservations() {
     ((profilesData ?? []) as Profile[]).forEach((profile) => profileMap.set(profile.user_id, profile));
     setProfiles(profileMap);
 
+    // Une seule requête de signature pour tous les reçus (au lieu d'un appel
+    // réseau par ligne, qui saturait la WebView).
+    const latest: Payment[] = [];
+    const seen = new Set<string>();
+    ((paymentsData ?? []) as Payment[]).forEach((payment) => {
+      if (seen.has(payment.reservation_id)) return;
+      seen.add(payment.reservation_id);
+      latest.push(payment);
+    });
+    const signedMap = await createSignedUrlMap("payment-receipts", latest.map((p) => p.receipt_url));
     const paymentMap = new Map<string, Payment>();
-    await Promise.all(
-      ((paymentsData ?? []) as Payment[]).map(async (payment) => {
-        if (paymentMap.has(payment.reservation_id)) return;
-        let signed: string | null = null;
-        if (payment.receipt_url) {
-          const { data: signedData } = await supabase.storage.from("payment-receipts").createSignedUrl(payment.receipt_url, 3600);
-          signed = signedData?.signedUrl ?? null;
-        }
-        paymentMap.set(payment.reservation_id, { ...payment, signed_receipt_url: signed });
-      }),
-    );
+    latest.forEach((payment) => {
+      paymentMap.set(payment.reservation_id, {
+        ...payment,
+        signed_receipt_url: payment.receipt_url ? signedMap.get(payment.receipt_url) ?? null : null,
+      });
+    });
     setPayments(paymentMap);
     setLoading(false);
+    loadingRef.current = false;
+    if (pendingRef.current) {
+      pendingRef.current = false;
+      void loadReservations();
+    }
   }
+
+  loadRef.current = loadReservations;
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
