@@ -168,11 +168,12 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
     ? new Date().toISOString()
     : (scheduledAt ? new Date(scheduledAt).toISOString() : "");
   const night = effectiveScheduledAt ? isNightRide(effectiveScheduledAt) : false;
-  const paymentMode: "cash" | "wallet" = night ? "cash" : "wallet";
+  // Paiement en espèces supprimé (y compris la nuit) : tout passe par le portefeuille.
+  const paymentMode: "wallet" = "wallet";
 
   // ─── Solde portefeuille (étape paiement) ─────────────────────────────────
   useEffect(() => {
-    if (step < 2 || !user || night) return;
+    if (step < 2 || !user) return;
     let cancelled = false;
     (async () => {
       try {
@@ -182,7 +183,8 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
       } catch { if (!cancelled) setWalletBalance(null); }
     })();
     return () => { cancelled = true; };
-  }, [step, user, night]);
+  }, [step, user]);
+
 
   // ─── Sélection carte / GPS ───────────────────────────────────────────────
   const useCurrentLocation = () => {
