@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
+import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 import { ArrowLeft, CalendarClock, CarFront, CheckCircle2, Clock, Loader2, MapPin, Navigation, Phone, RefreshCw, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -337,10 +337,7 @@ function VtcTrackingPage() {
   const lastNotifiedRef = useRef<{ driverId?: string | null; status?: string }>({});
   useEffect(() => {
     if (!trip) return;
-    const paymentMode = (reservation?.details as Record<string, unknown> | null)?.payment_mode;
-    const cashReminder = paymentMode === "cash" || isNightHoursNow()
-      ? " Préparez le règlement en espèces."
-      : " Paiement déjà validé, rien à régler à bord.";
+    const cashReminder = " Paiement déjà validé par portefeuille, rien à régler à bord.";
 
     (async () => {
       await requestNotificationPermission();
@@ -362,9 +359,7 @@ function VtcTrackingPage() {
           });
         } else if (trip.status === "completed") {
           await showAppNotification("Course terminée", {
-            body: paymentMode === "cash" || isNightHoursNow()
-              ? "Merci d'avoir voyagé avec Wina. Pensez à régler en espèces au chauffeur."
-              : "Merci d'avoir voyagé avec Wina. Paiement confirmé.",
+            body: "Merci d'avoir voyagé avec Wina. Paiement confirmé.",
             tag: `vtc-done-${trip.id}`,
           });
         }
