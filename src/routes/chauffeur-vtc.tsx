@@ -505,6 +505,9 @@ function ChauffeurVtcPage() {
     let lastPushAt = 0;
     let lastLat: number | null = null;
     let lastLng: number | null = null;
+    let lastRenderAt = 0;
+    let lastRenderLat: number | null = null;
+    let lastRenderLng: number | null = null;
     const id = navigator.geolocation.watchPosition(
       (p) => {
         const lat = p.coords.latitude;
