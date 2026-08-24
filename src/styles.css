@@ -392,6 +392,20 @@
   p, li, label, input, textarea, select, button { font-size: 14px; }
   small, .text-small { font-size: 12px; }
 
+  /* Native-feeling form surfaces for legacy screens that use raw controls. */
+  :where(
+    input[type="text"], input[type="email"], input[type="password"],
+    input[type="tel"], input[type="search"], input[type="url"],
+    input[type="date"], input[type="time"], input[type="datetime-local"],
+    textarea, select
+  ) {
+    min-height: 2.75rem;
+    border-color: var(--input);
+    border-radius: var(--radius-control);
+    background-color: var(--card);
+    box-shadow: var(--shadow-card);
+  }
+
   /* ──────────────────────────────────────────────────────────────
      Anti-zoom automatique sur mobile (iOS/Android)
      Safari zoome dès qu'un champ a une police < 16px. On force donc

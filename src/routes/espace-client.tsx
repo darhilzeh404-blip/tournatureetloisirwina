@@ -100,7 +100,7 @@ function EspaceClient() {
     <div className="mx-auto min-h-screen max-w-6xl pb-24">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 pb-5 pt-6 sm:px-8">
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-muted-foreground">Bonjour {firstName} 👋</p>
+          <p className="truncate text-sm font-medium text-muted-foreground">Bonjour {firstName}</p>
           <h1 className="mt-1 truncate font-display text-2xl font-bold text-foreground">WINA TOUR</h1>
         </div>
         <Link
