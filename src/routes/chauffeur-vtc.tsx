@@ -258,14 +258,17 @@ function ChauffeurVtcPage() {
     const t = params.get("tab");
     const trip = params.get("trip");
     if (t === "pool") setTab("pool");
-    if (trip) {
-      const tryScroll = (attempts = 0) => {
-        const el = document.getElementById(`vtc-trip-${trip}`);
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-        else if (attempts < 20) setTimeout(() => tryScroll(attempts + 1), 250);
-      };
-      setTimeout(() => tryScroll(), 300);
-    }
+    if (!trip) return;
+    // Le retry était récursif sans annulation : en quittant l'écran avant la fin
+    // il continuait de tourner 5 s en arrière-plan.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const tryScroll = (attempts = 0) => {
+      const el = document.getElementById(`vtc-trip-${trip}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      else if (attempts < 20) timer = setTimeout(() => tryScroll(attempts + 1), 250);
+    };
+    timer = setTimeout(() => tryScroll(), 300);
+    return () => { if (timer) clearTimeout(timer); };
   }, []);
 
   const load = useCallback(async () => {

@@ -87,9 +87,36 @@ export function useAllDriverPositions() {
       .from("driver_positions")
       .select("*")
       .is("archived_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(500)
       .then(({ data }) => {
         if (mounted && data) setPositions(data as DriverPosition[]);
       });
+
+    // Les positions GPS arrivent en continu : sans tampon, chaque point déclenchait
+    // un rendu complet de la carte et de la liste (écran figé côté Android).
+    // On accumule les changements et on ne rend qu'une fois par seconde.
+    const pending = new Map<string, DriverPosition | null>();
+    let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const flush = () => {
+      flushTimer = null;
+      if (!mounted || pending.size === 0) return;
+      const batch = new Map(pending);
+      pending.clear();
+      setPositions((prev) => {
+        const next = new Map(prev.map((p) => [p.driver_id, p] as const));
+        batch.forEach((row, driverId) => {
+          if (row === null) next.delete(driverId);
+          else next.set(driverId, row);
+        });
+        return Array.from(next.values());
+      });
+    };
+
+    const schedule = () => {
+      if (flushTimer === null) flushTimer = setTimeout(flush, 1000);
+    };
 
     const channel = supabase
       .channel("driver-positions-all")
@@ -101,26 +128,20 @@ export function useAllDriverPositions() {
           const newRow = payload.new as DriverPosition | null;
           const oldRow = payload.old as DriverPosition | null;
           if (payload.eventType === "DELETE" && oldRow) {
-            setPositions((prev) => prev.filter((p) => p.driver_id !== oldRow.driver_id));
+            pending.set(oldRow.driver_id, null);
+          } else if (newRow) {
+            pending.set(newRow.driver_id, newRow.archived_at ? null : newRow);
+          } else {
             return;
           }
-          if (!newRow) return;
-          if (newRow.archived_at) {
-            setPositions((prev) => prev.filter((p) => p.driver_id !== newRow.driver_id));
-            return;
-          }
-          setPositions((prev) => {
-            const exists = prev.some((p) => p.driver_id === newRow.driver_id);
-            return exists
-              ? prev.map((p) => (p.driver_id === newRow.driver_id ? newRow : p))
-              : [...prev, newRow];
-          });
+          schedule();
         }
       )
       .subscribe();
 
     return () => {
       mounted = false;
+      if (flushTimer) clearTimeout(flushTimer);
       supabase.removeChannel(channel);
     };
   }, []);

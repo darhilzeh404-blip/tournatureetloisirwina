@@ -3,7 +3,6 @@ import { Bus, CalendarDays, Download, Loader2, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { downloadBusRequestTicket } from "@/lib/bus-receipt";
 import {
   BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE, fetchMyBusBookings, fmtXAF, formatDateFR,
   type BusBookingWithTrip,
@@ -50,6 +49,7 @@ export function BusBookingsList({ userId }: { userId: string }) {
     const ticket = b.bus_final_tickets?.[0];
     if (!ticket) return;
     try {
+      const { downloadBusRequestTicket } = await import("@/lib/bus-receipt");
       await downloadBusRequestTicket({
         reference: b.reference_code,
         agency: b.bus_trips?.partner_agencies?.name ?? "Agence partenaire",
