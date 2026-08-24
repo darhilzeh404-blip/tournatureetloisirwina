@@ -289,7 +289,7 @@ function PaiementPage() {
           ? "Réservation enregistrée — paiement en agence en attente."
           : "Virement soumis. En attente de validation par l'admin.",
       );
-      navigate({ to: "/mes-reservations" });
+      navigate({ to: "/confirmation/$reservationId", params: { reservationId: reservation.id } });
     } catch (e) {
       console.error(e);
       setUploadFailed(true);
@@ -411,7 +411,7 @@ function PaiementPage() {
                   onSuccess={() =>
                     ((reservation.details as any)?.train_booking || (reservation.details as any)?.mode === "bateau")
                       ? navigate({ to: "/billets/confirmation/$reservationId", params: { reservationId: reservation.id } })
-                      : navigate({ to: "/mes-reservations" })
+                      : navigate({ to: "/confirmation/$reservationId", params: { reservationId: reservation.id } })
                   }
                 />
               </CardContent>
