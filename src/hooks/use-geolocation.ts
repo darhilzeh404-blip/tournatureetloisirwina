@@ -90,6 +90,15 @@ export function useGeolocation({
           speed: pos.coords.speed,
           timestamp: pos.timestamp,
         };
+        // Filtre temps + distance : on ne propage un point que s'il est
+        // significativement nouveau. Évite le « render storm » Android.
+        const last = lastEmittedRef.current;
+        if (last) {
+          const elapsed = Date.now() - last.at;
+          const movedM = distanceKm(last.pos, next) * 1000;
+          if (elapsed < minIntervalMs && movedM < minDistanceM) return;
+        }
+        lastEmittedRef.current = { at: Date.now(), pos: next };
         setPosition(next);
         setError(null);
         onUpdateRef.current?.(next);
