@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bus, Palmtree, ArrowRight, MapPin, Navigation, CarFront, Ticket, Mountain, Lock } from "lucide-react";
+import { ArrowRight, MapPin, Navigation, Lock, UserRound } from "lucide-react";
 import { isVtcAvailable } from "@/lib/vtc-availability";
 import { VtcUnavailableDialog } from "@/components/VtcUnavailableDialog";
 
@@ -97,10 +97,24 @@ function EspaceClient() {
 
 
   return (
-    <div className="pb-20">
+    <div className="mx-auto min-h-screen max-w-6xl pb-24">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 pb-5 pt-6 sm:px-8">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-muted-foreground">Bonjour {firstName}</p>
+          <h1 className="mt-1 truncate font-display text-2xl font-bold text-foreground">WINA TOUR</h1>
+        </div>
+        <Link
+          to="/mon-compte"
+          aria-label="Ouvrir mon profil"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/10 bg-primary/10 text-primary shadow-[var(--shadow-card)]"
+        >
+          <UserRound className="h-5 w-5" />
+        </Link>
+      </header>
+
       <AnnouncementBanner />
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section className="relative mx-4 min-h-52 overflow-hidden rounded-[var(--radius-surface)] shadow-[var(--shadow-elevated)] sm:mx-8">
         <div className="absolute inset-0">
           <motion.img
             initial={{ scale: 1.1, opacity: 0 }}
@@ -112,21 +126,23 @@ function EspaceClient() {
             width={1080}
             height={1024}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/70 to-primary/15" />
         </div>
         <motion.div
           initial="hidden"
           animate="show"
           variants={stagger}
-          className="relative px-5 pb-8 pt-12"
-        ><motion.p variants={fadeUp}>
-  Bonjour {firstName} 👋
-</motion.p>
-
-          <motion.h1 variants={fadeUp} className="mt-1 text-2xl font-bold text-primary-foreground">
-  Voyage, Transport et Tourism
-</motion.h1>
-
+          className="relative flex min-h-52 max-w-md flex-col justify-end px-6 py-6"
+        >
+          <motion.p variants={fadeUp} className="mb-2 w-fit rounded-full bg-primary-foreground/15 px-3 py-1 text-[11px] font-bold text-primary-foreground backdrop-blur-md">
+            Explorez le Gabon autrement
+          </motion.p>
+          <motion.h2 variants={fadeUp} className="text-2xl font-bold text-primary-foreground">
+            Voyage, transport<br />et tourisme
+          </motion.h2>
+          <motion.p variants={fadeUp} className="mt-2 text-xs leading-relaxed text-primary-foreground/80">
+            Tous vos déplacements et expériences dans une seule application.
+          </motion.p>
         </motion.div>
       </section>
 
@@ -137,13 +153,16 @@ function EspaceClient() {
         whileInView="show"
         viewport={{ once: true, amount: 0.2 }}
         variants={stagger}
-        className="px-5 pt-8"
+        className="px-5 pt-8 sm:px-8"
       >
         <motion.div variants={fadeUp} className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Nos services</h2>
-          <span className="text-[11px] font-medium text-muted-foreground">Accès rapide</span>
+          <div>
+            <p className="text-[11px] font-bold uppercase text-primary">Accès rapide</p>
+            <h2 className="mt-1 text-lg font-bold">Nos services</h2>
+          </div>
+          <ArrowRight className="h-4 w-4 text-muted-foreground" />
         </motion.div>
-        <motion.div variants={stagger} className="mt-4 grid grid-cols-3 gap-3">
+        <motion.div variants={stagger} className="mt-4 grid grid-cols-3 gap-3 md:grid-cols-5">
   {[
     {
       to: "/reserver-transport",
@@ -241,7 +260,7 @@ function EspaceClient() {
         )}
       </>
     );
-    const cardClass = `relative flex h-full w-full flex-col items-center gap-2 overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${srv.tint} p-3 shadow-sm transition-all duration-150 ${locked ? "opacity-80" : ""}`;
+    const cardClass = `relative flex min-h-28 h-full w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-[var(--radius-card)] border border-border/60 bg-gradient-to-br ${srv.tint} p-3 shadow-[var(--shadow-card)] transition-all duration-200 hover:border-primary/20 hover:shadow-[var(--shadow-elevated)] ${locked ? "opacity-80" : ""}`;
 
     return (
       <motion.div
@@ -277,16 +296,16 @@ function EspaceClient() {
         whileInView="show"
         viewport={{ once: true, amount: 0.2 }}
         variants={stagger}
-        className="px-5 pt-8"
+        className="px-5 pt-9 sm:px-8"
       >
         <motion.div variants={fadeUp} className="flex items-center justify-between">
           <h2 className="text-lg font-bold">Suggestions populaires</h2>
-          <a href="/activites" className="flex items-center gap-1 text-xs font-semibold text-primary">
+          <Link to="/activites" className="flex items-center gap-1 text-xs font-semibold text-primary">
             Tout voir <ArrowRight className="h-3 w-3" />
-          </a>
+          </Link>
         </motion.div>
 
-        <motion.div variants={stagger} className="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+        <motion.div variants={stagger} className="mt-4 flex snap-x gap-4 overflow-x-auto pb-3 scrollbar-none">
           {DESTINATIONS.map((dest) => (
             <motion.article
               key={dest.id}
@@ -307,9 +326,9 @@ function EspaceClient() {
               variants={fadeUp}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.97 }}
-              className="group w-40 shrink-0 cursor-pointer overflow-hidden rounded-2xl border bg-card text-left transition-shadow hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="group w-56 shrink-0 snap-start cursor-pointer overflow-hidden rounded-[var(--radius-card)] border border-border/70 bg-card text-left shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-elevated)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              <div className="relative h-28 overflow-hidden">
+              <div className="relative h-36 overflow-hidden">
                 <img
                   src={dest.image}
                   alt={dest.name}
@@ -369,7 +388,7 @@ function EspaceClient() {
         whileInView="show"
         viewport={{ once: true, amount: 0.2 }}
         variants={stagger}
-        className="px-5 pt-8"
+        className="px-5 pt-9 sm:px-8"
       >
         <motion.div variants={fadeUp} className="flex items-center gap-2">
           <h2 className="text-lg font-bold">Que souhaitez-vous faire ?</h2>
@@ -398,7 +417,7 @@ function EspaceClient() {
               </div>
             ))}
           </div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl bg-background/70 backdrop-blur-[1px]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-[var(--radius-card)] bg-background/80 backdrop-blur-sm">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted">
               <Lock className="h-5 w-5 text-muted-foreground" />
             </div>
