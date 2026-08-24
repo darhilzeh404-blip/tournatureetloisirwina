@@ -79,6 +79,9 @@ function VtcTrackingPage() {
   const [retryCount, setRetryCount] = useState(0);
   const [searchRadiusKm, setSearchRadiusKm] = useState(5);
   const [retrying, setRetrying] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
   const driverPos = useDriverPosition(trip?.driver_id ?? null);
   const clientPosition = useShareClientPosition(user?.id, trip?.id, sharePosition && trip?.status !== "completed");
 
