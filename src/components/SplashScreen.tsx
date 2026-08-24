@@ -20,7 +20,8 @@ function hasSeenSplash() {
 
 const alreadySeen = hasSeenSplash();
 // Durée d'un cycle complet de course de la panthère (doit rester synchro avec le CSS)
-const RUN_CYCLE_MS = 3000;
+// Allongée : la panthère traverse lentement, avec un mouvement crédible.
+const RUN_CYCLE_MS = 3600;
 const EXIT_MS = 600;
 // Le splash dure toujours un cycle complet => la panthère court 3 secondes, jamais coupée
 const MIN_SPLASH_MS = alreadySeen ? 0 : RUN_CYCLE_MS;
