@@ -265,6 +265,54 @@ function VtcTrackingPage() {
     }
   };
 
+  // ===== Annulation avant dispatch (aucun chauffeur assigné) =====
+  // 20 % du montant payé sont retenus, 80 % recrédités sur le portefeuille.
+  const canCancel = Boolean(
+    reservation &&
+      reservation.status !== "CANCELLED" &&
+      !trip?.driver_id &&
+      trip?.status !== "active" &&
+      trip?.status !== "completed",
+  );
+  const paidAmount = Number(reservation?.total_amount ?? 0);
+  const cancelFee = Math.ceil(paidAmount * 0.2);
+  const cancelRefund = Math.max(paidAmount - cancelFee, 0);
+
+  const confirmCancel = async () => {
+    setCancelling(true);
+    try {
+      const { error } = await supabase.rpc("cancel_vtc_reservation" as never, {
+        _reservation_id: reservationId,
+      } as never);
+      if (error) throw error;
+      appToast.success(
+        "Course annulée",
+        paidAmount > 0
+          ? `${cancelRefund.toLocaleString("fr-FR")} FCFA recrédités sur votre portefeuille (frais d'annulation : ${cancelFee.toLocaleString("fr-FR")} FCFA).`
+          : "Votre demande a bien été annulée.",
+      );
+      void showAppNotification("Course VTC annulée", {
+        body: paidAmount > 0 ? `Remboursement de ${cancelRefund.toLocaleString("fr-FR")} FCFA sur votre portefeuille.` : undefined,
+        tag: `vtc-cancel-${reservationId}`,
+      });
+      setCancelOpen(false);
+      void loadTracking();
+      navigate({ to: "/mes-reservations" });
+    } catch (e) {
+      const msg = String((e as { message?: string })?.message ?? "");
+      appToast.error(
+        "Annulation impossible",
+        /DRIVER_ALREADY_ASSIGNED/.test(msg)
+          ? "Un chauffeur a déjà accepté votre course. Contactez le support pour annuler."
+          : "Réessayez dans quelques instants.",
+      );
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+
+
   // Auto-retry toutes les 30s tant qu'aucun chauffeur n'est assigné.
   useEffect(() => {
     if (!shouldReplan || retryCount >= 5) return;
