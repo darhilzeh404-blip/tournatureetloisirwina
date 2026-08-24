@@ -650,7 +650,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
                     ? "Immédiatement"
                     : new Date(scheduledAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
                 />
-                <RecapRow label="Paiement" value={paymentMode === "cash" ? "Espèces au chauffeur" : "Portefeuille WINA"} />
+                <RecapRow label="Paiement" value="Portefeuille WINA" />
               </dl>
 
               <div className="mt-3 flex items-center justify-between rounded-2xl bg-primary/10 p-4">

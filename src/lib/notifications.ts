@@ -20,7 +20,7 @@ export async function requestNotificationPermission() {
  */
 export function isNightHoursNow(date: Date = new Date()): boolean {
   const h = date.getHours();
-  return h >= 22 || h < 6;
+  return h >= 21 || h < 6;
 }
 
 export interface AppNotificationOptions extends NotificationOptions {

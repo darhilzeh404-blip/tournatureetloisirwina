@@ -39,8 +39,8 @@ export const CATEGORIES: CatMeta[] = [
 export const getCategory = (id: VehicleCategory) =>
   CATEGORIES.find((c) => c.id === id) ?? CATEGORIES[0];
 
-/** Course de nuit : 22h → 06h, réglée en espèces au chauffeur. */
+/** Course de nuit : 21h → 06h (paiement portefeuille uniquement, plus d'espèces). */
 export function isNightRide(iso: string) {
   const h = new Date(iso).getHours();
-  return h >= 22 || h < 6;
+  return h >= 21 || h < 6;
 }
