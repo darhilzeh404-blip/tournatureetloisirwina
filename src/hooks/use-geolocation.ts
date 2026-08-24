@@ -36,10 +36,16 @@ export interface GeoError {
   message: string;
 }
 
-export function useGeolocation({ enabled, onUpdate }: UseGeolocationOptions) {
+export function useGeolocation({
+  enabled,
+  onUpdate,
+  minIntervalMs = 3000,
+  minDistanceM = 15,
+}: UseGeolocationOptions) {
   const [position, setPosition] = useState<GeoPosition | null>(null);
   const [error, setError] = useState<GeoError | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const lastEmittedRef = useRef<{ at: number; pos: GeoPosition } | null>(null);
   const onUpdateRef = useRef(onUpdate);
 
   useEffect(() => {
