@@ -5,6 +5,7 @@ import { Plus, Search, Pencil, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { VirtualTableBody } from "@/components/ui/virtual-list";
 
 export const Route = createFileRoute("/admin/utilisateurs")({
   component: AdminUtilisateurs,
@@ -44,18 +45,24 @@ function AdminUtilisateurs() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    const { data: profiles } = await supabase.from("profiles").select("*");
-    const { data: roles } = await supabase.from("user_roles").select("*");
+    // Bornage : sans `.limit()`, une base volumineuse renvoyait des milliers de
+    // lignes d'un coup et bloquait la WebView Android au rendu.
+    const [{ data: profiles }, { data: roles }] = await Promise.all([
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(1000),
+      supabase.from("user_roles").select("user_id, role").limit(2000),
+    ]);
     if (profiles && roles) {
+      // Index O(1) au lieu d'un `find()` par profil (coût O(n x m)).
+      const roleByUser = new Map<string, string>();
+      for (const r of roles as any[]) if (!roleByUser.has(r.user_id)) roleByUser.set(r.user_id, r.role);
       const merged: UserRow[] = profiles.map((p: any) => {
-        const r = roles.find((r: any) => r.user_id === p.user_id);
         return {
           user_id: p.user_id,
           full_name: p.full_name,
           email: p.email,
           phone: p.phone,
           status: p.status ?? "actif",
-          role: r?.role ?? "client",
+          role: roleByUser.get(p.user_id) ?? "client",
         };
       });
       setUsers(merged);
@@ -197,13 +204,20 @@ function AdminUtilisateurs() {
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Chargement...</td></tr>
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Aucun utilisateur</td></tr>
-              ) : (
-                filtered.map(u => {
+            {loading || filtered.length === 0 ? (
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Chargement...</td></tr>
+                ) : (
+                  <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Aucun utilisateur</td></tr>
+                )}
+              </tbody>
+            ) : (
+              <VirtualTableBody
+                items={filtered}
+                colSpan={5}
+                estimateRowHeight={65}
+                renderRow={(u) => {
                   const rl = ROLE_LABELS[u.role] ?? ROLE_LABELS.client;
                   return (
                     <tr key={u.user_id} className="border-b last:border-0">
@@ -222,9 +236,9 @@ function AdminUtilisateurs() {
                       </td>
                     </tr>
                   );
-                })
-              )}
-            </tbody>
+                }}
+              />
+            )}
           </table>
         </CardContent>
       </Card>
