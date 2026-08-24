@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import type { MapMarker } from "@/components/LiveMap";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
+import { useVisibleInterval } from "@/hooks/use-visible-interval";
 import { useAuth } from "@/hooks/use-auth";
 import { useClientPosition, type ClientPosition } from "@/hooks/use-client-position";
 
@@ -314,13 +315,7 @@ function ChauffeurPage() {
     if (fix) await saveDriverPosition(gpsTrip, fix);
   }, [getDriverPosition, gpsTrip, loadTrips]);
 
-  useEffect(() => {
-    if (!user) return;
-    const interval = window.setInterval(() => {
-      refreshNow(true);
-    }, 25_000);
-    return () => window.clearInterval(interval);
-  }, [refreshNow, user]);
+  useVisibleInterval(() => { refreshNow(true); }, 25_000, !!user);
 
   const activeCount = trips.filter((trip) => trip.status === "active").length;
   const assignedCount = trips.length - activeCount;
