@@ -61,7 +61,13 @@ export const Route = createFileRoute("/circuits")({
       { property: "og:description", content: "Circuits et excursions touristiques au Gabon." },
     ],
   }),
-  loader: () => fetchOffersByType({ data: "CIRCUIT_TOURISTIQUE" }),
+  // Un réseau mobile qui stalle laissait cette promesse non résolue : la
+  // navigation restait figée indéfiniment sur Android. On borne l'attente.
+  loader: () =>
+    Promise.race([
+      fetchOffersByType({ data: "CIRCUIT_TOURISTIQUE" }),
+      new Promise<Offer[]>((resolve) => setTimeout(() => resolve([]), 5000)),
+    ]).catch(() => [] as Offer[]),
   component: CircuitsPage,
 });
 
