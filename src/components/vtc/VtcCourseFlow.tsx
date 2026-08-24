@@ -168,12 +168,11 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
     ? new Date().toISOString()
     : (scheduledAt ? new Date(scheduledAt).toISOString() : "");
   const night = effectiveScheduledAt ? isNightRide(effectiveScheduledAt) : false;
-  // Paiement en espèces supprimé (y compris la nuit) : tout passe par le portefeuille.
-  const paymentMode: "wallet" = "wallet";
+  const paymentMode: "cash" | "wallet" = night ? "cash" : "wallet";
 
   // ─── Solde portefeuille (étape paiement) ─────────────────────────────────
   useEffect(() => {
-    if (step < 2 || !user) return;
+    if (step < 2 || !user || night) return;
     let cancelled = false;
     (async () => {
       try {
@@ -183,8 +182,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
       } catch { if (!cancelled) setWalletBalance(null); }
     })();
     return () => { cancelled = true; };
-  }, [step, user]);
-
+  }, [step, user, night]);
 
   // ─── Sélection carte / GPS ───────────────────────────────────────────────
   const useCurrentLocation = () => {
@@ -250,9 +248,8 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
         reservation_date: effectiveScheduledAt.slice(0, 10),
         total_amount: total,
         paid_amount: 0,
-        paiement_valide: false,
-        status: "PENDING_PAYMENT" as const,
-
+        paiement_valide: night,
+        status: night ? ("CONFIRMED" as const) : ("PENDING_PAYMENT" as const),
         details: {
           flow: "vtc_course", category,
           category_label: getCategory(category).title,
@@ -264,30 +261,31 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
           scheduled_at: effectiveScheduledAt, ride_timing: rideTiming,
           unit_price: fare.price, base_standard_price: fare.base, estimated_total: total,
           auto_dispatch: true,
-          payment_mode: "wallet",
+          payment_mode: night ? "cash" : "mobile_money",
         },
       }).select("id").single();
       if (error) throw error;
       reservationId = data.id;
 
-      try {
-        const { payReservationWithWallet } = await import("@/lib/vtc-wallet");
-        await payReservationWithWallet(data.id);
-      } catch (e) {
-        await supabase.from("reservations").delete().eq("id", data.id);
-        const msg = String((e as { message?: string })?.message ?? "");
-        if (/INSUFFICIENT_POINTS/i.test(msg)) {
-          setPhase({
-            kind: "error",
-            title: "Solde insuffisant",
-            description: `Il vous faut ${formatXAF(total)} dans votre portefeuille pour confirmer cette course.`,
-            recharge: true,
-          });
-          return;
+      if (!night) {
+        try {
+          const { payReservationWithWallet } = await import("@/lib/vtc-wallet");
+          await payReservationWithWallet(data.id);
+        } catch (e) {
+          await supabase.from("reservations").delete().eq("id", data.id);
+          const msg = String((e as { message?: string })?.message ?? "");
+          if (/INSUFFICIENT_POINTS/i.test(msg)) {
+            setPhase({
+              kind: "error",
+              title: "Solde insuffisant",
+              description: `Il vous faut ${formatXAF(total)} dans votre portefeuille pour confirmer cette course.`,
+              recharge: true,
+            });
+            return;
+          }
+          throw e;
         }
-        throw e;
       }
-
       setPhase({ kind: "processing", paid: true, dispatched: false });
 
       const { data: createdTrip, error: tripErr } = await supabase.from("trips").insert({
@@ -329,10 +327,11 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
       }
 
       appToast.success(
-        "Course payée et confirmée",
-        `${formatXAF(total)} débités de votre portefeuille.`,
+        night ? "Course confirmée" : "Course payée et confirmée",
+        night
+          ? "Paiement en espèces au chauffeur à l'arrivée."
+          : `${formatXAF(total)} débités de votre portefeuille.`,
       );
-
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
     } catch (e) {
       console.error("[VTC] submit", e);
@@ -354,7 +353,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
         description="Restez sur cet écran quelques secondes, nous finalisons votre réservation."
         steps={[
           { label: "Création de la réservation", done: true },
-          { label: "Débit du portefeuille", done: phase.paid },
+          { label: night ? "Paiement en espèces à l'arrivée" : "Débit du portefeuille", done: phase.paid },
           { label: "Recherche d'un chauffeur dans 5 km", done: phase.dispatched },
         ]}
       />
@@ -575,11 +574,10 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
                   />
                 )}
                 {night && (
-                  <p className="mt-3 rounded-2xl bg-primary/10 p-3 text-[12px] font-semibold text-primary">
-                    Course de nuit (21h–06h) : le règlement en espèces n'est plus accepté, le paiement se fait uniquement par portefeuille WINA.
+                  <p className="mt-3 rounded-2xl bg-amber-500/10 p-3 text-[12px] font-semibold text-amber-700">
+                    Course de nuit (22h–06h) : le règlement se fait en espèces auprès du chauffeur.
                   </p>
                 )}
-
               </StepCard>
             </>
           )}
@@ -611,18 +609,20 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 rounded-2xl border-2 border-dashed border-border bg-muted/40 p-3 opacity-70">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <div className={`flex items-start gap-3 rounded-2xl border-2 p-3 ${paymentMode === "cash" ? "border-primary bg-primary/5" : "border-border bg-card opacity-60"}`}>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
                     <Banknote className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-extrabold text-muted-foreground line-through">Espèces au chauffeur</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[13px] font-extrabold text-foreground">Espèces au chauffeur</p>
+                      {paymentMode === "cash" && <Check className="h-4 w-4 text-primary" />}
+                    </div>
                     <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-                      Indisponible : les courses VTC, y compris de nuit (21h–06h), se règlent exclusivement par portefeuille.
+                      Réservé aux courses de nuit (22h–06h), réglées à l'arrivée.
                     </p>
                   </div>
                 </div>
-
 
                 {paymentMode === "wallet" && walletBalance !== null && walletBalance < total && (
                   <button type="button" onClick={() => navigate({ to: "/wallet/recharger" })}
@@ -650,7 +650,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
                     ? "Immédiatement"
                     : new Date(scheduledAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
                 />
-                <RecapRow label="Paiement" value="Portefeuille WINA" />
+                <RecapRow label="Paiement" value={paymentMode === "cash" ? "Espèces au chauffeur" : "Portefeuille WINA"} />
               </dl>
 
               <div className="mt-3 flex items-center justify-between rounded-2xl bg-primary/10 p-4">
