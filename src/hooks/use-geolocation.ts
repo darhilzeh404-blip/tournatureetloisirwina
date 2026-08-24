@@ -13,6 +13,15 @@ interface UseGeolocationOptions {
   enabled: boolean;
   intervalMs?: number;
   onUpdate?: (pos: GeoPosition) => void;
+  /**
+   * Intervalle minimum entre deux mises à jour propagées (état + onUpdate).
+   * `watchPosition` en haute précision émet jusqu'à ~1 point/seconde sur
+   * Android : sans ce filtre chaque point déclenchait un rendu complet de la
+   * page (carte, marqueurs, itinéraire) — d'où les gels de la WebView.
+   */
+  minIntervalMs?: number;
+  /** Distance minimale (en mètres) pour propager une mise à jour hors intervalle. */
+  minDistanceM?: number;
 }
 
 /**
