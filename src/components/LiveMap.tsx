@@ -18,6 +18,11 @@ L.Icon.Default.mergeOptions({
 const BUS_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M8 6v6"/><path d="M16 6v6"/><path d="M2 12h19.6"/><path d="M18 18h2a1 1 0 0 0 1-1v-6.5a1 1 0 0 0-.293-.707l-3.914-3.914A1 1 0 0 0 16.086 6H4a2 2 0 0 0-2 2v9a1 1 0 0 0 1 1h2"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>`;
 const CAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>`;
 
+// Cache des icônes : sans lui, chaque rendu (1 par point GPS) recréait un
+// `divIcon` par marqueur, ce qui force Leaflet à détruire/recréer le nœud DOM
+// du marqueur — cause directe des gels de la carte sur Android.
+const driverIconCache = new Map<string, L.DivIcon>();
+
 function buildDriverIcon(service: "vtc" | "bus" = "bus", heading: number | null = null, active = false) {
   const svg = service === "vtc" ? CAR_SVG : BUS_SVG;
   const color = service === "vtc" ? "#0ea5e9" : "#16a34a";
