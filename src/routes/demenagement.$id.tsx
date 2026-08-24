@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { playNotificationSound } from "@/lib/notification-sound";
 import { fetchVtcWallet, formatXAF } from "@/lib/vtc-wallet";
-import { buildMovingInvoice, buildMovingReceipt, type MovingDocData } from "@/lib/moving-receipt";
+import type { MovingDocData } from "@/lib/moving-receipt";
 import {
   HOUSING_TYPES, MOVING_STATUS_LABELS, SERVICE_TYPES, VOLUMES,
   fetchMovingPhotos, fetchMovingQuotes, fetchMovingRequest, formatFcfa,
@@ -149,9 +149,10 @@ function MovingDetail() {
     };
   };
 
-  const download = (kind: "receipt" | "invoice") => {
+  const download = async (kind: "receipt" | "invoice") => {
     const d = docData();
     if (!d) return;
+    const { buildMovingInvoice, buildMovingReceipt } = await import("@/lib/moving-receipt");
     const doc = kind === "receipt" ? buildMovingReceipt(d) : buildMovingInvoice(d);
     doc.save(`${kind === "receipt" ? "recu" : "facture"}-${d.reference}.pdf`);
   };

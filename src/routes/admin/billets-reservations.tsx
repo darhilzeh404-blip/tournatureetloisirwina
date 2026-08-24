@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Ticket as TicketIcon, Download, Search, X, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { downloadTrainReceipt } from "@/lib/train-receipt";
 
 export const Route = createFileRoute("/admin/billets-reservations")({
   head: () => ({ meta: [{ title: "Réservations billets — Admin" }] }),
@@ -113,8 +112,9 @@ function AdminBilletsReservationsPage() {
     window.open(data.signedUrl, "_blank", "noopener");
   };
 
-  const receipt = (r: Booking) => {
+  const receipt = async (r: Booking) => {
     const d = r.details ?? {};
+    const { downloadTrainReceipt } = await import("@/lib/train-receipt");
     downloadTrainReceipt({
       reference: r.reference_code ?? r.id.slice(0, 8).toUpperCase(),
       agency: r.partner_agencies?.name ?? d.agency ?? "—",
