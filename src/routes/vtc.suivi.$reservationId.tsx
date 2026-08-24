@@ -443,9 +443,10 @@ function VtcTrackingPage() {
                     {retrying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                     {noDriverFound ? "Relancer la recherche" : `Élargir à ${Math.min(searchRadiusKm + 5, 30)} km`}
                   </Button>
-                  <Link to="/mes-reservations">
-                    <Button size="sm" variant="ghost">Annuler</Button>
-                  </Link>
+                  <Button size="sm" variant="ghost" onClick={() => setCancelOpen(true)}>
+                    Annuler la course
+                  </Button>
+
                 </div>
               </div>
             )}
