@@ -9,9 +9,9 @@ export const Route = createFileRoute('/admin')({
 
 function AdminLayout() {
   return (
-    <div className="admin-layout min-h-screen lg:flex">
+    <div className="admin-layout min-h-screen bg-background lg:flex">
       <AdminSidebar />
-      <main className="admin-content flex-1 p-6 lg:p-8">
+      <main className="admin-content min-w-0 flex-1 p-4 pt-20 sm:p-6 lg:p-8">
         <div className="mb-6 hidden lg:flex items-center gap-2">
           <Link
             to="/"

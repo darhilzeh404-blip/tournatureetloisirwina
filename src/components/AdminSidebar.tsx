@@ -48,7 +48,7 @@ export function AdminSidebar() {
     exact ? location.pathname === to : location.pathname.startsWith(to);
 
   const nav = (
-    <nav className="flex flex-col gap-1">
+    <nav className="flex flex-col gap-1.5">
       {adminLinks.map((link) => {
         const active = isActive(link.to, link.exact);
         return (
@@ -56,10 +56,10 @@ export function AdminSidebar() {
             key={link.to}
             to={link.to}
             onClick={() => setOpen(false)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
               active
-                ? "bg-primary text-primary-foreground"
-                : "text-sidebar-foreground hover:bg-sidebar-accent"
+                ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-[var(--shadow-card)]"
+                : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             }`}
           >
             <link.icon className="h-4 w-4 shrink-0" />
@@ -74,7 +74,7 @@ export function AdminSidebar() {
     <>
       <button
         onClick={() => setOpen(!open)}
-        className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg lg:hidden"
+        className="fixed left-4 top-[calc(1rem+env(safe-area-inset-top,0px))] z-50 flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[var(--shadow-elevated)] lg:hidden"
         aria-label="Menu admin"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -85,20 +85,20 @@ export function AdminSidebar() {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r bg-sidebar transition-transform lg:relative lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-40 flex h-full w-72 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[var(--shadow-elevated)] transition-transform lg:sticky lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center gap-2 border-b px-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Bus className="h-4 w-4 text-primary-foreground" />
+        <div className="flex h-20 items-center gap-3 border-b border-sidebar-border px-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sidebar-primary">
+            <Bus className="h-5 w-5 text-sidebar-primary-foreground" />
           </div>
-          <span className="text-sm font-bold text-foreground">Wina Admin</span>
+          <div><span className="block font-display text-sm font-bold">WINA TOUR</span><span className="text-[11px] text-sidebar-foreground/55">Administration</span></div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3">{nav}</div>
 
-        <div className="border-t p-3 space-y-1">
+        <div className="space-y-1 border-t border-sidebar-border p-3">
           <button
             onClick={() => {
               setClientPreview(true);
