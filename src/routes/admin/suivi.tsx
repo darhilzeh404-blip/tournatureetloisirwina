@@ -73,38 +73,62 @@ function AdminTrackingPage() {
         setVtcDriverIds(new Set(data.map((d: { user_id: string }) => d.user_id)));
       });
 
+    // Anti-rebond : les courses génèrent des rafales d'événements temps réel.
+    const scheduleLoad = () => {
+      if (reloadTimer) clearTimeout(reloadTimer);
+      reloadTimer = setTimeout(() => void load(), 600);
+    };
+
     const channel = supabase
       .channel("admin-trips")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "trips" },
-        () => load()
+        scheduleLoad
       )
       .subscribe();
     return () => {
       mounted = false;
+      if (reloadTimer) clearTimeout(reloadTimer);
       supabase.removeChannel(channel);
     };
   }, []);
 
-  const filteredPositions = positions.filter((p) => {
-    if (!filter) return true;
-    const name = profiles[p.driver_id]?.toLowerCase() ?? "";
-    return name.includes(filter.toLowerCase());
-  });
+  const filteredPositions = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return positions;
+    return positions.filter((p) => (profiles[p.driver_id]?.toLowerCase() ?? "").includes(q));
+  }, [positions, profiles, filter]);
 
-  const markers: MapMarker[] = filteredPositions.map((p) => ({
-    id: p.driver_id,
-    lat: Number(p.latitude),
-    lng: Number(p.longitude),
-    type: "driver",
-    label: profiles[p.driver_id] ?? "Chauffeur",
-    service: vtcDriverIds.has(p.driver_id) ? "vtc" : "bus",
-    heading: p.heading,
-  }));
+  const markers: MapMarker[] = useMemo(
+    () =>
+      filteredPositions.map((p) => ({
+        id: p.driver_id,
+        lat: Number(p.latitude),
+        lng: Number(p.longitude),
+        type: "driver" as const,
+        label: profiles[p.driver_id] ?? "Chauffeur",
+        service: (vtcDriverIds.has(p.driver_id) ? "vtc" : "bus") as "vtc" | "bus",
+        heading: p.heading,
+      })),
+    [filteredPositions, profiles, vtcDriverIds],
+  );
 
-  const activeTrips = trips.filter((t) => t.status === "active");
-  const pendingTrips = trips.filter((t) => t.status === "pending" || t.status === "assigned");
+  // Index O(1) : évite un `trips.find()` par ligne à chaque flush GPS (1 s).
+  const tripByDriver = useMemo(() => {
+    const map = new Map<string, Trip>();
+    trips.forEach((t) => {
+      if (t.driver_id && !map.has(t.driver_id)) map.set(t.driver_id, t);
+    });
+    return map;
+  }, [trips]);
+
+  const activeTrips = useMemo(() => trips.filter((t) => t.status === "active"), [trips]);
+  const pendingTrips = useMemo(
+    () => trips.filter((t) => t.status === "pending" || t.status === "assigned"),
+    [trips],
+  );
+
 
   return (
     <div className="p-4 lg:p-6 h-screen flex flex-col">
