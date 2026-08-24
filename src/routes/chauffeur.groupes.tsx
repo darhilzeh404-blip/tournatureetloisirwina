@@ -94,17 +94,22 @@ function ChauffeurGroupesPage() {
 
     const ids = rows.map((r) => r.id);
     if (ids.length > 0) {
-      const results = await Promise.all(
-        ids.map((rid) =>
-          supabase.rpc("get_group_ride_passengers_for_driver", { _ride_id: rid })
-        )
-      );
+      // Les RPC sont envoyés par lots de 5 : un `Promise.all` sur toutes les
+      // courses saturait le réseau de la WebView Android (écran figé).
       const map: Record<string, Passenger[]> = {};
-      results.forEach((res, idx) => {
-        const rid = ids[idx];
-        const data = (res.data || []) as Passenger[];
-        map[rid] = data.filter((p) => p.status !== "cancelled");
-      });
+      for (let i = 0; i < ids.length; i += 5) {
+        const batch = ids.slice(i, i + 5);
+        const results = await Promise.all(
+          batch.map((rid) =>
+            supabase.rpc("get_group_ride_passengers_for_driver", { _ride_id: rid })
+          )
+        );
+        results.forEach((res, idx) => {
+          const rid = batch[idx];
+          const data = (res.data || []) as Passenger[];
+          map[rid] = data.filter((p) => p.status !== "cancelled");
+        });
+      }
       setPassengers(map);
     } else {
       setPassengers({});
@@ -116,12 +121,17 @@ function ChauffeurGroupesPage() {
   useEffect(() => {
     if (!user) return;
     void load();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleReload = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { timer = null; void load(); }, 400);
+    };
     const ch = supabase
       .channel(`chauffeur-groupes-${user.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_rides" }, () => void load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers" }, () => void load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_rides" }, scheduleReload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers" }, scheduleReload)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { if (timer) clearTimeout(timer); supabase.removeChannel(ch); };
   }, [user, load]);
 
   const acceptRide = async (ride: GroupRide) => {
