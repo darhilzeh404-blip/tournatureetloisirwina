@@ -329,11 +329,10 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
       }
 
       appToast.success(
-        night ? "Course confirmée" : "Course payée et confirmée",
-        night
-          ? "Paiement en espèces au chauffeur à l'arrivée."
-          : `${formatXAF(total)} débités de votre portefeuille.`,
+        "Course payée et confirmée",
+        `${formatXAF(total)} débités de votre portefeuille.`,
       );
+
       navigate({ to: "/vtc/suivi/$reservationId", params: { reservationId: data.id } });
     } catch (e) {
       console.error("[VTC] submit", e);
