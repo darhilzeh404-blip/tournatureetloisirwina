@@ -53,7 +53,12 @@ function ConnexionPage() {
     <section className="flex min-h-[80vh] items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+          <img
+            src="/icon-192.png"
+            alt="WINA TOUR"
+            className="mx-auto mb-4 h-16 w-16 rounded-2xl shadow-lg"
+          />
+          <div className="hidden">
             <LogIn className="h-7 w-7 text-primary" />
           </div>
           <h1 className="text-2xl font-bold">Connexion</h1>
