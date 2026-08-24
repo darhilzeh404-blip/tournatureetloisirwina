@@ -134,7 +134,7 @@ function MapAutoFit({
     }
     const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]));
     map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-  }, [markers, followMarkerId, map]);
+  }, [signature, followMarkerId, map]);
   return null;
 }
 
