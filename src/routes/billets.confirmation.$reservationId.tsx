@@ -173,9 +173,16 @@ function BilletConfirmationPage() {
 
           <Link
             to="/mes-reservations"
-            className="mt-3 inline-block text-sm font-semibold text-primary"
+            className="mt-3 flex w-full items-center justify-center rounded-2xl border py-3.5 text-sm font-semibold text-foreground"
           >
             Voir mes réservations
+          </Link>
+
+          <Link
+            to="/espace-client"
+            className="mt-2.5 flex w-full items-center justify-center rounded-2xl py-3 text-sm font-semibold text-muted-foreground"
+          >
+            Retour à l'accueil
           </Link>
         </div>
       </div>
