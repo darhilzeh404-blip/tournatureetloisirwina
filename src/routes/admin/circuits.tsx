@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Pencil, Trash2, X, Users, Sparkles, Upload, Loader2 } from "lucide-react";
+import { VirtualTableBody } from "@/components/ui/virtual-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { formatFCFA } from "@/lib/destinations";
@@ -333,7 +334,15 @@ function AdminCircuits() {
                   </td>
                 </tr>
               ) : (
-                circuits.map((c) => (
+                null
+              )}
+            </tbody>
+            {!loading && circuits.length > 0 && (
+              <VirtualTableBody
+                items={circuits}
+                colSpan={5}
+                estimateRowHeight={88}
+                renderRow={(c) => (
                   <tr key={c.id} className="border-b last:border-0">
                     <td className="p-4">
                       <p className="font-medium">{c.nom}</p>
