@@ -32,14 +32,18 @@ function AdminTrackingPage() {
 
   useEffect(() => {
     let mounted = true;
+    let reloadTimer: ReturnType<typeof setTimeout> | null = null;
     const load = async () => {
       const { data: tripsData } = await supabase
         .from("trips")
-        .select("*")
+        .select("id,driver_id,client_id,origin_address,destination_address,status")
         .in("status", ["pending", "assigned", "active"])
-        .is("archived_at", null);
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (!mounted) return;
       setTrips((tripsData as Trip[]) || []);
+
 
       const ids = new Set<string>();
       (tripsData || []).forEach((t: Trip) => {
