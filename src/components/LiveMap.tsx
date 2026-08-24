@@ -101,14 +101,23 @@ function MapAutoFit({
   followMarkerId?: string;
 }) {
   const map = useMap();
+  // Les appelants reconstruisent le tableau `markers` à chaque rendu : sans
+  // cette signature stable, `fitBounds`/`setView` (animés) étaient rejoués à
+  // chaque rendu, saturant la boucle d'animation de la WebView Android.
+  const signature = markers
+    .map((m) => `${m.id}:${m.lat.toFixed(5)}:${m.lng.toFixed(5)}`)
+    .join("|");
+  const markersRef = useRef(markers);
+  markersRef.current = markers;
   // E2E hook: expose the Leaflet map + current markers on window so Playwright
   // can assert exact coordinates. No-op in production (just a window property).
   useEffect(() => {
     if (typeof window === "undefined") return;
     (window as unknown as { __leafletMap?: L.Map }).__leafletMap = map;
-    (window as unknown as { __leafletMarkers?: MapMarker[] }).__leafletMarkers = markers;
-  }, [map, markers]);
+    (window as unknown as { __leafletMarkers?: MapMarker[] }).__leafletMarkers = markersRef.current;
+  }, [map, signature]);
   useEffect(() => {
+    const markers = markersRef.current;
     if (followMarkerId) {
       const m = markers.find((x) => x.id === followMarkerId);
       if (m) {
