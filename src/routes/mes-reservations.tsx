@@ -46,6 +46,7 @@ async function downloadTrainReceiptFor(res: { id: string; total_amount: number; 
     toast.success("Reçu PDF téléchargé");
     return;
   }
+  const { downloadTrainReceipt } = await import("@/lib/train-receipt");
   downloadTrainReceipt({
     reference: d.reference_code ?? res.reference_code ?? res.id.slice(0, 8).toUpperCase(),
     agency: d.agency ?? "—",
