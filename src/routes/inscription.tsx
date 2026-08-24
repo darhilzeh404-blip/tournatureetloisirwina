@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
+import { FlagGabon } from "@/components/FlagGabon";
 
 export const Route = createFileRoute("/inscription")({
   head: () => ({
@@ -156,7 +157,7 @@ function InscriptionPage() {
                     country.code === c.code ? "border-primary bg-primary/5" : "bg-card"
                   }`}
                 >
-                  <span className="text-2xl">{c.flag}</span>
+                  <FlagGabon className="h-6 w-9" />
                   <span className="flex-1">
                     <span className="block text-sm font-bold">{c.name}</span>
                     <span className="block text-xs text-muted-foreground">{c.dial}</span>
@@ -174,7 +175,7 @@ function InscriptionPage() {
             <p className="mt-1 text-sm text-muted-foreground">Nous l'utilisons pour vos réservations.</p>
             <div className="mt-6 flex items-center gap-2">
               <span className="flex items-center gap-1.5 rounded-2xl border bg-muted/40 px-3 py-3.5 text-base font-semibold">
-                {country.flag} {country.dial}
+                <FlagGabon className="h-4 w-6" /> {country.dial}
               </span>
               <input
                 type="tel"
