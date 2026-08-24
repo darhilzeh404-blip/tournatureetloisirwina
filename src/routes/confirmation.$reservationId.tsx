@@ -6,7 +6,6 @@ import {
   CalendarCheck,
   CarFront,
   GraduationCap,
-  Download,
   Loader2,
   Package,
   Plane,
