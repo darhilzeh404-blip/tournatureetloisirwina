@@ -611,20 +611,18 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
                   </div>
                 </div>
 
-                <div className={`flex items-start gap-3 rounded-2xl border-2 p-3 ${paymentMode === "cash" ? "border-primary bg-primary/5" : "border-border bg-card opacity-60"}`}>
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                <div className="flex items-start gap-3 rounded-2xl border-2 border-dashed border-border bg-muted/40 p-3 opacity-70">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                     <Banknote className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[13px] font-extrabold text-foreground">Espèces au chauffeur</p>
-                      {paymentMode === "cash" && <Check className="h-4 w-4 text-primary" />}
-                    </div>
+                    <p className="text-[13px] font-extrabold text-muted-foreground line-through">Espèces au chauffeur</p>
                     <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-                      Réservé aux courses de nuit (22h–06h), réglées à l'arrivée.
+                      Indisponible : les courses VTC, y compris de nuit (21h–06h), se règlent exclusivement par portefeuille.
                     </p>
                   </div>
                 </div>
+
 
                 {paymentMode === "wallet" && walletBalance !== null && walletBalance < total && (
                   <button type="button" onClick={() => navigate({ to: "/wallet/recharger" })}
