@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import { FlagGabon } from "@/components/FlagGabon";
+import { SuccessScreen } from "@/components/SuccessScreen";
 
 export const Route = createFileRoute("/inscription")({
   head: () => ({
@@ -41,6 +42,7 @@ function InscriptionPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [created, setCreated] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) navigate({ to: "/espace-client" });
