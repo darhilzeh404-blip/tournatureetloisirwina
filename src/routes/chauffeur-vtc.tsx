@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapErrorBoundary } from "@/components/MapErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
+import { useSharedClock } from "@/lib/shared-clock";
 import { useAuth } from "@/hooks/use-auth";
 import { showAppNotification, requestNotificationPermission } from "@/lib/notifications";
 import { EtaBadge } from "@/components/EtaBadge";
@@ -1054,11 +1055,7 @@ function HistoryTab({ trips, loading }: { trips: VtcTrip[]; loading: boolean }) 
 }
 
 function PoolCountdown({ createdAt, windowSec = 120 }: { createdAt: string; windowSec?: number }) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
+  const now = useSharedClock(1000);
   const elapsed = Math.max(0, Math.floor((now - new Date(createdAt).getTime()) / 1000));
   const remaining = Math.max(0, windowSec - elapsed);
   const m = Math.floor(remaining / 60);

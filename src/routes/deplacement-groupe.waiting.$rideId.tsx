@@ -113,21 +113,16 @@ function SalonPage() {
   }, [rideId, user?.id]);
 
 
+  // Horloge partagée : un seul timer global au lieu d'un par compteur.
+  const clockNow = useSharedClock(1000, !!ride?.departure_deadline);
   useEffect(() => {
     if (!ride?.departure_deadline) return;
-    const tick = () => {
-      const diff = new Date(ride.departure_deadline).getTime() - Date.now();
-      setRemaining(Math.max(0, Math.floor(diff / 1000)));
-    };
-    tick();
-    const i = setInterval(tick, 1000);
-    return () => clearInterval(i);
-  }, [ride?.departure_deadline]);
+    const diff = new Date(ride.departure_deadline).getTime() - clockNow;
+    setRemaining(Math.max(0, Math.floor(diff / 1000)));
+  }, [ride?.departure_deadline, clockNow]);
 
-  useEffect(() => {
-    const i = setInterval(() => setNowTick(Date.now()), 15000);
-    return () => clearInterval(i);
-  }, []);
+  const slowTick = useSharedClock(15000);
+  useEffect(() => { setNowTick(slowTick); }, [slowTick]);
 
   // Auto-trigger : 3/3 ou deadline atteint avec >=2
   useEffect(() => {

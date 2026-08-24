@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CheckCircle, XCircle, Search, MessageSquare, ImageIcon, Copy, ExternalLink } from "lucide-react";
+import { VirtualCardGrid } from "@/components/ui/virtual-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -277,8 +278,13 @@ function AdminPaiements() {
           <CardContent className="p-8 text-center text-muted-foreground">Aucun paiement trouvé.</CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {filtered.map((p) => {
+        <VirtualCardGrid
+          items={filtered}
+          getKey={(p) => p.id}
+          minColWidth={420}
+          gap={16}
+          estimateRowHeight={320}
+          renderItem={(p) => {
             const st = STATUS_MAP[p.status];
             return (
               <Card key={p.id} className="overflow-hidden">
@@ -389,8 +395,8 @@ function AdminPaiements() {
                 </CardContent>
               </Card>
             );
-          })}
-        </div>
+          }}
+        />
       )}
 
       {/* Receipt preview modal */}

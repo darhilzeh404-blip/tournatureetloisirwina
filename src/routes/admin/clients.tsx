@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Search, Mail, Phone, CalendarCheck } from "lucide-react";
+import { VirtualCardGrid } from "@/components/ui/virtual-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -61,8 +62,13 @@ function AdminClients() {
       </div>
 
       {/* Client cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {filtered.map((c) => (
+      <VirtualCardGrid
+        items={filtered}
+        getKey={(c) => c.id}
+        minColWidth={320}
+        gap={16}
+        estimateRowHeight={230}
+        renderItem={(c) => (
           <Card key={c.id} className="card-hover">
             <CardContent className="p-5">
               <div className="flex items-start justify-between">
@@ -91,8 +97,8 @@ function AdminClients() {
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        )}
+      />
 
       {filtered.length === 0 && (
         <div className="py-12 text-center text-muted-foreground">Aucun client trouvé.</div>
