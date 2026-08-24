@@ -264,7 +264,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
           scheduled_at: effectiveScheduledAt, ride_timing: rideTiming,
           unit_price: fare.price, base_standard_price: fare.base, estimated_total: total,
           auto_dispatch: true,
-          payment_mode: night ? "cash" : "mobile_money",
+          payment_mode: "wallet",
         },
       }).select("id").single();
       if (error) throw error;
