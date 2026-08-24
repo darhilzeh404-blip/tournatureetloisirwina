@@ -95,8 +95,7 @@ function InscriptionPage() {
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
       await signUp(email.trim(), password, fullName, `${country.dial}${digits}`);
-      toast.success("Compte créé avec succès !");
-      navigate({ to: "/espace-client" });
+      setCreated(true);
     } catch (e: any) {
       const msg = e?.message || "Erreur lors de l'inscription";
       setError(msg);
@@ -104,6 +103,21 @@ function InscriptionPage() {
       setLoading(false);
     }
   };
+
+  if (created) {
+    return (
+      <SuccessScreen
+        title="Bienvenue chez Agence Wina !"
+        message="Votre compte a été créé avec succès. Vous pouvez maintenant effectuer et suivre vos réservations."
+        details={[
+          { label: "Nom", value: `${firstName.trim()} ${lastName.trim()}` },
+          { label: "Email", value: email.trim() },
+          { label: "Téléphone", value: `${country.dial} ${digits}` },
+        ]}
+        actions={[{ label: "Continuer", onClick: () => navigate({ to: "/espace-client" }) }]}
+      />
+    );
+  }
 
   const inputClass =
     "w-full rounded-2xl border bg-background px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50";
