@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
+import { FlagGabon } from "@/components/FlagGabon";
 
 export const Route = createFileRoute("/inscription")({
   head: () => ({
