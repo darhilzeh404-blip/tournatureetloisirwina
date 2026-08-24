@@ -376,9 +376,9 @@ function AdminCircuits() {
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
+                )}
+              />
+            )}
           </table>
         </CardContent>
       </Card>
