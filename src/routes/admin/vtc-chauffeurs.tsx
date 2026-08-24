@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Search, Pencil, Trash2, Eye, EyeOff, Download, KeyRound, X, Car, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -528,7 +528,7 @@ function DriverDetailModal({ driver, onClose }: { driver: Driver; onClose: () =>
   const [trips, setTrips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadTrips = async () => {
+  const loadTrips = useCallback(async () => {
     setLoading(true);
     const now = new Date();
     let from = new Date(now); from.setHours(0, 0, 0, 0);
@@ -543,15 +543,29 @@ function DriverDetailModal({ driver, onClose }: { driver: Driver; onClose: () =>
       .order("completed_at", { ascending: false });
     setTrips((data ?? []).filter((t: any) => t.reservations?.service_type === "VTC"));
     setLoading(false);
-  };
-
-  useEffect(() => { loadTrips(); }, [period]);
-  useEffect(() => {
-    const ch = supabase.channel(`driver-detail-${driver.id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "trips", filter: `driver_id=eq.${driver.user_id}` }, () => loadTrips())
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
   }, [driver.user_id, period]);
+
+  // Le rechargement suit le filtre…
+  useEffect(() => { loadTrips(); }, [loadTrips]);
+
+  // …mais l'abonnement realtime ne dépend QUE du chauffeur : changer de
+  // filtre (jour/semaine/mois) ne recrée plus le websocket. Les événements
+  // sont regroupés (debounce 400 ms) pour éviter les rafales de requêtes.
+  const reloadRef = useRef(loadTrips);
+  reloadRef.current = loadTrips;
+  useEffect(() => {
+    let debounce: number | null = null;
+    const ch = supabase.channel(`driver-detail-${driver.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "trips", filter: `driver_id=eq.${driver.user_id}` }, () => {
+        if (debounce !== null) window.clearTimeout(debounce);
+        debounce = window.setTimeout(() => reloadRef.current(), 400);
+      })
+      .subscribe();
+    return () => {
+      if (debounce !== null) window.clearTimeout(debounce);
+      supabase.removeChannel(ch);
+    };
+  }, [driver.id, driver.user_id]);
 
   const gross = trips.reduce((s, t) => s + (t.reservations?.total_amount ?? 0), 0);
   const net = gross * (1 - COMMISSION);

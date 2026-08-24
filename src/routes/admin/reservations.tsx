@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { CheckCircle, XCircle, Eye, Search, UserPlus, Loader2, X, MapPin, Receipt, ShieldCheck, Archive, ArchiveRestore } from "lucide-react";
+import { VirtualTableBody } from "@/components/ui/virtual-list";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -485,8 +486,18 @@ function AdminReservations() {
                       <th className="p-4">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {filtered.map((r) => {
+                  {filtered.length === 0 ? (
+                    <tbody>
+                      <tr>
+                        <td colSpan={12} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
+                      </tr>
+                    </tbody>
+                  ) : (
+                  <VirtualTableBody
+                    items={filtered}
+                    colSpan={12}
+                    estimateRowHeight={104}
+                    renderRow={(r) => {
                       const st = STATUS_MAP[r.status];
                       const p = profiles.get(r.user_id);
                       const trip = trips.get(r.id);
@@ -627,13 +638,9 @@ function AdminReservations() {
                           </td>
                         </tr>
                       );
-                    })}
-                    {filtered.length === 0 && (
-                      <tr>
-                        <td colSpan={12} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
-                      </tr>
-                    )}
-                  </tbody>
+                    }}
+                  />
+                  )}
                 </table>
               )}
             </CardContent>
