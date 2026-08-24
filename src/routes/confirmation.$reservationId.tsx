@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import {
   Bus,
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/confirmation/$reservationId")({
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
 
 type Ctx = {
-  icon: JSX.Element;
+  icon: ReactNode;
   title: string;
   message: string;
   label: string;
