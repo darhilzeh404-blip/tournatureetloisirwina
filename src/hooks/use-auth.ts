@@ -253,18 +253,21 @@ export function useAuth() {
     return nextState;
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    const { error } = await withTimeout(
-      supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: fullName } },
-      }),
-      AUTH_TIMEOUT_MS,
-      "Création du compte",
-    );
-    if (error) throw error;
-  }, []);
+  const signUp = useCallback(
+    async (email: string, password: string, fullName: string, phone?: string) => {
+      const { error } = await withTimeout(
+        supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName, ...(phone ? { phone } : {}) } },
+        }),
+        AUTH_TIMEOUT_MS,
+        "Création du compte",
+      );
+      if (error) throw error;
+    },
+    [],
+  );
 
   const signOut = useCallback(async () => {
     await withTimeout(supabase.auth.signOut(), AUTH_TIMEOUT_MS, "Déconnexion");
