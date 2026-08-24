@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { createSignedUrlMap } from "@/lib/signed-urls";
 import { GROUP_RIDE_STATUS_LABEL } from "@/lib/group-ride";
 
 export const Route = createFileRoute("/admin/group-rides")({
@@ -115,16 +116,16 @@ function AdminGroupRides() {
     });
     setPaxByRide(paxMap);
 
-    const enriched = await Promise.all(
-      ((pays || []) as Payment[]).map(async (p) => {
-        let signed: string | null = null;
-        if (p.receipt_url) {
-          const { data: s } = await supabase.storage.from("payment-receipts").createSignedUrl(p.receipt_url, 3600);
-          signed = s?.signedUrl ?? null;
-        }
-        return { ...p, client_name: nameMap.get(p.user_id) || "—", signed_receipt_url: signed };
-      })
+    // Une seule requête de signature pour tous les reçus (au lieu d'une par ligne).
+    const signedMap = await createSignedUrlMap(
+      "payment-receipts",
+      ((pays || []) as Payment[]).map((p) => p.receipt_url),
     );
+    const enriched = ((pays || []) as Payment[]).map((p) => ({
+      ...p,
+      client_name: nameMap.get(p.user_id) || "—",
+      signed_receipt_url: p.receipt_url ? signedMap.get(p.receipt_url) ?? null : null,
+    }));
     const payMap: Record<string, Payment[]> = {};
     enriched.forEach((p) => { (payMap[p.ride_id] ||= []).push(p); });
     setPaymentsByRide(payMap);
@@ -133,16 +134,23 @@ function AdminGroupRides() {
 
   useEffect(() => {
     void load();
+    // Les rafales d'événements temps réel sont regroupées : sans ce debounce,
+    // chaque insertion relançait un rechargement complet et gelait l'écran.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleReload = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { timer = null; void load(); }, 400);
+    };
     const ch = supabase
       .channel("admin-group-rides")
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_rides" }, () => void load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_rides" }, scheduleReload)
       .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_payments" }, (payload) => {
         if (payload.eventType === "INSERT") toast.info("Nouveau paiement groupé reçu");
-        void load();
+        scheduleReload();
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers" }, () => void load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_ride_passengers" }, scheduleReload)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { if (timer) clearTimeout(timer); supabase.removeChannel(ch); };
   }, [load]);
 
   const validate = async (id: string) => {

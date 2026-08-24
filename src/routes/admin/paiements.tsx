@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { createSignedUrlMap } from "@/lib/signed-urls";
 
 export const Route = createFileRoute("/admin/paiements")({
   component: AdminPaiements,
@@ -107,15 +108,9 @@ function AdminPaiements() {
     const nameMap = new Map((profiles || []).map((p) => [p.user_id, p.full_name]));
     const resMap = new Map((reservations || []).map((r) => [r.id, r] as const));
 
-    const enriched = await Promise.all(
-      rows.map(async (r) => {
-        let signed: string | null = null;
-        if (r.receipt_url) {
-          const { data: s } = await supabase.storage
-            .from("payment-receipts")
-            .createSignedUrl(r.receipt_url, 3600);
-          signed = s?.signedUrl ?? null;
-        }
+    const signedMap = await createSignedUrlMap("payment-receipts", rows.map((r) => r.receipt_url));
+    const enriched = rows.map((r) => {
+        const signed = r.receipt_url ? signedMap.get(r.receipt_url) ?? null : null;
         const res = resMap.get(r.reservation_id);
         const d = (res?.details as Record<string, unknown> | null) || null;
         const summary = d
@@ -131,8 +126,7 @@ function AdminPaiements() {
           service_type: res?.service_type ?? null,
           service_summary: summary,
         };
-      })
-    );
+      });
 
     setPayments(enriched);
     setLoading(false);
