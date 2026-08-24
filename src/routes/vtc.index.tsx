@@ -3,8 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar, CarFront, Check, CheckCircle2, ChevronDown, Clock, Gem, Heart,
-  Loader2, MapPin, Navigation, Sparkles, Users, Zap, ArrowRight, Star,
-  Search, AlertCircle, Timer, Radar,
+  Loader2, MapPin, Sparkles, Users, Zap, ArrowRight, Star,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -12,16 +11,9 @@ import { ClientNav } from "@/components/ClientNav";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
-import { LazyVtcZoneMap, type AvailableDriver } from "@/components/LazyVtcZoneMap";
-import { VtcDestinationSearch } from "@/components/VtcDestinationSearch";
-import { NumberInput } from "@/components/ui/number-input";
-import {
-  computeFare, detectZone, formatXAF, zoneLabel, ZONES,
-  type RideMode, type VehicleCategory, type ZoneId,
-} from "@/lib/vtc-zones";
+import { formatXAF } from "@/lib/vtc-zones";
 import kiaK7Bg from "@/assets/kia-k7-vtc.jpg";
 import { VtcCourseFlow } from "@/components/vtc/VtcCourseFlow";
-import { CATEGORIES } from "@/lib/vtc-categories";
 
 
 export const Route = createFileRoute("/vtc/")({
