@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Calendar, CarFront, Check, Clock, MapPin, Navigation,
-  Search, AlertCircle, Timer, Users, Wallet, Zap, Banknote, Loader2, Star,
+  Search, AlertCircle, Timer, Users, Wallet, Zap, Loader2, Star,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +14,7 @@ import { VtcDestinationSearch } from "@/components/VtcDestinationSearch";
 import { NumberInput } from "@/components/ui/number-input";
 import { VtcStepper } from "@/components/vtc/VtcStepper";
 import { VtcStateScreen } from "@/components/vtc/VtcStateScreen";
-import { CATEGORIES, getCategory, isNightRide } from "@/lib/vtc-categories";
+import { CATEGORIES, getCategory } from "@/lib/vtc-categories";
 import {
   computeFare, detectZone, formatXAF, zoneLabel, ZONES,
   type RideMode, type VehicleCategory, type ZoneId,
@@ -168,8 +168,6 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
     ? new Date().toISOString()
     : (scheduledAt ? new Date(scheduledAt).toISOString() : "");
   // Paiement VTC : portefeuille uniquement, 24h/24 (espèces supprimées).
-  const night = false;
-  const paymentMode: "wallet" = "wallet";
 
   // ─── Solde portefeuille (étape paiement) ─────────────────────────────────
   useEffect(() => {
@@ -579,19 +577,19 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
           {step === 2 && (
             <StepCard title="Paiement" subtitle="Le règlement sécurise votre course avant l'envoi aux chauffeurs." icon={<Wallet className="h-4 w-4" />}>
               <div className="space-y-2.5">
-                <div className={`flex items-start gap-3 rounded-2xl border-2 p-3 ${paymentMode === "wallet" ? "border-primary bg-primary/5" : "border-border bg-card opacity-60"}`}>
+                <div className={`flex items-start gap-3 rounded-2xl border-2 p-3 border-primary bg-primary/5`}>
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Wallet className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-[13px] font-extrabold text-foreground">Portefeuille WINA</p>
-                      {paymentMode === "wallet" && <Check className="h-4 w-4 text-primary" />}
+                      <Check className="h-4 w-4 text-primary" />
                     </div>
                     <p className="mt-0.5 text-[11.5px] text-muted-foreground">
                       Débit immédiat de {formatXAF(total)} à la confirmation.
                     </p>
-                    {paymentMode === "wallet" && (
+                    {(
                       <p className="mt-1.5 text-[12px] font-bold text-foreground">
                         Solde : {walletBalance === null ? "…" : formatXAF(walletBalance)}
                         {walletBalance !== null && walletBalance < total && (
@@ -609,7 +607,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
 
 
 
-                {paymentMode === "wallet" && walletBalance !== null && walletBalance < total && (
+                {walletBalance !== null && walletBalance < total && (
                   <button type="button" onClick={() => navigate({ to: "/wallet/recharger" })}
                     className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/5 py-3 text-[13px] font-bold text-primary">
                     Recharger mon portefeuille <ArrowRight className="h-4 w-4" />
@@ -635,7 +633,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
                     ? "Immédiatement"
                     : new Date(scheduledAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
                 />
-                <RecapRow label="Paiement" value={paymentMode === "cash" ? "Espèces au chauffeur" : "Portefeuille WINA"} />
+                <RecapRow label="Paiement" value="Portefeuille WINA" />
               </dl>
 
               <div className="mt-3 flex items-center justify-between rounded-2xl bg-primary/10 p-4">
