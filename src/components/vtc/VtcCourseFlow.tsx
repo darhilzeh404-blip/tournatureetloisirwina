@@ -250,8 +250,8 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
         reservation_date: effectiveScheduledAt.slice(0, 10),
         total_amount: total,
         paid_amount: 0,
-        paiement_valide: night,
-        status: night ? ("CONFIRMED" as const) : ("PENDING_PAYMENT" as const),
+        paiement_valide: false,
+        status: "PENDING_PAYMENT" as const,
         details: {
           flow: "vtc_course", category,
           category_label: getCategory(category).title,
