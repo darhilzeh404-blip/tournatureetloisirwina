@@ -571,11 +571,6 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
                     className="vtc-input mt-3"
                   />
                 )}
-                {night && (
-                  <p className="mt-3 rounded-2xl bg-amber-500/10 p-3 text-[12px] font-semibold text-amber-700">
-                    Course de nuit (22h–06h) : le règlement se fait en espèces auprès du chauffeur.
-                  </p>
-                )}
               </StepCard>
             </>
           )}
