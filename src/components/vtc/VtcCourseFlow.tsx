@@ -351,7 +351,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
         description="Restez sur cet écran quelques secondes, nous finalisons votre réservation."
         steps={[
           { label: "Création de la réservation", done: true },
-          { label: night ? "Paiement en espèces à l'arrivée" : "Débit du portefeuille", done: phase.paid },
+          { label: "Débit du portefeuille", done: phase.paid },
           { label: "Recherche d'un chauffeur dans 5 km", done: phase.dispatched },
         ]}
       />
