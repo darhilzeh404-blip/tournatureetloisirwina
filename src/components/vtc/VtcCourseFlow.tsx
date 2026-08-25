@@ -607,20 +607,12 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
                   </div>
                 </div>
 
-                <div className={`flex items-start gap-3 rounded-2xl border-2 p-3 ${paymentMode === "cash" ? "border-primary bg-primary/5" : "border-border bg-card opacity-60"}`}>
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
-                    <Banknote className="h-5 w-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[13px] font-extrabold text-foreground">Espèces au chauffeur</p>
-                      {paymentMode === "cash" && <Check className="h-4 w-4 text-primary" />}
-                    </div>
-                    <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-                      Réservé aux courses de nuit (22h–06h), réglées à l'arrivée.
-                    </p>
-                  </div>
-                </div>
+                <p className="rounded-2xl bg-secondary/60 p-3 text-[11.5px] font-semibold text-muted-foreground">
+                  Le paiement en espèces n'est plus accepté pour les courses VTC : le portefeuille WINA
+                  est débité automatiquement, 24h/24 (y compris entre 21h et 06h).
+                </p>
+
+
 
                 {paymentMode === "wallet" && walletBalance !== null && walletBalance < total && (
                   <button type="button" onClick={() => navigate({ to: "/wallet/recharger" })}
