@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
+import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 import { ArrowLeft, CalendarClock, CarFront, CheckCircle2, Clock, Loader2, MapPin, Navigation, Phone, RefreshCw, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -281,10 +281,7 @@ function VtcTrackingPage() {
   const lastNotifiedRef = useRef<{ driverId?: string | null; status?: string }>({});
   useEffect(() => {
     if (!trip) return;
-    const paymentMode = (reservation?.details as Record<string, unknown> | null)?.payment_mode;
-    const cashReminder = paymentMode === "cash" || isNightHoursNow()
-      ? " Préparez le règlement en espèces."
-      : " Paiement déjà validé, rien à régler à bord.";
+    const cashReminder = " Paiement déjà débité de votre portefeuille, rien à régler à bord.";
 
     (async () => {
       await requestNotificationPermission();
@@ -306,9 +303,7 @@ function VtcTrackingPage() {
           });
         } else if (trip.status === "completed") {
           await showAppNotification("Course terminée", {
-            body: paymentMode === "cash" || isNightHoursNow()
-              ? "Merci d'avoir voyagé avec Wina. Pensez à régler en espèces au chauffeur."
-              : "Merci d'avoir voyagé avec Wina. Paiement confirmé.",
+            body: "Merci d'avoir voyagé avec Wina. Paiement confirmé.",
             tag: `vtc-done-${trip.id}`,
           });
         }
@@ -345,17 +340,6 @@ function VtcTrackingPage() {
       </header>
 
       <main className="flex flex-1 flex-col">
-        {(details.payment_mode === "cash" || isNightHoursNow()) && (
-          <div className="border-b bg-amber-500/10 px-4 py-3 text-sm">
-            <p className="font-semibold text-amber-700">💵 Paiement en espèces</p>
-            <p className="text-xs text-amber-700/80">
-              {details.payment_mode === "cash"
-                ? "Course de nuit (22h–06h) : réglez le montant total directement au chauffeur à l'arrivée."
-                : "Il est entre 22h et 06h : prévoyez de régler en espèces directement au chauffeur si votre course se déroule cette nuit."}
-            </p>
-          </div>
-        )}
-
         <section className="grid gap-3 border-b bg-card/60 p-4 text-sm sm:grid-cols-3">
           <div className="rounded-xl border bg-background p-3">
             <p className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarClock className="h-3.5 w-3.5" /> Horaire</p>
