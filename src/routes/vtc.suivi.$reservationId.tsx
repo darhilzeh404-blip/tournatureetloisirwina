@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { isNightHoursNow, requestNotificationPermission, showAppNotification } from "@/lib/notifications";
+import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
 import { ArrowLeft, CalendarClock, CarFront, CheckCircle2, Clock, Loader2, MapPin, Navigation, Phone, RefreshCw, Search, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,12 @@ import { useShareClientPosition } from "@/hooks/use-client-position";
 import { distanceKm, estimateEtaMinutes } from "@/hooks/use-geolocation";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { appToast } from "@/lib/app-toast";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 
 export const Route = createFileRoute("/vtc/suivi/$reservationId")({
@@ -79,6 +85,7 @@ function VtcTrackingPage() {
   const [retryCount, setRetryCount] = useState(0);
   const [searchRadiusKm, setSearchRadiusKm] = useState(5);
   const [retrying, setRetrying] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const driverPos = useDriverPosition(trip?.driver_id ?? null);
   const clientPosition = useShareClientPosition(user?.id, trip?.id, sharePosition && trip?.status !== "completed");
 
@@ -220,6 +227,40 @@ function VtcTrackingPage() {
   // les notifications proximité dès qu'un nouveau chauffeur passe en ligne.
   const waitingForDriver = trip && !trip.driver_id && trip.status === "pending";
   const noDriverFound = trip?.status === "no_driver_found";
+  // Annulation possible tant qu'aucun chauffeur n'est assigné et que la course n'est pas terminée.
+  const canCancel = !!reservation
+    && reservation.status !== "CANCELLED"
+    && reservation.status !== "REJECTED"
+    && !trip?.driver_id
+    && trip?.status !== "active"
+    && trip?.status !== "completed";
+  const cancelFee = Math.ceil(Number(reservation?.total_amount ?? 0) * 0.2);
+
+  const cancelRide = async () => {
+    setCancelling(true);
+    try {
+      const { data, error } = await supabase.rpc("cancel_vtc_reservation", { _reservation_id: reservationId });
+      if (error) throw error;
+      const row = (Array.isArray(data) ? data[0] : data) as { refunded?: number; fee?: number } | null;
+      appToast.success(
+        "Course annulée",
+        `Remboursement de ${Number(row?.refunded ?? 0).toLocaleString("fr-FR")} FCFA sur votre portefeuille (frais retenus : ${Number(row?.fee ?? 0).toLocaleString("fr-FR")} FCFA).`,
+      );
+      await loadTracking();
+    } catch (e) {
+      const msg = String((e as { message?: string })?.message ?? "");
+      if (/DRIVER_ALREADY_ASSIGNED/.test(msg)) {
+        appToast.error("Annulation impossible", "Un chauffeur a déjà été assigné à votre course.");
+      } else if (/ALREADY_CANCELLED/.test(msg)) {
+        appToast.info("Déjà annulée", "Cette course est déjà annulée.");
+      } else {
+        appToast.fromError(e);
+      }
+      await loadTracking();
+    } finally {
+      setCancelling(false);
+    }
+  };
   const shouldReplan = (waitingForDriver || noDriverFound) && reservation?.status === "CONFIRMED";
 
   const runReplan = async (manualRadiusKm?: number) => {
@@ -281,10 +322,7 @@ function VtcTrackingPage() {
   const lastNotifiedRef = useRef<{ driverId?: string | null; status?: string }>({});
   useEffect(() => {
     if (!trip) return;
-    const paymentMode = (reservation?.details as Record<string, unknown> | null)?.payment_mode;
-    const cashReminder = paymentMode === "cash" || isNightHoursNow()
-      ? " Préparez le règlement en espèces."
-      : " Paiement déjà validé, rien à régler à bord.";
+    const cashReminder = " Paiement déjà débité de votre portefeuille, rien à régler à bord.";
 
     (async () => {
       await requestNotificationPermission();
@@ -306,9 +344,7 @@ function VtcTrackingPage() {
           });
         } else if (trip.status === "completed") {
           await showAppNotification("Course terminée", {
-            body: paymentMode === "cash" || isNightHoursNow()
-              ? "Merci d'avoir voyagé avec Wina. Pensez à régler en espèces au chauffeur."
-              : "Merci d'avoir voyagé avec Wina. Paiement confirmé.",
+            body: "Merci d'avoir voyagé avec Wina. Paiement confirmé.",
             tag: `vtc-done-${trip.id}`,
           });
         }
@@ -345,17 +381,6 @@ function VtcTrackingPage() {
       </header>
 
       <main className="flex flex-1 flex-col">
-        {(details.payment_mode === "cash" || isNightHoursNow()) && (
-          <div className="border-b bg-amber-500/10 px-4 py-3 text-sm">
-            <p className="font-semibold text-amber-700">💵 Paiement en espèces</p>
-            <p className="text-xs text-amber-700/80">
-              {details.payment_mode === "cash"
-                ? "Course de nuit (22h–06h) : réglez le montant total directement au chauffeur à l'arrivée."
-                : "Il est entre 22h et 06h : prévoyez de régler en espèces directement au chauffeur si votre course se déroule cette nuit."}
-            </p>
-          </div>
-        )}
-
         <section className="grid gap-3 border-b bg-card/60 p-4 text-sm sm:grid-cols-3">
           <div className="rounded-xl border bg-background p-3">
             <p className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarClock className="h-3.5 w-3.5" /> Horaire</p>
@@ -446,9 +471,7 @@ function VtcTrackingPage() {
                     {retrying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                     {noDriverFound ? "Relancer la recherche" : `Élargir à ${Math.min(searchRadiusKm + 5, 30)} km`}
                   </Button>
-                  <Link to="/mes-reservations">
-                    <Button size="sm" variant="ghost">Annuler</Button>
-                  </Link>
+
                 </div>
               </div>
             )}
@@ -530,6 +553,36 @@ function VtcTrackingPage() {
             </p>
           </div>
         </section>
+
+        {canCancel && (
+          <section className="border-b bg-background p-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full gap-2 rounded-xl" disabled={cancelling}>
+                  {cancelling ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                  Annuler la course
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Annuler cette course VTC ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Des frais d'annulation de 20 % ({cancelFee.toLocaleString("fr-FR")} FCFA) seront retenus.
+                    Le reste du montant sera immédiatement recrédité sur votre portefeuille WINA et le statut
+                    de la réservation passera à « Annulé ».
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Garder ma course</AlertDialogCancel>
+                  <AlertDialogAction onClick={cancelRide}>Confirmer l'annulation</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              L'annulation n'est possible que tant qu'aucun chauffeur n'est assigné.
+            </p>
+          </section>
+        )}
 
         <section className="relative min-h-[420px] flex-1">
           {markers.length > 0 ? (
