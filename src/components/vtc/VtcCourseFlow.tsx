@@ -269,24 +269,22 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
       if (error) throw error;
       reservationId = data.id;
 
-      if (!night) {
-        try {
-          const { payReservationWithWallet } = await import("@/lib/vtc-wallet");
-          await payReservationWithWallet(data.id);
-        } catch (e) {
-          await supabase.from("reservations").delete().eq("id", data.id);
-          const msg = String((e as { message?: string })?.message ?? "");
-          if (/INSUFFICIENT_POINTS/i.test(msg)) {
-            setPhase({
-              kind: "error",
-              title: "Solde insuffisant",
-              description: `Il vous faut ${formatXAF(total)} dans votre portefeuille pour confirmer cette course.`,
-              recharge: true,
-            });
-            return;
-          }
-          throw e;
+      try {
+        const { payReservationWithWallet } = await import("@/lib/vtc-wallet");
+        await payReservationWithWallet(data.id);
+      } catch (e) {
+        await supabase.from("reservations").delete().eq("id", data.id);
+        const msg = String((e as { message?: string })?.message ?? "");
+        if (/INSUFFICIENT_POINTS/i.test(msg)) {
+          setPhase({
+            kind: "error",
+            title: "Solde insuffisant",
+            description: `Il vous faut ${formatXAF(total)} dans votre portefeuille pour confirmer cette course.`,
+            recharge: true,
+          });
+          return;
         }
+        throw e;
       }
       setPhase({ kind: "processing", paid: true, dispatched: false });
 
