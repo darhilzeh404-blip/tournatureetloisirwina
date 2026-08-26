@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { logRecovery } from "@/lib/recovery-log";
 
 const ROUTE_STUCK_RELOAD_KEY = "wina_route_stuck_reloaded";
-const ROUTE_STUCK_DELAY_MS = 10_000;
+const ROUTE_STUCK_DELAY_MS = 20_000;
 const ROUTE_STUCK_RESET_MS = 12_000;
 const RECOVERY_SUCCESS_KEY = "wina_route_recovery_pending";
 
@@ -94,7 +94,7 @@ export function StuckRouteRecovery() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const routeIsBusy = isLoading || isTransitioning || status === "pending";
+    const routeIsBusy = isLoading || isTransitioning;
     if (!routeIsBusy) return;
 
     const startedAt = Date.now();
