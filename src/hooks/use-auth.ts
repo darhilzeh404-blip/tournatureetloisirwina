@@ -33,7 +33,7 @@ const INITIAL_AUTH_STATE: AuthState = {
  */
 let currentState: AuthState = INITIAL_AUTH_STATE;
 
-const AUTH_TIMEOUT_MS = 5_000;
+const AUTH_TIMEOUT_MS = 12_000;
 const ROLE_TIMEOUT_MS = 4_000;
 const AUTH_EVENT_ROLE_TIMEOUT_MS = 2_500;
 
@@ -171,8 +171,12 @@ function initAuth() {
       console.warn("[useAuth] getSession took too long or failed:", err);
       // Refresh-token failures (400 "refresh_token_not_found") leave a bad
       // token in storage; clear it so subsequent calls stop hammering /token.
-      if (isRefreshTokenFailure(err)) clearBrokenAuthStorage();
-      try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+      // Ne JAMAIS déconnecter sur simple lenteur réseau : cela vidait la
+      // session sur desktop et laissait l'app bloquée entre deux états.
+      if (isRefreshTokenFailure(err)) {
+        clearBrokenAuthStorage();
+        try { supabase.auth.signOut({ scope: "local" } as any); } catch {}
+      }
       setState({ ...currentState, isLoading: false });
       return currentState;
     })
