@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { router } from './routes';
 import './styles.css';
 import { installRecoveryErrorLogging, logRecovery } from "./lib/recovery-log";
 import { installDynamicImportRecovery } from "./lib/dynamic-import-recovery";
@@ -27,14 +28,12 @@ function hideBootSplash() {
   window.setTimeout(() => el.remove(), 400);
 }
 
-async function startApp() {
+function startApp() {
   // Import statique du routeur : l'ancien `import('./routes')` dynamique
   // (+ retry `./routes.tsx?retry=…`) échouait en production dès qu'un chunk
   // était remplacé ou que l'URL source n'existait pas → écran blanc/figé
   // sur desktop. Le routeur fait partie du bundle principal, donc plus
   // aucun chunk à récupérer au démarrage.
-  const { router } = await import('./routes');
-
   const app = <ErrorBoundary><RouterProvider router={router} /></ErrorBoundary>;
 
   if (root.hasChildNodes()) {
