@@ -28,17 +28,12 @@ function hideBootSplash() {
 }
 
 async function startApp() {
-  // Un import dynamique peut échouer si un chunk a été remplacé (nouveau
-  // déploiement) ou sur un réseau instable : on retente avant d'abandonner.
-  let mod: typeof import('./routes');
-  try {
-    mod = await import('./routes');
-  } catch (error) {
-    logRecovery("warn", "app.routes-import-failed", { error: String(error) });
-    await new Promise((r) => setTimeout(r, 400));
-    mod = await import(/* @vite-ignore */ `./routes.tsx?retry=${Date.now()}`);
-  }
-  const { router } = mod;
+  // Import statique du routeur : l'ancien `import('./routes')` dynamique
+  // (+ retry `./routes.tsx?retry=…`) échouait en production dès qu'un chunk
+  // était remplacé ou que l'URL source n'existait pas → écran blanc/figé
+  // sur desktop. Le routeur fait partie du bundle principal, donc plus
+  // aucun chunk à récupérer au démarrage.
+  const { router } = await import('./routes');
 
   const app = <ErrorBoundary><RouterProvider router={router} /></ErrorBoundary>;
 
@@ -50,6 +45,7 @@ async function startApp() {
 
   requestAnimationFrame(() => window.setTimeout(hideBootSplash, 250));
 }
+
 
 // Filet de sécurité : ne jamais laisser le splash bloqué à l'écran.
 window.setTimeout(hideBootSplash, 6000);
