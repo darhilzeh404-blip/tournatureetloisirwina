@@ -4983,6 +4983,10 @@ export type Database = {
         Returns: undefined
       }
       admin_draw_lottery: { Args: { _lottery_id: string }; Returns: string }
+      admin_hard_delete: {
+        Args: { _ids: string[]; _table: string }
+        Returns: number
+      }
       admin_issue_bus_ticket: {
         Args: {
           _boarding_time: string
