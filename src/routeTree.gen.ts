@@ -107,6 +107,7 @@ import { Route as BilletsConfirmationReservationIdRouteImport } from './routes/b
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
 import { Route as BilletsBusAgencyIdRouteImport } from './routes/billets.bus.$agencyId'
 import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
+import { Route as ApiAdminDeleteUserRouteImport } from './routes/api/admin.delete-user'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
 
@@ -605,6 +606,11 @@ const BilletsAgenceAgencyIdRoute = BilletsAgenceAgencyIdRouteImport.update({
   path: '/agence/$agencyId',
   getParentRoute: () => BilletsRoute,
 } as any)
+const ApiAdminDeleteUserRoute = ApiAdminDeleteUserRouteImport.update({
+  id: '/api/admin/delete-user',
+  path: '/api/admin/delete-user',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminCreateUserRoute = ApiAdminCreateUserRouteImport.update({
   id: '/api/admin/create-user',
   path: '/api/admin/create-user',
@@ -708,6 +714,7 @@ export interface FileRoutesByFullPath {
   '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/api/admin/delete-user': typeof ApiAdminDeleteUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -805,6 +812,7 @@ export interface FileRoutesByTo {
   '/vtc': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/api/admin/delete-user': typeof ApiAdminDeleteUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -908,6 +916,7 @@ export interface FileRoutesById {
   '/vtc/': typeof VtcIndexRoute
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
+  '/api/admin/delete-user': typeof ApiAdminDeleteUserRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -1012,6 +1021,7 @@ export interface FileRouteTypes {
     | '/vtc/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/api/admin/delete-user'
     | '/billets/agence/$agencyId'
     | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
@@ -1109,6 +1119,7 @@ export interface FileRouteTypes {
     | '/vtc'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/api/admin/delete-user'
     | '/billets/agence/$agencyId'
     | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
@@ -1211,6 +1222,7 @@ export interface FileRouteTypes {
     | '/vtc/'
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
+    | '/api/admin/delete-user'
     | '/billets/agence/$agencyId'
     | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
@@ -1270,6 +1282,7 @@ export interface RootRouteChildren {
   VolsIndexRoute: typeof VolsIndexRoute
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
+  ApiAdminDeleteUserRoute: typeof ApiAdminDeleteUserRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1960,6 +1973,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BilletsAgenceAgencyIdRouteImport
       parentRoute: typeof BilletsRoute
     }
+    '/api/admin/delete-user': {
+      id: '/api/admin/delete-user'
+      path: '/api/admin/delete-user'
+      fullPath: '/api/admin/delete-user'
+      preLoaderRoute: typeof ApiAdminDeleteUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/create-user': {
       id: '/api/admin/create-user'
       path: '/api/admin/create-user'
@@ -2206,6 +2226,7 @@ const rootRouteChildren: RootRouteChildren = {
   VolsIndexRoute: VolsIndexRoute,
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
+  ApiAdminDeleteUserRoute: ApiAdminDeleteUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
