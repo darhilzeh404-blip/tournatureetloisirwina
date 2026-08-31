@@ -41,7 +41,8 @@ function render(variant: Variant, title: string, description?: string) {
 }
 
 function show(variant: Variant, title: string, description?: string, duration = 4500) {
-  return sonner.custom(render(variant, title, description), { duration });
+  // unstyled: le rendu custom apporte déjà son propre fond/bordure/ombre
+  return sonner.custom(render(variant, title, description), { duration, unstyled: true });
 }
 
 /** Système de notifications unifié WINA TOUR. */

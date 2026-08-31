@@ -58,6 +58,8 @@ function AdminPaiements() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | PaymentStatus>("ALL");
   const [serviceFilter, setServiceFilter] = useState<"ALL" | "BILLET" | "OTHER">("ALL");
+  const [limit, setLimit] = useState(300);
+  const [hasMore, setHasMore] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectComment, setRejectComment] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -99,7 +101,7 @@ function AdminPaiements() {
       .from("payments")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(300);
+      .limit(limit);
 
 
     if (error) {
@@ -109,6 +111,7 @@ function AdminPaiements() {
     }
 
     const rows = (data || []) as PaymentRow[];
+    setHasMore(rows.length >= limit);
     const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
     const reservationIds = Array.from(new Set(rows.map((r) => r.reservation_id)));
     const [{ data: profiles }, { data: reservations }] = await Promise.all([
@@ -141,6 +144,12 @@ function AdminPaiements() {
     setPayments(enriched);
     setLoading(false);
   }
+
+  // Recharge quand l'admin demande plus de lignes ("Charger plus")
+  useEffect(() => {
+    if (limit > 300) void loadPayments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limit]);
 
   const filtered = payments.filter((p) => {
     const q = search.toLowerCase();
@@ -401,6 +410,14 @@ function AdminPaiements() {
             );
           }}
         />
+      )}
+
+      {hasMore && !loading && (
+        <div className="mt-4 flex justify-center">
+          <Button variant="outline" onClick={() => setLimit((l) => l + 300)}>
+            Charger plus de paiements ({limit} affichés)
+          </Button>
+        </div>
       )}
 
       {/* Receipt preview modal */}
