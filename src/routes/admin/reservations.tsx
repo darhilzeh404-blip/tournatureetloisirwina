@@ -98,6 +98,8 @@ function AdminReservations() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [limit, setLimit] = useState(300);
+  const [hasMore, setHasMore] = useState(false);
   const [assignTarget, setAssignTarget] = useState<Reservation | null>(null);
   const [payments, setPayments] = useState<Map<string, PaymentRow>>(new Map());
   const [allPayments, setAllPayments] = useState<Map<string, PaymentRow[]>>(new Map());
@@ -121,10 +123,11 @@ function AdminReservations() {
         .from("reservations")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(300);
+        .limit(limit);
 
       const reservs = (resData as Reservation[]) ?? [];
       setReservations(reservs);
+      setHasMore(reservs.length >= limit);
 
       // Profiles for client names
       const userIds = Array.from(new Set(reservs.map((r) => r.user_id)));
@@ -192,7 +195,7 @@ function AdminReservations() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [limit]);
 
   useEffect(() => {
     if (user && role === "admin") loadAll();
@@ -658,6 +661,13 @@ function AdminReservations() {
               )}
             </CardContent>
           </Card>
+          {hasMore && !loading && (
+            <div className="mt-4 flex justify-center">
+              <Button variant="outline" onClick={() => setLimit((l) => l + 300)}>
+                Charger plus de réservations ({limit} affichées)
+              </Button>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 

@@ -180,7 +180,21 @@ function RootComponent() {
           visibleToasts={3}
           offset={16}
           mobileOffset={12}
-          toastOptions={{ unstyled: true, classNames: { toast: "w-full flex justify-center" } }}
+          toastOptions={{
+            classNames: {
+              toast:
+                "w-full sm:max-w-sm rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-xl backdrop-blur-md text-card-foreground",
+              title: "text-sm font-semibold leading-snug",
+              description: "text-xs leading-relaxed text-muted-foreground",
+              actionButton: "rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground",
+              cancelButton: "rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground",
+              closeButton: "text-muted-foreground hover:text-foreground",
+              error: "border-red-500/30",
+              success: "border-emerald-500/30",
+              warning: "border-amber-500/30",
+              info: "border-sky-500/30",
+            },
+          }}
         />
       </QueryClientProvider>
     </ErrorBoundary>
