@@ -96,7 +96,15 @@ export function SchoolRoutesList() {
   }, []);
 
   const total = useMemo(
-    () => (selected ? unitPrice(Number(selected.route.monthly_price), tripType) * months * children : 0),
+    () =>
+      selected
+        ? calculateSchoolTransportAmount({
+            monthlyPrice: Number(selected.route.monthly_price),
+            tripType,
+            months,
+            children,
+          })
+        : 0,
     [selected, months, children, tripType],
   );
 
