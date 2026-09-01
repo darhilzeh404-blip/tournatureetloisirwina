@@ -54,9 +54,7 @@ const TRIP_TYPES: { value: TripType; label: string; hint: string }[] = [
 ];
 
 /** Tarif mensuel par enfant selon le type de trajet (identique au calcul serveur). */
-function unitPrice(monthly: number, trip: TripType): number {
-  return trip === "aller_retour" ? monthly : Math.floor(monthly / 2) + 10000;
-}
+const unitPrice = (monthly: number, trip: TripType) => schoolUnitPrice(monthly, trip);
 
 
 export function SchoolRoutesList() {
