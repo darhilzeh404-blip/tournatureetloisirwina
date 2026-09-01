@@ -16,6 +16,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { NumericTextField } from "@/components/ui/numeric-text-field";
+import {
+  calculateSchoolTransportAmount,
+  schoolPricingDetails,
+  schoolUnitPrice,
+} from "@/lib/school-pricing";
 
 type SchoolLevel = "maternelle" | "primaire" | "college" | "lycee";
 
