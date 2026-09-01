@@ -159,7 +159,13 @@ export function SchoolRoutesList() {
         paid_amount: 0,
         details: {
           category: "scolaire",
-          school_route_id: route.id,
+          // Champs de tarification obligatoires (alignés sur le calcul serveur)
+          ...schoolPricingDetails({
+            schoolRouteId: route.id,
+            tripType,
+            months,
+            children,
+          }),
           school_id: route.school_id,
           school: school?.name,
           route: route.name,
