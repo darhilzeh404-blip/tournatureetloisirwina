@@ -16,6 +16,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { NumericTextField } from "@/components/ui/numeric-text-field";
+import {
+  calculateSchoolTransportAmount,
+  schoolPricingDetails,
+  schoolUnitPrice,
+} from "@/lib/school-pricing";
 
 type SchoolLevel = "maternelle" | "primaire" | "college" | "lycee";
 
@@ -54,9 +59,7 @@ const TRIP_TYPES: { value: TripType; label: string; hint: string }[] = [
 ];
 
 /** Tarif mensuel par enfant selon le type de trajet (identique au calcul serveur). */
-function unitPrice(monthly: number, trip: TripType): number {
-  return trip === "aller_retour" ? monthly : Math.floor(monthly / 2) + 10000;
-}
+const unitPrice = (monthly: number, trip: TripType) => schoolUnitPrice(monthly, trip);
 
 
 export function SchoolRoutesList() {
@@ -93,7 +96,15 @@ export function SchoolRoutesList() {
   }, []);
 
   const total = useMemo(
-    () => (selected ? unitPrice(Number(selected.route.monthly_price), tripType) * months * children : 0),
+    () =>
+      selected
+        ? calculateSchoolTransportAmount({
+            monthlyPrice: Number(selected.route.monthly_price),
+            tripType,
+            months,
+            children,
+          })
+        : 0,
     [selected, months, children, tripType],
   );
 
@@ -148,7 +159,13 @@ export function SchoolRoutesList() {
         paid_amount: 0,
         details: {
           category: "scolaire",
-          school_route_id: route.id,
+          // Champs de tarification obligatoires (alignés sur le calcul serveur)
+          ...schoolPricingDetails({
+            schoolRouteId: route.id,
+            tripType,
+            months,
+            children,
+          }),
           school_id: route.school_id,
           school: school?.name,
           route: route.name,
@@ -156,9 +173,6 @@ export function SchoolRoutesList() {
           destination: route.arrival_point,
           departure_time: route.departure_time,
           return_time: route.return_time,
-          months,
-          children_count: children,
-          trip_type: tripType,
           trip_type_label: TRIP_TYPES.find((t) => t.value === tripType)?.label,
           child_last_name: childLastName.trim(),
           child_first_name: childFirstName.trim(),

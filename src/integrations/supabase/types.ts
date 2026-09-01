@@ -5456,6 +5456,10 @@ export type Database = {
           phone: string
         }[]
       }
+      normalize_school_trip_type: {
+        Args: { p_trip_type: string }
+        Returns: string
+      }
       notify_admins: {
         Args: {
           _link: string
@@ -5575,6 +5579,15 @@ export type Database = {
       respond_moving_quote: {
         Args: { _action: string; _message?: string; _quote_id: string }
         Returns: undefined
+      }
+      school_transport_amount: {
+        Args: {
+          p_children: number
+          p_monthly_price: number
+          p_months: number
+          p_trip_type: string
+        }
+        Returns: number
       }
       spend_vtc_points: {
         Args: {
