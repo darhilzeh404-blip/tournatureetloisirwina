@@ -541,13 +541,13 @@ function AdminReservations() {
                   {filtered.length === 0 ? (
                     <tbody>
                       <tr>
-                        <td colSpan={12} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
+                        <td colSpan={13} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
                       </tr>
                     </tbody>
                   ) : (
                   <VirtualTableBody
                     items={filtered}
-                    colSpan={12}
+                    colSpan={13}
                     estimateRowHeight={104}
                     renderRow={(r) => {
                       const st = STATUS_MAP[r.status];
