@@ -4,6 +4,15 @@ export const SUPPORT_PHONE = "066264890";
 export const SUPPORT_PHONE_DISPLAY = "066 26 48 90";
 export const SUPPORT_TEL_HREF = "tel:+241066264890";
 
+export const SUPPORT_PHONE_2 = "077110995";
+export const SUPPORT_PHONE_2_DISPLAY = "077 11 09 95";
+export const SUPPORT_TEL_HREF_2 = "tel:+241077110995";
+
+export const SUPPORT_PHONES = [
+  { number: SUPPORT_PHONE, display: SUPPORT_PHONE_DISPLAY, href: SUPPORT_TEL_HREF },
+  { number: SUPPORT_PHONE_2, display: SUPPORT_PHONE_2_DISPLAY, href: SUPPORT_TEL_HREF_2 },
+] as const;
+
 /**
  * Bloc support réutilisable. `variant="inline"` pour un simple lien discret,
  * `variant="card"` pour un encart complet (aide, profil, erreurs).
@@ -17,13 +26,18 @@ export function SupportContact({
 }) {
   if (variant === "inline") {
     return (
-      <a
-        href={SUPPORT_TEL_HREF}
-        className={`inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline ${className}`}
-      >
-        <Phone className="h-3.5 w-3.5" />
-        {SUPPORT_PHONE_DISPLAY}
-      </a>
+      <span className={`inline-flex flex-wrap items-center gap-x-3 gap-y-1 ${className}`}>
+        {SUPPORT_PHONES.map((p) => (
+          <a
+            key={p.number}
+            href={p.href}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            <Phone className="h-3.5 w-3.5" />
+            {p.display}
+          </a>
+        ))}
+      </span>
     );
   }
 
@@ -38,13 +52,18 @@ export function SupportContact({
           <p className="mt-0.5 text-xs text-muted-foreground">
             Notre équipe support est disponible pour vous accompagner.
           </p>
-          <a
-            href={SUPPORT_TEL_HREF}
-            className="mt-2 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            <Phone className="h-4 w-4" />
-            {SUPPORT_PHONE_DISPLAY}
-          </a>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {SUPPORT_PHONES.map((p) => (
+              <a
+                key={p.number}
+                href={p.href}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                <Phone className="h-4 w-4" />
+                {p.display}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </div>
