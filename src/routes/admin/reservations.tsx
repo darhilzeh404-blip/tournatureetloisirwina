@@ -559,6 +559,13 @@ function AdminReservations() {
                       const canAssign = r.paiement_valide && r.status === "CONFIRMED" && canAssignTrip(r.service_type);
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
+                          <td className="p-4 align-middle">
+                            <Checkbox
+                              checked={hardDelete.isSelected(r.id)}
+                              onCheckedChange={() => hardDelete.toggle(r.id)}
+                              aria-label="Sélectionner la réservation"
+                            />
+                          </td>
                           <td className="p-4 font-medium text-xs">{r.id.slice(0, 8)}…</td>
                           <td className="p-4">
                             {r.reference_code || r.agent_code ? (
