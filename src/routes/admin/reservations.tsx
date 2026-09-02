@@ -518,6 +518,13 @@ function AdminReservations() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left text-xs font-medium text-muted-foreground">
+                      <th className="w-10 p-4">
+                        <Checkbox
+                          checked={filtered.length > 0 && hardDelete.selectedIds.length === filtered.length}
+                          onCheckedChange={() => hardDelete.selectAll(filtered.map((r) => r.id))}
+                          aria-label="Tout sélectionner"
+                        />
+                      </th>
                       <th className="p-4">ID</th>
                       <th className="p-4">Codes</th>
                       <th className="p-4">Client</th>
