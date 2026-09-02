@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Headphones, Phone, Mail, MessageCircle, ArrowLeft } from "lucide-react";
+import { SUPPORT_PHONES } from "@/components/SupportContact";
 
 export const Route = createFileRoute("/support")({
   head: () => ({
@@ -29,18 +30,20 @@ function SupportPage() {
         </header>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
-          <a href="tel:+24100000000" className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm hover:shadow-md">
-            <Phone className="h-5 w-5 text-primary" />
-            <div>
-              <div className="text-sm font-semibold">Téléphone</div>
-              <div className="text-xs text-muted-foreground">+241 00 00 00 00</div>
-            </div>
-          </a>
-          <a href="https://wa.me/24100000000" target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm hover:shadow-md">
+          {SUPPORT_PHONES.map((p) => (
+            <a key={p.number} href={p.href} className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm hover:shadow-md">
+              <Phone className="h-5 w-5 text-primary" />
+              <div>
+                <div className="text-sm font-semibold">Téléphone</div>
+                <div className="text-xs text-muted-foreground">{p.display}</div>
+              </div>
+            </a>
+          ))}
+          <a href={`https://wa.me/241${SUPPORT_PHONES[0].number}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm hover:shadow-md sm:col-span-2">
             <MessageCircle className="h-5 w-5 text-primary" />
             <div>
               <div className="text-sm font-semibold">WhatsApp</div>
-              <div className="text-xs text-muted-foreground">Chat instantané</div>
+              <div className="text-xs text-muted-foreground">{SUPPORT_PHONES[0].display} — Chat instantané</div>
             </div>
           </a>
           <a href="mailto:contact@agencewina.com" className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm hover:shadow-md sm:col-span-2">

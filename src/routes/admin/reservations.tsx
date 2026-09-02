@@ -11,6 +11,19 @@ import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { canAssignTrip, requiresDriver, requiresGerant } from "@/lib/service-routing";
+import { useHardDelete } from "@/hooks/use-hard-delete";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/admin/reservations")({
   component: AdminReservations,
@@ -230,6 +243,8 @@ function AdminReservations() {
     };
   }, [user, role, loadAll]);
 
+
+  const hardDelete = useHardDelete("reservations", loadAll);
 
   const filtered = reservations.filter((r) => {
     const p = profiles.get(r.user_id);
@@ -481,6 +496,20 @@ function AdminReservations() {
         </TabsList>
 
         <TabsContent value={tab}>
+          {hardDelete.selectedIds.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3">
+              <span className="text-sm font-medium">
+                {hardDelete.selectedIds.length} réservation{hardDelete.selectedIds.length > 1 ? "s" : ""} sélectionnée
+                {hardDelete.selectedIds.length > 1 ? "s" : ""}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={hardDelete.clear}>Annuler</Button>
+                <Button variant="destructive" size="sm" onClick={() => hardDelete.setConfirmOpen(true)}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Supprimer définitivement
+                </Button>
+              </div>
+            </div>
+          )}
           <Card>
             <CardContent className="overflow-x-auto p-0">
               {loading ? (
@@ -489,6 +518,13 @@ function AdminReservations() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left text-xs font-medium text-muted-foreground">
+                      <th className="w-10 p-4">
+                        <Checkbox
+                          checked={filtered.length > 0 && hardDelete.selectedIds.length === filtered.length}
+                          onCheckedChange={() => hardDelete.selectAll(filtered.map((r) => r.id))}
+                          aria-label="Tout sélectionner"
+                        />
+                      </th>
                       <th className="p-4">ID</th>
                       <th className="p-4">Codes</th>
                       <th className="p-4">Client</th>
@@ -505,13 +541,13 @@ function AdminReservations() {
                   {filtered.length === 0 ? (
                     <tbody>
                       <tr>
-                        <td colSpan={12} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
+                        <td colSpan={13} className="p-8 text-center text-muted-foreground">Aucune réservation trouvée.</td>
                       </tr>
                     </tbody>
                   ) : (
                   <VirtualTableBody
                     items={filtered}
-                    colSpan={12}
+                    colSpan={13}
                     estimateRowHeight={104}
                     renderRow={(r) => {
                       const st = STATUS_MAP[r.status];
@@ -523,6 +559,13 @@ function AdminReservations() {
                       const canAssign = r.paiement_valide && r.status === "CONFIRMED" && canAssignTrip(r.service_type);
                       return (
                         <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30">
+                          <td className="p-4 align-middle">
+                            <Checkbox
+                              checked={hardDelete.isSelected(r.id)}
+                              onCheckedChange={() => hardDelete.toggle(r.id)}
+                              aria-label="Sélectionner la réservation"
+                            />
+                          </td>
                           <td className="p-4 font-medium text-xs">{r.id.slice(0, 8)}…</td>
                           <td className="p-4">
                             {r.reference_code || r.agent_code ? (
@@ -670,6 +713,28 @@ function AdminReservations() {
           )}
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={hardDelete.confirmOpen} onOpenChange={hardDelete.setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Suppression définitive</AlertDialogTitle>
+            <AlertDialogDescription>
+              {hardDelete.selectedIds.length} réservation{hardDelete.selectedIds.length > 1 ? "s" : ""} seront
+              supprimées définitivement de la base de données. Cette action est IRRÉVERSIBLE.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={hardDelete.deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void hardDelete.remove(); }}
+              disabled={hardDelete.deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {hardDelete.deleting ? "Suppression…" : "Supprimer définitivement"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {assignTarget && (
         <AssignDialog

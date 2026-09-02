@@ -105,11 +105,14 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
           };
         });
 
+        // Positions réelles, rafraîchies il y a moins de 5 minutes (chauffeur en ligne)
+        const freshSince = new Date(Date.now() - 5 * 60 * 1000).toISOString();
         const { data: pos } = await supabase
           .from("driver_positions")
-          .select("driver_id, latitude, longitude, heading")
+          .select("driver_id, latitude, longitude, heading, updated_at")
           .in("driver_id", ids)
-          .is("archived_at", null);
+          .is("archived_at", null)
+          .gte("updated_at", freshSince);
         if (cancelled) return;
 
         setDriverInfos(infos);
@@ -125,13 +128,27 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
     };
 
     load();
+
+    // Temps réel : toute mise à jour GPS d'un chauffeur rafraîchit la carte.
+    const channel = supabase
+      .channel(`vtc-drivers-${Math.random().toString(36).slice(2)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "driver_positions" }, () => {
+        if (!document.hidden) load();
+      })
+      .subscribe();
+
     let t: number | null = null;
     const startPoll = () => { if (t === null) t = window.setInterval(load, 15000); };
     const stopPoll = () => { if (t !== null) { window.clearInterval(t); t = null; } };
     const onVisibility = () => { if (document.hidden) stopPoll(); else { load(); startPoll(); } };
     if (!document.hidden) startPoll();
     document.addEventListener("visibilitychange", onVisibility);
-    return () => { cancelled = true; stopPoll(); document.removeEventListener("visibilitychange", onVisibility); };
+    return () => {
+      cancelled = true;
+      stopPoll();
+      supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [pickup, category]);
 
   const driversWithDistance = useMemo(() => {
