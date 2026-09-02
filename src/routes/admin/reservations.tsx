@@ -714,6 +714,28 @@ function AdminReservations() {
         </TabsContent>
       </Tabs>
 
+      <AlertDialog open={hardDelete.confirmOpen} onOpenChange={hardDelete.setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Suppression définitive</AlertDialogTitle>
+            <AlertDialogDescription>
+              {hardDelete.selectedIds.length} réservation{hardDelete.selectedIds.length > 1 ? "s" : ""} seront
+              supprimées définitivement de la base de données. Cette action est IRRÉVERSIBLE.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={hardDelete.deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void hardDelete.remove(); }}
+              disabled={hardDelete.deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {hardDelete.deleting ? "Suppression…" : "Supprimer définitivement"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {assignTarget && (
         <AssignDialog
           reservation={assignTarget}
