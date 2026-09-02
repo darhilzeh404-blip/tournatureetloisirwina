@@ -11,6 +11,19 @@ import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { canAssignTrip, requiresDriver, requiresGerant } from "@/lib/service-routing";
+import { useHardDelete } from "@/hooks/use-hard-delete";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/admin/reservations")({
   component: AdminReservations,
