@@ -496,6 +496,20 @@ function AdminReservations() {
         </TabsList>
 
         <TabsContent value={tab}>
+          {hardDelete.selectedIds.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3">
+              <span className="text-sm font-medium">
+                {hardDelete.selectedIds.length} réservation{hardDelete.selectedIds.length > 1 ? "s" : ""} sélectionnée
+                {hardDelete.selectedIds.length > 1 ? "s" : ""}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={hardDelete.clear}>Annuler</Button>
+                <Button variant="destructive" size="sm" onClick={() => hardDelete.setConfirmOpen(true)}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Supprimer définitivement
+                </Button>
+              </div>
+            </div>
+          )}
           <Card>
             <CardContent className="overflow-x-auto p-0">
               {loading ? (
