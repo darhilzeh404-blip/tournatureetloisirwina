@@ -244,6 +244,8 @@ function AdminReservations() {
   }, [user, role, loadAll]);
 
 
+  const hardDelete = useHardDelete("reservations", loadAll);
+
   const filtered = reservations.filter((r) => {
     const p = profiles.get(r.user_id);
     const clientName = p?.full_name ?? "";
