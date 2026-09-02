@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Headphones, Phone, Mail, MessageCircle, ArrowLeft } from "lucide-react";
+import { SUPPORT_PHONES } from "@/components/SupportContact";
 
 export const Route = createFileRoute("/support")({
   head: () => ({
