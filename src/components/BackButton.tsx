@@ -38,17 +38,20 @@ export function BackButton({
   label = "Retour",
   className = "",
   showLabel = true,
+  marker = true,
 }: {
   label?: string;
   className?: string;
   showLabel?: boolean;
+  /** Marque le bouton comme « retour de page » (désactive le bouton global). */
+  marker?: boolean;
 }) {
   const goBack = useGoBack();
 
   return (
     <button
       type="button"
-      data-app-back=""
+      {...(marker ? { "data-app-back": "" } : {})}
       onClick={goBack}
       aria-label={label}
       className={`inline-flex h-11 items-center gap-1.5 rounded-full border border-border/70 bg-card/80 pl-2.5 pr-4 text-sm font-semibold shadow-sm backdrop-blur transition-colors active:scale-[0.98] hover:border-primary/50 ${className}`}
@@ -104,7 +107,7 @@ export function GlobalBackButton() {
   return (
     <div className="pointer-events-none fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-40">
       <div className="pointer-events-auto">
-        <BackButton />
+        <BackButton marker={false} />
       </div>
     </div>
   );
