@@ -5,6 +5,7 @@ import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowLeft, ArrowRight, Check } fr
 import { toast } from "sonner";
 import { FlagGabon } from "@/components/FlagGabon";
 import { SuccessScreen } from "@/components/SuccessScreen";
+import { useAutoAdvance } from "@/hooks/use-auto-advance";
 
 export const Route = createFileRoute("/inscription")({
   head: () => ({
@@ -43,6 +44,8 @@ function InscriptionPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState(false);
+  const [countryPicked, setCountryPicked] = useState(false);
+  const [armed, setArmed] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) navigate({ to: "/espace-client" });
@@ -80,6 +83,18 @@ function InscriptionPage() {
     setError(null);
     setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
   };
+
+  useEffect(() => {
+    setArmed(false);
+  }, [step]);
+
+  useAutoAdvance({
+    step,
+    autoSteps: [0, 1, 2, 3, 4],
+    valid: validate(step) === null && (step === 0 ? countryPicked : armed),
+    enabled: !loading,
+    onAdvance: next,
+  });
 
   const back = () => {
     setError(null);
@@ -168,7 +183,7 @@ function InscriptionPage() {
                 <button
                   key={c.code}
                   type="button"
-                  onClick={() => setCountry(c)}
+                  onClick={() => { setCountry(c); setCountryPicked(true); }}
                   className={`flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${
                     country.code === c.code ? "border-primary bg-primary/5" : "bg-card"
                   }`}
@@ -232,6 +247,7 @@ function InscriptionPage() {
                   autoComplete="family-name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                  onBlur={() => setArmed(true)}
                   placeholder="Ndong"
                   className={inputClass}
                 />
@@ -254,6 +270,7 @@ function InscriptionPage() {
               autoCapitalize="none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setArmed(true)}
               placeholder="votre@email.com"
               className={inputClass}
             />
@@ -272,6 +289,7 @@ function InscriptionPage() {
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => setArmed(true)}
                 placeholder="Min. 8 caractères"
                 className={inputClass + " pr-12"}
               />
