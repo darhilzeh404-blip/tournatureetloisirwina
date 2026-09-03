@@ -14,6 +14,7 @@ import { ActiveGroupRideGuard } from "@/components/ActiveGroupRideGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StuckRouteRecovery } from "@/components/StuckRouteRecovery";
 import { AdminPreviewBanner } from "@/components/AdminPreviewBanner";
+import { GlobalBackButton } from "@/components/BackButton";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installDynamicImportRecovery } from "@/lib/dynamic-import-recovery";
 
@@ -174,6 +175,7 @@ function RootComponent() {
         <NotificationCenter />
         <ActiveGroupRideGuard />
         <AdminPreviewBanner />
+        <GlobalBackButton />
         <Toaster
           position="top-center"
           expand={false}
