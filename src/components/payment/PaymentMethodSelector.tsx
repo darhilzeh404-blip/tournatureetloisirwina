@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { PaymentChannel } from "@/lib/payment-methods";
@@ -73,6 +73,23 @@ interface Props {
 
 export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }: Props) {
   const [selected, setSelected] = useState<PaymentChannel | null>(null);
+  const [advancing, setAdvancing] = useState(false);
+  const consumed = useRef<PaymentChannel | null>(null);
+  const continueRef = useRef(onContinue);
+  continueRef.current = onContinue;
+
+  // Sélection = validation : on enchaîne automatiquement sur l'étape suivante,
+  // sans clic « Continuer » supplémentaire (une seule fois par choix).
+  useEffect(() => {
+    if (!selected || consumed.current === selected) return;
+    setAdvancing(true);
+    const t = setTimeout(() => {
+      consumed.current = selected;
+      setAdvancing(false);
+      continueRef.current(selected);
+    }, 450);
+    return () => clearTimeout(t);
+  }, [selected]);
 
   const options = BASE_OPTIONS.filter((o) => {
     if (hideWallet && o.value === "wallet") return false;
@@ -146,9 +163,20 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
 
       <Card className="border-dashed">
         <CardContent className="p-4">
-          <Button size="lg" className="w-full" disabled={!selected} onClick={() => selected && onContinue(selected)}>
-            Continuer <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          {advancing ? (
+            <div className="flex items-center justify-center gap-2 text-sm font-semibold text-primary">
+              <Loader2 className="h-4 w-4 animate-spin" /> Moyen de paiement validé…
+            </div>
+          ) : selected ? (
+            <Button size="lg" className="w-full" onClick={() => onContinue(selected)}>
+              <Check className="mr-2 h-4 w-4" /> Poursuivre le paiement
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <p className="text-center text-sm text-muted-foreground">
+              Sélectionnez un moyen de paiement pour continuer automatiquement.
+            </p>
+          )}
           <p className="mt-2 text-center text-xs text-muted-foreground">
             Le choix d'un moyen de paiement ne vaut pas paiement : la confirmation dépend de la procédure choisie.
           </p>
