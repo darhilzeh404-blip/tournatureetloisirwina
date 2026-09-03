@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Loader2, Ship, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoAdvance } from "@/hooks/use-auto-advance";
 import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -147,6 +148,17 @@ function BoatBookingWizard() {
     }
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   };
+
+  useAutoAdvance({
+    step,
+    autoSteps: [0, 1, 3],
+    valid:
+      (step === 0 && !!routeId) ||
+      (step === 1 && !!departureDate && (!roundTrip || !!returnDate)) ||
+      (step === 3 && !!sailingId),
+    enabled: !loading && !submitting,
+    onAdvance: next,
+  });
 
   const submit = async () => {
     if (!isAuthenticated || !user) {
