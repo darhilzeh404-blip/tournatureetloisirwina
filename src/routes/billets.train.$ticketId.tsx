@@ -4,6 +4,7 @@ import {
   ArrowLeft, ArrowRight, Calendar, Check, Loader2, MapPin, Plus, TrainFront, Upload, X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoAdvance } from "@/hooks/use-auto-advance";
 import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -208,6 +209,14 @@ function TrainBookingWizard() {
     if (err) return toast.error(err);
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   };
+
+  useAutoAdvance({
+    step,
+    autoSteps: [0, 1],
+    valid: validateStep(step) === null,
+    enabled: !loading && !submitting,
+    onAdvance: next,
+  });
 
   const submit = async () => {
     if (!ticket) return;

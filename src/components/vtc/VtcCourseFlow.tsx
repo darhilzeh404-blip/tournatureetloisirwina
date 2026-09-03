@@ -12,6 +12,7 @@ import { requestNotificationPermission, showAppNotification } from "@/lib/notifi
 import { LazyVtcZoneMap, type AvailableDriver } from "@/components/LazyVtcZoneMap";
 import { VtcDestinationSearch } from "@/components/VtcDestinationSearch";
 import { NumberInput } from "@/components/ui/number-input";
+import { useAutoAdvance } from "@/hooks/use-auto-advance";
 import { VtcStepper } from "@/components/vtc/VtcStepper";
 import { VtcStateScreen } from "@/components/vtc/VtcStateScreen";
 import { CATEGORIES, getCategory } from "@/lib/vtc-categories";
@@ -244,6 +245,13 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   };
   const goBack = () => setStep((s) => Math.max(0, s - 1));
+
+  useAutoAdvance({
+    step,
+    autoSteps: [0],
+    valid: canLeaveStep(0),
+    onAdvance: goNext,
+  });
 
   // ─── Soumission ──────────────────────────────────────────────────────────
   const submit = useCallback(async () => {
