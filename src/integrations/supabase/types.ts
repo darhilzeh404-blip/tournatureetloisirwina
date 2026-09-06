@@ -1494,67 +1494,188 @@ export type Database = {
         }
         Relationships: []
       }
-      flight_programs: {
+      flight_document_requests: {
         Row: {
-          agency_id: string
-          conditions: string | null
           created_at: string
           created_by: string | null
-          currency: string
-          description: string | null
-          destination: string
+          doc_type: string
+          due_date: string | null
+          file_name: string | null
+          file_path: string | null
           id: string
-          image_url: string | null
-          is_active: boolean
-          month_end: string
-          month_start: string
-          origin: string
-          price_from: number
+          instructions: string | null
+          is_required: boolean
+          name: string
+          request_id: string
+          review_reason: string | null
+          reviewed_at: string | null
           status: string
+          updated_at: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          doc_type?: string
+          due_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          instructions?: string | null
+          is_required?: boolean
+          name: string
+          request_id: string
+          review_reason?: string | null
+          reviewed_at?: string | null
+          status?: string
+          updated_at?: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          doc_type?: string
+          due_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          instructions?: string | null
+          is_required?: boolean
+          name?: string
+          request_id?: string
+          review_reason?: string | null
+          reviewed_at?: string | null
+          status?: string
+          updated_at?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_document_requests_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "flight_quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_info_requests: {
+        Row: {
+          answered_at: string | null
+          answers: Json | null
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          fields: Json
+          id: string
+          message: string | null
+          request_id: string
+          status: string
+          title: string
           updated_at: string
         }
         Insert: {
-          agency_id: string
-          conditions?: string | null
+          answered_at?: string | null
+          answers?: Json | null
           created_at?: string
           created_by?: string | null
-          currency?: string
-          description?: string | null
-          destination: string
+          due_date?: string | null
+          fields?: Json
           id?: string
-          image_url?: string | null
-          is_active?: boolean
-          month_end: string
-          month_start: string
-          origin: string
-          price_from?: number
+          message?: string | null
+          request_id: string
           status?: string
+          title?: string
           updated_at?: string
         }
         Update: {
-          agency_id?: string
-          conditions?: string | null
+          answered_at?: string | null
+          answers?: Json | null
           created_at?: string
           created_by?: string | null
-          currency?: string
-          description?: string | null
-          destination?: string
+          due_date?: string | null
+          fields?: Json
           id?: string
-          image_url?: string | null
-          is_active?: boolean
-          month_end?: string
-          month_start?: string
-          origin?: string
-          price_from?: number
+          message?: string | null
+          request_id?: string
           status?: string
+          title?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "flight_programs_agency_id_fkey"
-            columns: ["agency_id"]
+            foreignKeyName: "flight_info_requests_request_id_fkey"
+            columns: ["request_id"]
             isOneToOne: false
-            referencedRelation: "partner_agencies"
+            referencedRelation: "flight_quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_offer_segments: {
+        Row: {
+          airline_name: string | null
+          arrival_airport: string | null
+          arrival_city: string | null
+          arrival_date: string | null
+          arrival_time: string | null
+          created_at: string
+          departure_airport: string | null
+          departure_city: string | null
+          departure_date: string | null
+          departure_time: string | null
+          duration: string | null
+          flight_number: string | null
+          id: string
+          offer_id: string
+          position: number
+          stopover_info: string | null
+          updated_at: string
+        }
+        Insert: {
+          airline_name?: string | null
+          arrival_airport?: string | null
+          arrival_city?: string | null
+          arrival_date?: string | null
+          arrival_time?: string | null
+          created_at?: string
+          departure_airport?: string | null
+          departure_city?: string | null
+          departure_date?: string | null
+          departure_time?: string | null
+          duration?: string | null
+          flight_number?: string | null
+          id?: string
+          offer_id: string
+          position?: number
+          stopover_info?: string | null
+          updated_at?: string
+        }
+        Update: {
+          airline_name?: string | null
+          arrival_airport?: string | null
+          arrival_city?: string | null
+          arrival_date?: string | null
+          arrival_time?: string | null
+          created_at?: string
+          departure_airport?: string | null
+          departure_city?: string | null
+          departure_date?: string | null
+          departure_time?: string | null
+          duration?: string | null
+          flight_number?: string | null
+          id?: string
+          offer_id?: string
+          position?: number
+          stopover_info?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_offer_segments_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "flight_quote_offers"
             referencedColumns: ["id"]
           },
         ]
@@ -1603,6 +1724,8 @@ export type Database = {
       flight_quote_offers: {
         Row: {
           airline_name: string
+          arrival_airport: string | null
+          arrival_city: string | null
           arrival_time: string | null
           cabin_baggage: string | null
           checked_baggage: string | null
@@ -1610,13 +1733,25 @@ export type Database = {
           conditions: string | null
           created_at: string
           created_by: string | null
+          departure_airport: string | null
+          departure_city: string | null
           departure_time: string | null
+          discount: number
           duration: string | null
+          fare_type: string | null
+          fees: number
           flight_date: string | null
           flight_number: string | null
           id: string
+          is_direct: boolean
+          is_sent: boolean
+          passengers_count: number
+          price_per_person: number
           request_id: string
+          sent_at: string | null
+          service_fee: number
           stopovers: string | null
+          taxes: number
           total_amount: number
           travel_class: string | null
           unit_price: number
@@ -1625,6 +1760,8 @@ export type Database = {
         }
         Insert: {
           airline_name: string
+          arrival_airport?: string | null
+          arrival_city?: string | null
           arrival_time?: string | null
           cabin_baggage?: string | null
           checked_baggage?: string | null
@@ -1632,13 +1769,25 @@ export type Database = {
           conditions?: string | null
           created_at?: string
           created_by?: string | null
+          departure_airport?: string | null
+          departure_city?: string | null
           departure_time?: string | null
+          discount?: number
           duration?: string | null
+          fare_type?: string | null
+          fees?: number
           flight_date?: string | null
           flight_number?: string | null
           id?: string
+          is_direct?: boolean
+          is_sent?: boolean
+          passengers_count?: number
+          price_per_person?: number
           request_id: string
+          sent_at?: string | null
+          service_fee?: number
           stopovers?: string | null
+          taxes?: number
           total_amount: number
           travel_class?: string | null
           unit_price?: number
@@ -1647,6 +1796,8 @@ export type Database = {
         }
         Update: {
           airline_name?: string
+          arrival_airport?: string | null
+          arrival_city?: string | null
           arrival_time?: string | null
           cabin_baggage?: string | null
           checked_baggage?: string | null
@@ -1654,13 +1805,25 @@ export type Database = {
           conditions?: string | null
           created_at?: string
           created_by?: string | null
+          departure_airport?: string | null
+          departure_city?: string | null
           departure_time?: string | null
+          discount?: number
           duration?: string | null
+          fare_type?: string | null
+          fees?: number
           flight_date?: string | null
           flight_number?: string | null
           id?: string
+          is_direct?: boolean
+          is_sent?: boolean
+          passengers_count?: number
+          price_per_person?: number
           request_id?: string
+          sent_at?: string | null
+          service_fee?: number
           stopovers?: string | null
+          taxes?: number
           total_amount?: number
           travel_class?: string | null
           unit_price?: number
@@ -1764,11 +1927,15 @@ export type Database = {
           infants: number
           origin: string
           paid_at: string | null
-          program_id: string | null
+          passengers_count: number
+          refusal_reason: string | null
           request_number: string
           return_date: string | null
           status: string
+          taken_at: string | null
+          taken_by: string | null
           ticket_pdf_url: string | null
+          travel_class: string
           trip_type: string
           updated_at: string
           user_id: string
@@ -1788,11 +1955,15 @@ export type Database = {
           infants?: number
           origin: string
           paid_at?: string | null
-          program_id?: string | null
+          passengers_count?: number
+          refusal_reason?: string | null
           request_number?: string
           return_date?: string | null
           status?: string
+          taken_at?: string | null
+          taken_by?: string | null
           ticket_pdf_url?: string | null
+          travel_class?: string
           trip_type?: string
           updated_at?: string
           user_id: string
@@ -1812,24 +1983,20 @@ export type Database = {
           infants?: number
           origin?: string
           paid_at?: string | null
-          program_id?: string | null
+          passengers_count?: number
+          refusal_reason?: string | null
           request_number?: string
           return_date?: string | null
           status?: string
+          taken_at?: string | null
+          taken_by?: string | null
           ticket_pdf_url?: string | null
+          travel_class?: string
           trip_type?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "flight_quote_requests_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "flight_programs"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_bus_trips: {
         Row: {
@@ -4997,6 +5164,14 @@ export type Database = {
         }
         Returns: string
       }
+      admin_set_flight_request_status: {
+        Args: { _request_id: string; _status: string }
+        Returns: undefined
+      }
+      admin_take_flight_request: {
+        Args: { _request_id: string }
+        Returns: undefined
+      }
       admin_validate_vtc_recharge: {
         Args: { _approve: boolean; _note?: string; _request_id: string }
         Returns: number
@@ -5573,7 +5748,7 @@ export type Database = {
         Returns: string
       }
       respond_flight_offer: {
-        Args: { _accept: boolean; _request_id: string }
+        Args: { _accept: boolean; _reason?: string; _request_id: string }
         Returns: string
       }
       respond_moving_quote: {
@@ -5640,7 +5815,6 @@ export type Database = {
         | "failed"
       flight_delivery_method: "pickup_wina" | "delivery_home" | "email_only"
       flight_payment_status: "pending" | "success" | "failed" | "refunded"
-      flight_program_status: "draft" | "active" | "closed" | "archived"
       gift_redemption_status: "pending" | "delivered" | "cancelled"
       lottery_status: "draft" | "open" | "closed" | "drawn"
       payment_status: "PENDING" | "VALIDATED" | "REJECTED"
@@ -5807,7 +5981,6 @@ export const Constants = {
       ],
       flight_delivery_method: ["pickup_wina", "delivery_home", "email_only"],
       flight_payment_status: ["pending", "success", "failed", "refunded"],
-      flight_program_status: ["draft", "active", "closed", "archived"],
       gift_redemption_status: ["pending", "delivered", "cancelled"],
       lottery_status: ["draft", "open", "closed", "drawn"],
       payment_status: ["PENDING", "VALIDATED", "REJECTED"],
