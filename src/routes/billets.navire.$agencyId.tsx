@@ -150,12 +150,11 @@ function BoatBookingWizard() {
   };
 
   useAutoAdvance({
+    // L'étape « Dates » n'est PAS auto-validée : le client doit pouvoir cocher
+    // « Aller-retour » et saisir la date de retour après la date de départ.
     step,
-    autoSteps: [0, 1, 3],
-    valid:
-      (step === 0 && !!routeId) ||
-      (step === 1 && !!departureDate && (!roundTrip || !!returnDate)) ||
-      (step === 3 && !!sailingId),
+    autoSteps: [0, 3],
+    valid: (step === 0 && !!routeId) || (step === 3 && !!sailingId),
     enabled: !loading && !submitting,
     onAdvance: next,
   });
