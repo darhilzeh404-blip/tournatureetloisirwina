@@ -1,153 +1,119 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Plane, MapPin, Loader2, Search, History } from "lucide-react";
+import { ArrowLeft, Plane, Loader2, Send, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AgencyLogo } from "@/components/AgencyLogo";
-import { BusQuoteForms } from "@/components/BusQuoteForms";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { FCFA, PROGRAM_STATUS_LABEL } from "@/lib/flight-quotes";
+import { TRAVEL_CLASSES } from "@/lib/flight-quotes";
 import { NumericField } from "@/components/ui/numeric-field";
 
 export const Route = createFileRoute("/vols/")({
   head: () => ({
     meta: [
-      { title: "Demande de vol — Agence Wina" },
-      { name: "description", content: "Envoyez votre demande de vol et recevez une offre tarifaire personnalisée de nos compagnies partenaires au Gabon." },
-      { property: "og:title", content: "Demande de vol — Agence Wina" },
-      { property: "og:description", content: "Recevez une offre tarifaire personnalisée pour votre vol au départ du Gabon." },
+      { title: "Demande de billet d'avion — Agence Wina" },
+      { name: "description", content: "Envoyez votre demande de billet d'avion : nos conseillers préparent une proposition tarifaire personnalisée sous 24h." },
+      { property: "og:title", content: "Demande de billet d'avion — Agence Wina" },
+      { property: "og:description", content: "Un conseiller prépare votre proposition de billet d'avion au meilleur tarif." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: VolsSearch,
+  component: FlightRequestPage,
 });
 
-type Program = {
-  id: string; agency_id: string; origin: string; destination: string;
-  price_from: number; month_start: string; month_end: string;
-  status: string; description: string | null; conditions: string | null;
-};
 type Agency = { id: string; name: string; logo_url: string | null };
 
-type Criteria = {
-  origin: string; destination: string; departure_date: string; return_date: string;
-  trip_type: "one_way" | "round_trip"; adults: number; children: number; infants: number;
-};
-
-function VolsSearch() {
+function FlightRequestPage() {
   const navigate = useNavigate();
-  const [criteria, setCriteria] = useState<Criteria>({
-    origin: "", destination: "", departure_date: "", return_date: "",
-    trip_type: "one_way", adults: 1, children: 0, infants: 0,
-  });
-  const [searched, setSearched] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [agencies, setAgencies] = useState<Record<string, Agency>>({});
-  const [airlinePartners, setAirlinePartners] = useState<Agency[]>([]);
-  const [serviceAgencyId, setServiceAgencyId] = useState("");
-
-  const [selected, setSelected] = useState<Program | null>(null);
-  const [contact, setContact] = useState({ name: "", phone: "", email: "", note: "" });
+  const [partners, setPartners] = useState<Agency[]>([]);
   const [sending, setSending] = useState(false);
+  const [form, setForm] = useState({
+    origin: "",
+    destination: "",
+    trip_type: "one_way" as "one_way" | "round_trip",
+    departure_date: "",
+    return_date: "",
+    adults: 1,
+    children: 0,
+    infants: 0,
+    travel_class: "economy",
+    contact_name: "",
+    contact_phone: "",
+    contact_email: "",
+    client_note: "",
+  });
 
   useEffect(() => {
     (async () => {
       const { data: partnerRows } = await (supabase.from("partner_agencies_public") as any)
-        .select("id,name,logo_url")
-        .eq("category", "avion")
-        .order("name");
-      setAirlinePartners(((partnerRows as any) ?? []) as Agency[]);
-      const firstPartner = ((partnerRows as any) ?? [])[0] as Agency | undefined;
-      setServiceAgencyId((current) => current || firstPartner?.id || "");
+        .select("id,name,logo_url").eq("category", "avion").order("name");
+      setPartners(((partnerRows as any) ?? []) as Agency[]);
 
       const { data } = await supabase.auth.getUser();
       const u = data.user;
       if (!u) return;
       const { data: p } = await (supabase.from("profiles") as any)
         .select("full_name,phone").eq("id", u.id).maybeSingle();
-      setContact((c) => ({
-        ...c,
-        name: c.name || (p as any)?.full_name || "",
-        phone: c.phone || (p as any)?.phone || "",
-        email: c.email || u.email || "",
+      setForm((f) => ({
+        ...f,
+        contact_name: f.contact_name || (p as any)?.full_name || "",
+        contact_phone: f.contact_phone || (p as any)?.phone || "",
+        contact_email: f.contact_email || u.email || "",
       }));
     })();
   }, []);
 
-  const runSearch = async () => {
-    if (!criteria.origin.trim() || !criteria.destination.trim() || !criteria.departure_date) {
-      toast.error("Départ, arrivée et date de départ sont requis");
+  const submit = async () => {
+    if (!form.origin.trim() || !form.destination.trim() || !form.departure_date) {
+      toast.error("Ville de départ, ville d'arrivée et date de départ sont requises");
       return;
     }
-    if (criteria.trip_type === "round_trip" && !criteria.return_date) {
+    if (form.trip_type === "round_trip" && !form.return_date) {
       toast.error("Indiquez la date de retour");
       return;
     }
-    setLoading(true);
-    setSearched(true);
-    const { data } = await (supabase.from("flight_programs") as any)
-      .select("*")
-      .eq("is_active", true)
-      .ilike("origin", `%${criteria.origin.trim()}%`)
-      .ilike("destination", `%${criteria.destination.trim()}%`)
-      .lte("month_start", criteria.departure_date)
-      .gte("month_end", criteria.departure_date)
-      .order("price_from", { ascending: true });
-    const list = ((data as any) ?? []) as Program[];
-    setPrograms(list);
-
-    const ids = Array.from(new Set(list.map((p) => p.agency_id)));
-    if (ids.length) {
-      const { data: ags } = await (supabase.from("partner_agencies_public") as any)
-        .select("id,name,logo_url").in("id", ids);
-      const map: Record<string, Agency> = {};
-      ((ags as any) ?? []).forEach((a: Agency) => { map[a.id] = a; });
-      setAgencies(map);
+    if (!form.contact_name.trim() || !form.contact_phone.trim()) {
+      toast.error("Nom et téléphone requis");
+      return;
     }
-    setLoading(false);
-  };
-
-  const submitRequest = async () => {
-    if (!selected) return;
     const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) { toast.error("Connectez-vous pour envoyer une demande"); navigate({ to: "/auth" }); return; }
-    if (!contact.name.trim() || !contact.phone.trim()) { toast.error("Nom et téléphone requis"); return; }
+    if (!auth.user) {
+      toast.error("Connectez-vous pour envoyer votre demande");
+      navigate({ to: "/auth" });
+      return;
+    }
     setSending(true);
     const { data, error } = await (supabase.from("flight_quote_requests") as any).insert({
       user_id: auth.user.id,
-      program_id: selected.id,
-      contact_name: contact.name.trim(),
-      contact_phone: contact.phone.trim(),
-      contact_email: contact.email.trim() || null,
-      origin: criteria.origin.trim(),
-      destination: criteria.destination.trim(),
-      trip_type: criteria.trip_type,
-      departure_date: criteria.departure_date,
-      return_date: criteria.trip_type === "round_trip" ? criteria.return_date : null,
-      adults: criteria.adults,
-      children: criteria.children,
-      infants: criteria.infants,
-      client_note: contact.note.trim() || null,
+      contact_name: form.contact_name.trim(),
+      contact_phone: form.contact_phone.trim(),
+      contact_email: form.contact_email.trim() || null,
+      origin: form.origin.trim(),
+      destination: form.destination.trim(),
+      trip_type: form.trip_type,
+      departure_date: form.departure_date,
+      return_date: form.trip_type === "round_trip" ? form.return_date : null,
+      adults: form.adults,
+      children: form.children,
+      infants: form.infants,
+      passengers_count: form.adults + form.children + form.infants,
+      travel_class: form.travel_class,
+      client_note: form.client_note.trim() || null,
       status: "pending",
     }).select("id").single();
     setSending(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Demande envoyée — vous recevrez une offre tarifaire.");
-    setSelected(null);
+    toast.success("Demande envoyée — un conseiller prépare votre proposition.");
     navigate({ to: "/mes-demandes-vols/$requestId", params: { requestId: (data as any).id } });
   };
 
-  const num = (v: string, min: number) => Math.max(min, Number(v) || 0);
-
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-4xl px-5 py-8">
+      <div className="mx-auto max-w-3xl px-5 py-8">
         <div className="flex items-center justify-between">
           <Link to="/billets" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Billetterie
@@ -162,172 +128,110 @@ function VolsSearch() {
             <Plane className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Demande de vol</h1>
+            <h1 className="text-2xl font-bold">Demande de billet d'avion</h1>
             <p className="text-sm text-muted-foreground">
-              Indiquez votre trajet, nous vous envoyons une offre tarifaire personnalisée.
+              Décrivez votre voyage : un conseiller vous envoie une proposition de billet avec le tarif définitif.
             </p>
           </div>
         </header>
 
-        <section className="mt-6">
-          <h2 className="text-sm font-bold">Nos compagnies aériennes partenaires</h2>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {airlinePartners.map((partner) => (
-              <div key={partner.id} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border bg-card p-3 text-center shadow-sm">
-                <AgencyLogo src={partner.logo_url} alt={`Logo ${partner.name}`} size={52} rounded="xl" />
-                <p className="text-xs font-semibold">{partner.name.trim()}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {airlinePartners.length > 0 && (
-          <section className="mt-6 rounded-2xl border bg-card p-4 sm:p-5">
-            <label className="text-xs font-semibold text-muted-foreground" htmlFor="flight-service-agency">
-              Agence pour le service additionnel
-            </label>
-            <select
-              id="flight-service-agency"
-              value={serviceAgencyId}
-              onChange={(event) => setServiceAgencyId(event.target.value)}
-              className="mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm"
-            >
-              {airlinePartners.map((partner) => (
-                <option key={partner.id} value={partner.id}>{partner.name.trim()}</option>
+        {partners.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-sm font-bold">Nos compagnies partenaires</h2>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {partners.map((p) => (
+                <div key={p.id} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border bg-card p-3 text-center shadow-sm">
+                  <AgencyLogo src={p.logo_url} alt={`Logo ${p.name}`} size={52} rounded="xl" />
+                  <p className="text-xs font-semibold">{p.name.trim()}</p>
+                </div>
               ))}
-            </select>
-            {serviceAgencyId && (
-              <BusQuoteForms
-                agencyId={serviceAgencyId}
-                agencyName={airlinePartners.find((partner) => partner.id === serviceAgencyId)?.name.trim()}
-              />
-            )}
+            </div>
           </section>
         )}
 
         <section className="mt-6 rounded-3xl border bg-card p-5 shadow-sm">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div><Label>Ville de départ</Label>
-              <Input placeholder="Libreville" value={criteria.origin} onChange={(e) => setCriteria({ ...criteria, origin: e.target.value })} /></div>
-            <div><Label>Ville d'arrivée</Label>
-              <Input placeholder="Paris" value={criteria.destination} onChange={(e) => setCriteria({ ...criteria, destination: e.target.value })} /></div>
+            <div>
+              <Label>Ville de départ</Label>
+              <Input placeholder="Libreville" value={form.origin}
+                onChange={(e) => setForm({ ...form, origin: e.target.value })} />
+            </div>
+            <div>
+              <Label>Ville d'arrivée</Label>
+              <Input placeholder="Paris" value={form.destination}
+                onChange={(e) => setForm({ ...form, destination: e.target.value })} />
+            </div>
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
             {(["one_way", "round_trip"] as const).map((t) => (
-              <button key={t} type="button" onClick={() => setCriteria({ ...criteria, trip_type: t })}
+              <button key={t} type="button" onClick={() => setForm({ ...form, trip_type: t })}
                 className={`rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${
-                  criteria.trip_type === t ? "border-primary bg-primary/10 text-primary" : "text-muted-foreground"}`}>
-                {t === "one_way" ? "Aller simple" : "Aller-Retour"}
+                  form.trip_type === t ? "border-primary bg-primary/10 text-primary" : "text-muted-foreground"}`}>
+                {t === "one_way" ? "Aller simple" : "Aller-retour"}
               </button>
             ))}
           </div>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <div><Label>Date de départ</Label>
-              <Input type="date" value={criteria.departure_date} onChange={(e) => setCriteria({ ...criteria, departure_date: e.target.value })} /></div>
-            {criteria.trip_type === "round_trip" && (
-              <div><Label>Date de retour</Label>
-                <Input type="date" value={criteria.return_date} onChange={(e) => setCriteria({ ...criteria, return_date: e.target.value })} /></div>
+            <div>
+              <Label>Date de départ</Label>
+              <Input type="date" value={form.departure_date}
+                onChange={(e) => setForm({ ...form, departure_date: e.target.value })} />
+            </div>
+            {form.trip_type === "round_trip" && (
+              <div>
+                <Label>Date de retour</Label>
+                <Input type="date" value={form.return_date}
+                  onChange={(e) => setForm({ ...form, return_date: e.target.value })} />
+              </div>
             )}
           </div>
 
           <div className="mt-3 grid grid-cols-3 gap-3">
             <div><Label>Adultes</Label>
-              <NumericField min={1} value={criteria.adults} onChange={(v) => setCriteria({ ...criteria, adults: v })} /></div>
+              <NumericField min={1} value={form.adults} onChange={(v) => setForm({ ...form, adults: v })} /></div>
             <div><Label>Enfants</Label>
-              <NumericField min={0} value={criteria.children} onChange={(v) => setCriteria({ ...criteria, children: v })} /></div>
+              <NumericField min={0} value={form.children} onChange={(v) => setForm({ ...form, children: v })} /></div>
             <div><Label>Bébés</Label>
-              <NumericField min={0} value={criteria.infants} onChange={(v) => setCriteria({ ...criteria, infants: v })} /></div>
+              <NumericField min={0} value={form.infants} onChange={(v) => setForm({ ...form, infants: v })} /></div>
           </div>
 
-          <Button className="mt-4 w-full" onClick={runSearch} disabled={loading}>
-            {loading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Search className="mr-1.5 h-4 w-4" />}
-            Rechercher les vols
-          </Button>
-        </section>
+          <div className="mt-3">
+            <Label htmlFor="travel-class">Classe souhaitée</Label>
+            <select id="travel-class" value={form.travel_class}
+              onChange={(e) => setForm({ ...form, travel_class: e.target.value })}
+              className="mt-1 h-11 w-full rounded-xl border bg-background px-3 text-sm">
+              {TRAVEL_CLASSES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+          </div>
 
-        {searched && !loading && (
-          <section className="mt-6">
-            {programs.length === 0 ? (
-              <div className="rounded-2xl border bg-card p-8 text-center text-sm text-muted-foreground">
-                Aucun programme ne correspond à votre recherche pour cette date.
-              </div>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {programs.map((p) => {
-                  const a = agencies[p.agency_id];
-                  const disabled = p.status !== "available";
-                  return (
-                    <div key={p.id} className="flex flex-col rounded-2xl border bg-card p-4 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        {a?.logo_url ? <AgencyLogo src={a.logo_url} alt={a.name} size={44} /> : (
-                          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <Plane className="h-5 w-5" />
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold">{a?.name ?? "Compagnie"}</p>
-                          <p className="truncate text-xs text-muted-foreground">{PROGRAM_STATUS_LABEL[p.status] ?? p.status}</p>
-                        </div>
-                      </div>
-                      <div className="mt-3 flex items-center gap-1.5 text-sm">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="truncate">{p.origin} → {p.destination}</span>
-                      </div>
-                      {p.description && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{p.description}</p>}
-                      <div className="mt-3 flex items-end justify-between">
-                        <div>
-                          <p className="text-[11px] text-muted-foreground">À partir de (indicatif)</p>
-                          <p className="text-lg font-extrabold text-primary">{FCFA(p.price_from)}</p>
-                        </div>
-                        <Button size="sm" disabled={disabled} onClick={() => setSelected(p)}>
-                          Demander ce vol
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              Les prix affichés sont indicatifs. Le tarif définitif vous sera communiqué après étude de votre demande.
-            </p>
-          </section>
-        )}
-      </div>
-
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-          <DialogHeader><DialogTitle>Envoyer ma demande</DialogTitle></DialogHeader>
-          <div className="grid gap-3">
-            <div className="rounded-xl bg-muted/50 p-3 text-sm">
-              <p className="font-semibold">{criteria.origin} → {criteria.destination}</p>
-              <p className="text-muted-foreground">
-                {criteria.trip_type === "round_trip" ? "Aller-retour" : "Aller simple"} · {criteria.departure_date}
-                {criteria.trip_type === "round_trip" ? ` → ${criteria.return_date}` : ""}
-              </p>
-              <p className="text-muted-foreground">
-                {criteria.adults} adulte(s), {criteria.children} enfant(s), {criteria.infants} bébé(s)
-              </p>
-            </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <div><Label>Nom complet</Label>
-              <Input value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} /></div>
+              <Input value={form.contact_name} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} /></div>
             <div><Label>Téléphone</Label>
-              <Input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} /></div>
-            <div><Label>Email</Label>
-              <Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} /></div>
-            <div><Label>Précisions (optionnel)</Label>
-              <Textarea rows={3} value={contact.note} onChange={(e) => setContact({ ...contact, note: e.target.value })} /></div>
+              <Input value={form.contact_phone} onChange={(e) => setForm({ ...form, contact_phone: e.target.value })} /></div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setSelected(null)}>Annuler</Button>
-            <Button onClick={submitRequest} disabled={sending}>
-              {sending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Envoyer la demande
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <div className="mt-3">
+            <Label>Email (optionnel)</Label>
+            <Input type="email" value={form.contact_email}
+              onChange={(e) => setForm({ ...form, contact_email: e.target.value })} />
+          </div>
+          <div className="mt-3">
+            <Label>Précisions (optionnel)</Label>
+            <Textarea rows={3} placeholder="Horaires souhaités, compagnie préférée, bagages…"
+              value={form.client_note} onChange={(e) => setForm({ ...form, client_note: e.target.value })} />
+          </div>
+
+          <Button className="mt-5 w-full" onClick={submit} disabled={sending}>
+            {sending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Send className="mr-1.5 h-4 w-4" />}
+            Envoyer ma demande
+          </Button>
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            Aucun paiement à cette étape. Vous recevrez une proposition détaillée à accepter ou refuser.
+          </p>
+        </section>
+      </div>
     </main>
   );
 }
