@@ -31,6 +31,14 @@ export const REQUEST_STATUS_LABEL: Record<string, string> = {
   expired: "Proposition expirée",
 };
 
+export const PROGRAM_STATUS_LABEL: Record<string, string> = {
+  available: "Disponible",
+  limited: "Places limitées",
+  full: "Complet",
+  cancelled: "Annulé",
+  expired: "Expiré",
+};
+
 export const REQUEST_STATUS_CLASS: Record<string, string> = {
   pending: "bg-muted text-muted-foreground",
   in_progress: "bg-sky-500/15 text-sky-600",
