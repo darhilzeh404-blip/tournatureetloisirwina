@@ -299,6 +299,7 @@ function AdminPaiements() {
           estimateRowHeight={320}
           renderItem={(p) => {
             const st = STATUS_MAP[p.status];
+            const isMyPvit = /^WINA[A-F0-9]{16}$/.test(p.transaction_ref ?? "");
             return (
               <Card key={p.id} className="overflow-hidden">
                 <CardContent className="p-0">
@@ -382,7 +383,10 @@ function AdminPaiements() {
                         </p>
                       )}
 
-                      {p.status === "PENDING" && (
+                      {p.status === "PENDING" && isMyPvit && (
+                        <p className="text-xs text-muted-foreground">Confirmation MyPVit en attente</p>
+                      )}
+                      {p.status === "PENDING" && !isMyPvit && (
                         <div className="flex gap-2 pt-2">
                           <Button size="sm" onClick={() => validate(p.id)} className="flex-1">
                             <CheckCircle className="mr-1 h-4 w-4" /> Valider

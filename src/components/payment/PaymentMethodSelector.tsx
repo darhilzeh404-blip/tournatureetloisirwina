@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 import type { PaymentChannel } from "@/lib/payment-methods";
-import airtel3d from "@/assets/pay/airtel-money-3d.png";
-import moov3d from "@/assets/pay/moov-money-3d.png";
-import bank3d from "@/assets/pay/bank-transfer-3d.png";
-import cash3d from "@/assets/pay/cash-3d.png";
 import wallet3d from "@/assets/pay/wallet-3d.png";
-import card3d from "@/assets/pay/card-3d.png";
+
+// Logos de marque utilisés uniquement pour identifier les moyens de paiement.
+const AIRTEL_MONEY_LOGO =
+  "https://www.madigipaie.com/logo-airtel-money.png";
+const MOOV_MONEY_LOGO = "https://kaybicafrica.com/img/partners/moov.png";
 
 interface Option {
   value: PaymentChannel;
@@ -23,40 +21,20 @@ const BASE_OPTIONS: Option[] = [
   {
     value: "airtel_money",
     label: "Airtel Money",
-    description: "Payez via le code marchand Airtel Money BGG94.",
-    image: airtel3d,
+    description: "Paiement depuis votre compte Airtel Money.",
+    image: AIRTEL_MONEY_LOGO,
   },
   {
     value: "moov_money",
     label: "Moov Money",
-    description: "Payez via le code marchand Moov Money TRANSPORT.",
-    image: moov3d,
-  },
-  {
-    value: "bank_transfer",
-    label: "Virement bancaire",
-    description: "Effectuez votre virement et envoyez votre justificatif.",
-    image: bank3d,
-  },
-  {
-    value: "cash",
-    label: "Paiement en espèces",
-    description: "Rendez-vous dans une agence WINA TOUR pour régler votre réservation.",
-    image: cash3d,
+    description: "Paiement depuis votre compte Moov Money.",
+    image: MOOV_MONEY_LOGO,
   },
   {
     value: "wallet",
     label: "Portefeuille WINA TOUR",
     description: "Payez directement avec votre solde disponible.",
     image: wallet3d,
-  },
-  {
-    value: "card",
-    label: "Carte bancaire",
-    description: "Temporairement indisponible",
-    image: card3d,
-    disabled: true,
-    badge: "Bientôt disponible",
   },
 ];
 
@@ -93,7 +71,7 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
 
   const options = BASE_OPTIONS.filter((o) => {
     if (hideWallet && o.value === "wallet") return false;
-    if (allowed && !allowed.includes(o.value) && o.value !== "card") return false;
+    if (allowed && !allowed.includes(o.value)) return false;
     return true;
   });
 
@@ -132,6 +110,7 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
                     src={o.image}
                     alt=""
                     aria-hidden="true"
+                    referrerPolicy="no-referrer"
                     loading="lazy"
                     width={512}
                     height={512}
@@ -161,27 +140,15 @@ export function PaymentMethodSelector({ allowed, hideWallet, note, onContinue }:
         })}
       </div>
 
-      <Card className="border-dashed">
-        <CardContent className="p-4">
-          {advancing ? (
-            <div className="flex items-center justify-center gap-2 text-sm font-semibold text-primary">
-              <Loader2 className="h-4 w-4 animate-spin" /> Moyen de paiement validé…
-            </div>
-          ) : selected ? (
-            <Button size="lg" className="w-full" onClick={() => onContinue(selected)}>
-              <Check className="mr-2 h-4 w-4" /> Poursuivre le paiement
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          ) : (
-            <p className="text-center text-sm text-muted-foreground">
-              Sélectionnez un moyen de paiement pour continuer automatiquement.
-            </p>
-          )}
-          <p className="mt-2 text-center text-xs text-muted-foreground">
-            Le choix d'un moyen de paiement ne vaut pas paiement : la confirmation dépend de la procédure choisie.
-          </p>
-        </CardContent>
-      </Card>
+      {advancing ? (
+        <div className="flex items-center justify-center gap-2 text-sm font-semibold text-primary">
+          <Loader2 className="h-4 w-4 animate-spin" /> Ouverture du paiement…
+        </div>
+      ) : !selected ? (
+        <p className="text-center text-sm text-muted-foreground">
+          Sélectionnez un moyen de paiement pour continuer.
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -1,1 +1,11 @@
-project_id = "pltxkmzuhgkzfzusfykv"
+project_id = "ekpctxfdtuwrkjpsdxyk"
+
+# Authentication is checked inside the functions; MyPVit has no Supabase JWT.
+[functions.mypvit-payment]
+verify_jwt = false
+
+[functions.mypvit-callback]
+verify_jwt = false
+
+[functions.mypvit-reconcile]
+verify_jwt = false

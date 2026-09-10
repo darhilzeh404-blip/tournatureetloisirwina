@@ -14,7 +14,8 @@
     "ci": "tsc --noEmit && vite build",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:test-accounts": "node scripts/seed-test-accounts.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
