@@ -61,6 +61,53 @@ export function database() {
 type Database = ReturnType<typeof database>;
 type Config = ReturnType<typeof config>;
 
+class ProviderError extends Error {
+  constructor(
+    readonly phase: "renew_secret" | "payment" | "status",
+    readonly httpStatus: number | null,
+    readonly providerCode: string | null,
+    readonly providerMessage: string | null,
+  ) {
+    super(`MYPVIT_${phase.toUpperCase()}_FAILED`);
+  }
+}
+
+function providerText(value: unknown): string | null {
+  return typeof value === "string" && value.trim()
+    ? value.trim().slice(0, 300)
+    : null;
+}
+
+function providerError(
+  phase: ProviderError["phase"],
+  response: Response,
+  body: Record<string, unknown>,
+) {
+  return new ProviderError(
+    phase,
+    response.status,
+    providerText(body.error) ?? providerText(body.code) ?? providerText(body.status_code),
+    providerText(body.message),
+  );
+}
+
+function logProviderError(error: unknown) {
+  if (error instanceof ProviderError) {
+    // Deliberately exclude request headers, payloads and all secret values.
+    console.warn("mypvit_provider_error", JSON.stringify({
+      phase: error.phase,
+      httpStatus: error.httpStatus,
+      providerCode: error.providerCode,
+      providerMessage: error.providerMessage,
+    }));
+    return;
+  }
+  console.warn("mypvit_provider_error", JSON.stringify({
+    phase: "network_or_response",
+    error: error instanceof Error ? error.name : "UnknownError",
+  }));
+}
+
 async function responseBody(
   response: Response,
 ): Promise<Record<string, unknown>> {
@@ -100,7 +147,7 @@ export async function getSecret(db: Database, c: Config): Promise<string> {
           !res.ok || typeof body.secret !== "string" || !body.secret ||
           body.operation_account_code !== c.account ||
           typeof body.expires_in !== "number" || body.expires_in <= 120
-        ) throw new Error("PROVIDER_AUTH_FAILED");
+        ) throw providerError("renew_secret", res, body);
         const { error: saveError } = await db.from("mypvit_secrets").update({
           secret: body.secret,
           expires_at: new Date(Date.now() + body.expires_in * 1000)
@@ -110,6 +157,7 @@ export async function getSecret(db: Database, c: Config): Promise<string> {
         if (saveError) throw saveError;
         return body.secret;
       } catch (error) {
+        logProviderError(error);
         await db.from("mypvit_secrets").update({ lease_until: null }).eq(
           "account_code",
           c.account,
@@ -172,8 +220,9 @@ export async function reconcile(
       signal: AbortSignal.timeout(15000),
     });
   }
-  if (!res.ok) throw new Error("PROVIDER_UNAVAILABLE");
-  const status = verifiedStatus(await responseBody(res), tx);
+  const body = await responseBody(res);
+  if (!res.ok) throw providerError("status", res, body);
+  const status = verifiedStatus(body, tx);
   if (status !== "PENDING") return settle(db, tx, status, providerId);
   const { error } = await db.from("mypvit_transactions").update({
     provider_id: providerId,
@@ -214,6 +263,9 @@ export async function initiate(
       },
     );
     const body = await responseBody(res);
+    if (!res.ok && ![400, 401, 403, 422].includes(res.status)) {
+      throw providerError("payment", res, body);
+    }
     if (
       [400, 401, 403, 422].includes(res.status) &&
       typeof body.error === "string" && !body.reference_id
@@ -242,7 +294,8 @@ export async function initiate(
     if (body.status === "SUCCESS" || body.status === "FAILED") {
       return await reconcile(db, c, tx);
     }
-  } catch {
+  } catch (error) {
+    logProviderError(error);
     console.warn("MyPVit initiation uncertain", tx.id);
   }
   return tx;
@@ -260,6 +313,18 @@ const messages: Record<string, string> = {
   FORBIDDEN: "Paiement introuvable ou accès refusé.",
 };
 export function failure(error: unknown) {
+  if (error instanceof ProviderError) {
+    logProviderError(error);
+    let message = "Le service MyPVIT est temporairement indisponible.";
+    if (error.httpStatus === 401) {
+      message = "MyPVIT a refusé l’authentification : vérifiez le mot de passe API et le Code URL Secret.";
+    } else if (error.httpStatus === 403) {
+      message = "MyPVIT a bloqué cet appel : vérifiez l’activation de l’API/URL et l’autorisation IP.";
+    } else if (error.httpStatus === 404) {
+      message = "MyPVIT ne reconnaît pas un Code URL : vérifiez les codes Secret, Paiement et Statut.";
+    }
+    return json({ error: message }, 503);
+  }
   const code = error instanceof Error
     ? error.message
     : String((error as { message?: string })?.message ?? "");
