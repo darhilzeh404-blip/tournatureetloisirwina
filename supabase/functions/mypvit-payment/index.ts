@@ -1,6 +1,6 @@
 import {
   config,
-  cors,
+  corsHeaders,
   database,
   failure,
   getSecret,
@@ -15,24 +15,24 @@ import {
 } from "../_shared/mypvit-protocol.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, req);
   try {
     const db = database();
     const token = req.headers.get("authorization")?.replace(/^Bearer /, "");
     if (!token) {
-      return json({ error: "Session expirée. Reconnectez-vous." }, 401);
+      return json({ error: "Session expirée. Reconnectez-vous." }, 401, req);
     }
     const { data: auth, error: authError } = await db.auth.getUser(token);
     if (authError || !auth.user) {
-      return json({ error: "Session expirée. Reconnectez-vous." }, 401);
+      return json({ error: "Session expirée. Reconnectez-vous." }, 401, req);
     }
     const body = await req.json();
     const uuid =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (body.action === "status") {
       if (typeof body.id !== "string" || !uuid.test(body.id)) {
-        return json({ error: "Identifiant invalide." }, 400);
+        return json({ error: "Identifiant invalide." }, 400, req);
       }
       const { data, error } = await db.from("mypvit_transactions").select("*")
         .eq("id", body.id).eq("user_id", auth.user.id).maybeSingle();
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
         if (claimError) throw claimError;
         if (claimed) tx = await reconcile(db, config(), tx);
       }
-      return json({ transaction: publicTransaction(tx) });
+      return json({ transaction: publicTransaction(tx) }, 200, req);
     }
     if (
       !["reservation", "wallet_recharge"].includes(body.purpose) ||
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
         (typeof body.reservationId !== "string" ||
           !uuid.test(body.reservationId)))
     ) {
-      return json({ error: "Réservation invalide." }, 400);
+      return json({ error: "Réservation invalide." }, 400, req);
     }
     if (body.action === "current") {
       let query = db.from("mypvit_transactions").select("*").eq(
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       if (error) throw error;
       return json({
         transaction: data ? publicTransaction(data as Transaction) : null,
-      });
+      }, 200, req);
     }
     if (
       body.action !== "start" ||
@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
       !Number.isSafeInteger(body.amount) || body.amount <= 0 ||
       body.amount > 2147483647
     ) {
-      return json({ error: "Demande de paiement invalide." }, 400);
+      return json({ error: "Demande de paiement invalide." }, 400, req);
     }
     const phone = normalizePhone(body.phone);
     const c = config();
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     });
     if (error) throw error;
     const tx = await initiate(db, c, data as Transaction, secret);
-    return json({ transaction: publicTransaction(tx) });
+    return json({ transaction: publicTransaction(tx) }, 200, req);
   } catch (error) {
     return failure(error);
   }

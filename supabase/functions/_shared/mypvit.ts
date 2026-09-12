@@ -5,17 +5,32 @@ import {
   verifiedStatus,
 } from "./mypvit-protocol.ts";
 
-export const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-export function json(body: unknown, status = 200) {
+function allowedOrigins(): Set<string> {
+  return new Set(
+    (Deno.env.get("CORS_ALLOWED_ORIGINS") ?? "")
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+  );
+}
+
+export function corsHeaders(req?: Request): Record<string, string> {
+  const origin = req?.headers.get("origin");
+  const allowed = origin && allowedOrigins().has(origin) ? origin : null;
+  return {
+    ...(allowed ? { "Access-Control-Allow-Origin": allowed } : {}),
+    Vary: "Origin",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
+
+export function json(body: unknown, status = 200, req?: Request) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
-      ...cors,
+      ...corsHeaders(req),
       "Content-Type": "application/json",
       "Cache-Control": "no-store",
     },

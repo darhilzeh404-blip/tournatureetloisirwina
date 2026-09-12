@@ -4,11 +4,13 @@ import {
   failure,
   json,
   reconcile,
+  corsHeaders,
 } from "../_shared/mypvit.ts";
 import type { Transaction } from "../_shared/mypvit-protocol.ts";
 
 Deno.serve(async (req) => {
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, req);
   try {
     const body = await req.json();
     if (
@@ -36,7 +38,7 @@ Deno.serve(async (req) => {
     if (result.status === "PENDING") {
       return json({ error: "Status not yet final" }, 503);
     }
-    return json({ transactionId: body.transactionId, responseCode: body.code });
+    return json({ transactionId: body.transactionId, responseCode: body.code }, 200, req);
   } catch (error) {
     return failure(error);
   }
