@@ -331,14 +331,21 @@ export function failure(error: unknown) {
   if (error instanceof ProviderError) {
     logProviderError(error);
     let message = "Le service MyPVIT est temporairement indisponible.";
-    if (error.httpStatus === 401) {
+    if (error.phase === "renew_secret" && error.httpStatus === 200) {
+      message = "MyPVIT a accepté la génération de clé mais ne l’a pas renvoyée. Vérifiez si votre API Secret utilise une URL de réception de clé.";
+    } else if (error.httpStatus === 400) {
+      message = "MyPVIT a refusé la demande : vérifiez le Code URL, le compte ACC et le mot de passe API.";
+    } else if (error.httpStatus === 401) {
       message = "MyPVIT a refusé l’authentification : vérifiez le mot de passe API et le Code URL Secret.";
     } else if (error.httpStatus === 403) {
       message = "MyPVIT a bloqué cet appel : vérifiez l’activation de l’API/URL et l’autorisation IP.";
     } else if (error.httpStatus === 404) {
       message = "MyPVIT ne reconnaît pas un Code URL : vérifiez les codes Secret, Paiement et Statut.";
     }
-    return json({ error: message }, 503);
+    return json({
+      error: message,
+      diagnostic: `MYPVIT_${error.phase.toUpperCase()}_${error.httpStatus ?? "NETWORK"}`,
+    }, 503);
   }
   const code = error instanceof Error
     ? error.message
