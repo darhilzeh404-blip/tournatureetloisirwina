@@ -65,7 +65,7 @@ function AdminVols() {
   const load = async () => {
     setLoading(true);
     const [{ data: p }, { data: a }] = await Promise.all([
-      (supabase.from("flight_programs") as any).select("*").order("created_at", { ascending: false }).limit(300),
+      (supabase.from("flight_programs" as never) as any).select("*").order("created_at", { ascending: false }).limit(300),
       (supabase.from("partner_agencies") as any).select("id,name").eq("category", "avion").eq("is_active", true).order("name"),
     ]);
     setPrograms(((p as any) ?? []) as Program[]);
@@ -95,8 +95,8 @@ function AdminVols() {
       is_active: editing.is_active ?? true,
     };
     const q = editing.id
-      ? (supabase.from("flight_programs") as any).update(payload).eq("id", editing.id)
-      : (supabase.from("flight_programs") as any).insert(payload);
+      ? (supabase.from("flight_programs" as never) as any).update(payload).eq("id", editing.id)
+      : (supabase.from("flight_programs" as never) as any).insert(payload);
     const { error } = await q;
     setSaving(false);
     if (error) { toast.error(error.message); return; }
@@ -107,7 +107,7 @@ function AdminVols() {
 
   const remove = async (id: string) => {
     if (!confirm("Supprimer ce programme de vol ?")) return;
-    const { error } = await (supabase.from("flight_programs") as any).delete().eq("id", id);
+    const { error } = await (supabase.from("flight_programs" as never) as any).delete().eq("id", id);
     if (error) toast.error(error.message); else { toast.success("Supprimé"); load(); }
   };
 

@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.winatour.app',
+  appId: 'com.winatourgabon.app',
   appName: 'WINA TOUR',
   webDir: 'dist'
 };

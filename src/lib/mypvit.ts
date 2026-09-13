@@ -16,6 +16,9 @@ export async function mypvitRequest(body: Record<string, unknown>): Promise<MyPv
     if ('context' in error && error.context instanceof Response) {
       try {
         const payload = await error.context.json();
+        // The Edge Function only returns a safe error and diagnostic code here;
+        // never log request headers or payment credentials in the browser.
+        console.error('[MyPVIT] Edge Function response', payload);
         if (typeof payload.error === 'string') message = payload.error;
       } catch { /* Keep the connection error for non-JSON gateway responses. */ }
     }

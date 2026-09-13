@@ -125,12 +125,20 @@ function logProviderError(error: unknown) {
 
 async function responseBody(
   response: Response,
+  phase: ProviderError["phase"],
 ): Promise<Record<string, unknown>> {
-  const body = await response.json();
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    throw new Error("PROVIDER_UNAVAILABLE");
+  const text = await response.text();
+  try {
+    const body = JSON.parse(text);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      throw new Error("Invalid JSON object");
+    }
+    return body as Record<string, unknown>;
+  } catch {
+    // Providers and firewalls sometimes return HTML or an empty body. Keep the
+    // HTTP status so the client can distinguish a bad configuration from IP/WAF.
+    throw new ProviderError(phase, response.status, "NON_JSON_RESPONSE", null);
   }
-  return body;
 }
 
 export async function getSecret(db: Database, c: Config): Promise<string> {
@@ -157,7 +165,7 @@ export async function getSecret(db: Database, c: Config): Promise<string> {
             signal: AbortSignal.timeout(15000),
           },
         );
-        const body = await responseBody(res);
+        const body = await responseBody(res, "renew_secret");
         if (
           !res.ok || typeof body.secret !== "string" || !body.secret ||
           body.operation_account_code !== c.account ||
@@ -235,7 +243,7 @@ export async function reconcile(
       signal: AbortSignal.timeout(15000),
     });
   }
-  const body = await responseBody(res);
+  const body = await responseBody(res, "status");
   if (!res.ok) throw providerError("status", res, body);
   const status = verifiedStatus(body, tx);
   if (status !== "PENDING") return settle(db, tx, status, providerId);
@@ -277,7 +285,7 @@ export async function initiate(
         signal: AbortSignal.timeout(20000),
       },
     );
-    const body = await responseBody(res);
+    const body = await responseBody(res, "payment");
     if (!res.ok && ![400, 401, 403, 422].includes(res.status)) {
       throw providerError("payment", res, body);
     }
