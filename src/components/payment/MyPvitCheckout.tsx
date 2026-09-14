@@ -60,7 +60,11 @@ export function MyPvitCheckout({ purpose, reservationId, channel, amount, before
         const result = await mypvitRequest({ action: 'status', id: tx.id });
         if (active && result) { setTx(result); setError(''); }
         if (result?.status !== 'PENDING') return;
-      } catch (e) { if (active) setError((e as Error).message); }
+      } catch {
+        // The provider's Check Status endpoint is only a fallback. Keep the
+        // checkout pending while its authenticated callback can still settle
+        // the transaction, instead of presenting a false payment failure.
+      }
       if (active) timer = setTimeout(poll, 12000);
     };
     timer = setTimeout(poll, 2000);

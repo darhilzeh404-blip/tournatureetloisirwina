@@ -123,6 +123,10 @@ function logProviderError(error: unknown) {
   }));
 }
 
+function diagnosticPart(value: string | null) {
+  return value && /^[A-Z0-9_]{1,80}$/.test(value) ? value : "UNKNOWN";
+}
+
 async function responseBody(
   response: Response,
   phase: ProviderError["phase"],
@@ -307,7 +311,16 @@ export async function initiate(
       typeof body.reference_id !== "string" || !body.reference_id ||
       body.merchant_reference_id !== tx.reference ||
       body.merchant_operation_account_code !== tx.account_code
-    ) return tx;
+    ) {
+      // A completed HTTP response without MyPVIT's transaction reference is
+      // definitive enough to diagnose, but not safe enough to auto-replay.
+      throw new ProviderError(
+        "payment",
+        res.status,
+        "UNEXPECTED_RESPONSE",
+        providerText(body.message),
+      );
+    }
     const { error: saveError } = await db.from("mypvit_transactions").update({
       provider_id: body.reference_id,
     })
@@ -319,6 +332,9 @@ export async function initiate(
     }
   } catch (error) {
     logProviderError(error);
+    // A provider HTTP response is definitive (for example a bad Code URL).
+    // Do not disguise it as a pending debit: return its safe diagnostic instead.
+    if (error instanceof ProviderError) throw error;
     console.warn("MyPVit initiation uncertain", tx.id);
   }
   return tx;
@@ -335,12 +351,14 @@ const messages: Record<string, string> = {
   RATE_LIMITED: "Trop de tentatives. Réessayez plus tard.",
   FORBIDDEN: "Paiement introuvable ou accès refusé.",
 };
-export function failure(error: unknown) {
+export function failure(error: unknown, req?: Request) {
   if (error instanceof ProviderError) {
     logProviderError(error);
     let message = "Le service MyPVIT est temporairement indisponible.";
     if (error.phase === "renew_secret" && error.httpStatus === 200) {
       message = "MyPVIT a accepté la génération de clé mais ne l’a pas renvoyée. Vérifiez si votre API Secret utilise une URL de réception de clé.";
+    } else if (error.phase === "payment" && error.providerCode === "UNEXPECTED_RESPONSE") {
+      message = "MyPVIT a répondu sans référence de transaction. Vérifiez le Code URL Paiement et la version de l’API REST.";
     } else if (error.httpStatus === 400) {
       message = "MyPVIT a refusé la demande : vérifiez le Code URL, le compte ACC et le mot de passe API.";
     } else if (error.httpStatus === 401) {
@@ -352,8 +370,8 @@ export function failure(error: unknown) {
     }
     return json({
       error: message,
-      diagnostic: `MYPVIT_${error.phase.toUpperCase()}_${error.httpStatus ?? "NETWORK"}`,
-    }, 503);
+      diagnostic: `MYPVIT_${error.phase.toUpperCase()}_${error.httpStatus ?? "NETWORK"}_${diagnosticPart(error.providerCode)}`,
+    }, 503, req);
   }
   const code = error instanceof Error
     ? error.message
@@ -367,5 +385,5 @@ export function failure(error: unknown) {
     error: key
       ? messages[key]
       : "Vérification du paiement indisponible. Réessayez dans quelques instants.",
-  }, key === "FORBIDDEN" ? 403 : 503);
+  }, key === "FORBIDDEN" ? 403 : 503, req);
 }

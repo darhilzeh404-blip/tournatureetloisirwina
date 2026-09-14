@@ -109,6 +109,6 @@ Deno.serve(async (req) => {
     const tx = await initiate(db, c, data as Transaction, secret);
     return json({ transaction: publicTransaction(tx) }, 200, req);
   } catch (error) {
-    return failure(error);
+    return failure(error, req);
   }
 });
