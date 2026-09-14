@@ -7,9 +7,20 @@ import {
 } from "../_shared/mypvit.ts";
 import { normalizePhone, type Transaction } from "../_shared/mypvit-protocol.ts";
 
+function callbackSourceAllowed(req: Request) {
+  const raw = Deno.env.get("MYPVIT_CALLBACK_ALLOWED_IPS")?.trim();
+  // An empty list keeps Sandbox backwards-compatible. Production sets the
+  // official MyPVIT source addresses as an additional webhook safeguard.
+  if (!raw) return true;
+  const allowed = new Set(raw.split(",").map((ip) => ip.trim()).filter(Boolean));
+  const forwarded = req.headers.get("x-forwarded-for") ?? "";
+  return forwarded.split(",").map((ip) => ip.trim()).some((ip) => allowed.has(ip));
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, req);
+  if (!callbackSourceAllowed(req)) return json({ error: "Callback source forbidden" }, 403, req);
   try {
     const body = await req.json();
     if (

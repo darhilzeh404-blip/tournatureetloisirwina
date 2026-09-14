@@ -1,5 +1,7 @@
 import {
   config,
+  accountForChannel,
+  configForAccount,
   corsHeaders,
   database,
   failure,
@@ -40,7 +42,7 @@ Deno.serve(async (req) => {
       if (!data) throw new Error("FORBIDDEN");
       let tx = data as Transaction;
       if (tx.status === "PENDING" && !tx.submitted_at) {
-        const c = config();
+        const c = configForAccount(config(), tx.account_code);
         tx = await initiate(db, c, tx, await getSecret(db, c));
       }
       // Atomic polling lease avoids flooding the provider from multiple tabs.
@@ -91,7 +93,9 @@ Deno.serve(async (req) => {
     }
     const phone = normalizePhone(body.phone);
     const c = config();
-    const secret = await getSecret(db, c);
+    const account = accountForChannel(c, body.channel);
+    const accountConfig = { ...c, account };
+    const secret = await getSecret(db, accountConfig);
     const { data, error } = await db.rpc("mypvit_prepare", {
       _user: auth.user.id,
       _request: body.requestId,
@@ -100,13 +104,11 @@ Deno.serve(async (req) => {
       _amount: body.amount,
       _channel: body.channel,
       _phone: phone,
-      _operator: body.channel === "airtel_money"
-        ? c.airtel_money
-        : c.moov_money,
-      _account: c.account,
+      _operator: body.channel === "airtel_money" ? c.airtel_money : c.moov_money,
+      _account: account,
     });
     if (error) throw error;
-    const tx = await initiate(db, c, data as Transaction, secret);
+    const tx = await initiate(db, accountConfig, data as Transaction, secret);
     return json({ transaction: publicTransaction(tx) }, 200, req);
   } catch (error) {
     return failure(error, req);

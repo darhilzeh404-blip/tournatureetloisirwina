@@ -47,10 +47,15 @@ export function config() {
     "",
   );
   if (!base.startsWith("https://")) throw new Error("PAYMENT_NOT_CONFIGURED");
+  const operationAccount = env("MYPVIT_OPERATION_ACCOUNT_CODE");
   const c = {
     base,
     statusBase: env("MYPVIT_STATUS_BASE_URL", base.replace(/\/v2$/, "")),
-    account: env("MYPVIT_OPERATION_ACCOUNT_CODE"),
+    // The legacy value remains the safe fallback for Sandbox and a merchant
+    // with a single production operation account.
+    account: operationAccount,
+    airtelAccount: env("MYPVIT_AIRTEL_OPERATION_ACCOUNT_CODE", operationAccount),
+    moovAccount: env("MYPVIT_MOOV_OPERATION_ACCOUNT_CODE", operationAccount),
     password: env("MYPVIT_SECRET_PASSWORD"),
     secretCode: env("MYPVIT_CODE_URL_SECRET"),
     paymentCode: env("MYPVIT_CODE_URL_PAYMENT"),
@@ -68,13 +73,27 @@ export function config() {
   ) throw new Error("PAYMENT_NOT_CONFIGURED");
   return c;
 }
+type Config = ReturnType<typeof config>;
+
+export function accountForChannel(
+  c: Config,
+  channel: "airtel_money" | "moov_money",
+) {
+  return channel === "airtel_money" ? c.airtelAccount : c.moovAccount;
+}
+
+export function configForAccount(c: Config, account: string): Config {
+  if (![c.account, c.airtelAccount, c.moovAccount].includes(account)) {
+    throw new Error("PROVIDER_MISMATCH");
+  }
+  return { ...c, account };
+}
 export function database() {
   return createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
     auth: { persistSession: false },
   });
 }
 type Database = ReturnType<typeof database>;
-type Config = ReturnType<typeof config>;
 
 class ProviderError extends Error {
   constructor(
@@ -219,7 +238,7 @@ export async function reconcile(
   providerId = tx.provider_id,
 ): Promise<Transaction> {
   if (tx.status !== "PENDING" || !providerId) return tx;
-  if (tx.account_code !== c.account) throw new Error("PROVIDER_MISMATCH");
+  c = configForAccount(c, tx.account_code);
   const url = new URL(
     `${c.statusBase.replace(/\/$/, "")}/${
       encodeURIComponent(c.statusCode)
