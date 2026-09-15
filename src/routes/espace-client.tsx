@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, MapPin, Navigation, Lock, UserRound } from "lucide-react";
+import { ArrowRight, MapPin, Navigation, Lock, UserRound, UsersRound } from "lucide-react";
 import { isVtcAvailable } from "@/lib/vtc-availability";
 import { VtcUnavailableDialog } from "@/components/VtcUnavailableDialog";
 
@@ -163,7 +163,7 @@ function EspaceClient() {
           </div>
           <ArrowRight className="h-4 w-4 text-muted-foreground" />
         </motion.div>
-        <motion.div variants={stagger} className="mt-4 grid grid-cols-3 gap-3 md:grid-cols-5">
+        <motion.div variants={stagger} className="mt-4 grid grid-cols-3 gap-2 md:grid-cols-5">
   {([
     {
       to: "/reserver-transport",
@@ -248,7 +248,7 @@ function EspaceClient() {
     locked?: boolean;
   }>).map((srv) => {
     const locked = "locked" in srv && srv.locked === true;
-    const ServiceIcon = srv.lucide;
+    const ServiceIcon = (srv as { lucide?: typeof UsersRound }).lucide;
     const inner = (
       <>
         {srv.image ? (
@@ -256,17 +256,17 @@ function EspaceClient() {
             src={srv.image}
             alt={srv.label}
             loading="lazy"
-            className={`h-12 w-12 object-contain ${locked ? "opacity-50 grayscale" : ""}`}
+            className={`h-9 w-9 shrink-0 object-contain ${locked ? "opacity-50 grayscale" : ""}`}
           />
         ) : ServiceIcon ? (
-          <ServiceIcon className={`h-10 w-10 ${locked ? "text-muted-foreground" : "text-primary"}`} aria-hidden="true" />
+          <ServiceIcon className={`h-8 w-8 shrink-0 ${locked ? "text-muted-foreground" : "text-primary"}`} aria-hidden="true" />
         ) : null}
 
         <div className="text-center">
-          <div className="text-sm font-bold leading-tight">
+          <div className="text-[11px] font-bold leading-tight">
             {srv.label}
           </div>
-          <div className={`text-[10px] ${locked ? "font-semibold text-muted-foreground" : "text-muted-foreground"}`}>
+          <div className={`text-[9px] ${locked ? "font-semibold text-muted-foreground" : "text-muted-foreground"}`}>
             {locked ? "Indisponible" : srv.desc}
           </div>
         </div>
@@ -281,7 +281,7 @@ function EspaceClient() {
         )}
       </>
     );
-    const cardClass = `relative flex min-h-28 h-full w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-[var(--radius-card)] border border-border/60 bg-gradient-to-br ${srv.tint} p-3 shadow-[var(--shadow-card)] transition-all duration-200 hover:border-primary/20 hover:shadow-[var(--shadow-elevated)] ${locked ? "opacity-80" : ""}`;
+    const cardClass = `relative flex min-h-24 h-full w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[var(--radius-card)] border border-border/60 bg-gradient-to-br ${srv.tint} p-2.5 shadow-[var(--shadow-card)] transition-all duration-200 hover:border-primary/20 hover:shadow-[var(--shadow-elevated)] ${locked ? "opacity-80" : ""}`;
 
     return (
       <motion.div

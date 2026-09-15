@@ -16,8 +16,9 @@ import { useAutoAdvance } from "@/hooks/use-auto-advance";
 import { VtcStepper } from "@/components/vtc/VtcStepper";
 import { VtcStateScreen } from "@/components/vtc/VtcStateScreen";
 import { CATEGORIES, getCategory } from "@/lib/vtc-categories";
+import { calculateVtcPrice, type VtcPricingEstimate } from "@/lib/vtc-pricing";
 import {
-  computeFare, detectZone, formatXAF, zoneLabel, ZONES,
+  detectZone, formatXAF, zoneLabel, ZONES,
   type RideMode, type VehicleCategory, type ZoneId,
 } from "@/lib/vtc-zones";
 
@@ -69,6 +70,9 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
   const [availableDrivers, setAvailableDrivers] = useState<AvailableDriver[]>([]);
   const [driverInfos, setDriverInfos] = useState<Record<string, DriverInfo>>({});
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [pricing, setPricing] = useState<VtcPricingEstimate | null>(null);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!forcedCategory) return;
@@ -170,17 +174,40 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
 
   const nearest = driversWithDistance[0] ?? null;
 
-  const fare = useMemo(
-    () => computeFare({
-      fromLat: pickup?.lat, fromLng: pickup?.lng,
-      toLat: destination?.lat, toLng: destination?.lng,
-      category, mode,
-    }),
-    [pickup, destination, category, mode],
-  );
+  useEffect(() => {
+    if (!pickup || !destination) {
+      setPricing(null);
+      setPricingError(null);
+      return;
+    }
+    let cancelled = false;
+    setPricingLoading(true);
+    setPricingError(null);
+    calculateVtcPrice({ pickup, destination, category, mode, billableHours: mode === "hour" ? hours : 1 })
+      .then((result) => { if (!cancelled) setPricing(result); })
+      .catch((error) => {
+        if (!cancelled) {
+          setPricing(null);
+          setPricingError(String(error?.message ?? "Tarif indisponible"));
+        }
+      })
+      .finally(() => { if (!cancelled) setPricingLoading(false); });
+    return () => { cancelled = true; };
+  }, [pickup, destination, category, mode, hours]);
+
+  const fare = useMemo(() => ({
+    ok: Boolean(pricing),
+    reason: pricingError ?? (pricingLoading ? "Calcul du tarif en cours…" : "Sélectionnez un départ et une arrivée desservis."),
+    zoneFrom: pricing?.pickupZone ?? null,
+    zoneTo: pricing?.destinationZone ?? null,
+    base: pricing?.totalClient ?? 0,
+    price: pricing?.totalClient ?? 0,
+    category,
+    mode,
+  }), [pricing, pricingError, pricingLoading, category, mode]);
 
   const billableHours = mode === "hour" ? Math.max(1, hours) : 1;
-  const total = fare.ok ? fare.price * billableHours : 0;
+  const total = fare.ok ? fare.price : 0;
 
   const effectiveScheduledAt = rideTiming === "now"
     ? new Date().toISOString()
@@ -281,10 +308,14 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
           model, mode,
           mode_label: mode === "express" ? "Course express" : "Course express 1h",
           billable_hours: billableHours, passengers,
-          pickup: { ...pickup, label: pickupLabel, zone: fare.zoneFrom },
-          destination: { ...destination, label: destLabel, zone: fare.zoneTo },
+          pickup: { ...pickup, label: pickupLabel, zone: pricing?.pickupZone },
+          destination: { ...destination, label: destLabel, zone: pricing?.destinationZone },
           scheduled_at: effectiveScheduledAt, ride_timing: rideTiming,
-          unit_price: fare.price, base_standard_price: fare.base, estimated_total: total,
+          unit_price: total, estimated_total: total,
+          pricing_rule_id: pricing?.pricingRuleId,
+          pickup_zone: pricing?.pickupZone,
+          destination_zone: pricing?.destinationZone,
+          distance_km: pricing?.distanceKm,
           auto_dispatch: true,
           payment_mode: "wallet",
         },
@@ -362,7 +393,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
         ? `${d.description} Votre demande n'a pas été finalisée.`
         : d.description });
     }
-  }, [isAuthenticated, user, fare, rideTiming, scheduledAt, effectiveScheduledAt, total,
+    }, [isAuthenticated, user, fare, pricing, rideTiming, scheduledAt, effectiveScheduledAt, total,
       category, model, mode, billableHours, passengers, pickup, destination, pickupLabel, destLabel, navigate]);
 
   // ─── Écrans d'états ──────────────────────────────────────────────────────
@@ -447,7 +478,7 @@ export function VtcCourseFlow({ category: forcedCategory }: { category?: Vehicle
                 onClear={() => { setDestination(null); setDestLabel(""); }}
               />
 
-              {destination && fare.zoneTo === null && (
+              {destination && !pricingLoading && !pricing && (
                 <div className="mt-2 flex items-start gap-2.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-[12px]">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                   <div>

@@ -25,6 +25,10 @@ export const Route = createFileRoute("/vols/")({
   component: FlightRequestPage,
 });
 
+export function getFlightAuthRedirectPath(): string {
+  return "/connexion";
+}
+
 type Agency = { id: string; name: string; logo_url: string | null };
 
 function FlightRequestPage() {
@@ -83,7 +87,7 @@ function FlightRequestPage() {
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user) {
       toast.error("Connectez-vous pour envoyer votre demande");
-      navigate({ to: "/auth" });
+      navigate({ to: getFlightAuthRedirectPath() });
       return;
     }
     setSending(true);

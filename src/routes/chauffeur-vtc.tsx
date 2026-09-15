@@ -50,7 +50,7 @@ export const Route = createFileRoute("/chauffeur-vtc")({
 
 const LiveMap = lazy(() => import("@/components/LiveMap").then((m) => ({ default: m.LiveMap })));
 
-const COMMISSION_RATE = 0.2;
+const COMMISSION_RATE = 0.1;
 const FCFA = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
 
 interface VtcTrip {

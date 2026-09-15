@@ -36,8 +36,11 @@ export function useAutoAdvance(options: {
   advanceRef.current = onAdvance;
 
   useEffect(() => {
-    if (!enabled || !valid) return;
-    if (!autoSteps.includes(step)) return;
+    if (!enabled || !autoSteps.includes(step)) return;
+    if (!valid) {
+      consumed.current.delete(step);
+      return;
+    }
     if (consumed.current.has(step)) return;
 
     const t = setTimeout(() => {
@@ -48,4 +51,14 @@ export function useAutoAdvance(options: {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, valid, enabled, delay, label]);
+
+  useEffect(() => {
+    if (!autoSteps.includes(step)) {
+      consumed.current.clear();
+      return;
+    }
+    if (!valid) {
+      consumed.current.delete(step);
+    }
+  }, [step, valid, autoSteps]);
 }

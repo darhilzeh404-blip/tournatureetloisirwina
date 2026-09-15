@@ -81,6 +81,7 @@ import { Route as AdminVehiculeTypesRouteImport } from './routes/admin/vehicule-
 import { Route as AdminVolsRouteImport } from './routes/admin/vols'
 import { Route as AdminVolsDemandesRouteImport } from './routes/admin/vols-demandes'
 import { Route as AdminVtcChauffeursRouteImport } from './routes/admin/vtc-chauffeurs'
+import { Route as AdminVtcTarifsRouteImport } from './routes/admin/vtc-tarifs'
 import { Route as AdminVtcWalletsRouteImport } from './routes/admin/vtc-wallets'
 import { Route as AnnoncesIdRouteImport } from './routes/annonces.$id'
 import { Route as BilletsIndexRouteImport } from './routes/billets.index'
@@ -473,6 +474,11 @@ const AdminVtcChauffeursRoute = AdminVtcChauffeursRouteImport.update({
   path: '/vtc-chauffeurs',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminVtcTarifsRoute = AdminVtcTarifsRouteImport.update({
+  id: '/vtc-tarifs',
+  path: '/vtc-tarifs',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminVtcWalletsRoute = AdminVtcWalletsRouteImport.update({
   id: '/vtc-wallets',
   path: '/vtc-wallets',
@@ -700,6 +706,7 @@ export interface FileRoutesByFullPath {
   '/admin/vols': typeof AdminVolsRoute
   '/admin/vols-demandes': typeof AdminVolsDemandesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
+  '/admin/vtc-tarifs': typeof AdminVtcTarifsRoute
   '/admin/vtc-wallets': typeof AdminVtcWalletsRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
@@ -799,6 +806,7 @@ export interface FileRoutesByTo {
   '/admin/vols': typeof AdminVolsRoute
   '/admin/vols-demandes': typeof AdminVolsDemandesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
+  '/admin/vtc-tarifs': typeof AdminVtcTarifsRoute
   '/admin/vtc-wallets': typeof AdminVtcWalletsRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
@@ -904,6 +912,7 @@ export interface FileRoutesById {
   '/admin/vols': typeof AdminVolsRoute
   '/admin/vols-demandes': typeof AdminVolsDemandesRoute
   '/admin/vtc-chauffeurs': typeof AdminVtcChauffeursRoute
+  '/admin/vtc-tarifs': typeof AdminVtcTarifsRoute
   '/admin/vtc-wallets': typeof AdminVtcWalletsRoute
   '/annonces/$id': typeof AnnoncesIdRoute
   '/billets/$id': typeof BilletsIdRoute
@@ -1010,6 +1019,7 @@ export interface FileRouteTypes {
     | '/admin/vols'
     | '/admin/vols-demandes'
     | '/admin/vtc-chauffeurs'
+    | '/admin/vtc-tarifs'
     | '/admin/vtc-wallets'
     | '/annonces/$id'
     | '/billets/$id'
@@ -1109,6 +1119,7 @@ export interface FileRouteTypes {
     | '/admin/vols'
     | '/admin/vols-demandes'
     | '/admin/vtc-chauffeurs'
+    | '/admin/vtc-tarifs'
     | '/admin/vtc-wallets'
     | '/annonces/$id'
     | '/billets/$id'
@@ -1213,6 +1224,7 @@ export interface FileRouteTypes {
     | '/admin/vols'
     | '/admin/vols-demandes'
     | '/admin/vtc-chauffeurs'
+    | '/admin/vtc-tarifs'
     | '/admin/vtc-wallets'
     | '/annonces/$id'
     | '/billets/$id'
@@ -1803,6 +1815,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVtcChauffeursRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/vtc-tarifs': {
+      id: '/admin/vtc-tarifs'
+      path: '/vtc-tarifs'
+      fullPath: '/admin/vtc-tarifs'
+      preLoaderRoute: typeof AdminVtcTarifsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/vtc-wallets': {
       id: '/admin/vtc-wallets'
       path: '/vtc-wallets'
@@ -2050,6 +2069,7 @@ interface AdminRouteRouteChildren {
   AdminVolsRoute: typeof AdminVolsRoute
   AdminVolsDemandesRoute: typeof AdminVolsDemandesRoute
   AdminVtcChauffeursRoute: typeof AdminVtcChauffeursRoute
+  AdminVtcTarifsRoute: typeof AdminVtcTarifsRoute
   AdminVtcWalletsRoute: typeof AdminVtcWalletsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -2088,6 +2108,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminVolsRoute: AdminVolsRoute,
   AdminVolsDemandesRoute: AdminVolsDemandesRoute,
   AdminVtcChauffeursRoute: AdminVtcChauffeursRoute,
+  AdminVtcTarifsRoute: AdminVtcTarifsRoute,
   AdminVtcWalletsRoute: AdminVtcWalletsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

@@ -106,7 +106,7 @@ function AdminVtcWalletsPage() {
           <Wallet className="h-6 w-6" /> Portefeuilles VTC — Chauffeurs & plateforme
         </h1>
         <p className="text-sm text-muted-foreground">
-          Suivi des gains chauffeurs (80%) et de la commission plateforme (20%) sur les courses VTC réglées via portefeuille.
+          Suivi des gains chauffeurs (90%) et de la commission plateforme (10%) sur les courses VTC réglées via portefeuille.
         </p>
       </div>
 
