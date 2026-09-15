@@ -21,6 +21,7 @@ import billetterie3d from "@/assets/icons/billeterie 3d.webp";
 import catalogue3d from "@/assets/icons/catalogue-3d.png";
 import promo3d from "@/assets/icons/Promos 3d.webp";
 import support3d from "@/assets/icons/Support 3d.jpg";
+import groupRideIcon from "@/assets/icons/group-ride.svg";
 
 // Mapping destination id (destinations.ts) -> slug du circuit en BDD
 const DESTINATION_SLUG: Record<string, string> = {
@@ -163,7 +164,7 @@ function EspaceClient() {
           <ArrowRight className="h-4 w-4 text-muted-foreground" />
         </motion.div>
         <motion.div variants={stagger} className="mt-4 grid grid-cols-3 gap-3 md:grid-cols-5">
-  {[
+  {([
     {
       to: "/reserver-transport",
       label: "Navette bus",
@@ -185,6 +186,13 @@ function EspaceClient() {
       image: vtc3d,
       tint: "from-primary/15 to-accent/10",
       locked: !vtcAvailable,
+    },
+    {
+      to: "/deplacement-groupe",
+      label: "Courses groupées",
+      desc: "Trajet partagé",
+      image: groupRideIcon,
+      tint: "from-accent/20 to-primary/10",
     },
 
     {
@@ -230,16 +238,29 @@ function EspaceClient() {
   tint: "from-accent/15 to-accent/5"
 },
 
-  ].map((srv) => {
+  ] satisfies Array<{
+    to: string;
+    label: string;
+    desc: string;
+    image?: string;
+    lucide?: typeof UsersRound;
+    tint: string;
+    locked?: boolean;
+  }>).map((srv) => {
     const locked = "locked" in srv && srv.locked === true;
+    const ServiceIcon = srv.lucide;
     const inner = (
       <>
-        <img
-          src={srv.image}
-          alt={srv.label}
-          loading="lazy"
-          className={`h-12 w-12 object-contain ${locked ? "opacity-50 grayscale" : ""}`}
-        />
+        {srv.image ? (
+          <img
+            src={srv.image}
+            alt={srv.label}
+            loading="lazy"
+            className={`h-12 w-12 object-contain ${locked ? "opacity-50 grayscale" : ""}`}
+          />
+        ) : ServiceIcon ? (
+          <ServiceIcon className={`h-10 w-10 ${locked ? "text-muted-foreground" : "text-primary"}`} aria-hidden="true" />
+        ) : null}
 
         <div className="text-center">
           <div className="text-sm font-bold leading-tight">

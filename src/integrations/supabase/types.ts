@@ -4267,9 +4267,48 @@ export type Database = {
           },
         ]
       }
+      broadcast_notifications: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          id: string
+          image_url: string | null
+          message: string
+          sent_at: string
+          status: string
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          id?: string
+          image_url?: string | null
+          message: string
+          sent_at?: string
+          status?: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          image_url?: string | null
+          message?: string
+          sent_at?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       user_notifications: {
         Row: {
+          broadcast_id: string | null
+          category: string | null
           created_at: string
+          image_url: string | null
           id: string
           is_read: boolean
           link: string | null
@@ -4281,7 +4320,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          broadcast_id?: string | null
+          category?: string | null
           created_at?: string
+          image_url?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
@@ -4293,7 +4335,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          broadcast_id?: string | null
+          category?: string | null
           created_at?: string
+          image_url?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
@@ -5064,6 +5109,15 @@ export type Database = {
       }
     }
     Functions: {
+      send_broadcast_notification: {
+        Args: {
+          _category: string
+          _image_url?: string | null
+          _message: string
+          _title: string
+        }
+        Returns: Database["public"]["Tables"]["broadcast_notifications"]["Row"]
+      }
       accept_ride: {
         Args: { _ride_id: string }
         Returns: {

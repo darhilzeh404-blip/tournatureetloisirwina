@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain, LayoutGrid, Eye, Plane, TrainFront, Ship, ArrowDownToLine } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, CreditCard, Users, Bus, Tag, ArrowLeft, Menu, X, Map, LogOut, Shield, Route as RouteIcon, Radio, Truck, ClipboardCheck, Car, Megaphone, Ticket, Settings2, UsersRound, Coins, Building2, Wallet, Percent, Mountain, LayoutGrid, Eye, Plane, TrainFront, Ship, ArrowDownToLine, Bell } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { setClientPreview } from "@/lib/admin-preview";
@@ -36,6 +36,7 @@ const adminLinks = [
   { to: "/admin/agences", label: "Agences partenaires", icon: Building2, exact: false },
   { to: "/admin/sites-touristiques", label: "Sites touristiques", icon: Mountain, exact: false },
   { to: "/admin/annonces", label: "Annonces", icon: Megaphone, exact: false },
+  { to: "/admin/notifications", label: "Notifications", icon: Bell, exact: false },
   { to: "/admin/suivi", label: "Suivi temps réel", icon: Radio, exact: false },
 ] as const;
 

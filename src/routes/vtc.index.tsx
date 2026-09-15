@@ -1,9 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Calendar, CarFront, Check, CheckCircle2, ChevronDown, Clock, Gem, Heart,
-  Loader2, MapPin, Sparkles, Users, Zap, ArrowRight, Star,
+  Loader2, MapPin, Sparkles, Zap, ArrowRight, Star,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -36,7 +36,7 @@ const VTC_SLEEP_LABEL = "mercredi 2 septembre 2026";
 type WeddingVehicle = keyof typeof WEDDING_FARES;
 type WeddingDuration = "h12" | "h24";
 
-type MainTab = "standard" | "confort" | "vip" | "mariage" | "covoiturage" | "gammes";
+type MainTab = "standard" | "confort" | "vip" | "mariage" | "gammes";
 
 function VtcSleepNotice({
   open,
@@ -95,7 +95,6 @@ const MAIN_TABS: {
   { id: "confort",     label: "Confort",     sub: "Berline",    icon: "/icons/confort-3d.png",          tint: "from-accent/25 to-accent/5" },
   { id: "vip",         label: "VIP",         sub: "Prestige",   icon: "/icons/vip-3d.png",              tint: "from-primary/15 to-accent/10" },
   { id: "mariage",     label: "Mariage",     sub: "Événement",  icon: "/icons/vehicule mariage-3d.png", tint: "from-accent/20 to-primary/10" },
-  { id: "covoiturage", label: "Covoiturage", sub: "En groupe",  lucide: Users,                          tint: "from-primary/20 to-accent/5" },
   { id: "gammes",      label: "Nos Gammes",  sub: "Abonnement", icon: "/icons/gammes-3d.png",           tint: "from-accent/15 to-accent/5" },
 ];
 
@@ -169,7 +168,7 @@ function VtcPage() {
             </div>
           </div>
           <p className="mt-2 max-w-md text-[12.5px] leading-snug text-primary-foreground/85">
-            Choisissez votre gamme, réservez en quelques secondes — Standard, Confort, VIP, Mariage, Covoiturage.
+            Choisissez votre gamme et réservez en quelques secondes — Standard, Confort, VIP ou Mariage.
           </p>
         </div>
       </section>
@@ -280,8 +279,6 @@ function VtcPage() {
                 </div>
               ) : tab === "mariage" ? (
                 <MariageFlow />
-              ) : tab === "covoiturage" ? (
-                <CovoiturageSection />
               ) : tab === "gammes" ? (
                 <PremiumRangesSection onCourse={() => setTab("standard")} />
               ) : (
@@ -295,57 +292,6 @@ function VtcPage() {
       <ClientNav />
       <style>{`.input-base{width:100%;border-radius:.75rem;border:1px solid hsl(var(--border));background:hsl(var(--card));padding:.6rem .75rem;font-size:.875rem;transition:border-color .15s,box-shadow .15s}.input-base:focus{outline:none;border-color:hsl(var(--primary));box-shadow:0 0 0 3px hsl(var(--primary)/.15)}`}</style>
     </div>
-  );
-}
-
-// ─── Covoiturage (résumé + CTA vers le flow existant) ───────────────────────
-function CovoiturageSection() {
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-3xl border border-border/60 bg-card/95 p-5 shadow-sm backdrop-blur-sm"
-    >
-      <div className="flex items-start gap-3">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/15">
-          <Users className="h-7 w-7 text-primary" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary ring-1 ring-primary/20">
-            <Sparkles className="h-2.5 w-2.5" /> Économique
-          </span>
-          <h3 className="mt-1.5 text-[16px] font-extrabold leading-tight text-foreground">Covoiturage · Voyager en groupe</h3>
-          <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
-            Partagez un trajet avec d'autres passagers vers la même destination et divisez le coût de la course.
-            Idéal pour les longs trajets et les déplacements réguliers.
-          </p>
-        </div>
-      </div>
-
-      <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-        {[
-          { i: Users,    t: "Jusqu'à 4 passagers" },
-          { i: MapPin,   t: "Départs & arrivées communs" },
-          { i: Zap,      t: "Tarif partagé, plus léger" },
-          { i: Calendar, t: "Réservez à l'avance" },
-        ].map((f, idx) => {
-          const I = f.i;
-          return (
-            <li key={idx} className="flex items-center gap-2 rounded-2xl border border-border/60 bg-secondary/40 px-3 py-2">
-              <I className="h-4 w-4 text-primary" />
-              <span className="text-[12.5px] font-semibold text-foreground">{f.t}</span>
-            </li>
-          );
-        })}
-      </ul>
-
-      <Link
-        to="/deplacement-groupe"
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[13.5px] font-bold text-primary-foreground shadow-[0_10px_24px_-12px_hsl(var(--primary)/0.65)] transition-all active:scale-[0.98]"
-      >
-        <Users className="h-4 w-4" /> Réserver un covoiturage <ArrowRight className="h-4 w-4" />
-      </Link>
-    </motion.section>
   );
 }
 
@@ -917,6 +863,4 @@ function RangeCard({
     </article>
   );
 }
-
-// (Course de groupe retirée — voir /deplacement-groupe pour le nouveau covoiturage.)
 

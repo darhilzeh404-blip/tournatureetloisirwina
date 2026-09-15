@@ -106,7 +106,16 @@ function FlightRequestPage() {
       status: "pending",
     }).select("id").single();
     setSending(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      console.error("[flight request] insert failed", error);
+      const schemaMissing = /flight_quote_requests|flight_quotes|schema|relation .* does not exist|Could not find .* in schema/i.test(error.message || "");
+      if (schemaMissing) {
+        toast.error("La base de données des demandes de vol n’est pas encore prête. La table flight_quote_requests manque ou n’a pas été migrée dans Supabase.");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
     toast.success("Demande envoyée — un conseiller prépare votre proposition.");
     navigate({ to: "/mes-demandes-vols/$requestId", params: { requestId: (data as any).id } });
   };
