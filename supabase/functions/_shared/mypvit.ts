@@ -383,7 +383,9 @@ export function failure(error: unknown, req?: Request) {
     } else if (error.httpStatus === 401) {
       message = "MyPVIT a refusé l’authentification : vérifiez le mot de passe API et le Code URL Secret.";
     } else if (error.httpStatus === 403) {
-      message = "MyPVIT a bloqué cet appel : vérifiez l’activation de l’API/URL et l’autorisation IP.";
+      message = error.providerCode === "AUTHENTICATION_FAILED"
+        ? "MyPVIT a refusé l’authentification : vérifiez le mot de passe API Production et le Code URL Renew Secret."
+        : "MyPVIT a bloqué cet appel : vérifiez l’activation de l’API/URL et l’autorisation IP.";
     } else if (error.httpStatus === 404) {
       message = "MyPVIT ne reconnaît pas un Code URL : vérifiez les codes Secret, Paiement et Statut.";
     }
