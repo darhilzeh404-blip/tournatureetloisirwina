@@ -14,9 +14,20 @@ function allowedOrigins(): Set<string> {
   );
 }
 
+// Capacitor's packaged WebViews use one of these local origins. They are not
+// websites able to bypass authentication: every payment request still needs
+// a valid Supabase bearer token and is authorised server-side.
+const capacitorOrigins = new Set([
+  "capacitor://localhost",
+  "http://localhost",
+  "https://localhost",
+]);
+
 export function corsHeaders(req?: Request): Record<string, string> {
   const origin = req?.headers.get("origin");
-  const allowed = origin && allowedOrigins().has(origin) ? origin : null;
+  const allowed = origin && (capacitorOrigins.has(origin) || allowedOrigins().has(origin))
+    ? origin
+    : null;
   return {
     ...(allowed ? { "Access-Control-Allow-Origin": allowed } : {}),
     Vary: "Origin",
@@ -50,6 +61,7 @@ export function config() {
   const operationAccount = env("MYPVIT_OPERATION_ACCOUNT_CODE");
   const c = {
     base,
+    // CHECK STATUS is deliberately outside /v2 for MyPVIT.
     statusBase: env("MYPVIT_STATUS_BASE_URL", base.replace(/\/v2$/, "")),
     // The legacy value remains the safe fallback for Sandbox and a merchant
     // with a single production operation account.
@@ -386,6 +398,11 @@ export function failure(error: unknown, req?: Request) {
       message = error.providerCode === "AUTHENTICATION_FAILED"
         ? "MyPVIT a refusé l’authentification : vérifiez le mot de passe API Production et le Code URL Renew Secret."
         : "MyPVIT a bloqué cet appel : vérifiez l’activation de l’API/URL et l’autorisation IP.";
+    } else if (
+      error.phase === "status" && error.httpStatus === 404 &&
+      error.providerCode === "TRANSACTION_NOT_FOUND"
+    ) {
+      message = "MyPVIT ne retrouve pas encore cette transaction. Aucun nouveau débit n’est lancé : vérifiez le compte d’opération et réessayez plus tard.";
     } else if (error.httpStatus === 404) {
       message = "MyPVIT ne reconnaît pas un Code URL : vérifiez les codes Secret, Paiement et Statut.";
     }

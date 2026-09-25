@@ -206,7 +206,6 @@ function ChauffeurVtcPage() {
     toast.success("Vous êtes en ligne");
   }, [user]);
 
-
   // Heartbeat: refresh last_seen_at + position every 30s while online so we
   // stay inside the dispatch window even if the driver isn't moving.
   // IMPORTANT: deps are only [user, isOnline] — we read driverPos via ref so
@@ -498,63 +497,66 @@ function ChauffeurVtcPage() {
   }, [user, load]);
 
 
-  // Live driver position for the dashboard map + realtime upsert to driver_positions
-  // (used by clients to see the car and by the 5 km dispatch filter).
+  // Live driver position is published while the chauffeur page is visible.
+  // Background tracking is intentionally not used in the mobile application.
   useEffect(() => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    if (!user || !isOnline) return;
     let lastPushAt = 0;
     let lastLat: number | null = null;
     let lastLng: number | null = null;
     let lastRenderAt = 0;
     let lastRenderLat: number | null = null;
     let lastRenderLng: number | null = null;
+    const recordPosition = (lat: number, lng: number, heading: number | null, speed: number | null, accuracy: number | null) => {
+      const movedForRender =
+        lastRenderLat == null || lastRenderLng == null
+          ? true
+          : haversineKm(lastRenderLat, lastRenderLng, lat, lng) * 1000 >= 25;
+      if (Date.now() - lastRenderAt >= 4000 || movedForRender) {
+        lastRenderAt = Date.now();
+        lastRenderLat = lat;
+        lastRenderLng = lng;
+        setDriverPos({ lat, lng });
+      }
+
+      const now = Date.now();
+      const movedFar =
+        lastLat == null || lastLng == null
+          ? true
+          : haversineKm(lastLat, lastLng, lat, lng) * 1000 >= 20;
+      if (now - lastPushAt < 5000 && !movedFar) return;
+      lastPushAt = now;
+      lastLat = lat;
+      lastLng = lng;
+      void supabase.from("driver_positions").upsert(
+        {
+          driver_id: user.id,
+          latitude: lat,
+          longitude: lng,
+          heading,
+          speed,
+          accuracy,
+          archived_at: null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "driver_id" },
+      );
+    };
+
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
     const id = navigator.geolocation.watchPosition(
-      (p) => {
-        const lat = p.coords.latitude;
-        const lng = p.coords.longitude;
-        // Throttle du state local : chaque setDriverPos re-rendait tout le
-        // tableau de bord (carte, liste du pool, tri par distance). Avec un
-        // point GPS par seconde sur Android, la WebView gelait.
-        const movedForRender =
-          lastRenderLat == null || lastRenderLng == null
-            ? true
-            : haversineKm(lastRenderLat, lastRenderLng, lat, lng) * 1000 >= 25;
-        if (Date.now() - lastRenderAt >= 4000 || movedForRender) {
-          lastRenderAt = Date.now();
-          lastRenderLat = lat;
-          lastRenderLng = lng;
-          setDriverPos({ lat, lng });
-        }
-        if (!user || !isOnlineRef.current) return;
-        // Throttle: push at most every 5 s OR when the driver has moved >= 20 m.
-        const now = Date.now();
-        const movedFar =
-          lastLat == null || lastLng == null
-            ? true
-            : haversineKm(lastLat, lastLng, lat, lng) * 1000 >= 20;
-        if (now - lastPushAt < 5000 && !movedFar) return;
-        lastPushAt = now;
-        lastLat = lat;
-        lastLng = lng;
-        void supabase.from("driver_positions").upsert(
-          {
-            driver_id: user.id,
-            latitude: lat,
-            longitude: lng,
-            heading: p.coords.heading ?? null,
-            speed: p.coords.speed ?? null,
-            accuracy: p.coords.accuracy ?? null,
-            archived_at: null,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "driver_id" },
-        );
-      },
+      (position) => recordPosition(
+        position.coords.latitude,
+        position.coords.longitude,
+        position.coords.heading,
+        position.coords.speed,
+        position.coords.accuracy,
+      ),
       () => {},
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
     );
     return () => navigator.geolocation.clearWatch(id);
-  }, [user]);
+  }, [user, isOnline]);
 
   // Only show pool trips within 5 km of the driver's current position.
   // If GPS is not yet available, show everything so we don't hide work.
@@ -1202,4 +1204,3 @@ function PoolTab({ trips, loading, busyId, onAccept, isOnline, onGoOnline, drive
     </div>
   );
 }
-

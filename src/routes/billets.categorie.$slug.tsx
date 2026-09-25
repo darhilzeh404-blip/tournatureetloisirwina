@@ -4,6 +4,7 @@ import { ArrowLeft, BadgeCheck, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TicketCategoryIcon, CATEGORY_LABELS, type TicketCategorySlug } from "@/components/TicketCategoryIcon";
 import { AgencyLogo } from "@/components/AgencyLogo";
+import { managedTypeFromCategory } from "@/lib/ticket-quotes";
 
 export const Route = createFileRoute("/billets/categorie/$slug")({
   component: CategoryPage,
@@ -27,9 +28,8 @@ function CategoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (slug === "avion") {
-      navigate({ to: "/vols" });
-    }
+    const ticketType = managedTypeFromCategory(slug);
+    if (ticketType) navigate({ to: "/billets/demande/$type", params: { type: ticketType } });
   }, [slug, navigate]);
 
 

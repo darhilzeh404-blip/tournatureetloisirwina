@@ -50,6 +50,21 @@ function contextFor(serviceType: string | null, details: Record<string, any>): C
   const s = (serviceType ?? "").toLowerCase();
   const mode = String(details.mode ?? "").toLowerCase();
 
+  // Managed flight/train/boat requests become ordinary paid reservations.
+  // Keeping this check first makes the confirmation and WINA-branded PDF
+  // describe the ticket actually purchased rather than a generic request.
+  if (details.ticket_request_id) {
+    const isFlight = s.includes("avion");
+    const isTrain = s.includes("train");
+    const label = isFlight ? "Billet d'avion" : isTrain ? "Billet de train" : "Billet de bateau";
+    return {
+      icon: isFlight ? <Plane className="h-9 w-9" /> : isTrain ? <Train className="h-9 w-9" /> : <Ship className="h-9 w-9" />,
+      title: `${label} payé`,
+      message: "Votre paiement est confirmé. Votre reçu WINA TOUR est disponible ci-dessous ; l'équipe finalise votre billet de voyage.",
+      label,
+    };
+  }
+
   if (s.includes("scolaire")) {
     return {
       icon: <GraduationCap className="h-9 w-9" />,
@@ -149,14 +164,6 @@ function ConfirmationPage() {
     };
   }, [reservationId]);
 
-  if (loading) {
-    return (
-      <main className="flex min-h-[100dvh] items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </main>
-    );
-  }
-
   const details = (row?.details ?? {}) as Record<string, any>;
   const ctx = contextFor(row?.service_type ?? null, details);
 
@@ -220,6 +227,25 @@ function ConfirmationPage() {
       setDownloading(false);
     }
   };
+
+  // A ticket receipt is generated as soon as payment sends the customer to
+  // this confirmation. The session key prevents another download after a
+  // refresh, while the button below remains available at any time.
+  useEffect(() => {
+    if (!isConfirmed || !details.ticket_request_id || !row?.id) return;
+    const key = `wina-ticket-receipt-${row.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "generated");
+    void downloadReceipt();
+  }, [reservationId, isConfirmed, row?.id]);
+
+  if (loading) {
+    return (
+      <main className="flex min-h-[100dvh] items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </main>
+    );
+  }
 
   return (
     <SuccessScreen

@@ -8,12 +8,17 @@
 
 export type ZoneId =
   | "akanda"
+  | "libreville"
   | "libreville_nord"
   | "libreville_centre"
   | "libreville_sud"
   | "owendo"
   | "ntoum"
   | "airport";
+
+// Shared UI vocabulary. Pricing remains server-authoritative in vtc-pricing.
+export type VehicleCategory = "standard" | "confort" | "vip";
+export type RideMode = "express" | "hour";
 
 export type Zone = {
   id: ZoneId;

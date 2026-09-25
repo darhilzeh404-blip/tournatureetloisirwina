@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Tour Wina — Transport & Tourisme au Gabon</title>
+    <meta
+      name="description"
+      content="Réservez transport scolaire, location de bus, VTC et circuits touristiques au Gabon avec Tour Wina."
+    />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light" />
+
+    <!-- iOS : apparence native après installation -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Tour Wina" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        background-color: #ffffff;
+        /* Scroll 100% natif : aucune contrainte touch-action ni overscroll,
+           le WebView Android gère lui-même le geste à un doigt et l'inertie. */
+        -webkit-tap-highlight-color: transparent;
+      }
+      /* Écran de démarrage natif : visible dès le lancement, retiré à l'hydratation */
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background: linear-gradient(160deg, #4a7ce0 0%, #2f56ad 55%, #23407f 100%);
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        transition: opacity 0.35s ease;
+      }
+      #boot-splash.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #boot-splash img {
+        width: 84px;
+        height: 84px;
+        border-radius: 20px;
+        box-shadow: 0 18px 48px rgba(15, 30, 70, 0.45);
+        animation: boot-pop 0.7s cubic-bezier(0.2, 0.8, 0.3, 1);
+      }
+      #boot-splash .boot-title {
+        font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+        color: #fff;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+      #boot-splash .boot-sub {
+        font-family: system-ui, -apple-system, sans-serif;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 12px;
+        margin-top: -12px;
+      }
+      #boot-splash .boot-bar {
+        width: 96px;
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.25);
+        overflow: hidden;
+      }
+      #boot-splash .boot-bar span {
+        display: block;
+        height: 100%;
+        width: 40%;
+        border-radius: 999px;
+        background: #fff;
+        animation: boot-slide 1.1s ease-in-out infinite;
+      }
+      @keyframes boot-pop {
+        from {
+          transform: scale(0.85);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      @keyframes boot-slide {
+        0% {
+          transform: translateX(-110%);
+        }
+        100% {
+          transform: translateX(260%);
+        }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-4Vs86DIq.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/styles-gCWp2HB4.css">
+  </head>
+  <body>
+    <div id="boot-splash" aria-hidden="true">
+      <img src="/icon-192.png" alt="" />
+      <div class="boot-title">Tour Wina</div>
+      <div class="boot-sub">Transport &amp; Tourisme au Gabon</div>
+      <div class="boot-bar"><span></span></div>
+    </div>
+    <div id="root"></div>
+  </body>
+</html>
