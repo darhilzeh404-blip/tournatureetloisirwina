@@ -1,10 +1,15 @@
-// Définitions géographiques utilisées uniquement pour l'affichage
+```ts
+// Définitions géographiques utilisées pour l'affichage
 // et l'aide visuelle sur la carte.
 //
 // IMPORTANT :
-// Les tarifs VTC ne sont PLUS calculés dans ce fichier.
+// Les tarifs VTC ne sont PAS calculés dans ce fichier.
 // La tarification officielle est centralisée dans Supabase via
 // calculate_vtc_price() appelé depuis src/lib/vtc-pricing.ts.
+//
+// IMPORTANT :
+// Les limites ci-dessous doivent rester cohérentes avec
+// public.wina_vtc_zones dans Supabase.
 
 export type ZoneId =
   | "akanda"
@@ -16,7 +21,8 @@ export type ZoneId =
   | "ntoum"
   | "airport";
 
-// Shared UI vocabulary. Pricing remains server-authoritative in vtc-pricing.
+// Shared UI vocabulary.
+// Pricing remains server-authoritative in vtc-pricing.
 export type VehicleCategory = "standard" | "confort" | "vip";
 export type RideMode = "express" | "hour";
 
@@ -28,10 +34,13 @@ export type Zone = {
 };
 
 /**
- * Polygones approximatifs utilisés uniquement pour l'affichage
+ * Polygones utilisés uniquement pour l'affichage
  * et la représentation géographique.
  *
  * Ils ne constituent PAS la source de vérité tarifaire.
+ *
+ * Les limites correspondent aux zones actuellement
+ * utilisées par calculate_vtc_price() dans Supabase.
  */
 export const ZONES: Zone[] = [
   {
@@ -39,12 +48,10 @@ export const ZONES: Zone[] = [
     label: "Akanda",
     color: "#16a34a",
     polygon: [
-      [0.5950, 9.3200],
-      [0.6300, 9.3200],
-      [0.6300, 9.4900],
-      [0.5400, 9.4900],
-      [0.5400, 9.4100],
-      [0.5950, 9.3500],
+      [0.5400, 9.3200],
+      [0.7000, 9.3200],
+      [0.7000, 9.6000],
+      [0.5400, 9.6000],
     ],
   },
 
@@ -123,7 +130,9 @@ export const ZONES: Zone[] = [
 
 /**
  * Algorithme ray-casting.
- * Utilisé uniquement pour la représentation locale d'une zone.
+ *
+ * Utilisé uniquement pour déterminer si un point
+ * se trouve visuellement dans un polygone.
  *
  * NE PAS utiliser le résultat pour calculer le prix.
  */
@@ -145,7 +154,10 @@ function pointInPolygon(
 
     const intersect =
       yi > y !== yj > y &&
-      x < ((xj - xi) * (y - yi)) / (yj - yi + 1e-12) + xi;
+      x <
+        ((xj - xi) * (y - yi)) /
+          (yj - yi + 1e-12) +
+          xi;
 
     if (intersect) {
       inside = !inside;
@@ -158,15 +170,16 @@ function pointInPolygon(
 /**
  * Détection locale destinée à l'affichage.
  *
- * La tarification officielle utilise la détection effectuée
- * côté Supabase dans calculate_vtc_price().
+ * La tarification officielle utilise la détection
+ * effectuée côté Supabase dans calculate_vtc_price().
+ *
+ * L'aéroport est prioritaire car il se trouve
+ * géographiquement dans la zone de Libreville.
  */
 export function detectZone(
   lat: number,
   lng: number
 ): ZoneId | null {
-  // L'aéroport doit être prioritaire car il se trouve
-  // géographiquement dans la zone de Libreville.
   const airport = ZONES.find(
     (zone) => zone.id === "airport"
   );
@@ -179,7 +192,9 @@ export function detectZone(
   }
 
   for (const zone of ZONES) {
-    if (zone.id === "airport") continue;
+    if (zone.id === "airport") {
+      continue;
+    }
 
     if (pointInPolygon([lat, lng], zone.polygon)) {
       return zone.id;
@@ -189,6 +204,9 @@ export function detectZone(
   return null;
 }
 
+/**
+ * Convertit un identifiant de zone en libellé utilisateur.
+ */
 export function zoneLabel(
   id: ZoneId | string | null
 ): string {
@@ -240,3 +258,4 @@ export const formatXAF = (amount: number) =>
     currency: "XAF",
     maximumFractionDigits: 0,
   }).format(amount);
+```
