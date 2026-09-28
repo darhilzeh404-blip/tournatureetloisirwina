@@ -1,4 +1,3 @@
-```tsx
 import { useEffect, useRef, useState } from "react";
 import { Search, MapPin, Loader2, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -188,12 +187,7 @@ export function VtcDestinationSearch({
       }, 6000);
 
       try {
-        const url =
-          `https://nominatim.openstreetmap.org/search?format=json&limit=6` +
-          `&countrycodes=ga` +
-          `&viewbox=${VIEWBOX}` +
-          `&bounded=1` +
-          `&q=${encodeURIComponent(trimmedQuery)}`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=ga&viewbox=${VIEWBOX}&bounded=1&q=${encodeURIComponent(trimmedQuery)}`;
 
         const response = await fetch(url, {
           headers: {
@@ -451,4 +445,3 @@ export function VtcDestinationSearch({
     </div>
   );
 }
-```
