@@ -1,4 +1,4 @@
-```tsx
+
 import { useEffect, useMemo } from "react";
 import {
   MapContainer,
@@ -344,4 +344,3 @@ export function VtcZoneMap({
     </div>
   );
 }
-```

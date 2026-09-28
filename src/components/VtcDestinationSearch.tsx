@@ -1,4 +1,4 @@
-```tsx
+
 import { useEffect, useRef, useState } from "react";
 import { Search, MapPin, Loader2, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -451,4 +451,3 @@ export function VtcDestinationSearch({
     </div>
   );
 }
-```
