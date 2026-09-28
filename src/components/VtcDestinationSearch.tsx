@@ -156,10 +156,10 @@ export function VtcDestinationSearch({
       }, 6000);
 
       try {
-        const url =
-          `https://nominatim.openstreetmap.org/search?format=json&limit=6` +
-          `&countrycodes=ga&viewbox=${VIEWBOX}&bounded=1` +
-          `&q=${encodeURIComponent(query)}`;
+      const url =
+  `https://nominatim.openstreetmap.org/search?format=json&limit=6` +
+  `&countrycodes=ga&viewbox=${VIEWBOX}&bounded=1` +
+  `&q=${encodeURIComponent(query)}`;
 
         const res = await fetch(url, {
           headers: {
