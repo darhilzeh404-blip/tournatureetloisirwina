@@ -396,18 +396,20 @@ export function VtcCourseFlow({
           setPricing(result);
         }
       })
-      .catch((error) => {
-        if (!cancelled) {
-          setPricing(null);
+     .catch((error) => {
+  console.error("[VTC] Erreur calcul tarif :", error);
 
-          setPricingError(
-            String(
-              error?.message ??
-                "Tarif indisponible",
-            ),
-          );
-        }
-      })
+  if (!cancelled) {
+    setPricing(null);
+
+    setPricingError(
+      String(
+        error?.message ??
+          "Tarif indisponible",
+      ),
+    );
+  }
+})
       .finally(() => {
         if (!cancelled) {
           setPricingLoading(false);

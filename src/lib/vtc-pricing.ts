@@ -12,7 +12,10 @@ export type VtcPricingEstimate = {
   distanceKm: number;
 };
 
-type PricingRpc = (fn: string, args: Record<string, unknown>) => Promise<{
+type PricingRpc = (
+  fn: string,
+  args: Record<string, unknown>,
+) => Promise<{
   data: unknown;
   error: { message: string } | null;
 }>;
@@ -25,19 +28,49 @@ export async function calculateVtcPrice(args: {
   billableHours?: number;
 }): Promise<VtcPricingEstimate> {
   const rpc = supabase.rpc as unknown as PricingRpc;
-  const { data, error } = await rpc("calculate_vtc_price", {
-    _pickup_lat: args.pickup.lat,
-    _pickup_lng: args.pickup.lng,
-    _destination_lat: args.destination.lat,
-    _destination_lng: args.destination.lng,
+
+  const rpcArgs = {
+    _pickup_lat: Number(args.pickup.lat),
+    _pickup_lng: Number(args.pickup.lng),
+    _destination_lat: Number(args.destination.lat),
+    _destination_lng: Number(args.destination.lng),
     _category: args.category,
     _mode: args.mode,
-    _billable_hours: args.billableHours ?? 1,
+    _billable_hours: Number(args.billableHours ?? 1),
+  };
+
+  console.log("[VTC PRICING] Appel RPC", {
+    function: "calculate_vtc_price",
+    args: rpcArgs,
   });
-  if (error) throw error;
+
+  const { data, error } = await rpc(
+    "calculate_vtc_price",
+    rpcArgs,
+  );
+
+  console.log("[VTC PRICING] Réponse RPC", {
+    data,
+    error,
+  });
+
+  if (error) {
+    console.error("[VTC PRICING] ERREUR RPC :", error);
+    throw error;
+  }
+
   const row = Array.isArray(data) ? data[0] : data;
-  if (!row) throw new Error("VTC_PRICING_EMPTY");
-  return {
+
+  console.log("[VTC PRICING] Ligne tarifaire :", row);
+
+  if (!row) {
+    console.error(
+      "[VTC PRICING] RPC vide : aucune ligne retournée",
+    );
+    throw new Error("VTC_PRICING_EMPTY");
+  }
+
+  const result: VtcPricingEstimate = {
     totalClient: Number(row.total_client),
     winaCommission: Number(row.wina_commission),
     driverAmount: Number(row.driver_amount),
@@ -48,4 +81,8 @@ export async function calculateVtcPrice(args: {
     destinationZone: String(row.destination_zone),
     distanceKm: Number(row.distance_km),
   };
+
+  console.log("[VTC PRICING] Tarif final :", result);
+
+  return result;
 }
