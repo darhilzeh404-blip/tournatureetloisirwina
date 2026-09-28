@@ -12,14 +12,6 @@ export type VtcPricingEstimate = {
   distanceKm: number;
 };
 
-type PricingRpc = (
-  fn: string,
-  args: Record<string, unknown>,
-) => Promise<{
-  data: unknown;
-  error: { message: string } | null;
-}>;
-
 export async function calculateVtcPrice(args: {
   pickup: { lat: number; lng: number };
   destination: { lat: number; lng: number };
@@ -27,8 +19,6 @@ export async function calculateVtcPrice(args: {
   mode: "express" | "hour";
   billableHours?: number;
 }): Promise<VtcPricingEstimate> {
-  const rpc = supabase.rpc as unknown as PricingRpc;
-
   const rpcArgs = {
     _pickup_lat: Number(args.pickup.lat),
     _pickup_lng: Number(args.pickup.lng),
@@ -44,7 +34,7 @@ export async function calculateVtcPrice(args: {
     args: rpcArgs,
   });
 
-  const { data, error } = await rpc(
+  const { data, error } = await supabase.rpc(
     "calculate_vtc_price",
     rpcArgs,
   );
