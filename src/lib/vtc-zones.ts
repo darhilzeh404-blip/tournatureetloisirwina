@@ -1,5 +1,4 @@
-```ts
-// Définitions géographiques utilisées pour l'affichage
+﻿// Définitions géographiques utilisées pour l'affichage
 // et l'aide visuelle sur la carte.
 //
 // IMPORTANT :
@@ -19,10 +18,9 @@ export type ZoneId =
   | "libreville_sud"
   | "owendo"
   | "ntoum"
-  | "airport";
+  | "airport"
+  | "metro_fallback";
 
-// Shared UI vocabulary.
-// Pricing remains server-authoritative in vtc-pricing.
 export type VehicleCategory = "standard" | "confort" | "vip";
 export type RideMode = "express" | "hour";
 
@@ -126,6 +124,18 @@ export const ZONES: Zone[] = [
       [0.4450, 9.4400],
     ],
   },
+
+  {
+    id: "metro_fallback",
+    label: "Périmètre WINA TOUR",
+    color: "#64748b",
+    polygon: [
+      [0.2000, 9.2000],
+      [0.7000, 9.2000],
+      [0.7000, 10.0000],
+      [0.2000, 10.0000],
+    ],
+  },
 ];
 
 /**
@@ -175,6 +185,9 @@ function pointInPolygon(
  *
  * L'aéroport est prioritaire car il se trouve
  * géographiquement dans la zone de Libreville.
+ *
+ * METRO_FALLBACK est utilisé en dernier recours,
+ * comme dans Supabase où sa priorité est la plus faible.
  */
 export function detectZone(
   lat: number,
@@ -192,13 +205,27 @@ export function detectZone(
   }
 
   for (const zone of ZONES) {
-    if (zone.id === "airport") {
+    if (
+      zone.id === "airport" ||
+      zone.id === "metro_fallback"
+    ) {
       continue;
     }
 
     if (pointInPolygon([lat, lng], zone.polygon)) {
       return zone.id;
     }
+  }
+
+  const fallback = ZONES.find(
+    (zone) => zone.id === "metro_fallback"
+  );
+
+  if (
+    fallback &&
+    pointInPolygon([lat, lng], fallback.polygon)
+  ) {
+    return fallback.id;
   }
 
   return null;
@@ -210,9 +237,7 @@ export function detectZone(
 export function zoneLabel(
   id: ZoneId | string | null
 ): string {
-  if (!id) {
-    return "Hors zone";
-  }
+  if (!id) return "Hors zone";
 
   const labels: Record<string, string> = {
     akanda: "Akanda",
@@ -238,13 +263,12 @@ export function zoneLabel(
 
     airport: "Aéroport Léon-MBA",
     AIRPORT: "Aéroport Léon-MBA",
+
+    metro_fallback: "Périmètre WINA TOUR",
+    METRO_FALLBACK: "Périmètre WINA TOUR",
   };
 
-  return (
-    labels[id] ??
-    labels[id.toLowerCase()] ??
-    "Hors zone"
-  );
+  return labels[id] ?? labels[id.toLowerCase()] ?? "Hors zone";
 }
 
 /**
@@ -258,4 +282,3 @@ export const formatXAF = (amount: number) =>
     currency: "XAF",
     maximumFractionDigits: 0,
   }).format(amount);
-```

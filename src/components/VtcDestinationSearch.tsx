@@ -20,7 +20,7 @@ interface Props {
 
 // Cadre approximatif autour de Libreville / Akanda / Owendo
 // Nominatim viewbox: left,top,right,bottom (lng,lat)
-const VIEWBOX = "9.20,0.70,9.65,0.20";
+const VIEWBOX = "9.20,0.70,10.00,0.20";
 
 // Cache mémoire partagé entre montages (LRU simple, max 50 entrées, TTL 10 min)
 const CACHE_TTL_MS = 10 * 60 * 1000;
