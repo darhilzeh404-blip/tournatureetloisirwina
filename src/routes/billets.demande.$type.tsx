@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { PartnerAgenciesShowcase } from "@/components/PartnerAgenciesShowcase";
 import { isManagedTicketType, TICKET_TYPE_META } from "@/lib/ticket-quotes";
 
 export const Route = createFileRoute("/billets/demande/$type")({ component: ManagedTicketRequest });
@@ -54,6 +55,7 @@ function ManagedTicketRequest() {
   return <main className="min-h-screen bg-background"><div className="mx-auto max-w-3xl px-5 py-8">
     <div className="flex justify-between gap-3"><Link to="/billets" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" /> Billetterie</Link><Link to="/demandes-billets" className="text-sm font-semibold text-primary">Mes demandes</Link></div>
     <header className="mt-6 flex items-center gap-3"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><Ticket className="h-6 w-6" /></div><div><h1 className="text-2xl font-bold">Demande de {meta.label}</h1><p className="text-sm text-muted-foreground">Envoyez votre besoin, puis validez l’offre avant tout paiement.</p></div></header>
+    <PartnerAgenciesShowcase category={ticketType === "flight" ? "avion" : ticketType === "boat" ? "bateau" : "train"} />
     <section className="mt-6 rounded-3xl border bg-card p-5 shadow-sm"><div className="grid gap-3 sm:grid-cols-2"><div><Label>Départ</Label><Input placeholder="Libreville" value={form.origin} onChange={(e) => update("origin", e.target.value)} /></div><div><Label>Arrivée</Label><Input placeholder="Ville ou gare d’arrivée" value={form.destination} onChange={(e) => update("destination", e.target.value)} /></div></div>
       <div className="mt-3 grid grid-cols-2 gap-2">{(["one_way", "round_trip"] as const).map((v) => <button type="button" key={v} onClick={() => update("tripType", v)} className={`rounded-xl border p-3 text-sm font-semibold ${form.tripType === v ? "border-primary bg-primary/10 text-primary" : "text-muted-foreground"}`}>{v === "one_way" ? "Aller simple" : "Aller-retour"}</button>)}</div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2"><div><Label>Date de départ</Label><Input type="date" value={form.departureDate} onChange={(e) => update("departureDate", e.target.value)} /></div>{form.tripType === "round_trip" && <div><Label>Date de retour</Label><Input type="date" value={form.returnDate} onChange={(e) => update("returnDate", e.target.value)} /></div>}</div>

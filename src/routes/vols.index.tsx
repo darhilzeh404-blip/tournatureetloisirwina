@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Plane, Loader2, Send, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AgencyLogo } from "@/components/AgencyLogo";
+import { PartnerAgenciesShowcase } from "@/components/PartnerAgenciesShowcase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -147,6 +148,7 @@ function FlightRequestPage() {
             </p>
           </div>
         </header>
+        <PartnerAgenciesShowcase category="avion" title="Nos compagnies partenaires" />
 
         {partners.length > 0 && (
           <section className="mt-6">
