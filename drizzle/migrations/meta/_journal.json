@@ -8,6 +8,13 @@
       "when": 1791277767570,
       "tag": "0000_restrict_public_catalog_reads_to_active",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791277923491,
+      "tag": "0001_catalog_vehicles_signed_in_read",
+      "breakpoints": true
     }
   ]
 }
