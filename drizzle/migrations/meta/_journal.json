@@ -22,6 +22,13 @@
       "when": 1791299565204,
       "tag": "0002_apply_application_fees_on_reservations",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791299729338,
+      "tag": "0003_app_fees_flights_moving_tickets",
+      "breakpoints": true
     }
   ]
 }
