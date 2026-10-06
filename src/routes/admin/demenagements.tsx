@@ -151,7 +151,7 @@ function AdminDemenagements() {
 
         if (error) throw error;
 
-        setRequests((data as MovingRequest[]) ?? []);
+        setRequests((data as unknown as MovingRequest[]) ?? []);
       } catch (err) {
         console.error("[admin/demenagements]", err);
         toast.error(

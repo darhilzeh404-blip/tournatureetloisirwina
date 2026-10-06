@@ -99,7 +99,7 @@ export const getRouter = () => {
     defaultPendingMs: 400,
     defaultPendingMinMs: 200,
 
-    defaultErrorComponent: DefaultErrorComponent,
+    defaultErrorComponent: DefaultErrorComponent as any,
   });
 
   return router;

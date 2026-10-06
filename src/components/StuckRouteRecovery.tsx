@@ -59,7 +59,7 @@ export function StuckRouteRecovery() {
     select: (state) => ({
       href: state.location.href,
       isLoading: state.isLoading,
-      isTransitioning: state.isTransitioning,
+      isTransitioning: (state as any).isTransitioning,
       status: state.status,
     }),
   });
