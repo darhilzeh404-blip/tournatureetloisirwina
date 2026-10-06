@@ -34,7 +34,7 @@ export async function calculateVtcPrice(args: {
     args: rpcArgs,
   });
 
-  const { data, error } = await supabase.rpc(
+  const { data, error } = await (supabase.rpc as any)(
     "calculate_vtc_price",
     rpcArgs,
   );

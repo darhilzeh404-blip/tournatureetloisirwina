@@ -40,7 +40,7 @@ function AdminNotifications() {
 
   const loadHistory = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("broadcast_notifications")
+    const { data, error } = await (supabase as any).from("broadcast_notifications")
       .select("id,title,message,category,image_url,created_at,sent_at,status")
       .order("created_at", { ascending: false })
       .limit(100);
@@ -67,7 +67,7 @@ function AdminNotifications() {
       return;
     }
     setSending(true);
-    const { data, error } = await supabase.rpc("send_broadcast_notification", {
+    const { data, error } = await (supabase.rpc as any)("send_broadcast_notification", {
       _title: title,
       _message: message,
       _category: category,
@@ -88,7 +88,7 @@ function AdminNotifications() {
 
   const remove = async (item: Broadcast) => {
     if (!window.confirm(`Supprimer la notification « ${item.title} » ?`)) return;
-    const { error } = await supabase.from("broadcast_notifications").delete().eq("id", item.id);
+    const { error } = await (supabase as any).from("broadcast_notifications").delete().eq("id", item.id);
     if (error) toast.error(`Suppression impossible : ${error.message}`);
     else { setHistory((current) => current.filter((entry) => entry.id !== item.id)); toast.success("Notification supprimée."); }
   };
