@@ -134,6 +134,20 @@ function PaiementPage() {
       {/* Récap montant */}
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="p-5 space-y-3">
+          {Array.isArray(reservation.details?.app_fees) && reservation.details!.app_fees.length > 0 && (
+            <>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Prix du service</span>
+                <span>{formatXAF(Number(reservation.details!.base_amount ?? 0))}</span>
+              </div>
+              {reservation.details!.app_fees.map((f: { name: string; amount: number }, i: number) => (
+                <div key={i} className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{f.name}</span>
+                  <span>+{formatXAF(Number(f.amount))}</span>
+                </div>
+              ))}
+            </>
+          )}
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Total à payer</span>
             <span className="font-semibold">{formatXAF(reservation.total_amount)}</span>
