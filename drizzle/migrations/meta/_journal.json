@@ -15,6 +15,13 @@
       "when": 1791277923491,
       "tag": "0001_catalog_vehicles_signed_in_read",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791299565204,
+      "tag": "0002_apply_application_fees_on_reservations",
+      "breakpoints": true
     }
   ]
 }
