@@ -1724,6 +1724,8 @@ export type Database = {
       flight_quote_offers: {
         Row: {
           airline_name: string
+          app_fees: Json
+          app_fees_total: number
           arrival_airport: string | null
           arrival_city: string | null
           arrival_time: string | null
@@ -1760,6 +1762,8 @@ export type Database = {
         }
         Insert: {
           airline_name: string
+          app_fees?: Json
+          app_fees_total?: number
           arrival_airport?: string | null
           arrival_city?: string | null
           arrival_time?: string | null
@@ -1796,6 +1800,8 @@ export type Database = {
         }
         Update: {
           airline_name?: string
+          app_fees?: Json
+          app_fees_total?: number
           arrival_airport?: string | null
           arrival_city?: string | null
           arrival_time?: string | null
@@ -2292,6 +2298,8 @@ export type Database = {
       moving_quotes: {
         Row: {
           admin_note: string | null
+          app_fees: Json
+          app_fees_total: number
           client_message: string | null
           conditions: string | null
           created_at: string
@@ -2304,10 +2312,13 @@ export type Database = {
           scheduled_date: string | null
           scheduled_time: string | null
           status: string
+          total_amount: number | null
           updated_at: string
         }
         Insert: {
           admin_note?: string | null
+          app_fees?: Json
+          app_fees_total?: number
           client_message?: string | null
           conditions?: string | null
           created_at?: string
@@ -2320,10 +2331,13 @@ export type Database = {
           scheduled_date?: string | null
           scheduled_time?: string | null
           status?: string
+          total_amount?: number | null
           updated_at?: string
         }
         Update: {
           admin_note?: string | null
+          app_fees?: Json
+          app_fees_total?: number
           client_message?: string | null
           conditions?: string | null
           created_at?: string
@@ -2336,6 +2350,7 @@ export type Database = {
           scheduled_date?: string | null
           scheduled_time?: string | null
           status?: string
+          total_amount?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -5318,6 +5333,10 @@ export type Database = {
           driver_net: number
           paid_via_wallet: boolean
         }[]
+      }
+      compute_app_fees: {
+        Args: { _base: number; _svcs: string[] }
+        Returns: Json
       }
       compute_reservation_amount:
         | {
