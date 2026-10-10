@@ -145,13 +145,18 @@ function AdminDemenagements() {
             status,
             paid,
             paid_amount,
-            created_at
+            created_at,
+            moving_quotes(price, status)
           `)
           .order("created_at", { ascending: false });
 
         if (error) throw error;
 
-        setRequests((data as unknown as MovingRequest[]) ?? []);
+        // Application fees are never WINA revenue: show the accepted quote's service price.
+        setRequests(((data as any[]) ?? []).map((r) => {
+          const q = (r.moving_quotes ?? []).find((x: any) => x.status === "ACCEPTE");
+          return { ...r, paid_amount: r.paid && q ? Math.min(Number(r.paid_amount ?? 0), Number(q.price)) : r.paid_amount };
+        }) as MovingRequest[]);
       } catch (err) {
         console.error("[admin/demenagements]", err);
         toast.error(
