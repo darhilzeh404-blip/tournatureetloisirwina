@@ -36,6 +36,13 @@
       "when": 1791631605815,
       "tag": "0004_separate_app_fees_from_revenue",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791631762563,
+      "tag": "0005_flight_offer_fees_no_double",
+      "breakpoints": true
     }
   ]
 }

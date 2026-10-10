@@ -106,6 +106,8 @@ function AdminFlightRequests() {
       setOffer({
         ...emptyOffer(),
         ...(o as any),
+        // Admin sees/edits the service price only; application fees are added server-side.
+        total_amount: Math.max(Number((o as any).total_amount ?? 0) - Number((o as any).app_fees_total ?? 0), 0),
         flight_date: (o as any).flight_date ?? "",
         valid_until: (o as any).valid_until ? new Date((o as any).valid_until).toISOString().slice(0, 16) : emptyOffer().valid_until,
       });
