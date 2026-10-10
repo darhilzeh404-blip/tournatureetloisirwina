@@ -3,7 +3,8 @@ import {
   failure,
   json,
   corsHeaders,
-  settle,
+  config,
+  reconcile,
 } from "../_shared/mypvit.ts";
 import { normalizePhone, type Transaction } from "../_shared/mypvit-protocol.ts";
 
@@ -57,7 +58,9 @@ Deno.serve(async (req) => {
     // immutable field against the transaction created server-side, then use the
     // idempotent database RPC so callback retries cannot credit twice. Check
     // Status remains the fallback when a callback is never delivered.
-    await settle(db, tx, body.status, body.transactionId);
+    // Never trust the callback-supplied status: re-verify server-to-server with
+    // MyPVit's authenticated status API before settling.
+    await reconcile(db, config(), tx, body.transactionId);
     return json({ transactionId: body.transactionId, responseCode: body.code }, 200, req);
   } catch (error) {
     return failure(error, req);
