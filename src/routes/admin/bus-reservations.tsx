@@ -133,7 +133,7 @@ function AdminBusReservations() {
       return;
     }
 
-    const groupBusReservations = ((data ?? []) as unknown as Reservation[]).filter((reservation) => Boolean(reservation.details?.trajet_groupe));
+    const groupBusReservations = ((data ?? []) as unknown as Reservation[]).filter((reservation) => Boolean(reservation.details?.trajet_groupe)).map(toAdminReservation);
     setReservations(groupBusReservations);
 
     const reservationIds = groupBusReservations.map((reservation) => reservation.id);
