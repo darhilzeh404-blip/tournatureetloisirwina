@@ -1,0 +1,1 @@
+- Application fees are client-side surcharges, never WINA revenue: admin screens, stats and driver earnings use `reservations.service_amount` / `src/lib/app-fees.ts`, never raw totals. Why: fees must not inflate treasury or commissions.

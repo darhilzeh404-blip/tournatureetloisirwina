@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { paymentRevenue, serviceAmount } from "@/lib/app-fees";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw, Ticket, Building2, Wallet, Users, Bus, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,8 +54,8 @@ function AdminDashboard() {
     try {
       const [reservationsRes, paymentsRes, bookingsRes, ticketsRes, agenciesRes, clientsRes, feesRes] =
         await Promise.all([
-          supabase.from("reservations").select("status, total_amount, paid_amount").limit(5000),
-          supabase.from("payments").select("amount, status").eq("status", "VALIDATED").limit(5000),
+          supabase.from("reservations").select("status, total_amount, paid_amount, service_amount").limit(5000),
+          supabase.from("payments").select("amount, status, reservations(total_amount, service_amount)").eq("status", "VALIDATED").limit(5000),
           supabase.from("partner_bookings").select("status, total_amount").limit(5000),
           supabase.from("partner_tickets").select("id", { count: "exact", head: true }).eq("is_active", true),
           supabase.from("partner_agencies").select("id", { count: "exact", head: true }),
@@ -72,7 +73,7 @@ function AdminDashboard() {
       const payments = paymentsRes.data ?? [];
       const bookings = bookingsRes.data ?? [];
 
-      const paymentsRevenue = payments.reduce((s, p) => s + Number(p.amount ?? 0), 0);
+      const paymentsRevenue = payments.reduce((s, p: any) => s + paymentRevenue(Number(p.amount ?? 0), p.reservations), 0);
       const bookingsRevenue = bookings
         .filter((b) => b.status !== "cancelled")
         .reduce((s, b) => s + Number(b.total_amount ?? 0), 0);

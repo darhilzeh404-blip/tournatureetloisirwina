@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { paymentRevenue } from "@/lib/app-fees";
 import { useEffect, useState } from "react";
 import { CheckCircle, XCircle, Search, MessageSquare, ImageIcon, Copy, ExternalLink } from "lucide-react";
 import { VirtualCardGrid } from "@/components/ui/virtual-list";
@@ -116,7 +117,7 @@ function AdminPaiements() {
     const reservationIds = Array.from(new Set(rows.map((r) => r.reservation_id)));
     const [{ data: profiles }, { data: reservations }] = await Promise.all([
       supabase.from("profiles").select("user_id, full_name").in("user_id", userIds),
-      supabase.from("reservations").select("id, service_type, details").in("id", reservationIds),
+      supabase.from("reservations").select("id, service_type, details, total_amount, service_amount").in("id", reservationIds),
     ]);
     const nameMap = new Map((profiles || []).map((p) => [p.user_id, p.full_name]));
     const resMap = new Map((reservations || []).map((r) => [r.id, r] as const));
@@ -134,6 +135,8 @@ function AdminPaiements() {
           : "";
         return {
           ...r,
+          // Application fees are never WINA revenue: show only the service share.
+          amount: paymentRevenue(r.amount, res as any),
           client_name: nameMap.get(r.user_id) || "—",
           signed_receipt_url: signed,
           service_type: res?.service_type ?? null,

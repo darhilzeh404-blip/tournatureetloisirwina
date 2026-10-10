@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { paymentRevenue, serviceAmount } from "@/lib/app-fees";
 import { useEffect, useState } from "react";
 import { DollarSign, CalendarCheck, Clock, Users, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,12 +40,12 @@ function AdminDashboard() {
         { count: pendingCount },
         { count: clientsCount },
       ] = await Promise.all([
-        supabase.from("payments").select("amount").eq("status", "VALIDATED" as any),
+        supabase.from("payments").select("amount, reservations(total_amount, service_amount)").eq("status", "VALIDATED" as any),
         supabase.from("reservations").select("*", { count: "exact", head: true }).is("archived_at", null),
         supabase.from("payments").select("*", { count: "exact", head: true }).eq("status", "PENDING" as any),
         supabase.from("profiles").select("*", { count: "exact", head: true }).eq("status", "actif"),
       ]);
-      const totalRevenue = (payConfirmed ?? []).reduce((s: number, p: any) => s + (p.amount ?? 0), 0);
+      const totalRevenue = (payConfirmed ?? []).reduce((s: number, p: any) => s + paymentRevenue(p.amount ?? 0, p.reservations), 0);
       setCounts({
         totalRevenue,
         reservations: reservationsCount ?? 0,
