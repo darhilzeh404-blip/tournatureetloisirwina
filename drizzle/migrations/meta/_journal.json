@@ -29,6 +29,13 @@
       "when": 1791299729338,
       "tag": "0003_app_fees_flights_moving_tickets",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791631605815,
+      "tag": "0004_separate_app_fees_from_revenue",
+      "breakpoints": true
     }
   ]
 }

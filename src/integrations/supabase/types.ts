@@ -3120,6 +3120,7 @@ export type Database = {
           paiement_valide: boolean
           reference_code: string | null
           reservation_date: string
+          service_amount: number | null
           service_type: Database["public"]["Enums"]["service_type"]
           status: Database["public"]["Enums"]["reservation_status"]
           total_amount: number
@@ -3139,6 +3140,7 @@ export type Database = {
           paiement_valide?: boolean
           reference_code?: string | null
           reservation_date: string
+          service_amount?: number | null
           service_type: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["reservation_status"]
           total_amount: number
@@ -3158,6 +3160,7 @@ export type Database = {
           paiement_valide?: boolean
           reference_code?: string | null
           reservation_date?: string
+          service_amount?: number | null
           service_type?: Database["public"]["Enums"]["service_type"]
           status?: Database["public"]["Enums"]["reservation_status"]
           total_amount?: number
