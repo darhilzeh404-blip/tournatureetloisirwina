@@ -162,7 +162,11 @@ function AdminBilletsReservationsPage() {
       "Agence", "Billet", "Trajet", "Départ",
       "Places", "Montant (FCFA)", "Statut",
     ];
-    const escape = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`;
+    const escape = (v: string) => {
+      let s = v ?? "";
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+      return `"${s.replace(/"/g, '""')}"`;
+    };
     const lines = [headers.map(escape).join(",")];
     for (const r of filtered) {
       const d = r.details ?? {};
