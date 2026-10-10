@@ -98,7 +98,7 @@ function AdminVtcChauffeurs() {
     const ids = list.map((d) => d.user_id);
     const { data } = await supabase
       .from("trips")
-      .select("driver_id, status, completed_at, reservations!inner(service_type, total_amount)")
+      .select("driver_id, status, completed_at, reservations!inner(service_type, total_amount:service_amount)")
       .in("driver_id", ids)
       .eq("status", "completed")
       .gte("completed_at", `${today}T00:00:00Z`);
@@ -536,7 +536,7 @@ function DriverDetailModal({ driver, onClose }: { driver: Driver; onClose: () =>
     if (period === "month") from.setDate(now.getDate() - 30);
     const { data } = await supabase
       .from("trips")
-      .select("id, completed_at, status, reservations!inner(service_type, total_amount)")
+      .select("id, completed_at, status, reservations!inner(service_type, total_amount:service_amount)")
       .eq("driver_id", driver.user_id)
       .eq("status", "completed")
       .gte("completed_at", from.toISOString())
