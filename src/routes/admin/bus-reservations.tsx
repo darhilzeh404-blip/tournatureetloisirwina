@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toAdminReservation } from "@/lib/app-fees";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createSignedUrlMap } from "@/lib/signed-urls";
 
@@ -119,7 +120,7 @@ function AdminBusReservations() {
     setLoading(true);
     const { data, error } = await supabase
       .from("reservations")
-      .select("id,user_id,status,reservation_date,total_amount,paid_amount,paiement_valide,details,created_at,admin_comment")
+      .select("id,user_id,status,reservation_date,total_amount,paid_amount,service_amount,paiement_valide,details,created_at,admin_comment")
       .eq("service_type", "LOCATION_BUS")
       .is("archived_at", null)
       .order("created_at", { ascending: false })

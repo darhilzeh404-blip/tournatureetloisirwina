@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toAdminReservation } from "@/lib/app-fees";
 import { useState, useEffect, useCallback } from "react";
 import { CheckCircle, XCircle, Eye, Search, UserPlus, Loader2, X, MapPin, Receipt, ShieldCheck, Archive, ArchiveRestore } from "lucide-react";
 import { VirtualTableBody } from "@/components/ui/virtual-list";
@@ -138,7 +139,7 @@ function AdminReservations() {
         .order("created_at", { ascending: false })
         .limit(limit);
 
-      const reservs = (resData as Reservation[]) ?? [];
+      const reservs = ((resData as Reservation[]) ?? []).map(toAdminReservation);
       setReservations(reservs);
       setHasMore(reservs.length >= limit);
 
