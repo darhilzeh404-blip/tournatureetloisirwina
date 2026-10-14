@@ -1327,8 +1327,10 @@ export type Database = {
           created_at: string
           deposit_number: string
           driver_id: string
+          fee_amount: number
           id: string
           method: string
+          net_amount: number | null
           processed_at: string | null
           processed_by: string | null
           reference: string
@@ -1341,8 +1343,10 @@ export type Database = {
           created_at?: string
           deposit_number: string
           driver_id: string
+          fee_amount?: number
           id?: string
           method?: string
+          net_amount?: number | null
           processed_at?: string | null
           processed_by?: string | null
           reference?: string
@@ -1355,8 +1359,10 @@ export type Database = {
           created_at?: string
           deposit_number?: string
           driver_id?: string
+          fee_amount?: number
           id?: string
           method?: string
+          net_amount?: number | null
           processed_at?: string | null
           processed_by?: string | null
           reference?: string

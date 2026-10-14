@@ -43,6 +43,13 @@
       "when": 1791631762563,
       "tag": "0005_flight_offer_fees_no_double",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791985827515,
+      "tag": "0006_withdrawal_fee_and_commission_10",
+      "breakpoints": true
     }
   ]
 }
