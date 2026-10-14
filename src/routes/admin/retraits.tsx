@@ -73,7 +73,7 @@ function AdminWithdrawalsPage() {
     );
   }, [items, query, names]);
 
-  const pendingTotal = items.filter((i) => i.status === "pending").reduce((s, i) => s + i.amount, 0);
+  const pendingTotal = items.filter((i) => i.status === "pending").reduce((s, i) => s + (i.net_amount ?? i.amount), 0);
 
   const confirm = async () => {
     if (!target || busy) return;
@@ -157,7 +157,8 @@ function AdminWithdrawalsPage() {
                 </Badge>
               </div>
 
-              <p className="mt-3 text-2xl font-extrabold tracking-tight text-primary">{fmtXAF(w.amount)}</p>
+              <p className="mt-3 text-2xl font-extrabold tracking-tight text-primary">{fmtXAF(w.net_amount ?? w.amount)}</p>
+              <p className="text-[11px] text-muted-foreground">À déposer · solde débité {fmtXAF(w.amount)} (frais 2 % : {fmtXAF(w.fee_amount ?? 0)})</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {WITHDRAWAL_METHOD_LABEL[w.method] ?? w.method} · <span className="font-medium text-foreground">{w.deposit_number}</span>
               </p>
@@ -188,10 +189,10 @@ function AdminWithdrawalsPage() {
             <DialogDescription>
               {target && (
                 <>
-                  {fmtXAF(target.wd.amount)} vers <strong>{target.wd.deposit_number}</strong> (
+                  Déposez {fmtXAF(target.wd.net_amount ?? target.wd.amount)} hors application vers <strong>{target.wd.deposit_number}</strong> (
                   {WITHDRAWAL_METHOD_LABEL[target.wd.method] ?? target.wd.method}).{" "}
                   {target.approve
-                    ? "Le portefeuille du chauffeur sera débité immédiatement."
+                    ? `Validez seulement après le dépôt : le portefeuille sera vidé (${fmtXAF(target.wd.amount)}).`
                     : "Aucun débit ne sera effectué."}
                 </>
               )}

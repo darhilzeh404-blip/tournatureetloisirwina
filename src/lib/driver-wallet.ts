@@ -24,6 +24,8 @@ export interface DriverWithdrawal {
   id: string;
   driver_id: string;
   amount: number;
+  fee_amount: number;
+  net_amount: number | null;
   deposit_number: string;
   method: string;
   status: "pending" | "paid" | "rejected";
@@ -37,6 +39,8 @@ export const fmtXAF = (n: number) =>
   new Intl.NumberFormat("fr-FR").format(Math.abs(n)) + " FCFA";
 
 export const MIN_WITHDRAWAL = 1000;
+export const WITHDRAWAL_FEE_RATE = 0.02;
+export const withdrawalFee = (amount: number) => Math.ceil(amount * WITHDRAWAL_FEE_RATE);
 
 export function normalizeDepositNumber(raw: string) {
   return raw.replace(/[^0-9+]/g, "");

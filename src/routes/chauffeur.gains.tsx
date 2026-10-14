@@ -14,7 +14,7 @@ import { appToast } from "@/lib/app-toast";
 import { SupportContact } from "@/components/SupportContact";
 import {
   fetchDriverWallet, fetchDriverTransactions, fetchDriverWithdrawals, requestWithdrawal,
-  fmtXAF, MIN_WITHDRAWAL, isValidDepositNumber,
+  fmtXAF, MIN_WITHDRAWAL, withdrawalFee, isValidDepositNumber,
   WITHDRAWAL_METHOD_LABEL, WITHDRAWAL_STATUS_LABEL,
   type DriverWallet, type DriverTx, type DriverWithdrawal,
 } from "@/lib/driver-wallet";
@@ -98,7 +98,11 @@ function ChauffeurGainsPage() {
 
   const submitWithdrawal = async () => {
     if (submitting) return;
-    const value = Number(amountText || 0);
+    const value = available;
+    if (pendingTotal > 0) {
+      appToast.warning("Retrait en cours", "Une demande est déjà en attente de validation.");
+      return;
+    }
     if (value < MIN_WITHDRAWAL) {
       appToast.warning("Montant trop faible", `Le retrait minimum est de ${fmtXAF(MIN_WITHDRAWAL)}.`);
       return;
@@ -116,7 +120,7 @@ function ChauffeurGainsPage() {
       await requestWithdrawal({ amount: value, depositNumber, method });
       appToast.success(
         "Demande de retrait envoyée",
-        `${fmtXAF(value)} — un administrateur validera votre paiement sous peu.`,
+        `${fmtXAF(value - withdrawalFee(value))} vous seront versés après validation par un administrateur.`,
       );
       setOpen(false);
       setAmountText("");
@@ -141,7 +145,7 @@ function ChauffeurGainsPage() {
           <Link to="/chauffeur"><Button size="icon" variant="ghost"><ArrowLeft className="h-5 w-5" /></Button></Link>
           <div className="flex-1">
             <h1 className="text-lg font-bold">Mon portefeuille</h1>
-            <p className="text-xs text-muted-foreground">Gains, retraits et historique · commission 20%</p>
+            <p className="text-xs text-muted-foreground">Gains, retraits et historique · commission 10%</p>
           </div>
         </div>
       </header>
@@ -162,14 +166,14 @@ function ChauffeurGainsPage() {
                 </p>
               )}
               <p className="mt-2 text-xs text-muted-foreground">
-                Crédité automatiquement à chaque course terminée (80% du montant brut).
+                Crédité automatiquement à chaque course terminée (90% du montant brut).
               </p>
 
               <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger asChild>
-                  <Button className="mt-4 h-12 w-full rounded-2xl text-base font-semibold" disabled={available < MIN_WITHDRAWAL}>
+                  <Button className="mt-4 h-12 w-full rounded-2xl text-base font-semibold" disabled={available < MIN_WITHDRAWAL || pendingTotal > 0}>
                     <ArrowDownToLine className="mr-2 h-5 w-5" />
-                    Demander un retrait
+                    Retirer mes gains
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="bottom" className="rounded-t-3xl">
@@ -181,15 +185,10 @@ function ChauffeurGainsPage() {
                       Disponible : <span className="font-bold text-primary">{fmtXAF(available)}</span>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="wd-amount">Montant à retirer (FCFA)</Label>
-                      <NumericTextField
-                        id="wd-amount"
-                        value={amountText}
-                        onChange={setAmountText}
-                        placeholder={`Minimum ${MIN_WITHDRAWAL}`}
-                        className="h-12 text-base"
-                      />
+                    <div className="space-y-1 rounded-2xl border border-border p-3 text-sm">
+                      <div className="flex justify-between"><span>Retrait (totalité du solde)</span><span>{fmtXAF(available)}</span></div>
+                      <div className="flex justify-between text-muted-foreground"><span>Frais de retrait (2 %)</span><span>- {fmtXAF(withdrawalFee(available))}</span></div>
+                      <div className="flex justify-between font-bold text-primary"><span>Vous recevrez</span><span>{fmtXAF(available - withdrawalFee(available))}</span></div>
                     </div>
 
                     <div className="space-y-1.5">

@@ -469,7 +469,7 @@ function ChauffeurVtcPage() {
                 const net = Math.round(gross * (1 - COMMISSION_RATE));
                 toast.success(`Paiement validé · ${FCFA(net)} crédités dans votre portefeuille`);
                 void showAppNotification("Paiement validé", {
-                  body: `${FCFA(net)} crédités (net après commission 20%)`,
+                  body: `${FCFA(net)} crédités (net après commission 10%)`,
                   tag: `payment-${newRow.id}`,
                   url: "/chauffeur-vtc",
                 });
@@ -961,7 +961,7 @@ function StatBlock({ label, data, icon }: { label: string; data: { count: number
             <p className="text-lg font-bold">{FCFA(data.gross)}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase text-muted-foreground">Net (−20%)</p>
+            <p className="text-[10px] uppercase text-muted-foreground">Net (−10%)</p>
             <p className="text-lg font-bold text-primary">{FCFA(net)}</p>
           </div>
         </div>
