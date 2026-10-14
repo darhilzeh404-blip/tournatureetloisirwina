@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+import { listenHorn, playHorn } from "@/lib/vtc-horn";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
@@ -127,6 +129,11 @@ function VtcTrackingPage() {
       })
       .subscribe();
 
+    const stopHorn = listenHorn(reservationId, () => {
+      playHorn();
+      toast.success("Votre chauffeur est arrivé !", { description: "Il vous attend au point de départ." });
+    });
+
     const tripChannel = supabase
       .channel(`vtc-trip-${reservationId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "trips", filter: `reservation_id=eq.${reservationId}` }, (payload) => {
@@ -137,6 +144,7 @@ function VtcTrackingPage() {
       .subscribe();
 
     return () => {
+      stopHorn();
       mounted = false;
       supabase.removeChannel(reservationChannel);
       supabase.removeChannel(tripChannel);
@@ -490,9 +498,9 @@ function VtcTrackingPage() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-bold uppercase tracking-wide text-primary">Chauffeur assigné</p>
                   <p className="mt-0.5 truncate text-base font-bold text-foreground">{driverInfo?.full_name ?? "Chauffeur Wina"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {driverInfo?.vehicle_type ?? "VTC"}
-                    {driverInfo?.license_plate ? ` · ${driverInfo.license_plate}` : ""}
+                  <p className="text-xs text-muted-foreground">{driverInfo?.vehicle_type ?? "VTC"}</p>
+                  <p className="mt-1 inline-block rounded-md border-2 border-foreground/70 bg-background px-2 py-0.5 font-mono text-sm font-bold tracking-widest text-foreground">
+                    {driverInfo?.license_plate || "Plaque non renseignée"}
                   </p>
                 </div>
                 {driverInfo?.phone && (

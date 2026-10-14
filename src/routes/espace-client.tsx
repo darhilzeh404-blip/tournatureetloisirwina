@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, MapPin, Navigation, Lock, UserRound, UsersRound } from "lucide-react";
+import { LogOut, ArrowRight, MapPin, Navigation, Lock, UserRound, UsersRound } from "lucide-react";
 import { isVtcAvailable } from "@/lib/vtc-availability";
 import { VtcUnavailableDialog } from "@/components/VtcUnavailableDialog";
 
@@ -78,7 +78,7 @@ const stagger = {
 
 function EspaceClient() {
   const navigate = useNavigate();
-  const { user, isLoading, isAuthenticated } = useAuth();
+  const { user, isLoading, isAuthenticated, signOut } = useAuth();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || "Voyageur";
   const [target, setTarget] = useState<BookingTarget | null>(null);
   const [vtcNoticeOpen, setVtcNoticeOpen] = useState(false);
@@ -450,6 +450,15 @@ function EspaceClient() {
       {target && <BookingDialog target={target} onClose={() => setTarget(null)} />}
       <VtcUnavailableDialog open={vtcNoticeOpen} onClose={() => setVtcNoticeOpen(false)} />
       <ClientNav />
+      <div className="mx-auto flex max-w-5xl justify-end px-4 pt-3">
+        <button
+          type="button"
+          onClick={async () => { try { await signOut(); } finally { navigate({ to: "/" }); } }}
+          className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+        >
+          <LogOut className="h-3.5 w-3.5" /> Déconnexion
+        </button>
+      </div>
 
     </div>
   );
