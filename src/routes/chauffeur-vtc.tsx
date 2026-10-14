@@ -13,7 +13,9 @@ import {
 import {
   ArrowLeft, CheckCircle, Clock, Crosshair, Hand, History, LayoutDashboard, Loader2, LogOut,
   MapPin, Navigation, Play, RefreshCw, Route as RouteIcon, TrendingUp, Wallet, Zap,
+  Volume2,
 } from "lucide-react";
+import { playHorn, sendHorn } from "@/lib/vtc-horn";
 import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import type { MapMarker } from "@/components/LiveMap";
 import { toast } from "sonner";
@@ -1002,6 +1004,13 @@ function CoursesTab({ trips, loading, busyId, onStart, onComplete }: {
               <Link to="/chauffeur/trips" search={{ tripId: t.id }} className="flex-1">
                 <Button variant="outline" className="w-full gap-2"><Navigation className="h-4 w-4" />Suivi</Button>
               </Link>
+              <Button variant="secondary" aria-label="Klaxonner" title="Je suis arrivé (klaxon)" onClick={async () => {
+                playHorn();
+                try { await sendHorn(t.reservation_id); toast.success("Klaxon envoyé au client"); }
+                catch { toast.error("Impossible de prévenir le client"); }
+              }}>
+                <Volume2 className="h-4 w-4" />
+              </Button>
               {t.status !== "active" ? (
                 <Button onClick={() => onStart(t)} disabled={busyId === t.id} className="flex-1 gap-2">
                   {busyId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
