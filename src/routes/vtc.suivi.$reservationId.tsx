@@ -1,5 +1,6 @@
 import { toast } from "sonner";
-import { listenHorn, playHorn } from "@/lib/vtc-horn";
+import { listenHorn, triggerArrivalAlert } from "@/lib/vtc-horn";
+import { AlertTestButton } from "@/components/vtc/AlertTestButton";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { requestNotificationPermission, showAppNotification } from "@/lib/notifications";
@@ -130,7 +131,7 @@ function VtcTrackingPage() {
       .subscribe();
 
     const stopHorn = listenHorn(reservationId, () => {
-      playHorn();
+      void triggerArrivalAlert();
       toast.success("Votre chauffeur est arrivé !", { description: "Il vous attend au point de départ." });
     });
 
@@ -502,6 +503,7 @@ function VtcTrackingPage() {
                   <p className="mt-1 inline-block rounded-md border-2 border-foreground/70 bg-background px-2 py-0.5 font-mono text-sm font-bold tracking-widest text-foreground">
                     {driverInfo?.license_plate || "Plaque non renseignée"}
                   </p>
+                  <div className="mt-2"><AlertTestButton /></div>
                 </div>
                 {driverInfo?.phone && (
                   <a href={`tel:${driverInfo.phone}`}>
