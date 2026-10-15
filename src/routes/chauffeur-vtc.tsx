@@ -16,6 +16,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { playHorn, sendHorn } from "@/lib/vtc-horn";
+import { AlertTestButton } from "@/components/vtc/AlertTestButton";
 import { useOsrmRoute } from "@/hooks/use-osrm-route";
 import type { MapMarker } from "@/components/LiveMap";
 import { toast } from "sonner";
@@ -718,6 +719,9 @@ function ChauffeurVtcPage() {
           </div>
           <Button size="icon" variant="ghost" onClick={() => load()} aria-label="Rafraîchir"><RefreshCw className="h-4 w-4" /></Button>
           <Button size="icon" variant="ghost" onClick={() => { signOut(); navigate({ to: "/" }); }} aria-label="Déconnexion"><LogOut className="h-4 w-4" /></Button>
+        </div>
+        <div className="mx-auto flex max-w-md justify-end px-4 pb-2">
+          <AlertTestButton label="Tester le klaxon" />
         </div>
         <div className="mx-auto flex max-w-md items-center justify-between gap-3 border-t px-4 py-2.5">
           <div className="flex items-center gap-2">

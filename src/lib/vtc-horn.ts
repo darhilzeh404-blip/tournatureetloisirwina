@@ -38,6 +38,19 @@ export async function sendHorn(reservationId: string) {
   supabase.removeChannel(ch);
 }
 
+/** Alerte complète « chauffeur arrivé » : son, vibration et notification système. */
+export async function triggerArrivalAlert(test = false) {
+  playHorn();
+  const { requestNotificationPermission, showAppNotification } = await import("@/lib/notifications");
+  const perm = await requestNotificationPermission();
+  const shown = perm === "granted"
+    ? await showAppNotification(test ? "Test — Votre chauffeur est arrivé" : "Votre chauffeur est arrivé !", {
+        body: "Il vous attend au point de départ.",
+      })
+    : false;
+  return { permission: perm, notificationShown: shown };
+}
+
 /** Côté client : écoute le klaxon du chauffeur. */
 export function listenHorn(reservationId: string, onHorn: () => void) {
   const ch = supabase
