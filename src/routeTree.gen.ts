@@ -64,6 +64,7 @@ import { Route as AdminDemenagementsRouteImport } from './routes/admin/demenagem
 import { Route as AdminFideliteRouteImport } from './routes/admin/fidelite'
 import { Route as AdminFraisRouteImport } from './routes/admin/frais'
 import { Route as AdminGroupRidesRouteImport } from './routes/admin/group-rides'
+import { Route as AdminIncidentsRouteImport } from './routes/admin/incidents'
 import { Route as AdminNaviresRouteImport } from './routes/admin/navires'
 import { Route as AdminNotificationsRouteImport } from './routes/admin/notifications'
 import { Route as AdminOffresRouteImport } from './routes/admin/offres'
@@ -106,6 +107,7 @@ import { Route as WalletRechargerRouteImport } from './routes/wallet.recharger'
 import { Route as ApiAdminCreateDriverRouteImport } from './routes/api/admin.create-driver'
 import { Route as ApiAdminCreateUserRouteImport } from './routes/api/admin.create-user'
 import { Route as ApiAdminDeleteUserRouteImport } from './routes/api/admin.delete-user'
+import { Route as ApiAdminIncidentTriageRouteImport } from './routes/api/admin.incident-triage'
 import { Route as BilletsAgenceAgencyIdRouteImport } from './routes/billets.agence.$agencyId'
 import { Route as BilletsBusAgencyIdRouteImport } from './routes/billets.bus.$agencyId'
 import { Route as BilletsCategorieSlugRouteImport } from './routes/billets.categorie.$slug'
@@ -393,6 +395,11 @@ const AdminGroupRidesRoute = AdminGroupRidesRouteImport.update({
   path: '/group-rides',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminIncidentsRoute = AdminIncidentsRouteImport.update({
+  id: '/incidents',
+  path: '/incidents',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminNaviresRoute = AdminNaviresRouteImport.update({
   id: '/navires',
   path: '/navires',
@@ -606,6 +613,11 @@ const ApiAdminDeleteUserRoute = ApiAdminDeleteUserRouteImport.update({
   path: '/api/admin/delete-user',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminIncidentTriageRoute = ApiAdminIncidentTriageRouteImport.update({
+  id: '/api/admin/incident-triage',
+  path: '/api/admin/incident-triage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BilletsAgenceAgencyIdRoute = BilletsAgenceAgencyIdRouteImport.update({
   id: '/agence/$agencyId',
   path: '/agence/$agencyId',
@@ -714,6 +726,7 @@ export interface FileRoutesByFullPath {
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
+  '/admin/incidents': typeof AdminIncidentsRoute
   '/admin/navires': typeof AdminNaviresRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/offres': typeof AdminOffresRoute
@@ -757,6 +770,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/api/admin/delete-user': typeof ApiAdminDeleteUserRoute
+  '/api/admin/incident-triage': typeof ApiAdminIncidentTriageRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -818,6 +832,7 @@ export interface FileRoutesByTo {
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
+  '/admin/incidents': typeof AdminIncidentsRoute
   '/admin/navires': typeof AdminNaviresRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/offres': typeof AdminOffresRoute
@@ -861,6 +876,7 @@ export interface FileRoutesByTo {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/api/admin/delete-user': typeof ApiAdminDeleteUserRoute
+  '/api/admin/incident-triage': typeof ApiAdminIncidentTriageRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -928,6 +944,7 @@ export interface FileRoutesById {
   '/admin/fidelite': typeof AdminFideliteRoute
   '/admin/frais': typeof AdminFraisRoute
   '/admin/group-rides': typeof AdminGroupRidesRoute
+  '/admin/incidents': typeof AdminIncidentsRoute
   '/admin/navires': typeof AdminNaviresRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/offres': typeof AdminOffresRoute
@@ -971,6 +988,7 @@ export interface FileRoutesById {
   '/api/admin/create-driver': typeof ApiAdminCreateDriverRoute
   '/api/admin/create-user': typeof ApiAdminCreateUserRoute
   '/api/admin/delete-user': typeof ApiAdminDeleteUserRoute
+  '/api/admin/incident-triage': typeof ApiAdminIncidentTriageRoute
   '/billets/agence/$agencyId': typeof BilletsAgenceAgencyIdRoute
   '/billets/bus/$agencyId': typeof BilletsBusAgencyIdRoute
   '/billets/categorie/$slug': typeof BilletsCategorieSlugRoute
@@ -1039,6 +1057,7 @@ export interface FileRouteTypes {
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
+    | '/admin/incidents'
     | '/admin/navires'
     | '/admin/notifications'
     | '/admin/offres'
@@ -1082,6 +1101,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/api/admin/delete-user'
+    | '/api/admin/incident-triage'
     | '/billets/agence/$agencyId'
     | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
@@ -1143,6 +1163,7 @@ export interface FileRouteTypes {
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
+    | '/admin/incidents'
     | '/admin/navires'
     | '/admin/notifications'
     | '/admin/offres'
@@ -1186,6 +1207,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/api/admin/delete-user'
+    | '/api/admin/incident-triage'
     | '/billets/agence/$agencyId'
     | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
@@ -1252,6 +1274,7 @@ export interface FileRouteTypes {
     | '/admin/fidelite'
     | '/admin/frais'
     | '/admin/group-rides'
+    | '/admin/incidents'
     | '/admin/navires'
     | '/admin/notifications'
     | '/admin/offres'
@@ -1295,6 +1318,7 @@ export interface FileRouteTypes {
     | '/api/admin/create-driver'
     | '/api/admin/create-user'
     | '/api/admin/delete-user'
+    | '/api/admin/incident-triage'
     | '/billets/agence/$agencyId'
     | '/billets/bus/$agencyId'
     | '/billets/categorie/$slug'
@@ -1358,6 +1382,7 @@ export interface RootRouteChildren {
   ApiAdminCreateDriverRoute: typeof ApiAdminCreateDriverRoute
   ApiAdminCreateUserRoute: typeof ApiAdminCreateUserRoute
   ApiAdminDeleteUserRoute: typeof ApiAdminDeleteUserRoute
+  ApiAdminIncidentTriageRoute: typeof ApiAdminIncidentTriageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1747,6 +1772,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminGroupRidesRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/incidents': {
+      id: '/admin/incidents'
+      path: '/incidents'
+      fullPath: '/admin/incidents'
+      preLoaderRoute: typeof AdminIncidentsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/navires': {
       id: '/admin/navires'
       path: '/navires'
@@ -2041,6 +2073,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminDeleteUserRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/incident-triage': {
+      id: '/api/admin/incident-triage'
+      path: '/api/admin/incident-triage'
+      fullPath: '/api/admin/incident-triage'
+      preLoaderRoute: typeof ApiAdminIncidentTriageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/billets/agence/$agencyId': {
       id: '/billets/agence/$agencyId'
       path: '/agence/$agencyId'
@@ -2131,6 +2170,7 @@ interface AdminRouteRouteChildren {
   AdminFideliteRoute: typeof AdminFideliteRoute
   AdminFraisRoute: typeof AdminFraisRoute
   AdminGroupRidesRoute: typeof AdminGroupRidesRoute
+  AdminIncidentsRoute: typeof AdminIncidentsRoute
   AdminNaviresRoute: typeof AdminNaviresRoute
   AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminOffresRoute: typeof AdminOffresRoute
@@ -2171,6 +2211,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminFideliteRoute: AdminFideliteRoute,
   AdminFraisRoute: AdminFraisRoute,
   AdminGroupRidesRoute: AdminGroupRidesRoute,
+  AdminIncidentsRoute: AdminIncidentsRoute,
   AdminNaviresRoute: AdminNaviresRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminOffresRoute: AdminOffresRoute,
@@ -2354,6 +2395,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminCreateDriverRoute: ApiAdminCreateDriverRoute,
   ApiAdminCreateUserRoute: ApiAdminCreateUserRoute,
   ApiAdminDeleteUserRoute: ApiAdminDeleteUserRoute,
+  ApiAdminIncidentTriageRoute: ApiAdminIncidentTriageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
