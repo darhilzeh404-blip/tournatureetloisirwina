@@ -4568,6 +4568,30 @@ export type Database = {
         }
         Relationships: []
       }
+      vtc_horn_events: {
+        Row: {
+          client_id: string
+          created_at: string
+          driver_user_id: string
+          id: string
+          reservation_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          driver_user_id: string
+          id?: string
+          reservation_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          driver_user_id?: string
+          id?: string
+          reservation_id?: string
+        }
+        Relationships: []
+      }
       vtc_recharge_requests: {
         Row: {
           admin_note: string | null
@@ -5792,6 +5816,7 @@ export type Database = {
         }
         Returns: number
       }
+      send_vtc_horn: { Args: { _reservation_id: string }; Returns: string }
       spend_vtc_points: {
         Args: {
           _amount: number
