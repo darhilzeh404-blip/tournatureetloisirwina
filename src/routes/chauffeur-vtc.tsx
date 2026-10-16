@@ -1011,7 +1011,7 @@ function CoursesTab({ trips, loading, busyId, onStart, onComplete }: {
               <Button variant="secondary" aria-label="Klaxonner" title="Je suis arrivé (klaxon)" onClick={async () => {
                 playHorn();
                 try { await sendHorn(t.reservation_id); toast.success("Klaxon envoyé au client"); }
-                catch { toast.error("Impossible de prévenir le client"); }
+                catch (e) { toast.error(e instanceof Error ? e.message : "Impossible de prévenir le client"); }
               }}>
                 <Volume2 className="h-4 w-4" />
               </Button>

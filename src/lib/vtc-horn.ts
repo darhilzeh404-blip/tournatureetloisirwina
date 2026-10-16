@@ -27,15 +27,13 @@ export function playHorn() {
   } catch { /* audio indisponible */ }
 }
 
-/** Le chauffeur klaxonne : envoie le signal au client de cette réservation. */
+/**
+ * Le chauffeur klaxonne. La vérification est faite côté serveur :
+ * seul le chauffeur assigné à la course peut créer l'événement.
+ */
 export async function sendHorn(reservationId: string) {
-  const ch = supabase.channel(channelName(reservationId));
-  await new Promise<void>((resolve) => {
-    const t = setTimeout(resolve, 4000);
-    ch.subscribe((status) => { if (status === "SUBSCRIBED") { clearTimeout(t); resolve(); } });
-  });
-  await ch.send({ type: "broadcast", event: "horn", payload: { at: Date.now() } });
-  supabase.removeChannel(ch);
+  const { error } = await (supabase as any).rpc("send_vtc_horn", { _reservation_id: reservationId });
+  if (error) throw new Error(error.message);
 }
 
 /** Alerte complète « chauffeur arrivé » : son, vibration et notification système. */
@@ -51,11 +49,15 @@ export async function triggerArrivalAlert(test = false) {
   return { permission: perm, notificationShown: shown };
 }
 
-/** Côté client : écoute le klaxon du chauffeur. */
+/** Côté client : écoute uniquement les klaxons validés par le serveur. */
 export function listenHorn(reservationId: string, onHorn: () => void) {
   const ch = supabase
     .channel(channelName(reservationId))
-    .on("broadcast", { event: "horn" }, () => onHorn())
+    .on(
+      "postgres_changes" as any,
+      { event: "INSERT", schema: "public", table: "vtc_horn_events", filter: `reservation_id=eq.${reservationId}` },
+      () => onHorn(),
+    )
     .subscribe();
   return () => { supabase.removeChannel(ch); };
 }
